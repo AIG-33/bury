@@ -93,7 +93,7 @@ export default async function CoachDashboardPage({ params }: Props) {
       />
 
       {/* KPI cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {(
           [
             { k: "players", v: data.kpi.players_active_30d, href: "/coach/players" },

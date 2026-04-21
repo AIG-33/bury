@@ -323,7 +323,9 @@
     "find": "Find a Player",
     "profile": "Profile",
     "coach": "Coach panel",
-    "admin": "Admin"
+    "admin": "Admin",
+    "menu_open": "Open menu",
+    "menu_close": "Close menu"
   },
   "coachNav": {
     "dashboard": "Dashboard",
@@ -1804,6 +1806,37 @@
           "1": "Pros and parents alike can follow along without an account."
         }
       }
+    }
+  },
+  "footer": {
+    "tagline": "Universal Elo, find a player nearby, run tournaments. Tennis in your pocket.",
+    "links": {
+      "title": "Navigation",
+      "tournaments": "Tournaments",
+      "coaches": "Coaches",
+      "help": "Help",
+      "login": "Sign in"
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "Questions, feedback or a bug? Drop us a line — we reply within 24 h."
+    },
+    "install": {
+      "title": "Install the app on your phone",
+      "body": "Open it like a native app — no App Store or Google Play. Works offline after the first visit.",
+      "android_button": "Android",
+      "ios_button": "iPhone",
+      "android_modal_title": "Install on Android",
+      "android_step_1": "Open this page in Chrome.",
+      "android_step_2": "Tap the menu (⋮) in the top-right corner.",
+      "android_step_3": "Choose \"Install app\" or \"Add to Home screen\".",
+      "android_install_native": "Install in one tap",
+      "android_native_hint": "Your browser supports inline install — no extra steps required.",
+      "ios_modal_title": "Install on iPhone / iPad",
+      "ios_step_1": "Open this page in Safari (not Chrome or an in-app browser).",
+      "ios_step_2": "Tap the Share icon at the bottom of the screen.",
+      "ios_step_3": "Choose \"Add to Home Screen\" and confirm.",
+      "close": "Close"
     }
   }
 }

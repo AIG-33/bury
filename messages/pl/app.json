@@ -323,7 +323,9 @@
     "find": "Znajdź rywala",
     "profile": "Profil",
     "coach": "Panel trenera",
-    "admin": "Admin"
+    "admin": "Admin",
+    "menu_open": "Otwórz menu",
+    "menu_close": "Zamknij menu"
   },
   "coachNav": {
     "dashboard": "Pulpit",
@@ -1804,6 +1806,37 @@
           "1": "Profesjonaliści i rodzice mogą śledzić bez konta."
         }
       }
+    }
+  },
+  "footer": {
+    "tagline": "Uniwersalne Elo, znajdź rywala w okolicy, prowadź turnieje. Tenis w Twoim telefonie.",
+    "links": {
+      "title": "Nawigacja",
+      "tournaments": "Turnieje",
+      "coaches": "Trenerzy",
+      "help": "Pomoc",
+      "login": "Zaloguj się"
+    },
+    "contact": {
+      "title": "Kontakt",
+      "body": "Pytania, sugestie albo bug? Napisz do nas — odpowiadamy w 24 h."
+    },
+    "install": {
+      "title": "Zainstaluj aplikację na telefonie",
+      "body": "Otwieraj jak natywną aplikację — bez App Store i Google Play. Działa offline po pierwszym wejściu.",
+      "android_button": "Android",
+      "ios_button": "iPhone",
+      "android_modal_title": "Zainstaluj na Androidzie",
+      "android_step_1": "Otwórz tę stronę w Chrome.",
+      "android_step_2": "Dotknij menu (⋮) w prawym górnym rogu.",
+      "android_step_3": "Wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.",
+      "android_install_native": "Zainstaluj jednym dotknięciem",
+      "android_native_hint": "Twoja przeglądarka obsługuje instalację bez wychodzenia ze strony.",
+      "ios_modal_title": "Zainstaluj na iPhone / iPad",
+      "ios_step_1": "Otwórz tę stronę w Safari (nie w Chrome ani in-app).",
+      "ios_step_2": "Dotknij ikony „Udostępnij” na dole ekranu.",
+      "ios_step_3": "Wybierz „Dodaj do ekranu głównego” i potwierdź.",
+      "close": "Zamknij"
     }
   }
 }

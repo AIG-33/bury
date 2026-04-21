@@ -116,8 +116,8 @@ export function QuizVersionsClient({
           <p className="text-sm text-ink-600">{t("empty_body")}</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl2 border border-ink-100 bg-white shadow-card">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-clay-50 text-xs uppercase tracking-wider text-clay-800">
               <tr>
                 <th className="py-3 pl-4 text-left">{t("col_version")}</th>

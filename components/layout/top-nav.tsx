@@ -5,6 +5,7 @@ import { TennisBall } from "@/components/icons/tennis-ball";
 import { LanguageSwitcher } from "./language-switcher";
 import { NavShell } from "./nav-shell";
 import { NavLink } from "./nav-link";
+import { MobileMenu, type MobileMenuItem } from "./mobile-menu";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function TopNav() {
@@ -26,6 +27,28 @@ export async function TopNav() {
     isCoach = data?.is_coach ?? false;
     isAdmin = data?.is_admin ?? false;
   }
+
+  const mobileItems: MobileMenuItem[] = user
+    ? [
+        { href: "/me/rating", label: t("rating") },
+        { href: "/me/bookings", label: t("bookings") },
+        { href: "/me/matches", label: t("matches") },
+        { href: "/me/tournaments", label: t("tournaments") },
+        { href: "/me/find", label: t("find") },
+        { href: "/me/coaches", label: t("coaches") },
+        { href: "/me/profile", label: t("profile") },
+        ...(isCoach
+          ? [{ href: "/coach/dashboard", label: t("coach"), highlight: true }]
+          : []),
+        ...(isAdmin
+          ? [{ href: "/admin", label: t("admin"), highlight: true }]
+          : []),
+      ]
+    : [
+        { href: "/tournaments", label: t("tournaments") },
+        { href: "/coaches", label: t("coaches") },
+        { href: "/help", label: t("help") },
+      ];
 
   return (
     <NavShell>
@@ -59,7 +82,7 @@ export async function TopNav() {
         {/* Centre capsule — floating glass pill with nav links */}
         <nav
           aria-label="Primary"
-          className="hidden h-10 items-center gap-0.5 rounded-full border border-ink-200/70 bg-white/55 px-1.5 backdrop-blur-md md:flex"
+          className="hidden h-10 max-w-[60vw] items-center gap-0.5 overflow-x-auto rounded-full border border-ink-200/70 bg-white/55 px-1.5 backdrop-blur-md md:flex lg:max-w-none"
         >
           {user ? (
             <>
@@ -93,6 +116,16 @@ export async function TopNav() {
         {/* Right cluster */}
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
+          <MobileMenu
+            items={mobileItems}
+            authed={!!user}
+            labels={{
+              open: t("menu_open"),
+              close: t("menu_close"),
+              logout: t("logout"),
+              login: t("login"),
+            }}
+          />
           {user ? (
             <form
               action="/api/auth/signout"

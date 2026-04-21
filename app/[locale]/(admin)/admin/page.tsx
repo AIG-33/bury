@@ -54,7 +54,7 @@ export default async function AdminOverviewPage({ params }: Props) {
         result={[t("help.result.1"), t("help.result.2")]}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat icon={Users} label={t("stat_players")} value={players ?? 0} />
         <Stat icon={Users} label={t("stat_coaches")} value={coaches ?? 0} />
         <Stat icon={Trophy} label={t("stat_tournaments")} value={tournaments ?? 0} />

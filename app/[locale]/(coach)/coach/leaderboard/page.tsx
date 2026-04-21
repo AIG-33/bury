@@ -69,8 +69,8 @@ export default async function CoachLeaderboardPage({ params, searchParams }: Pro
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl2 border border-ink-100 bg-white shadow-card">
+          <table className="w-full min-w-[420px] text-sm">
             <thead className="bg-grass-50 text-xs uppercase tracking-wider text-grass-800">
               <tr>
                 <th className="w-10 py-3 pl-4 text-left">{t("col_rank")}</th>

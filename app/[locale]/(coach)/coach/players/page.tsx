@@ -79,20 +79,20 @@ export default async function CoachPlayersPage({ params }: Props) {
             description={t("recent.empty_description")}
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-ink-100 bg-white">
+          <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white">
             <table className="w-full text-sm">
               <thead className="bg-ink-50 text-ink-600">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium">{t("recent.col_email")}</th>
-                  <th className="px-4 py-2 text-left font-medium">{t("recent.col_status")}</th>
-                  <th className="px-4 py-2 text-left font-medium">{t("recent.col_expires")}</th>
+                  <th className="px-3 py-2 text-left font-medium sm:px-4">{t("recent.col_email")}</th>
+                  <th className="px-3 py-2 text-left font-medium sm:px-4">{t("recent.col_status")}</th>
+                  <th className="px-3 py-2 text-left font-medium sm:px-4">{t("recent.col_expires")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-100">
                 {invites.map((i) => (
                   <tr key={i.id}>
-                    <td className="px-4 py-2 text-ink-900">{i.email}</td>
-                    <td className="px-4 py-2">
+                    <td className="break-all px-3 py-2 text-ink-900 sm:px-4">{i.email}</td>
+                    <td className="whitespace-nowrap px-3 py-2 sm:px-4">
                       <StatusBadge status={i.status} labels={{
                         pending: t("status.pending"),
                         accepted: t("status.accepted"),
@@ -100,7 +100,7 @@ export default async function CoachPlayersPage({ params }: Props) {
                         revoked: t("status.revoked"),
                       }} />
                     </td>
-                    <td className="px-4 py-2 text-ink-500">
+                    <td className="whitespace-nowrap px-3 py-2 text-ink-500 sm:px-4">
                       {new Date(i.expires_at).toLocaleDateString(locale)}
                     </td>
                   </tr>
