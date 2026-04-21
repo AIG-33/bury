@@ -83,7 +83,7 @@ export async function TopNav() {
             </>
           ) : (
             <>
-              <NavLink href="/leaderboard">{t("leaderboard")}</NavLink>
+              <NavLink href="/tournaments">{t("tournaments")}</NavLink>
               <NavLink href="/coaches">{t("coaches")}</NavLink>
               <NavLink href="/help">{t("help")}</NavLink>
             </>

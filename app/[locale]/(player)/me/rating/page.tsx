@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Calendar, Trophy, Star } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadMyRatingTab } from "@/lib/rating/history";
+import { PageHeader } from "@/components/layout/page-header";
 import { EloChart } from "./elo-chart";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -20,11 +21,12 @@ export default async function MyRatingPage({ params }: Props) {
   const deltaPositive = hero.delta_30d >= 0;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+    <div className="page-shell space-y-8">
+      <PageHeader
+        eyebrow="Player · Rating"
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <HelpPanel
         pageId="me-rating"
@@ -34,17 +36,15 @@ export default async function MyRatingPage({ params }: Props) {
       />
 
       {/* Hero: current Elo */}
-      <section className="rounded-xl2 border border-grass-200 bg-gradient-to-br from-grass-50 to-white p-6 shadow-card">
+      <section className="surface-card overflow-hidden bg-gradient-to-br from-grass-50 via-white to-white">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-ink-500">
-              {t("hero.label")}
-            </p>
-            <p className="mt-1 inline-flex items-center gap-3 font-mono text-6xl font-bold tabular-nums text-grass-700">
-              <Trophy className="h-10 w-10 text-ball-500" />
+            <p className="label-eyebrow">{t("hero.label")}</p>
+            <p className="mt-2 inline-flex items-center gap-4 font-display text-6xl font-extrabold tabular-nums text-grass-900 md:text-7xl">
+              <Trophy className="h-12 w-12 text-ball-500 drop-shadow-[0_4px_12px_rgba(31,138,76,0.25)]" />
               {hero.current_elo}
             </p>
-            <p className="mt-2 text-sm text-ink-600">
+            <p className="mt-3 text-[15px] text-ink-600">
               {t(`hero.status.${hero.elo_status}`)} ·{" "}
               {t("hero.matches", { n: hero.rated_matches_count })}
             </p>
@@ -77,7 +77,7 @@ export default async function MyRatingPage({ params }: Props) {
 
       {/* Season race + chart */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card lg:col-span-2">
+        <section className="surface-card lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-ink-900">
               {t("history.title")}
@@ -101,7 +101,7 @@ export default async function MyRatingPage({ params }: Props) {
           />
         </section>
 
-        <section className="rounded-xl2 border border-ball-200 bg-gradient-to-br from-ball-50 to-white p-6 shadow-card">
+        <section className="surface-card overflow-hidden bg-gradient-to-br from-ball-50 via-white to-white">
           <div className="mb-2 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-ball-700" />
             <h2 className="font-display text-lg font-semibold text-ink-900">
@@ -140,7 +140,7 @@ export default async function MyRatingPage({ params }: Props) {
       </div>
 
       {/* Top coaches placeholder */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
+      <section className="surface-card">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-ink-900">
             {t("coaches.title")}

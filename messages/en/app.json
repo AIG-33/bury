@@ -502,7 +502,59 @@
     "kpi": {
       "players": { "label": "Club players", "hint": "Active within 30 days" },
       "tournaments": { "label": "Active tournaments", "hint": "In progress or in registration" },
-      "bookings": { "label": "Upcoming bookings", "hint": "Next 7 days" }
+      "bookings": { "label": "Upcoming bookings", "hint": "Next 7 days" },
+      "pending": { "label": "Pending matches", "hint": "Awaiting your action" }
+    },
+    "today": {
+      "title": "Today's sessions",
+      "see_all": "See all slots →",
+      "empty": "No sessions today. Time for a coffee ☕"
+    },
+    "week": {
+      "title": "Next 7 days",
+      "bookings_label": "bookings",
+      "legend": "* — today"
+    },
+    "pending": {
+      "title": "Pending match confirmations",
+      "empty": "Nothing pending. All matches are confirmed."
+    },
+    "activity": {
+      "title": "Recent activity",
+      "empty": "No activity yet."
+    },
+    "forbidden": "You don't have access to the coach dashboard.",
+    "tour": {
+      "close": "Close tour",
+      "next": "Next",
+      "back": "Back",
+      "done": "Got it",
+      "step": "Step {current} of {total}",
+      "s1": {
+        "title": "Welcome aboard",
+        "body": "This is your dashboard. Start with the obvious: invite your first players. Without players, the rest is just a fancy spreadsheet.",
+        "cta": "Invite players"
+      },
+      "s2": {
+        "title": "Open up your court",
+        "body": "Create venues, courts, and recurring slots. Players will book themselves — you just review the calendar each morning.",
+        "cta": "Manage slots"
+      },
+      "s3": {
+        "title": "Run a tournament in 5 minutes",
+        "body": "Pick a format (single-elim or round-robin to start), set match rules, add participants — and the bracket draws itself.",
+        "cta": "Open tournaments"
+      },
+      "s4": {
+        "title": "Polish your public profile",
+        "body": "Add a bio, hourly rate, and pin your location on the map. Players reading reviews will find you faster.",
+        "cta": "Edit my profile"
+      },
+      "s5": {
+        "title": "Stuck? There's a glossary",
+        "body": "Elo, no-ad, swiss, K-factor — every term has an in-app definition and FAQ entry.",
+        "cta": "Open help"
+      }
     },
     "empty": {
       "title": "Start by inviting a player",
@@ -1618,6 +1670,113 @@
       "lat_out_of_range": "Latitude must be between -90 and 90.",
       "lng_out_of_range": "Longitude must be between -180 and 180.",
       "latlng_must_be_paired": "Set both latitude and longitude (or clear the pin)."
+    }
+  },
+  "helpPage": {
+    "title": "Help & glossary",
+    "subtitle": "Everything you need to know about ratings, formats and how the platform works.",
+    "help": {
+      "why": "Newcomers to club tennis often hit the same dozen questions. This page lives to answer them once.",
+      "what": {
+        "1": "Glossary of all the in-app jargon — Elo, K-factor, Swiss, no-ad…",
+        "2": "FAQ for the most common everyday actions.",
+        "3": "Direct contact channel if anything's still unclear."
+      },
+      "result": {
+        "1": "Less back-and-forth with the coach about how things work."
+      }
+    },
+    "glossary_title": "Glossary",
+    "glossary": {
+      "elo": { "term": "Elo rating", "def": "A number that estimates your level. Goes up when you beat better players, down when you lose to worse ones." },
+      "k_factor": { "term": "K-factor", "def": "How much your Elo can move per match. Higher for new players (more uncertainty), lower for veterans." },
+      "provisional": { "term": "Provisional Elo", "def": "Your first 10 matches. K is double, so the system zeroes-in on your real level fast." },
+      "starting_elo": { "term": "Starting Elo", "def": "Your initial rating, computed from a 60-second quiz when you sign up." },
+      "race": { "term": "Season race", "def": "A leaderboard counted within a season window. Top N players win prizes; details on the Rating tab." },
+      "tournament_seed": { "term": "Seed", "def": "Your slot in the bracket based on rating. Higher seeds avoid each other in early rounds." },
+      "bye": { "term": "Bye", "def": "An automatic free pass to the next round when the bracket size doesn't divide evenly." },
+      "no_ad": { "term": "No-ad", "def": "Deuce point becomes sudden-death: receiver chooses side, winner takes the game. Saves time." },
+      "super_tiebreak": { "term": "Super tiebreak", "def": "First to 10, win by 2 — instead of a full third set." },
+      "wo": { "term": "Walkover (W/O)", "def": "Win awarded when an opponent doesn't show up. Counts for advancement, not for Elo." },
+      "match_proposal": { "term": "Match proposal", "def": "A friendly-match request between two players. Both sides confirm before Elo updates." },
+      "verified_coach": { "term": "Verified coach", "def": "Coach with at least 5 published reviews — earns a green Verified badge." },
+      "trust_weighted": { "term": "Trust-weighted score", "def": "Coach ranking that shrinks high averages with few reviews back toward the global mean." },
+      "outbox": { "term": "Notifications outbox", "def": "Internal queue of all emails. The cron worker drains it every few minutes." }
+    },
+    "faq_title": "Frequently asked",
+    "faq": {
+      "q_register": { "q": "How do I sign up?", "a": "Either accept your coach's invitation email, or sign up directly with magic-link / Google." },
+      "q_no_invite": { "q": "I don't have an invitation — can I still join?", "a": "Yes. Sign up directly, take the starting quiz, and contact a coach via WhatsApp from their public profile." },
+      "q_dispute": { "q": "We disagree on the score — what now?", "a": "Either side can mark the score as disputed. The coach reviews and decides; Elo only updates after that." },
+      "q_payment": { "q": "How are payments handled?", "a": "MVP: manual tracking. The coach marks bookings as paid / unpaid / comped. Online payments are coming in Phase 2." },
+      "q_cancel": { "q": "How do I cancel a booking?", "a": "Open My Bookings → Upcoming → Cancel. You can cancel up to 12 h before the session by default." },
+      "q_telegram": { "q": "Why WhatsApp and not Telegram?", "a": "Poland skews heavily toward WhatsApp. Telegram is a secondary channel — toggle it on in your profile." },
+      "q_data": { "q": "What about my data?", "a": "Stored on Supabase EU servers. Export & delete on request. We never sell data." }
+    },
+    "contact_title": "Still stuck?",
+    "contact_body": "Email hello@bury.tennis or WhatsApp the coach directly from their profile."
+  },
+  "tournamentsPublic": {
+    "title": "Public tournaments",
+    "subtitle": "Browse open tournaments across the network. Sign up if you like the format.",
+    "back": "Back to tournaments",
+    "help": {
+      "why": "Lets anyone — guests included — see what's happening across the platform: who plays where, when, and which formats are popular.",
+      "what": {
+        "1": "Filter by status: upcoming, in progress, finished.",
+        "2": "Click a tournament to see the bracket and participants.",
+        "3": "Sign in to register, set your starting Elo via the quiz, and join."
+      },
+      "result": {
+        "1": "Builds organic trust: even a guest can verify a coach's track record.",
+        "2": "Players see the calendar at a glance and plan their season."
+      }
+    },
+    "tabs": {
+      "upcoming": "Upcoming",
+      "in_progress": "Live",
+      "finished": "Finished"
+    },
+    "format": {
+      "single_elimination": "Single elimination",
+      "double_elimination": "Double elimination",
+      "round_robin": "Round robin",
+      "group_playoff": "Groups + playoff",
+      "swiss": "Swiss",
+      "compass_draw": "Compass draw"
+    },
+    "status": {
+      "draft": "Draft",
+      "registration": "Registration",
+      "in_progress": "Live",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "empty": {
+      "title": "No tournaments here yet",
+      "description": "Try a different tab — or, if you're a coach, create one in your dashboard.",
+      "cta": "Open my tournaments"
+    },
+    "detail": {
+      "starts": "Starts",
+      "participants": "Participants",
+      "coach": "Organiser",
+      "participants_title": "Participants",
+      "participants_empty": "No participants yet.",
+      "matches_title": "Matches",
+      "matches_empty": "Bracket not generated yet.",
+      "scheduled": "scheduled",
+      "help": {
+        "why": "A read-only public view of one tournament — players, bracket, scores, results.",
+        "what": {
+          "1": "See who's seeded where and follow the draw round-by-round.",
+          "2": "Check live scores once matches kick off.",
+          "3": "Share the link — no login required to view."
+        },
+        "result": {
+          "1": "Pros and parents alike can follow along without an account."
+        }
+      }
     }
   }
 }

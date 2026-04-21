@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { HelpCircle, Sliders, Users, Trophy } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -39,11 +40,12 @@ export default async function AdminOverviewPage({ params }: Props) {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+    <div className="page-shell space-y-8">
+      <PageHeader
+        eyebrow="Admin · Overview"
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <HelpPanel
         pageId="admin-overview"
@@ -97,12 +99,14 @@ function Stat({
   value: number | string;
 }) {
   return (
-    <div className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-ink-500">
+    <div className="surface-card-flat">
+      <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-500">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
-      <p className="mt-1 font-mono text-2xl font-semibold text-ink-900">{value}</p>
+      <p className="mt-2 font-display text-3xl font-bold tabular-nums text-grass-900">
+        {value}
+      </p>
     </div>
   );
 }
@@ -124,20 +128,24 @@ function SectionCard({
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       href={href as any}
-      className="block rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-ace"
+      className="group surface-card block transition-all duration-400 ease-followthrough hover:-translate-y-0.5 hover:border-grass-300 hover:shadow-[0_18px_44px_-18px_rgba(21,94,54,0.25)]"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-clay-50 text-clay-700">
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-grass-50 text-grass-700 transition-colors group-hover:bg-grass-100">
           <Icon className="h-5 w-5" />
         </div>
         {activeBadge && (
-          <span className="rounded-full bg-grass-50 px-2 py-0.5 text-xs font-medium text-grass-700">
+          <span className="rounded-full bg-grass-50 px-3 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-grass-700">
             {activeBadge}
           </span>
         )}
       </div>
-      <h3 className="mt-3 font-display text-lg font-semibold text-ink-900">{title}</h3>
-      <p className="mt-1 text-sm text-ink-600">{description}</p>
+      <h3 className="mt-5 font-display text-xl font-bold tracking-tight text-ink-900">
+        {title}
+      </h3>
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-600">
+        {description}
+      </p>
     </Link>
   );
 }

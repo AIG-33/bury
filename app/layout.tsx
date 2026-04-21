@@ -21,13 +21,46 @@ const fontMono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Aliaksandr Bury Tennis Platform",
     template: "%s · Bury Tennis",
   },
   description:
     "Universal Elo rating, find-a-player, tournaments and a tennis club run by a pro.",
+  keywords: [
+    "tennis",
+    "tennis club",
+    "Elo rating",
+    "find a player",
+    "tournaments",
+    "Warsaw tennis",
+    "Poland tennis",
+    "Aliaksandr Bury",
+  ],
+  authors: [{ name: "Aliaksandr Bury Tennis Club" }],
+  openGraph: {
+    type: "website",
+    title: "Bury Tennis — Universal Elo + Tennis Platform",
+    description:
+      "Single Elo across all your matches, find a player nearby, run friendly and serious tournaments.",
+    siteName: "Bury Tennis",
+    locale: "pl_PL",
+    alternateLocale: ["en_US", "ru_RU"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bury Tennis — Universal Elo + Tennis Platform",
+    description:
+      "Single Elo across all your matches, find a player nearby, run friendly and serious tournaments.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

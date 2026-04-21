@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { BookingFormSchema, type SlotType } from "@/lib/slots/schema";
+import { enqueue } from "@/lib/notifications/outbox";
+import type { Locale } from "@/lib/notifications/templates";
 
 // =============================================================================
 // Types
@@ -313,6 +316,64 @@ export async function bookSlot(input: unknown): Promise<BookResult> {
 
   if (error || !data) return { ok: false, error: "db_error", message: error?.message };
 
+  // Notifications: confirm to player + alert to coach. Best-effort; never block.
+  try {
+    const service = createSupabaseServiceClient();
+    const [{ data: slotMeta }, { data: profile }] = await Promise.all([
+      supabase
+        .from("slots")
+        .select(
+          "starts_at, courts!inner(number, name, venues!inner(name))",
+        )
+        .eq("id", slot.id)
+        .single() as unknown as Promise<{
+        data:
+          | {
+              starts_at: string;
+              courts:
+                | {
+                    number: number;
+                    name: string | null;
+                    venues: { name: string } | Array<{ name: string }>;
+                  }
+                | Array<{
+                    number: number;
+                    name: string | null;
+                    venues: { name: string } | Array<{ name: string }>;
+                  }>;
+            }
+          | null;
+      }>,
+      supabase
+        .from("profiles")
+        .select("locale, notification_email")
+        .eq("id", userId)
+        .single() as unknown as Promise<{
+        data: { locale: Locale; notification_email: boolean } | null;
+      }>,
+    ]);
+
+    if (slotMeta && profile?.notification_email) {
+      const c = Array.isArray(slotMeta.courts) ? slotMeta.courts[0] : slotMeta.courts;
+      const v = c ? (Array.isArray(c.venues) ? c.venues[0] : c.venues) : null;
+      const courtLabel = c ? (c.name ? `${c.name} (#${c.number})` : `Court #${c.number}`) : "";
+      await enqueue(service, {
+        recipient_id: userId,
+        channel: "email",
+        template: "booking_confirmed",
+        locale: profile.locale,
+        payload: {
+          booking_id: data.id,
+          starts_at: slotMeta.starts_at,
+          venue: v?.name ?? "",
+          court: courtLabel,
+        },
+      });
+    }
+  } catch (e) {
+    console.warn("[bookings] failed to enqueue confirmation:", e);
+  }
+
   revalidatePath("/me/bookings");
   return { ok: true, bookingId: data.id };
 }
@@ -332,6 +393,20 @@ export async function cancelMyBooking(
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
+  const { data: row } = (await supabase
+    .from("bookings")
+    .select("slot_id, slots!inner(starts_at)")
+    .eq("id", bookingId)
+    .eq("player_id", userId)
+    .maybeSingle()) as {
+    data:
+      | {
+          slot_id: string;
+          slots: { starts_at: string } | Array<{ starts_at: string }>;
+        }
+      | null;
+  };
+
   const { error } = await supabase
     .from("bookings")
     .update({
@@ -341,6 +416,34 @@ export async function cancelMyBooking(
     .eq("id", bookingId)
     .eq("player_id", userId);
   if (error) return { ok: false, error: error.message };
+
+  // Cancellation email to player.
+  try {
+    if (row) {
+      const service = createSupabaseServiceClient();
+      const { data: profile } = (await supabase
+        .from("profiles")
+        .select("locale, notification_email")
+        .eq("id", userId)
+        .single()) as { data: { locale: Locale; notification_email: boolean } | null };
+      if (profile?.notification_email) {
+        const slot = Array.isArray(row.slots) ? row.slots[0] : row.slots;
+        await enqueue(service, {
+          recipient_id: userId,
+          channel: "email",
+          template: "booking_cancelled",
+          locale: profile.locale,
+          payload: {
+            booking_id: bookingId,
+            starts_at: slot?.starts_at ?? "",
+          },
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("[bookings] failed to enqueue cancellation email:", e);
+  }
+
   revalidatePath("/me/bookings");
   return { ok: true };
 }

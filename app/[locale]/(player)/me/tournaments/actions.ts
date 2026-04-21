@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { enqueue } from "@/lib/notifications/outbox";
+import type { Locale } from "@/lib/notifications/templates";
 import type {
   TournamentFormat,
   TournamentStatus,
@@ -326,6 +329,61 @@ export async function registerForTournament(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
     if (error) return { ok: false, error: error.message };
+  }
+
+  try {
+    const { data: profile } = (await supabase
+      .from("profiles")
+      .select("locale, notification_email")
+      .eq("id", userId)
+      .single()) as { data: { locale: Locale; notification_email: boolean } | null };
+    const { data: full } = (await supabase
+      .from("tournaments")
+      .select("name, format, starts_on, match_rules")
+      .eq("id", tournamentId)
+      .single()) as {
+      data:
+        | { name: string; format: string; starts_on: string; match_rules: MatchRules | null }
+        | null;
+    };
+    if (profile?.notification_email && full) {
+      const service = createSupabaseServiceClient();
+      const rulesText = (() => {
+        const r = full.match_rules;
+        if (!r) return "";
+        switch (r.kind) {
+          case "best_of_3":
+            return `best of 3 sets to ${r.set_target}`;
+          case "best_of_5":
+            return `best of 5 sets to ${r.set_target}`;
+          case "single_set":
+            return `single set to ${r.set_target}`;
+          case "pro_set":
+            return `pro-set to ${r.target_games}`;
+          case "first_to_games":
+            return `first to ${r.target_games} games`;
+          case "timed":
+            return `${r.minutes}-minute match`;
+          default:
+            return "standard";
+        }
+      })();
+      await enqueue(service, {
+        recipient_id: userId,
+        channel: "email",
+        template: "tournament_registered",
+        locale: profile.locale,
+        payload: {
+          tournament_id: tournamentId,
+          tournament_name: full.name,
+          starts_at: full.starts_on,
+          format: full.format,
+          rules: rulesText,
+        },
+      });
+    }
+  } catch (e) {
+    console.warn("[tournaments] failed to enqueue registration email:", e);
   }
 
   revalidatePath("/me/tournaments");

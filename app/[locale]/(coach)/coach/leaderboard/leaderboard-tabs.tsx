@@ -5,7 +5,6 @@ import { Link } from "@/i18n/routing";
 export type LeaderboardTabsCopy = {
   tab_mine: string;
   tab_all: string;
-  count: string;
 };
 
 export function LeaderboardTabs({

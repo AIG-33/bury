@@ -502,7 +502,59 @@
     "kpi": {
       "players": { "label": "Gracze klubu", "hint": "Aktywni w ciągu 30 dni" },
       "tournaments": { "label": "Aktywne turnieje", "hint": "W trakcie lub w rejestracji" },
-      "bookings": { "label": "Najbliższe rezerwacje", "hint": "Następne 7 dni" }
+      "bookings": { "label": "Najbliższe rezerwacje", "hint": "Następne 7 dni" },
+      "pending": { "label": "Mecze do potwierdzenia", "hint": "Czekają na Twoją decyzję" }
+    },
+    "today": {
+      "title": "Dzisiejsze treningi",
+      "see_all": "Zobacz wszystkie sloty →",
+      "empty": "Dziś brak treningów. Czas na kawę ☕"
+    },
+    "week": {
+      "title": "Najbliższe 7 dni",
+      "bookings_label": "rezerwacji",
+      "legend": "* — dziś"
+    },
+    "pending": {
+      "title": "Mecze oczekujące na potwierdzenie",
+      "empty": "Nic w kolejce. Wszystkie mecze potwierdzone."
+    },
+    "activity": {
+      "title": "Ostatnia aktywność",
+      "empty": "Brak aktywności."
+    },
+    "forbidden": "Nie masz dostępu do pulpitu trenera.",
+    "tour": {
+      "close": "Zamknij wprowadzenie",
+      "next": "Dalej",
+      "back": "Wstecz",
+      "done": "Rozumiem",
+      "step": "Krok {current} z {total}",
+      "s1": {
+        "title": "Witaj na pokładzie",
+        "body": "To Twój pulpit. Zacznij od oczywistości: zaproś pierwszych graczy. Bez graczy reszta to tylko kolorowy arkusz.",
+        "cta": "Zaproś graczy"
+      },
+      "s2": {
+        "title": "Otwórz kort",
+        "body": "Dodaj obiekty, korty i powtarzające się sloty. Gracze zapiszą się sami — Ty tylko przeglądasz kalendarz rano.",
+        "cta": "Zarządzaj slotami"
+      },
+      "s3": {
+        "title": "Turniej w 5 minut",
+        "body": "Wybierz format (na początek pojedyncza eliminacja lub round-robin), ustal regulamin meczu, dodaj uczestników — drabinka rysuje się sama.",
+        "cta": "Otwórz turnieje"
+      },
+      "s4": {
+        "title": "Doszlifuj profil publiczny",
+        "body": "Dodaj bio, stawkę godzinową i pinezkę na mapie. Gracze czytający opinie szybciej Cię znajdą.",
+        "cta": "Edytuj profil"
+      },
+      "s5": {
+        "title": "Coś niejasne? Mamy słowniczek",
+        "body": "Elo, no-ad, swiss, K-czynnik — każde pojęcie ma definicję i wpis w FAQ.",
+        "cta": "Otwórz pomoc"
+      }
     },
     "empty": {
       "title": "Zacznij od zaproszenia gracza",
@@ -1618,6 +1670,113 @@
       "lat_out_of_range": "Szerokość musi być między -90 a 90.",
       "lng_out_of_range": "Długość musi być między -180 a 180.",
       "latlng_must_be_paired": "Ustaw obie współrzędne (lub usuń pinezkę)."
+    }
+  },
+  "helpPage": {
+    "title": "Pomoc i słowniczek",
+    "subtitle": "Wszystko, co warto wiedzieć o ratingach, formatach i działaniu platformy.",
+    "help": {
+      "why": "Nowi gracze klubowi mają zwykle te same kilkanaście pytań. Tu odpowiadamy na nie raz.",
+      "what": {
+        "1": "Słowniczek terminów — Elo, K-czynnik, system szwajcarski, no-ad…",
+        "2": "FAQ na najczęstsze codzienne sytuacje.",
+        "3": "Bezpośredni kanał kontaktu, jeśli coś jest niejasne."
+      },
+      "result": {
+        "1": "Mniej pytań do trenera o to, jak co działa."
+      }
+    },
+    "glossary_title": "Słowniczek",
+    "glossary": {
+      "elo": { "term": "Rating Elo", "def": "Liczba szacująca twój poziom. Rośnie po wygranej z lepszym, spada po porażce z gorszym." },
+      "k_factor": { "term": "K-czynnik", "def": "Ile maks. ruszy się Elo po meczu. Wyższy dla nowych (większa niepewność), niższy dla weteranów." },
+      "provisional": { "term": "Elo wstępne", "def": "Pierwsze 10 meczów. K jest podwójny — system szybciej trafia w twój prawdziwy poziom." },
+      "starting_elo": { "term": "Elo startowe", "def": "Twój początkowy rating, obliczony z 60-sekundowego quizu przy rejestracji." },
+      "race": { "term": "Wyścig sezonu", "def": "Ranking w obrębie jednego sezonu. Top N graczy dostaje nagrody — szczegóły w zakładce Rating." },
+      "tournament_seed": { "term": "Rozstawienie", "def": "Twoje miejsce w drabince według ratingu. Wyższe rozstawienia unikają się w pierwszych rundach." },
+      "bye": { "term": "Wolny los", "def": "Automatyczny awans, gdy liczba graczy nie dzieli się równo." },
+      "no_ad": { "term": "No-ad", "def": "Po równowadze gra się jedną piłkę — odbierający wybiera stronę. Oszczędność czasu." },
+      "super_tiebreak": { "term": "Super tie-break", "def": "Do 10 punktów z przewagą 2 — zamiast pełnego trzeciego seta." },
+      "wo": { "term": "Walkower", "def": "Wygrana bez gry. Liczy się do drabinki, nie do Elo." },
+      "match_proposal": { "term": "Propozycja meczu", "def": "Zaproszenie do meczu towarzyskiego. Obie strony muszą potwierdzić wynik." },
+      "verified_coach": { "term": "Trener zweryfikowany", "def": "Trener z co najmniej 5 opublikowanymi opiniami — dostaje zieloną odznakę." },
+      "trust_weighted": { "term": "Wynik trust-weighted", "def": "Ranking trenerów ściągający wysokie średnie z małą liczbą opinii w stronę średniej globalnej." },
+      "outbox": { "term": "Skrzynka powiadomień", "def": "Wewnętrzna kolejka maili. Cron opróżnia ją co kilka minut." }
+    },
+    "faq_title": "Najczęstsze pytania",
+    "faq": {
+      "q_register": { "q": "Jak się zarejestrować?", "a": "Albo zaakceptuj e-mail z zaproszeniem od trenera, albo zarejestruj się magic-linkiem / Google." },
+      "q_no_invite": { "q": "Nie mam zaproszenia — mogę dołączyć?", "a": "Tak. Zarejestruj się, zrób quiz startowy i napisz do trenera na WhatsApp z jego profilu." },
+      "q_dispute": { "q": "Spór o wynik — co teraz?", "a": "Każda ze stron może oznaczyć wynik jako sporny. Trener weryfikuje i decyduje; Elo aktualizuje się dopiero potem." },
+      "q_payment": { "q": "Jak działa płatność?", "a": "MVP: ręcznie. Trener oznacza rezerwacje jako opłacone / nieopłacone / gratis. Płatności online — Faza 2." },
+      "q_cancel": { "q": "Jak odwołać rezerwację?", "a": "Moje rezerwacje → Nadchodzące → Odwołaj. Domyślnie do 12 h przed treningiem." },
+      "q_telegram": { "q": "Czemu WhatsApp, a nie Telegram?", "a": "W Polsce dominuje WhatsApp. Telegram to kanał dodatkowy — włączasz w profilu." },
+      "q_data": { "q": "Co z moimi danymi?", "a": "Trzymane na serwerach Supabase w UE. Eksport i usunięcie na żądanie. Nie sprzedajemy danych." }
+    },
+    "contact_title": "Coś jeszcze niejasne?",
+    "contact_body": "Napisz na hello@bury.tennis lub na WhatsApp do trenera bezpośrednio z jego profilu."
+  },
+  "tournamentsPublic": {
+    "title": "Turnieje publiczne",
+    "subtitle": "Przeglądaj otwarte turnieje w sieci. Spodobał się format? Zapisz się.",
+    "back": "Powrót do turniejów",
+    "help": {
+      "why": "Każdy — także gość — widzi, co dzieje się na platformie: kto gdzie gra, kiedy i w jakich formatach.",
+      "what": {
+        "1": "Filtruj po statusie: nadchodzące, na żywo, zakończone.",
+        "2": "Kliknij turniej, aby zobaczyć drabinkę i uczestników.",
+        "3": "Zaloguj się, by się zapisać, ustaw startowe Elo przez quiz i dołącz."
+      },
+      "result": {
+        "1": "Buduje organiczne zaufanie — nawet gość zweryfikuje historię trenera.",
+        "2": "Zawodnicy widzą kalendarz na pierwszy rzut oka i planują sezon."
+      }
+    },
+    "tabs": {
+      "upcoming": "Nadchodzące",
+      "in_progress": "Na żywo",
+      "finished": "Zakończone"
+    },
+    "format": {
+      "single_elimination": "Pojedyncza eliminacja",
+      "double_elimination": "Podwójna eliminacja",
+      "round_robin": "Każdy z każdym",
+      "group_playoff": "Grupy + play-off",
+      "swiss": "System szwajcarski",
+      "compass_draw": "Compass draw"
+    },
+    "status": {
+      "draft": "Szkic",
+      "registration": "Zapisy",
+      "in_progress": "Na żywo",
+      "finished": "Zakończony",
+      "cancelled": "Odwołany"
+    },
+    "empty": {
+      "title": "Tu jeszcze nic nie ma",
+      "description": "Sprawdź inną zakładkę — lub, jeśli jesteś trenerem, stwórz turniej w swoim panelu.",
+      "cta": "Moje turnieje"
+    },
+    "detail": {
+      "starts": "Start",
+      "participants": "Uczestnicy",
+      "coach": "Organizator",
+      "participants_title": "Uczestnicy",
+      "participants_empty": "Jeszcze brak uczestników.",
+      "matches_title": "Mecze",
+      "matches_empty": "Drabinka jeszcze nie wygenerowana.",
+      "scheduled": "zaplanowany",
+      "help": {
+        "why": "Publiczny widok jednego turnieju w trybie tylko-do-odczytu — gracze, drabinka, wyniki.",
+        "what": {
+          "1": "Sprawdź rozstawienia i śledź drabinkę rundę po rundzie.",
+          "2": "Aktualne wyniki, gdy tylko mecze się rozpoczną.",
+          "3": "Udostępnij link — do podglądu nie trzeba logowania."
+        },
+        "result": {
+          "1": "Profesjonaliści i rodzice mogą śledzić bez konta."
+        }
+      }
     }
   }
 }

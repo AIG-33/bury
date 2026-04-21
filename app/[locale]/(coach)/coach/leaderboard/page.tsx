@@ -50,7 +50,6 @@ export default async function CoachLeaderboardPage({ params, searchParams }: Pro
           copy={{
             tab_mine: t("tab_mine"),
             tab_all: t("tab_all"),
-            count: t("count"),
           }}
         />
         <p className="text-xs text-ink-500">{t("note_recent_30d")}</p>

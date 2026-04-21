@@ -1,14 +1,8 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { Link } from "@/i18n/routing";
-import {
-  LayoutDashboard,
-  HelpCircle,
-  Sliders,
-  ShieldAlert,
-  Star,
-} from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SectionNav } from "@/components/layout/section-nav";
 
 type Props = {
   children: React.ReactNode;
@@ -46,32 +40,15 @@ export default async function AdminLayout({ children, params }: Props) {
   }
 
   const items = [
-    { href: "/admin", label: t("overview"), icon: LayoutDashboard },
-    { href: "/admin/quiz", label: t("quiz"), icon: HelpCircle },
-    { href: "/admin/rating", label: t("rating"), icon: Sliders },
-    { href: "/admin/reviews", label: t("reviews"), icon: Star },
+    { href: "/admin", label: t("overview"), icon: "dashboard" },
+    { href: "/admin/quiz", label: t("quiz"), icon: "help" },
+    { href: "/admin/rating", label: t("rating"), icon: "sliders" },
+    { href: "/admin/reviews", label: t("reviews"), icon: "star" },
   ] as const;
 
   return (
     <>
-      <nav className="border-b border-ink-100 bg-clay-50/40">
-        <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-6">
-          {items.map((it) => {
-            const Icon = it.icon;
-            return (
-              <Link
-                key={it.href}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                href={it.href as any}
-                className="inline-flex items-center gap-1.5 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-ink-600 transition hover:border-clay-400 hover:text-clay-700"
-              >
-                <Icon className="h-4 w-4" />
-                {it.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <SectionNav items={items} accent="clay" />
       {children}
     </>
   );

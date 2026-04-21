@@ -1,12 +1,41 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/routing";
-import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  CalendarDays,
+  Trophy,
+  BarChart3,
+  UserCircle,
+  HelpCircle,
+  Sliders,
+  Star,
+  type LucideIcon,
+} from "lucide-react";
+
+// Icons live in the client bundle so server components can pass plain string
+// names without violating the Server → Client serialization boundary.
+const ICONS: Record<string, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  users: Users,
+  venues: Building2,
+  calendar: CalendarDays,
+  trophy: Trophy,
+  chart: BarChart3,
+  user: UserCircle,
+  help: HelpCircle,
+  sliders: Sliders,
+  star: Star,
+};
+
+export type SectionNavIconName = keyof typeof ICONS;
 
 export type SectionNavItem = {
   href: string;
   label: string;
-  icon?: LucideIcon;
+  icon?: SectionNavIconName;
   /** Visual emphasis: turns this tab into a filled grass pill regardless of active state. */
   emphasis?: boolean;
 };
@@ -53,7 +82,7 @@ export function SectionNav({ items, accent = "grass" }: Props) {
           {items.map((it) => {
             const active =
               pathname === it.href || pathname.startsWith(`${it.href}/`);
-            const Icon = it.icon;
+            const Icon = it.icon ? ICONS[it.icon] : undefined;
             return (
               <Link
                 key={it.href}

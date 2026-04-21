@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Award, MapPin, Star, Trophy, Map as MapIcon } from "lucide-react";
@@ -18,6 +19,19 @@ type Props = {
 };
 
 const SORT_KEYS: SortKey[] = ["weighted", "raw", "popular"];
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "coachesPublic" });
+  return {
+    title: t("title"),
+    description: t("subtitle"),
+    alternates: {
+      canonical: `/${locale}/coaches`,
+      languages: { pl: "/pl/coaches", en: "/en/coaches", ru: "/ru/coaches" },
+    },
+  };
+}
 
 export default async function CoachesPage({ params, searchParams }: Props) {
   const { locale } = await params;
