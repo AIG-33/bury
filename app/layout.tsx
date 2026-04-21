@@ -6,6 +6,7 @@ const fontDisplay = Bricolage_Grotesque({
   subsets: ["latin", "latin-ext"],
   variable: "--font-display",
   display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const fontSans = Inter({
@@ -25,7 +26,8 @@ export const metadata: Metadata = {
     default: "Aliaksandr Bury Tennis Platform",
     template: "%s · Bury Tennis",
   },
-  description: "Tennis platform with universal Elo rating, find-a-player and tournaments.",
+  description:
+    "A digital cathedral of modern tennis. Universal Elo rating, find-a-player, tournaments and a club run by a pro.",
 };
 
 export default function RootLayout({

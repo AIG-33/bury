@@ -39,6 +39,7 @@ export async function TopNav() {
             <>
               <NavLink href="/me/rating">{t("rating")}</NavLink>
               <NavLink href="/me/bookings">{t("bookings")}</NavLink>
+              <NavLink href="/me/matches">{t("matches")}</NavLink>
               <NavLink href="/me/tournaments">{t("tournaments")}</NavLink>
               <NavLink href="/me/find">{t("find")}</NavLink>
               <NavLink href="/me/profile">{t("profile")}</NavLink>

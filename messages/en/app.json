@@ -1,4 +1,78 @@
 {
+  "myMatches": {
+    "title": "My matches",
+    "subtitle": "Friendly matches outside tournaments. Both players confirm the score before Elo moves.",
+    "quick_register_cta": "Register played match",
+    "whatsapp_prefill": "Hi {name}! Quick check on our last match — score still right?",
+    "help": {
+      "why": "Universal Elo only feels fair when every result is verified. This page is the verification step for matches you and a friend played outside a tournament.",
+      "what": {
+        "1": "Hit \u201cRegister played match\u201d to log a match you've already finished. Pick the opponent, enter the score, you're done.",
+        "2": "Your opponent then sees the match here under \u201cAwaiting your confirmation\u201d and either confirms (Elo updates instantly) or disputes it.",
+        "3": "Matches accepted via Find a Player but not yet played show up under \u201cScheduled\u201d \u2014 enter the score there once you've played.",
+        "4": "Disputes simply clear the score so the other side can re-enter it. Cancelled matches don't change Elo."
+      },
+      "result": {
+        "1": "Friendly matches feed into your universal Elo with the friendly multiplier (default 0.5\u00d7).",
+        "2": "Both players have a paper trail \u2014 no score is ever applied without two confirmations."
+      }
+    },
+    "awaiting_my_confirmation": "Awaiting your confirmation",
+    "awaiting_their_confirmation": "Awaiting opponent",
+    "scheduled": "Scheduled",
+    "recent": "Recent",
+    "empty": {
+      "awaiting_my_title": "Nothing to confirm",
+      "awaiting_my_body": "When an opponent reports a score for a match with you, it appears here.",
+      "awaiting_them_title": "All caught up",
+      "awaiting_them_body": "Scores you reported and that the opponent still needs to confirm appear here.",
+      "scheduled_title": "No upcoming matches",
+      "scheduled_body": "Accept a proposal in Find a Player or register a played match to populate this list.",
+      "everything_title": "Quiet on the courts",
+      "everything_body": "Once you and a friend play and log a match, it shows up here."
+    },
+    "card": {
+      "won": "Won",
+      "lost": "Lost",
+      "cancelled": "Cancelled",
+      "whatsapp": "WhatsApp",
+      "awaiting_my_confirmation_hint": "The opponent reported this score. Confirm to apply Elo, or dispute to ask them to re-enter it.",
+      "awaiting_their_confirmation_hint": "Waiting for the opponent to confirm the score you submitted.",
+      "confirm_and_apply": "Confirm & apply Elo",
+      "dispute": "Dispute",
+      "rewrite_result": "Rewrite result",
+      "report_result": "Enter result",
+      "cancel_match": "Cancel match",
+      "submit_report": "Submit",
+      "cancel_inline": "Cancel",
+      "two_party_warning_inline": "Your opponent will be asked to confirm before Elo changes.",
+      "confirm_dispute": "Clear the reported score and ask the other side to enter it again?",
+      "confirm_cancel": "Cancel this match? It won't affect Elo.",
+      "error_empty_sets": "Enter at least one set with games played."
+    },
+    "quick": {
+      "title": "Register played match",
+      "subtitle": "Log a friendly match you've already finished. Both players will need to confirm before Elo moves.",
+      "opponent": "Opponent",
+      "opponent_search_placeholder": "Search by name…",
+      "opponent_none": "No matching players visible to you.",
+      "opponent_selected": "Selected: {name}",
+      "played_at": "Played at",
+      "played_at_hint": "Leave empty to use \u201cnow\u201d.",
+      "sets": "Score by sets",
+      "you": "You",
+      "opponent_short": "Opp.",
+      "tb_you": "TB you",
+      "tb_them": "TB opp.",
+      "add_set": "Add a set",
+      "notes": "Notes (optional)",
+      "notes_placeholder": "Anything worth remembering about this match",
+      "two_party_warning": "Heads up: your opponent must confirm this score before it counts toward Elo.",
+      "submit": "Save match",
+      "cancel": "Cancel",
+      "error_no_opponent": "Pick an opponent first."
+    }
+  },
   "adminNav": {
     "overview": "Overview",
     "quiz": "Quiz",
@@ -243,6 +317,7 @@
     "logout": "Sign out",
     "rating": "Rating",
     "bookings": "Bookings",
+    "matches": "Matches",
     "tournaments": "Tournaments",
     "find": "Find a Player",
     "profile": "Profile",
@@ -319,6 +394,48 @@
     "quote": {
       "text": "\u201CFederer's backhand isn't just technique — it's a philosophy. Let's build a ranking we'd be proud to show.\u201D",
       "author": "— inspired by the one-handed backhand (and a 6'8\" / 203 cm reach)."
+    },
+    "v2": {
+      "meta": {
+        "city": "WARSAW · POLAND",
+        "est": "EST. 2018",
+        "tagline_top": "ONE RATING — EVERY MATCH"
+      },
+      "hero": {
+        "eyebrow": "A digital cathedral of modern tennis",
+        "first_name": "Bury",
+        "last_name": "Tennis",
+        "tagline": "One rating. Every match. Zero compromises.",
+        "scroll": "Scroll"
+      },
+      "pillars": {
+        "section_label": "01 — What you do here",
+        "title": "Three pillars. One platform.",
+        "subtitle": "Everything you need to take your tennis seriously — in one place.",
+        "items": {
+          "rating": {
+            "index": "01",
+            "name": "Universal rating",
+            "body": "One Elo across every match you play — friendlies, tournaments, leagues. No resets, no spreadsheets.",
+            "stat_label": "Average update",
+            "stat_value": "< 30 s"
+          },
+          "find": {
+            "index": "02",
+            "name": "Find a player",
+            "body": "Filter by district, level and your free time. A match in two clicks, contact on WhatsApp.",
+            "stat_label": "Average match time",
+            "stat_value": "2 days"
+          },
+          "tournaments": {
+            "index": "03",
+            "name": "Tournaments your way",
+            "body": "Best-of-3, super-tiebreak, timed match, first-to-X-games. You choose the format — we run the bracket.",
+            "stat_label": "Any format",
+            "stat_value": "6 types"
+          }
+        }
+      }
     }
   },
   "helpDemo": {

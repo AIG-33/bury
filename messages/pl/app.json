@@ -1,4 +1,78 @@
 {
+  "myMatches": {
+    "title": "Moje mecze",
+    "subtitle": "Mecze towarzyskie poza turniejami. Oboje gracze potwierdzają wynik, zanim Elo się zmieni.",
+    "quick_register_cta": "Zarejestruj rozegrany mecz",
+    "whatsapp_prefill": "Cześć {name}! Krótkie pytanie o nasz ostatni mecz \u2014 wynik się zgadza?",
+    "help": {
+      "why": "Uniwersalne Elo działa fair tylko wtedy, gdy każdy wynik jest zweryfikowany. Ten ekran to właśnie krok weryfikacji dla meczów rozegranych poza turniejem.",
+      "what": {
+        "1": "Kliknij \u201eZarejestruj rozegrany mecz\u201d, aby dodać mecz, który już się zakończył. Wybierz przeciwnika, wpisz wynik i gotowe.",
+        "2": "Twój przeciwnik zobaczy mecz w sekcji \u201eOczekuje twojego potwierdzenia\u201d \u2014 może potwierdzić (Elo zmieni się od razu) albo zakwestionować.",
+        "3": "Mecze przyjęte przez \u201eZnajdź gracza\u201d, ale jeszcze nierozegrane, są w sekcji \u201eZaplanowane\u201d \u2014 wpisz tam wynik po grze.",
+        "4": "Zakwestionowanie po prostu czyści wynik, by druga strona mogła wpisać go ponownie. Anulowane mecze nie ruszają Elo."
+      },
+      "result": {
+        "1": "Mecze towarzyskie wpływają na uniwersalne Elo z mnożnikiem towarzyskim (domyślnie 0,5\u00d7).",
+        "2": "Oboje gracze mają pełen ślad \u2014 żaden wynik nie zostanie zastosowany bez dwóch potwierdzeń."
+      }
+    },
+    "awaiting_my_confirmation": "Oczekuje twojego potwierdzenia",
+    "awaiting_their_confirmation": "Oczekuje przeciwnika",
+    "scheduled": "Zaplanowane",
+    "recent": "Ostatnie",
+    "empty": {
+      "awaiting_my_title": "Nic do potwierdzenia",
+      "awaiting_my_body": "Gdy przeciwnik wpisze wynik waszego meczu, pojawi się tutaj.",
+      "awaiting_them_title": "Wszystko obsłużone",
+      "awaiting_them_body": "Wyniki, które wpisałeś i które przeciwnik musi jeszcze potwierdzić, pojawią się tutaj.",
+      "scheduled_title": "Brak nadchodzących meczów",
+      "scheduled_body": "Przyjmij propozycję w \u201eZnajdź gracza\u201d albo zarejestruj rozegrany mecz, by zapełnić tę listę.",
+      "everything_title": "Cisza na kortach",
+      "everything_body": "Gdy zagracie i wpiszecie mecz, pojawi się tutaj."
+    },
+    "card": {
+      "won": "Wygrana",
+      "lost": "Porażka",
+      "cancelled": "Anulowany",
+      "whatsapp": "WhatsApp",
+      "awaiting_my_confirmation_hint": "Przeciwnik wpisał ten wynik. Potwierdź, by zastosować Elo, albo zakwestionuj, by go wpisał ponownie.",
+      "awaiting_their_confirmation_hint": "Czekamy aż przeciwnik potwierdzi wynik, który wpisałeś.",
+      "confirm_and_apply": "Potwierdź i nalicz Elo",
+      "dispute": "Zakwestionuj",
+      "rewrite_result": "Wpisz ponownie",
+      "report_result": "Wpisz wynik",
+      "cancel_match": "Anuluj mecz",
+      "submit_report": "Wyślij",
+      "cancel_inline": "Anuluj",
+      "two_party_warning_inline": "Przeciwnik zostanie poproszony o potwierdzenie zanim Elo się zmieni.",
+      "confirm_dispute": "Wyczyścić wpisany wynik i poprosić drugą stronę o ponowne wpisanie?",
+      "confirm_cancel": "Anulować ten mecz? Nie wpłynie to na Elo.",
+      "error_empty_sets": "Wpisz przynajmniej jednego seta z rozegranymi gemami."
+    },
+    "quick": {
+      "title": "Zarejestruj rozegrany mecz",
+      "subtitle": "Zaloguj mecz towarzyski, który już rozegraliście. Oboje gracze muszą potwierdzić wynik zanim Elo się zmieni.",
+      "opponent": "Przeciwnik",
+      "opponent_search_placeholder": "Szukaj po nazwie…",
+      "opponent_none": "Brak pasujących graczy widocznych dla ciebie.",
+      "opponent_selected": "Wybrany: {name}",
+      "played_at": "Czas meczu",
+      "played_at_hint": "Zostaw puste, aby użyć \u201eteraz\u201d.",
+      "sets": "Wynik po setach",
+      "you": "Ty",
+      "opponent_short": "Prze.",
+      "tb_you": "TB ty",
+      "tb_them": "TB prze.",
+      "add_set": "Dodaj seta",
+      "notes": "Notatki (opcjonalne)",
+      "notes_placeholder": "Cokolwiek warto zapamiętać o tym meczu",
+      "two_party_warning": "Uwaga: przeciwnik musi potwierdzić ten wynik, by zaliczył się do Elo.",
+      "submit": "Zapisz mecz",
+      "cancel": "Anuluj",
+      "error_no_opponent": "Najpierw wybierz przeciwnika."
+    }
+  },
   "adminNav": {
     "overview": "Przegląd",
     "quiz": "Quiz",
@@ -243,6 +317,7 @@
     "logout": "Wyloguj",
     "rating": "Ranking",
     "bookings": "Rezerwacje",
+    "matches": "Mecze",
     "tournaments": "Turnieje",
     "find": "Znajdź rywala",
     "profile": "Profil",
@@ -319,6 +394,48 @@
     "quote": {
       "text": "„Backhand Federera to nie tylko technika — to filozofia.\u00A0Stwórzmy taki ranking, którego nie będzie się wstyd pokazać.\u201D",
       "author": "— inspiracją projektu jest jednoręczny bekhend (i przy okazji wzrost 203 cm)."
+    },
+    "v2": {
+      "meta": {
+        "city": "WARSZAWA · POLSKA",
+        "est": "EST. 2018",
+        "tagline_top": "JEDEN RANKING — KAŻDY MECZ"
+      },
+      "hero": {
+        "eyebrow": "Cyfrowa świątynia nowoczesnego tenisa",
+        "first_name": "Bury",
+        "last_name": "Tennis",
+        "tagline": "Jeden ranking. Każdy mecz. Zero kompromisów.",
+        "scroll": "Przewiń"
+      },
+      "pillars": {
+        "section_label": "01 — Co tu robisz",
+        "title": "Trzy filary. Jedna platforma.",
+        "subtitle": "Wszystko, czego potrzebujesz, żeby grać poważnie — w jednym miejscu.",
+        "items": {
+          "rating": {
+            "index": "01",
+            "name": "Uniwersalny ranking",
+            "body": "Jedno Elo dla wszystkich Twoich meczów — sparingu, turniejów, lig. Bez resetów, bez tabel w Excelu.",
+            "stat_label": "Średnia aktualizacja",
+            "stat_value": "< 30 s"
+          },
+          "find": {
+            "index": "02",
+            "name": "Znajdź rywala",
+            "body": "Filtry po dystrykcie, poziomie i Twoim wolnym czasie. Mecz w dwóch kliknięciach, kontakt na WhatsApp.",
+            "stat_label": "Średni czas matchu",
+            "stat_value": "2 dni"
+          },
+          "tournaments": {
+            "index": "03",
+            "name": "Turnieje na Twój sposób",
+            "body": "Best-of-3, super-tiebreak, mecz na czas, do X gemów. Ty decydujesz, jak grasz — system pilnuje drabinki.",
+            "stat_label": "Format dowolny",
+            "stat_value": "6 typów"
+          }
+        }
+      }
     }
   },
   "helpDemo": {
