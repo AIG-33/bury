@@ -77,6 +77,7 @@
     "overview": "Overview",
     "quiz": "Quiz",
     "rating": "Rating engine",
+    "reviews": "Reviews",
     "forbidden_title": "Admin only",
     "forbidden_body": "You do not have permission to view the admin area."
   },
@@ -369,8 +370,7 @@
       "eyebrow": "A tennis platform from a pro",
       "title": "Your tennis ranking. No compromises. With a touch of Federer's style.",
       "subtitle": "One Elo rating that follows you everywhere. Find an opponent, play a tournament, check coaches — in one place.",
-      "cta_primary": "Let's go!",
-      "cta_secondary": "See component demo"
+      "cta_primary": "Let's go!"
     },
     "features": {
       "title": "What you can do here",
@@ -414,24 +414,27 @@
         "items": {
           "rating": {
             "index": "01",
-            "name": "Universal rating",
-            "body": "One Elo across every match you play — friendlies, tournaments, leagues. No resets, no spreadsheets.",
-            "stat_label": "Average update",
-            "stat_value": "< 30 s"
+            "name": "Book a coaching session",
+            "body": "Pick a coach matched to your level and goals, and book a court in two clicks. The right mentor turns weeks of guesswork into measurable progress — and bad habits gone for good.",
+            "stat_label": "Progress with a coach",
+            "stat_value": "2× faster",
+            "cta": "Book a coach"
           },
           "find": {
             "index": "02",
             "name": "Find a player",
             "body": "Filter by district, level and your free time. A match in two clicks, contact on WhatsApp.",
             "stat_label": "Average match time",
-            "stat_value": "2 days"
+            "stat_value": "2 days",
+            "cta": "Find an opponent"
           },
           "tournaments": {
             "index": "03",
-            "name": "Tournaments your way",
-            "body": "Best-of-3, super-tiebreak, timed match, first-to-X-games. You choose the format — we run the bracket.",
+            "name": "Tournaments for every taste",
+            "body": "Best-of-3, super-tiebreak, timed match, first-to-X-games — pick the format, we'll run the bracket. Tournaments in every format: weekend events, evening series or a one-day grind.",
             "stat_label": "Any format",
-            "stat_value": "6 types"
+            "stat_value": "6 types",
+            "cta": "Pick a tournament"
           }
         }
       }
@@ -1381,6 +1384,157 @@
       "clay": "Clay",
       "grass": "Grass",
       "carpet": "Carpet"
+    }
+  },
+  "coachesPublic": {
+    "title": "Coaches",
+    "subtitle": "Browse coaches in the network — book lessons, read reviews, find your match.",
+    "help": {
+      "why": "Choosing the right coach is half the result. Real reviews from real students cut through the marketing noise.",
+      "what": {
+        "1": "Browse coaches sorted by their average star rating.",
+        "2": "Open a coach to read recent reviews and their public profile.",
+        "3": "After a confirmed booking or tournament you can leave your own review."
+      },
+      "result": {
+        "1": "More transparent coach market — players know what they get.",
+        "2": "Great coaches climb the leaderboard, weak ones get clear feedback to improve."
+      }
+    },
+    "reviews_count": "{count, plural, =0 {no reviews} one {# review} other {# reviews}}",
+    "no_reviews_yet": "No reviews yet",
+    "hourly_rate": "{amount} PLN / hour",
+    "empty_title": "No coaches yet",
+    "empty_body": "When coaches join the platform they will appear here.",
+    "detail": {
+      "about": "About",
+      "anonymous": "Anonymous",
+      "coach_reply": "Coach's reply",
+      "self_view_hint": "This is your own coach profile. Reviews are written by your students.",
+      "reviews_heading": "Reviews ({count})",
+      "empty_reviews_title": "No reviews yet",
+      "empty_reviews_body": "Be the first to share your experience after a lesson or tournament.",
+      "source": {
+        "booking": "after a lesson",
+        "tournament": "tournament participant",
+        "manual": "verified by admin"
+      },
+      "help": {
+        "why": "Reviews must be honest. Players can post one review per real interaction (lesson or tournament).",
+        "what": {
+          "1": "See aggregate stars and recent text reviews.",
+          "2": "If you've worked with this coach, the review form will appear below.",
+          "3": "Coaches can reply publicly to keep the conversation healthy."
+        },
+        "result": {
+          "1": "A trustworthy reputation system instead of empty marketing.",
+          "2": "Constructive feedback that helps coaches grow."
+        }
+      },
+      "review_form": {
+        "heading_create": "Leave a review",
+        "heading_update": "Update your review",
+        "source_hint": {
+          "booking": "Eligible because of your confirmed booking.",
+          "tournament": "Eligible because of your tournament participation."
+        },
+        "stars_label": "Overall rating",
+        "stars_aria": "{n} stars",
+        "categories_label": "Optional: rate specific aspects",
+        "categories": {
+          "technique": "Technique & coaching",
+          "communication": "Communication",
+          "punctuality": "Punctuality",
+          "vibe": "Atmosphere"
+        },
+        "text_label": "Your experience (optional)",
+        "text_placeholder": "Share what worked, what could be better — keep it constructive.",
+        "submit_create": "Publish review",
+        "submit_update": "Update review",
+        "submitting": "Saving…",
+        "success": "Review saved. Thanks for the feedback!",
+        "errors": {
+          "missing_stars": "Please pick a star rating first.",
+          "not_authenticated": "Please sign in to leave a review.",
+          "invalid_payload": "Some fields look off — please check and retry.",
+          "not_eligible": "You can review a coach only after a confirmed lesson or tournament with them.",
+          "self_review": "You can't review yourself.",
+          "db_error": "Something went wrong on our side. Please retry."
+        }
+      }
+    }
+  },
+  "myCoaches": {
+    "title": "My coaches",
+    "subtitle": "All coaches you've worked with — share your honest feedback.",
+    "help": {
+      "why": "Honest reviews help other players pick the right coach and help great coaches stand out.",
+      "what": {
+        "1": "Each card shows a coach you had a confirmed lesson or tournament with.",
+        "2": "Tap the green button to write or update your review.",
+        "3": "Reviews can be edited any time; status reflects moderation state."
+      },
+      "result": {
+        "1": "Coaches receive direct, source-of-truth feedback.",
+        "2": "The community gets a more trustworthy coach leaderboard."
+      }
+    },
+    "empty_title": "No coaches yet",
+    "empty_body": "After your first confirmed lesson or tournament, the coach will show up here.",
+    "browse_coaches": "Browse coaches",
+    "source": {
+      "booking": "After a lesson",
+      "tournament": "Tournament you played in"
+    },
+    "status": {
+      "published": "Published",
+      "hidden": "Hidden by moderation",
+      "flagged": "Flagged for review",
+      "removed": "Removed"
+    },
+    "not_reviewed_yet": "Not reviewed yet",
+    "write_review": "Write a review",
+    "update_review": "Update review"
+  },
+  "adminReviews": {
+    "title": "Coach reviews moderation",
+    "subtitle": "Keep the reputation system honest. Hide spam, flag disputes, remove abuse.",
+    "help": {
+      "why": "Reviews carry a coach's reputation — moderation prevents abuse from both sides.",
+      "what": {
+        "1": "Use the filter to focus on flagged or hidden items.",
+        "2": "Publish to make a review visible; hide to take it down without deleting; remove for clear violations.",
+        "3": "Aggregate stars and counts on profiles are recomputed automatically."
+      },
+      "result": {
+        "1": "A healthier coach marketplace players can trust.",
+        "2": "Clear audit trail for every moderation action."
+      }
+    },
+    "empty_title": "Nothing to moderate",
+    "empty_body": "When new reviews come in, they will appear here.",
+    "filter": {
+      "all": "All",
+      "flagged": "Flagged / hidden"
+    },
+    "anonymous": "Anonymous",
+    "ready": "Ready",
+    "confirm_remove": "Remove this review for good? This cannot be undone.",
+    "status": {
+      "published": "Published",
+      "hidden": "Hidden",
+      "flagged": "Flagged",
+      "removed": "Removed"
+    },
+    "source": {
+      "booking": "After a lesson",
+      "tournament": "Tournament participant",
+      "manual": "Manual entry"
+    },
+    "actions": {
+      "publish": "Publish",
+      "hide": "Hide",
+      "remove": "Remove"
     }
   }
 }

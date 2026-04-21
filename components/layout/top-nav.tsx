@@ -42,6 +42,7 @@ export async function TopNav() {
               <NavLink href="/me/matches">{t("matches")}</NavLink>
               <NavLink href="/me/tournaments">{t("tournaments")}</NavLink>
               <NavLink href="/me/find">{t("find")}</NavLink>
+              <NavLink href="/me/coaches">{t("coaches")}</NavLink>
               <NavLink href="/me/profile">{t("profile")}</NavLink>
               {isCoach && (
                 <NavLink href="/coach/dashboard" highlight>

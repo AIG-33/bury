@@ -95,19 +95,25 @@ export function MagneticCTA({
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
         className={[
-          "group relative inline-flex h-14 items-center gap-3 rounded-full px-8 font-mono text-[12px] uppercase tracking-[0.2em] transition-shadow duration-500 ease-followthrough",
+          "group relative inline-flex items-center rounded-full font-mono uppercase tracking-[0.2em] transition-shadow duration-500 ease-followthrough",
+          sizeClasses[size],
           baseClasses[variant],
           className,
         ].join(" ")}
       >
-        <span className="relative z-10">{children}</span>
-        <span className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-current/10 transition-transform duration-500 ease-followthrough group-hover:translate-x-0.5">
+        <span className="relative z-10 font-semibold">{children}</span>
+        <span
+          className={[
+            "relative z-10 inline-flex items-center justify-center rounded-full bg-current/10 transition-transform duration-500 ease-followthrough group-hover:translate-x-0.5",
+            iconBoxBySize[size],
+          ].join(" ")}
+        >
           <svg
             viewBox="0 0 16 16"
-            className="h-3 w-3"
+            className={size === "xl" ? "h-4 w-4" : "h-3.5 w-3.5"}
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="1.8"
             aria-hidden
           >
             <path d="M2 8h12M9 3l5 5-5 5" strokeLinecap="round" />

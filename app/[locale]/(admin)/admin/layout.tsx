@@ -6,6 +6,7 @@ import {
   HelpCircle,
   Sliders,
   ShieldAlert,
+  Star,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -48,6 +49,7 @@ export default async function AdminLayout({ children, params }: Props) {
     { href: "/admin", label: t("overview"), icon: LayoutDashboard },
     { href: "/admin/quiz", label: t("quiz"), icon: HelpCircle },
     { href: "/admin/rating", label: t("rating"), icon: Sliders },
+    { href: "/admin/reviews", label: t("reviews"), icon: Star },
   ] as const;
 
   return (

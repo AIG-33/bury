@@ -77,6 +77,7 @@
     "overview": "Przegląd",
     "quiz": "Quiz",
     "rating": "Silnik rankingu",
+    "reviews": "Opinie",
     "forbidden_title": "Tylko dla administratorów",
     "forbidden_body": "Nie masz uprawnień do panelu administracyjnego."
   },
@@ -369,8 +370,7 @@
       "eyebrow": "Tenisowa platforma od profesjonalisty",
       "title": "Twój tenisowy ranking. Bez kompromisów. Z odrobiną stylu Federera.",
       "subtitle": "Jeden ranking Elo, który podąża za Tobą wszędzie. Znajdź rywala, zagraj turniej, sprawdź trenerów — w jednym miejscu.",
-      "cta_primary": "Zaczynamy!",
-      "cta_secondary": "Zobacz demo komponentów"
+      "cta_primary": "Zaczynamy!"
     },
     "features": {
       "title": "Co tu robisz",
@@ -414,24 +414,27 @@
         "items": {
           "rating": {
             "index": "01",
-            "name": "Uniwersalny ranking",
-            "body": "Jedno Elo dla wszystkich Twoich meczów — sparingu, turniejów, lig. Bez resetów, bez tabel w Excelu.",
-            "stat_label": "Średnia aktualizacja",
-            "stat_value": "< 30 s"
+            "name": "Zapis na trening",
+            "body": "Wybierz trenera dopasowanego do Twojego poziomu i celu, a kort zarezerwuj w dwóch kliknięciach. Z właściwym mentorem postępy są szybsze, a złe nawyki znikają na dobre.",
+            "stat_label": "Postęp z trenerem",
+            "stat_value": "×2 szybciej",
+            "cta": "Zarezerwuj trening"
           },
           "find": {
             "index": "02",
             "name": "Znajdź rywala",
             "body": "Filtry po dystrykcie, poziomie i Twoim wolnym czasie. Mecz w dwóch kliknięciach, kontakt na WhatsApp.",
             "stat_label": "Średni czas matchu",
-            "stat_value": "2 dni"
+            "stat_value": "2 dni",
+            "cta": "Znajdź rywala"
           },
           "tournaments": {
             "index": "03",
-            "name": "Turnieje na Twój sposób",
-            "body": "Best-of-3, super-tiebreak, mecz na czas, do X gemów. Ty decydujesz, jak grasz — system pilnuje drabinki.",
+            "name": "Turnieje w każdym formacie",
+            "body": "Best-of-3, super-tiebreak, mecz na czas, do X gemów — format wybierasz Ty, drabinkę prowadzimy my. Turnieje w różnych formatach: weekendowe, wieczorne serie albo one-day.",
             "stat_label": "Format dowolny",
-            "stat_value": "6 typów"
+            "stat_value": "6 typów",
+            "cta": "Wybierz turniej"
           }
         }
       }
@@ -1381,6 +1384,157 @@
       "clay": "Mączka",
       "grass": "Trawa",
       "carpet": "Dywan"
+    }
+  },
+  "coachesPublic": {
+    "title": "Trenerzy",
+    "subtitle": "Przeglądaj trenerów w sieci — rezerwuj lekcje, czytaj opinie, znajdź swojego.",
+    "help": {
+      "why": "Wybór dobrego trenera to połowa sukcesu. Prawdziwe opinie od prawdziwych zawodników przebijają marketingowy szum.",
+      "what": {
+        "1": "Lista trenerów posortowana wg średniej oceny.",
+        "2": "Otwórz trenera, aby zobaczyć profil i ostatnie opinie.",
+        "3": "Po potwierdzonej lekcji lub turnieju możesz wystawić własną opinię."
+      },
+      "result": {
+        "1": "Bardziej przejrzysty rynek trenerów — gracze wiedzą, co dostają.",
+        "2": "Świetni trenerzy zyskują widoczność, słabi dostają konkretną informację zwrotną."
+      }
+    },
+    "reviews_count": "{count, plural, =0 {brak opinii} one {# opinia} few {# opinie} many {# opinii} other {# opinii}}",
+    "no_reviews_yet": "Brak opinii",
+    "hourly_rate": "{amount} PLN / godz.",
+    "empty_title": "Nie ma jeszcze trenerów",
+    "empty_body": "Gdy trenerzy dołączą do platformy, pojawią się tutaj.",
+    "detail": {
+      "about": "O trenerze",
+      "anonymous": "Anonim",
+      "coach_reply": "Odpowiedź trenera",
+      "self_view_hint": "To Twój własny profil trenera. Opinie wystawiają Twoi zawodnicy.",
+      "reviews_heading": "Opinie ({count})",
+      "empty_reviews_title": "Brak opinii",
+      "empty_reviews_body": "Bądź pierwszą osobą, która podzieli się doświadczeniem po lekcji lub turnieju.",
+      "source": {
+        "booking": "po lekcji",
+        "tournament": "uczestnik turnieju",
+        "manual": "zweryfikowane przez admina"
+      },
+      "help": {
+        "why": "Opinie muszą być uczciwe. Można dodać jedną opinię na realną interakcję (lekcja lub turniej).",
+        "what": {
+          "1": "Zobacz średnią ocenę i ostatnie opinie tekstowe.",
+          "2": "Jeśli trenowałeś z tym trenerem, formularz opinii pojawi się poniżej.",
+          "3": "Trener może odpowiedzieć publicznie, by utrzymać zdrową rozmowę."
+        },
+        "result": {
+          "1": "Wiarygodny system reputacji zamiast pustego marketingu.",
+          "2": "Konstruktywna informacja zwrotna pomaga trenerom rosnąć."
+        }
+      },
+      "review_form": {
+        "heading_create": "Wystaw opinię",
+        "heading_update": "Zaktualizuj opinię",
+        "source_hint": {
+          "booking": "Możesz oceniać dzięki potwierdzonej rezerwacji.",
+          "tournament": "Możesz oceniać dzięki udziałowi w turnieju."
+        },
+        "stars_label": "Ocena ogólna",
+        "stars_aria": "{n} gwiazdek",
+        "categories_label": "Opcjonalnie: oceń konkretne aspekty",
+        "categories": {
+          "technique": "Technika i prowadzenie",
+          "communication": "Komunikacja",
+          "punctuality": "Punktualność",
+          "vibe": "Atmosfera"
+        },
+        "text_label": "Twoje doświadczenie (opcjonalnie)",
+        "text_placeholder": "Napisz, co działa, a co można poprawić — tylko konstruktywnie.",
+        "submit_create": "Opublikuj opinię",
+        "submit_update": "Zaktualizuj opinię",
+        "submitting": "Zapisywanie…",
+        "success": "Opinia zapisana. Dzięki za feedback!",
+        "errors": {
+          "missing_stars": "Najpierw wybierz liczbę gwiazdek.",
+          "not_authenticated": "Zaloguj się, aby wystawić opinię.",
+          "invalid_payload": "Niektóre pola wyglądają nie tak — sprawdź i spróbuj ponownie.",
+          "not_eligible": "Możesz oceniać trenera dopiero po potwierdzonej lekcji lub turnieju z nim.",
+          "self_review": "Nie możesz ocenić samego siebie.",
+          "db_error": "Coś poszło nie tak po naszej stronie. Spróbuj ponownie."
+        }
+      }
+    }
+  },
+  "myCoaches": {
+    "title": "Moi trenerzy",
+    "subtitle": "Wszyscy trenerzy, z którymi pracowałeś — podziel się szczerą opinią.",
+    "help": {
+      "why": "Uczciwe opinie pomagają innym wybrać dobrego trenera, a świetnym trenerom — się wyróżnić.",
+      "what": {
+        "1": "Każda karta to trener, z którym miałeś potwierdzoną lekcję lub turniej.",
+        "2": "Kliknij zielony przycisk, aby napisać lub zaktualizować opinię.",
+        "3": "Opinie można edytować w każdej chwili; status pokazuje stan moderacji."
+      },
+      "result": {
+        "1": "Trenerzy dostają prawdziwy feedback od źródła.",
+        "2": "Społeczność dostaje wiarygodniejszy ranking trenerów."
+      }
+    },
+    "empty_title": "Brak trenerów",
+    "empty_body": "Po pierwszej potwierdzonej lekcji lub turnieju trener pojawi się tutaj.",
+    "browse_coaches": "Przeglądaj trenerów",
+    "source": {
+      "booking": "Po lekcji",
+      "tournament": "Turniej, w którym grałeś"
+    },
+    "status": {
+      "published": "Opublikowana",
+      "hidden": "Ukryta przez moderację",
+      "flagged": "Zgłoszona do przeglądu",
+      "removed": "Usunięta"
+    },
+    "not_reviewed_yet": "Brak opinii",
+    "write_review": "Napisz opinię",
+    "update_review": "Zaktualizuj opinię"
+  },
+  "adminReviews": {
+    "title": "Moderacja opinii o trenerach",
+    "subtitle": "Pilnuj uczciwości reputacji. Ukrywaj spam, oznaczaj sporne, usuwaj nadużycia.",
+    "help": {
+      "why": "Opinie budują reputację trenera — moderacja chroni przed nadużyciami z obu stron.",
+      "what": {
+        "1": "Użyj filtra, aby skupić się na zgłoszonych lub ukrytych opiniach.",
+        "2": "Opublikuj, aby pokazać; ukryj, by zdjąć bez usuwania; usuń dla wyraźnych naruszeń.",
+        "3": "Średnie i liczby opinii w profilach przeliczają się automatycznie."
+      },
+      "result": {
+        "1": "Zdrowszy rynek trenerów, któremu można zaufać.",
+        "2": "Pełny ślad audytu każdej decyzji moderatorskiej."
+      }
+    },
+    "empty_title": "Nic do moderacji",
+    "empty_body": "Gdy pojawią się nowe opinie, znajdziesz je tutaj.",
+    "filter": {
+      "all": "Wszystkie",
+      "flagged": "Zgłoszone / ukryte"
+    },
+    "anonymous": "Anonim",
+    "ready": "Gotowe",
+    "confirm_remove": "Usunąć tę opinię na stałe? Tej operacji nie można cofnąć.",
+    "status": {
+      "published": "Opublikowana",
+      "hidden": "Ukryta",
+      "flagged": "Zgłoszona",
+      "removed": "Usunięta"
+    },
+    "source": {
+      "booking": "Po lekcji",
+      "tournament": "Uczestnik turnieju",
+      "manual": "Wpis ręczny"
+    },
+    "actions": {
+      "publish": "Opublikuj",
+      "hide": "Ukryj",
+      "remove": "Usuń"
     }
   }
 }

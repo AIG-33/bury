@@ -3,9 +3,17 @@
 import { useTranslations } from "next-intl";
 import { motion, useInView } from "framer-motion";
 import { useRef, type ReactElement } from "react";
+import Link from "next/link";
+import type { Route } from "next";
 
 const PILLARS = ["rating", "find", "tournaments"] as const;
 type PillarId = (typeof PILLARS)[number];
+
+type PillarsSectionProps = {
+  ratingHref: string;
+  findHref: string;
+  tournamentsHref: string;
+};
 
 const ICONS: Record<PillarId, ReactElement> = {
   rating: (
@@ -19,9 +27,10 @@ const ICONS: Record<PillarId, ReactElement> = {
       aria-hidden
       className="h-full w-full"
     >
-      <path d="M4 24 L12 16 L18 22 L28 8" />
-      <path d="M22 8 L28 8 L28 14" />
-      <path d="M4 28 L28 28" opacity="0.4" />
+      <rect x="5" y="7" width="22" height="20" rx="2" />
+      <path d="M11 4 V10 M21 4 V10" />
+      <path d="M5 13 H27" opacity="0.5" />
+      <path d="M11 20 L14.5 23.5 L21 17" />
     </svg>
   ),
   find: (
@@ -57,10 +66,20 @@ const ICONS: Record<PillarId, ReactElement> = {
   ),
 };
 
-export function PillarsSection() {
+export function PillarsSection({
+  ratingHref,
+  findHref,
+  tournamentsHref,
+}: PillarsSectionProps) {
   const t = useTranslations("landing.v2.pillars");
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const inView = useInView(sectionRef, { once: true, margin: "-15%" });
+
+  const hrefById: Record<PillarId, string> = {
+    rating: ratingHref,
+    find: findHref,
+    tournaments: tournamentsHref,
+  };
 
   return (
     <section
@@ -90,7 +109,7 @@ export function PillarsSection() {
             </motion.h2>
           </div>
           <div className="col-span-12 md:col-span-5">
-            <p className="max-w-md text-base leading-relaxed text-ink-600 md:text-lg">
+            <p className="max-w-md text-lg leading-relaxed text-ink-600 md:text-xl">
               {t("subtitle")}
             </p>
           </div>
@@ -104,11 +123,13 @@ export function PillarsSection() {
             <PillarCard
               key={id}
               id={id}
+              href={hrefById[id]}
               index={t(`items.${id}.index`)}
               name={t(`items.${id}.name`)}
               body={t(`items.${id}.body`)}
               statLabel={t(`items.${id}.stat_label`)}
               statValue={t(`items.${id}.stat_value`)}
+              cta={t(`items.${id}.cta`)}
               delay={0.1 + i * 0.12}
               inView={inView}
             />
@@ -121,22 +142,26 @@ export function PillarsSection() {
 
 type PillarCardProps = {
   id: PillarId;
+  href: string;
   index: string;
   name: string;
   body: string;
   statLabel: string;
   statValue: string;
+  cta: string;
   delay: number;
   inView: boolean;
 };
 
 function PillarCard({
   id,
+  href,
   index,
   name,
   body,
   statLabel,
   statValue,
+  cta,
   delay,
   inView,
 }: PillarCardProps) {
@@ -147,12 +172,18 @@ function PillarCard({
       transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
       className="group relative flex min-h-[460px] flex-col justify-between bg-white p-8 transition-colors duration-500 ease-followthrough hover:bg-grass-50 md:p-10"
     >
+      {/* Whole card is a link — overlay covers the article so any click navigates */}
+      <Link
+        href={href as Route}
+        aria-label={`${name} — ${cta}`}
+        className="absolute inset-0 z-10 rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-grass-700"
+      ></Link>
       {/* Top: index + icon */}
       <div className="flex items-start justify-between">
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-500">
+        <span className="font-mono text-[12.5px] uppercase tracking-[0.22em] text-ink-500">
           {index}
         </span>
-        <div className="h-12 w-12 text-ink-400 transition-colors duration-500 ease-followthrough group-hover:text-grass-700 md:h-14 md:w-14">
+        <div className="h-14 w-14 text-ink-400 transition-colors duration-500 ease-followthrough group-hover:text-grass-700 md:h-16 md:w-16">
           {ICONS[id]}
         </div>
       </div>
@@ -161,11 +192,11 @@ function PillarCard({
       <div className="mt-12">
         <h3
           className="font-display font-bold leading-[0.95] tracking-tightest text-ink-900"
-          style={{ fontSize: "clamp(28px, 2.6vw, 40px)" }}
+          style={{ fontSize: "clamp(32px, 3vw, 46px)" }}
         >
           {name}
         </h3>
-        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-ink-600">
+        <p className="mt-5 max-w-sm text-[17px] leading-relaxed text-ink-600">
           {body}
         </p>
       </div>
@@ -173,27 +204,30 @@ function PillarCard({
       {/* Bottom: stat */}
       <div className="mt-10 flex items-end justify-between border-t border-ink-200 pt-5">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-500">
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-500">
             {statLabel}
           </p>
-          <p className="mt-1 font-display text-2xl font-bold tabular text-ink-900">
+          <p className="mt-1 font-display text-3xl font-bold tabular text-ink-900">
             {statValue}
           </p>
         </div>
         <span
           aria-hidden
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-300 text-ink-700 transition-all duration-500 ease-followthrough group-hover:border-grass-700 group-hover:text-grass-700"
+          className="inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-700 transition-colors duration-500 ease-followthrough group-hover:text-grass-700"
         >
-          <svg
-            viewBox="0 0 16 16"
-            className="h-3.5 w-3.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          >
-            <path d="M2 8h12M9 3l5 5-5 5" />
-          </svg>
+          <span className="hidden sm:inline">{cta}</span>
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-300 transition-all duration-500 ease-followthrough group-hover:translate-x-0.5 group-hover:border-grass-700">
+            <svg
+              viewBox="0 0 16 16"
+              className="h-3.5 w-3.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            >
+              <path d="M2 8h12M9 3l5 5-5 5" />
+            </svg>
+          </span>
         </span>
       </div>
 
