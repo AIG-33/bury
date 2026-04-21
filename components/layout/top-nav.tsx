@@ -28,6 +28,8 @@ export async function TopNav() {
     isAdmin = data?.is_admin ?? false;
   }
 
+  // All entry points are listed for authenticated users — even if onboarding
+  // (quiz) isn't done yet — so they can navigate the platform freely.
   const mobileItems: MobileMenuItem[] = user
     ? [
         { href: "/me/rating", label: t("rating") },
@@ -37,6 +39,7 @@ export async function TopNav() {
         { href: "/me/find", label: t("find") },
         { href: "/me/coaches", label: t("coaches") },
         { href: "/me/profile", label: t("profile") },
+        { href: "/help", label: t("help") },
         ...(isCoach
           ? [{ href: "/coach/dashboard", label: t("coach"), highlight: true }]
           : []),
