@@ -1,0 +1,39 @@
+{
+  "panel": {
+    "title": "About this section",
+    "why": "Why",
+    "what": "What you can do",
+    "result": "What happens next",
+    "collapsed_hint": "Help is hidden. Click the header to open it."
+  },
+  "glossary": {
+    "k_factor": {
+      "title": "K-factor",
+      "body": "Rating sensitivity coefficient. Higher means a single match changes Elo more. Newcomers start at K=60 and K decreases with experience."
+    },
+    "super_tiebreak": {
+      "title": "Super-tiebreak",
+      "body": "Tiebreak to 10 points (win by 2). Often played instead of a third set — saves 30+ minutes."
+    },
+    "no_ad": {
+      "title": "No-ad",
+      "body": "At 40-40, one decisive point is played (no advantage). The receiver picks the side. Amateur-league classic."
+    },
+    "snake_seeding": {
+      "title": "Snake seeding",
+      "body": "Group seeding: group 1 gets #1, group 2 gets #2... then snakes back. Distributes strength evenly."
+    },
+    "comped": {
+      "title": "Comped",
+      "body": "Lesson given for free (promo, comp, friend). Unlike \u201Cunpaid\u201D — this is intentional, not a debt."
+    },
+    "walkover": {
+      "title": "Walkover (WO)",
+      "body": "Match awarded without play, when an opponent doesn't show / withdraws before the match."
+    },
+    "rrule": {
+      "title": "RRULE",
+      "body": "iCal standard for recurring events. Example: \u201Cevery Tue/Thu at 6 PM for 8 weeks\u201D."
+    }
+  }
+}

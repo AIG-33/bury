@@ -1,0 +1,39 @@
+{
+  "panel": {
+    "title": "Co to za sekcja",
+    "why": "Po co",
+    "what": "Co możesz zrobić",
+    "result": "Co się stanie",
+    "collapsed_hint": "Pokazówka schowana. Kliknij nagłówek, aby ją otworzyć."
+  },
+  "glossary": {
+    "k_factor": {
+      "title": "K-faktor",
+      "body": "Współczynnik wrażliwości rankingu. Im wyższy, tym mocniej jeden mecz zmienia Twoje Elo. Nowicjusze startują z K=60 i K maleje wraz z liczbą meczów."
+    },
+    "super_tiebreak": {
+      "title": "Super-tiebreak",
+      "body": "Tiebreak do 10 punktów (z przewagą 2). Często grany zamiast trzeciego seta — oszczędza 30+ minut."
+    },
+    "no_ad": {
+      "title": "No-ad",
+      "body": "Przy 40:40 grany jest jeden punkt decydujący (bez przewagi). Odbierający wybiera stronę. Klasyk amatorskich lig."
+    },
+    "snake_seeding": {
+      "title": "Snake seeding",
+      "body": "Sposób rozstawienia w grupach: 1. grupa dostaje #1, 2. grupa #2 ... potem wężem do tyłu. Siły rozkładają się równomiernie."
+    },
+    "comped": {
+      "title": "Comped",
+      "body": "Trening dany za darmo (promo, kompensacja, znajomy). W odróżnieniu od „nieopłacone\u201D — to celowy rabat, nie dług."
+    },
+    "walkover": {
+      "title": "Walkover (WO)",
+      "body": "Mecz przyznany bez gry, gdy rywal się nie pojawia / wycofuje przed meczem."
+    },
+    "rrule": {
+      "title": "RRULE",
+      "body": "Standard iCal opisujący powtarzające się zdarzenia. Przykład: „co wtorek i czwartek o 18:00 przez 8 tygodni\u201D."
+    }
+  }
+}

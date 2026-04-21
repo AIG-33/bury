@@ -1,0 +1,1022 @@
+{
+  "nav": {
+    "leaderboard": "Leaderboard",
+    "coaches": "Coaches",
+    "help": "Help",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "rating": "Rating",
+    "bookings": "Bookings",
+    "tournaments": "Tournaments",
+    "find": "Find a Player",
+    "profile": "Profile",
+    "coach": "Coach panel",
+    "admin": "Admin"
+  },
+  "coachNav": {
+    "dashboard": "Dashboard",
+    "players": "Players",
+    "venues": "Venues",
+    "slots": "Slots",
+    "tournaments": "Tournaments",
+    "leaderboard": "Leaderboard"
+  },
+  "coachLeaderboard": {
+    "title": "Player leaderboard",
+    "subtitle": "Universal Elo rating across all rated matches.",
+    "tab_mine": "My players",
+    "tab_all": "All players",
+    "count": "{n}",
+    "note_recent_30d": "Δ columns aggregate rated-match changes over 7 / 30 days.",
+    "col_rank": "#",
+    "col_player": "Player",
+    "col_elo": "Elo",
+    "col_matches": "Matches",
+    "col_delta_7d": "7d",
+    "col_delta_30d": "30d",
+    "provisional": "provisional",
+    "my_player_badge": "Mine",
+    "empty_mine_title": "No players linked to you yet",
+    "empty_mine_description": "Players appear here once they book one of your slots or join one of your tournaments. Switch to All players to see the wider directory.",
+    "empty_all_title": "No players visible yet",
+    "empty_all_description": "When players register and opt in to the leaderboard, they will appear here ranked by Elo.",
+    "help": {
+      "why": "Track how your players progress and spot upcoming talent in your district.",
+      "what": {
+        "1": "My players — anyone who has booked a slot with you or played in your tournament.",
+        "2": "All players — every player who is visible in the leaderboard, ordered by Elo.",
+        "3": "Δ7d / Δ30d — net Elo change from rated matches in the last 7 / 30 days."
+      },
+      "result": {
+        "1": "A clear picture of who is improving fastest in your circle.",
+        "2": "A way to identify players ready for tougher tournaments or coaching plans."
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "A tennis platform from a pro",
+      "title": "Your tennis ranking. No compromises. With a touch of Federer's style.",
+      "subtitle": "One Elo rating that follows you everywhere. Find an opponent, play a tournament, check coaches — in one place.",
+      "cta_primary": "Let's go!",
+      "cta_secondary": "See component demo"
+    },
+    "features": {
+      "title": "What you can do here",
+      "rating": {
+        "title": "Universal ranking",
+        "body": "One Elo for all your matches — friendlies, tournaments, leagues."
+      },
+      "find": {
+        "title": "Find an opponent",
+        "body": "Filter by district, level and your free time. A match in two clicks."
+      },
+      "coaches": {
+        "title": "Coaches with reviews",
+        "body": "Real ratings from players who actually trained with them."
+      },
+      "tournaments": {
+        "title": "Tournaments your way",
+        "body": "Best-of-3, super-tiebreak, timed match, first-to-X-games. You choose how to play."
+      }
+    },
+    "quote": {
+      "text": "\u201CFederer's backhand isn't just technique — it's a philosophy. Let's build a ranking we'd be proud to show.\u201D",
+      "author": "— inspired by the one-handed backhand (and a 6'8\" / 203 cm reach)."
+    }
+  },
+  "helpDemo": {
+    "title": "Help components in action",
+    "subtitle": "Every admin page must use these. This is where you sanity-check how they look.",
+    "panel": {
+      "why": "This is a demo page. It shows how HelpPanel introduces the coach to the meaning of each view.",
+      "what": {
+        "1": "See how collapsing works (state stored in localStorage).",
+        "2": "Inspect the three-block layout: Why / What / Result.",
+        "3": "Copy the pattern into your admin page."
+      },
+      "result": {
+        "1": "The coach never has to guess what a button does.",
+        "2": "Less support, more trust."
+      }
+    },
+    "tooltip": {
+      "intro": "Hover or tap the \u201C?\u201D icon next to a term to see a short explanation. Examples:"
+    },
+    "flow": {
+      "steps": {
+        "1": "Basics",
+        "2": "Format",
+        "3": "Match rules",
+        "4": "Players",
+        "5": "Confirm"
+      }
+    },
+    "empty": {
+      "title": "Silence on court",
+      "description": "Nothing here yet. Every empty state in the app must have purpose and a CTA — like this one.",
+      "cta": "Back to home"
+    }
+  },
+  "login": {
+    "title": "Welcome on court",
+    "subtitle": "Enter your email — we'll send you a magic link.",
+    "email": "Email",
+    "cta": "Send link",
+    "sending": "Sending…",
+    "sent": "Check your inbox",
+    "help": "Click the link in the email to sign in. It might land in spam — peek there too.",
+    "error": "Failed"
+  },
+  "coachDashboard": {
+    "title": "Coach dashboard",
+    "subtitle": "Your command center. Everything happening in your club, in one place.",
+    "help": {
+      "why": "See what's happening in your club right now: upcoming sessions, fresh bookings, active tournaments, average review.",
+      "what": {
+        "1": "Jump into the next training session in one click.",
+        "2": "Accept new bookings (if manual confirmation is enabled).",
+        "3": "See how many people signed in for the first time today."
+      },
+      "result": {
+        "1": "\u201CConfirm booking\u201D will email + Telegram-ping the player.",
+        "2": "Creating a new tournament opens the 5-step wizard."
+      }
+    },
+    "kpi": {
+      "players": { "label": "Club players", "hint": "Active within 30 days" },
+      "tournaments": { "label": "Active tournaments", "hint": "In progress or in registration" },
+      "bookings": { "label": "Upcoming bookings", "hint": "Next 7 days" }
+    },
+    "empty": {
+      "title": "Start by inviting a player",
+      "description": "A club without players is like a racket without strings. Invite your first five — it takes 30 seconds.",
+      "cta": "Invite a player"
+    }
+  },
+  "quiz": {
+    "title": "Your starting rating",
+    "subtitle": "A quick quiz (2 minutes) to estimate your level. Your first 10 matches will fine-tune it with extra weight.",
+    "help": {
+      "why": "Every player needs a starting point. Estimating from answers beats starting from zero.",
+      "what": {
+        "1": "Answer honestly — the system adapts anyway.",
+        "2": "You can go back and change answers before submitting.",
+        "3": "After submit, you'll see your rating in the top-right corner."
+      },
+      "result": {
+        "1": "We'll set your initial Elo (range 800–2200).",
+        "2": "We'll enable a \u201Cprovisional\u201D period — first 10 matches count more."
+      }
+    },
+    "ui": {
+      "next": "Next",
+      "prev": "Back",
+      "submit": "Submit",
+      "submitting": "Calculating…",
+      "step": "Question",
+      "required": "This question is required.",
+      "error": "Error",
+      "choose": "Type your answer"
+    },
+    "done": {
+      "title": "Your start",
+      "body": "Your first 10 matches count with extra weight — the system will quickly correct your true level.",
+      "cta": "Go to my profile"
+    }
+  },
+  "coachPlayers": {
+    "title": "My players",
+    "subtitle": "Manage your club: invite, import, track invitation status.",
+    "help": {
+      "why": "Your players list. Invite new ones and manage the club from here.",
+      "what": {
+        "1": "Send an email invitation (one player at a time).",
+        "2": "Import a list from CSV (coming soon).",
+        "3": "Check who already accepted and who hasn't."
+      },
+      "result": {
+        "1": "An invitation creates a one-time link valid for 14 days and sends an email.",
+        "2": "On accept, the player goes through the quiz and joins your club."
+      }
+    },
+    "invite": {
+      "title": "Invite a player",
+      "subtitle": "Type the email. First/last name optional but help with identification.",
+      "email": "Email",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "cta": "Send invitation",
+      "sending": "Sending…",
+      "sent": "Invitation created and sent.",
+      "dev_link_label": "Link (dev mode)",
+      "error": "Failed"
+    },
+    "recent": {
+      "title": "Recent invitations",
+      "empty_title": "No invitations yet",
+      "empty_description": "Your first invitations will show up here. Average accept time is 2 days.",
+      "col_email": "Email",
+      "col_status": "Status",
+      "col_expires": "Expires"
+    },
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    }
+  },
+  "invite": {
+    "title": "{coach} invites you",
+    "for": "For: {email}",
+    "body": "After signing in you'll go through a 2-minute quiz to set your starting Elo, then to your player dashboard.",
+    "cta": "Sign in & accept",
+    "help": {
+      "why": "This page accepts a coach invitation. After sign-in your account will be linked to their club.",
+      "what": {
+        "1": "Sign in via magic link (or Google).",
+        "2": "Take the starting quiz.",
+        "3": "Start playing, booking courts and finding partners."
+      },
+      "result": {
+        "1": "The coach will see you on their players list.",
+        "2": "The invitation will be marked accepted (one-time)."
+      }
+    },
+    "error": {
+      "invalid": { "title": "Invalid invitation", "body": "The link is invalid or has already been used." },
+      "expired": { "title": "Invitation expired", "body": "Ask your coach to send a new one." },
+      "already": { "title": "Invitation already accepted", "body": "Sign in normally from the login page." }
+    }
+  },
+  "rating": {
+    "title": "My rating",
+    "subtitle": "Your Elo, recent match history and the seasonal race for prizes.",
+    "help": {
+      "why": "This is where you see how your true level changes with every match. One rating — all matches.",
+      "what": {
+        "1": "Check current Elo and the 30-day delta.",
+        "2": "See how Elo grew / dropped on the chart (last 20 matches).",
+        "3": "Track the seasonal race and the top coaches leaderboard."
+      },
+      "result": {
+        "1": "After each confirmed match Elo updates automatically.",
+        "2": "First 10 matches count more — the system quickly finds your true level."
+      }
+    },
+    "hero": {
+      "label": "Your Elo",
+      "matches": "{n, plural, =0 {no matches} =1 {1 match} other {# matches}}",
+      "status": {
+        "provisional": "Provisional (first matches)",
+        "established": "Established"
+      },
+      "delta_30d": "30 days",
+      "best": "Best",
+      "worst": "Worst"
+    },
+    "history": {
+      "title": "Elo history",
+      "last_n": "last {n}",
+      "empty": "No matches yet. The chart will appear after your first game.",
+      "axis": "Elo",
+      "delta_label": "pts",
+      "reasons": {
+        "match": "Match",
+        "onboarding": "Start (quiz)",
+        "manual_adjustment": "Coach correction",
+        "seasonal_decay": "Seasonal decay"
+      }
+    },
+    "race": {
+      "title": "Seasonal race",
+      "days_left": "Days left",
+      "prizes": "Prizes",
+      "coming_soon": "Full race standings coming soon.",
+      "no_season": "No active season right now."
+    },
+    "coaches": {
+      "title": "Top coaches",
+      "subtitle": "by player ratings",
+      "empty_title": "No ratings yet",
+      "empty_description": "The top-20 coaches will show up here once players start leaving reviews."
+    }
+  },
+  "find": {
+    "title": "Find a player",
+    "subtitle": "Sparring partners in your district, at your level, in your free time slots.",
+    "proposals_link": "My proposals",
+    "help": {
+      "why": "In Poland the hardest part is finding a partner of similar level who is free at the same time. We do that for you.",
+      "what": {
+        "1": "Filter by district, Elo range, dominant hand, and your preferred time slots.",
+        "2": "Results are ranked by match score (Elo + overlapping slots + same district + recent activity).",
+        "3": "You can either jump straight to WhatsApp or send a formal in-app match proposal."
+      },
+      "result": {
+        "1": "Sent proposals reach the other player by email; they can accept or decline.",
+        "2": "Once accepted, the match shows up in “My proposals” — coordinate on WhatsApp and enter the score."
+      }
+    },
+    "filters": {
+      "title": "Filters",
+      "district": "District",
+      "district_placeholder": "All",
+      "elo_radius": "Elo range",
+      "elo_radius_hint": "We'll show players within ±{n} Elo of yours.",
+      "availability": "Your preferred slots",
+      "availability_hint": "Tap windows when you can play. Slots must overlap with the partner's.",
+      "hand": "Hand",
+      "hand_options": { "both": "Both", "R": "Right", "L": "Left" },
+      "query": "Name",
+      "query_placeholder": "Search by name…",
+      "search": "Search",
+      "searching": "Searching…",
+      "reset": "Reset filters"
+    },
+    "results": {
+      "count": "Found: {n}",
+      "empty_title": "No results",
+      "empty_description": "Try widening the Elo range, adding more districts, or removing preferred slots."
+    },
+    "card": {
+      "elo": "Elo",
+      "matches": "{n} matches",
+      "score": "match",
+      "overlap": "Shared slots",
+      "overlap_none": "No overlapping slots — coordinate on WhatsApp instead.",
+      "propose": "Propose match",
+      "proposing": "Sending…",
+      "sent": "Sent",
+      "duplicate": "You already have an active proposal with this player.",
+      "self": "You can't invite yourself 😅",
+      "error": "Something went wrong. Please try again.",
+      "whatsapp": "Message on WhatsApp",
+      "whatsapp_unavailable": "No WhatsApp number",
+      "optional_message": "Message (optional)",
+      "cancel": "Cancel",
+      "confirm": "Send proposal"
+    },
+    "weekday": {
+      "mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", "thu": "Thursday",
+      "fri": "Friday", "sat": "Saturday", "sun": "Sunday"
+    },
+    "weekday_short": {
+      "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+    },
+    "daypart": {
+      "morning": "Morning",
+      "noon": "Noon",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "late": "Late"
+    },
+    "whatsapp_prefill": "Hi {name}! From Bury Tennis — got time for a match?",
+    "proposals": {
+      "title": "My proposals",
+      "subtitle": "Incoming, sent, and history.",
+      "back": "Back to search",
+      "incoming": "Incoming",
+      "sent": "Sent",
+      "history": "History",
+      "empty_incoming_title": "Inbox zero",
+      "empty_incoming_description": "When someone proposes a match to you, it'll show up here.",
+      "empty_sent_title": "Nothing sent",
+      "empty_sent_description": "Open “Find a player” and send your first proposal.",
+      "help": {
+        "why": "All your friendly-match proposals in one place — so nothing slips through.",
+        "what": {
+          "1": "Accept or decline incoming proposals in one click.",
+          "2": "Cancel sent ones if your plans change.",
+          "3": "Message your partner directly on WhatsApp at any time."
+        },
+        "result": {
+          "1": "Once accepted, the match becomes “scheduled” and is waiting for the score.",
+          "2": "After the score is entered, your Elo updates automatically."
+        }
+      },
+      "card": {
+        "accept": "Accept",
+        "decline": "Decline",
+        "cancel": "Cancel",
+        "sending": "Sending…",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "cancelled": "Cancelled",
+        "scheduled": "Scheduled",
+        "proposed_by_you": "Sent by you",
+        "proposed_by_them": "Received",
+        "written": "They wrote",
+        "response": "Response",
+        "whatsapp": "WhatsApp",
+        "optional_note": "Note (optional)",
+        "confirm": "Confirm",
+        "whatsapp_prefill": "Hi {name}! About the Bury Tennis match…"
+      }
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "hello": "Hi, {name}!",
+    "help": {
+      "why": "Your profile. Everything the system knows and shows other players — you can change it here.",
+      "what": {
+        "1": "Edit personal info and contacts.",
+        "2": "Set sport preferences and availability (needed for \u201CFind a Player\u201D).",
+        "3": "Manage privacy and notifications."
+      },
+      "result": {
+        "1": "Changes are visible immediately.",
+        "2": "Some fields (e.g. health) are visible only to a coach with whom you have an active booking."
+      }
+    },
+    "elo": {
+      "label": "Your Elo rating",
+      "matches": "{n, plural, =0 {no matches} =1 {1 match} other {# matches}}",
+      "status": {
+        "provisional": "Provisional (first matches)",
+        "established": "Established"
+      }
+    },
+    "form": {
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Error",
+      "none": "— not set —",
+      "sections": {
+        "personal": "Personal",
+        "contacts": "Contacts",
+        "socials": "Social media",
+        "location": "Location",
+        "sport": "Tennis preferences",
+        "availability": "Availability (when I play)",
+        "privacy": "Privacy",
+        "notifications": "Notifications",
+        "health": "Health & emergency contact"
+      },
+      "fields": {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "date_of_birth": "Date of birth",
+        "gender": "Gender",
+        "favorite_player": "Favorite player",
+        "motto": "Motto",
+        "phone": "Phone",
+        "whatsapp": "WhatsApp",
+        "telegram_username": "Telegram (optional)",
+        "primary_badge": "Primary contact",
+        "social_instagram": "Instagram",
+        "social_facebook": "Facebook",
+        "social_x": "X (Twitter)",
+        "social_tiktok": "TikTok",
+        "social_youtube": "YouTube",
+        "social_website": "Website / blog",
+        "city": "City",
+        "district": "District",
+        "dominant_hand": "Dominant hand",
+        "backhand_style": "Backhand",
+        "favorite_surface": "Favorite surface",
+        "visible_in_find_player": "Visible in \u201CFind a Player\u201D",
+        "visible_in_leaderboard": "Visible in leaderboard",
+        "notification_email": "Email notifications",
+        "notification_whatsapp": "WhatsApp notifications",
+        "notification_telegram": "Telegram notifications",
+        "locale": "Interface language",
+        "health_notes": "Health notes",
+        "emergency_contact": "Emergency contact"
+      },
+      "hints": {
+        "date_of_birth": "Used only for age statistics in rankings & tournaments.",
+        "motto": "Short motto shown next to your name in \u201CFind a Player\u201D.",
+        "phone": "Backup number (call / SMS). Visible to a coach you have an active booking with.",
+        "whatsapp": "The de-facto messenger in Poland. Clicking \u201CMessage\u201D opens a WhatsApp chat with a partner or coach.",
+        "telegram_username": "Optional. Without @. Only if you prefer Telegram over WhatsApp.",
+        "district": "District is key for finding opponents near you.",
+        "backhand_style": "One-handed vs two-handed — helps opponents match style.",
+        "availability": "Mark when you usually play. \u201CFind a Player\u201D will match others in the same slot.",
+        "visible_in_find_player": "Turn off if you don't want match proposals.",
+        "visible_in_leaderboard": "Turn off to hide from the public leaderboard.",
+        "notification_email": "Primary channel for automated notifications (invitations, booking confirmations, tournament results).",
+        "notification_whatsapp": "Coming soon: automated notifications via WhatsApp Business. For now WhatsApp is used for direct contact.",
+        "notification_telegram": "Optional. Requires linking your account with the Telegram bot.",
+        "health_notes": "Injuries, allergies — visible only to your current coach."
+      },
+      "enums": {
+        "gender": { "m": "Male", "f": "Female", "other": "Other" },
+        "hand": { "R": "Right", "L": "Left" },
+        "backhand": { "one_handed": "One-handed", "two_handed": "Two-handed" },
+        "surface": { "hard": "Hard", "clay": "Clay", "grass": "Grass", "carpet": "Carpet" },
+        "locale": { "pl": "Polski", "en": "English", "ru": "Русский" },
+        "weekday": {
+          "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+        },
+        "daypart": {
+          "morning": "Morning (6–10)",
+          "noon": "Midday (10–14)",
+          "afternoon": "Afternoon (14–18)",
+          "evening": "Evening (18–21)",
+          "late": "Late (21–24)"
+        }
+      },
+      "avatar": {
+        "upload": "Upload photo",
+        "uploading": "Uploading…",
+        "remove": "Remove",
+        "too_large": "File too large (max 2 MB).",
+        "bad_mime": "Unsupported format. Use JPG, PNG, WebP or GIF.",
+        "requirements": "JPG / PNG / WebP / GIF, up to 2 MB."
+      }
+    }
+  },
+  "venues": {
+    "title": "Venues & courts",
+    "subtitle": "Manage the locations and courts where you teach. They are reused later when you publish training slots and schedule tournaments.",
+    "help": {
+      "why": "A venue is a club or facility where you teach. Each venue has one or more courts. You'll attach training slots and tournament matches to specific courts, so this is the foundation of your schedule.",
+      "what": {
+        "1": "Create a venue: enter its name, city/district and amenities (lights, indoor, parking, etc.).",
+        "2": "Open the venue and add its courts: number, surface and current status (active or under maintenance).",
+        "3": "If a court is being repaired, set it to 'Maintenance' — it will be hidden from new bookings automatically."
+      },
+      "result": {
+        "1": "Players will see a clear address with amenities when booking.",
+        "2": "When you create a slot or tournament match, you only need to pick a court — date and place are pre-filled."
+      }
+    },
+    "list": {
+      "empty_title": "No venues yet",
+      "empty_description": "Add your first location — it'll only take a minute, and unlocks slot publishing and tournaments.",
+      "empty_cta": "Add your first venue",
+      "add": "Add venue",
+      "edit": "Edit",
+      "delete": "Delete",
+      "delete_confirm": "Delete this venue and all its courts? This cannot be undone.",
+      "deleting": "Deleting…",
+      "open": "Open",
+      "courts": "{n, plural, =0 {no courts yet} one {# court} other {# courts}}",
+      "indoor": "Indoor",
+      "outdoor": "Outdoor",
+      "no_district": "Location not specified"
+    },
+    "dialog": {
+      "create_title": "New venue",
+      "edit_title": "Edit venue",
+      "fields": {
+        "name": "Name",
+        "city": "City",
+        "district": "District",
+        "district_placeholder": "Pick a district",
+        "address": "Street address",
+        "lat": "Latitude",
+        "lng": "Longitude",
+        "is_indoor": "Indoor venue (covered courts)",
+        "amenities": "Amenities"
+      },
+      "hints": {
+        "lat_lng": "Optional. Used for the venue map (Phase 2). You can copy coordinates from Google Maps.",
+        "address": "Visible to players. Helps with navigation.",
+        "amenities": "Tap to toggle. The list is shown to players when they book."
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "saved": "Saved",
+      "error": "Error",
+      "none": "— none —"
+    },
+    "amenities": {
+      "indoor": "Indoor courts",
+      "outdoor": "Outdoor courts",
+      "lights": "Floodlights",
+      "shower": "Showers",
+      "lockers": "Lockers",
+      "parking": "Parking",
+      "shop": "Pro shop",
+      "wifi": "Wi-Fi",
+      "cafe": "Café",
+      "bathrooms": "Bathrooms"
+    },
+    "detail": {
+      "back": "Back to venues",
+      "amenities_title": "Amenities",
+      "help": {
+        "why": "Each court is the smallest schedulable unit on the platform. Slots, training sessions and tournament matches are all attached to a specific court.",
+        "what": {
+          "1": "Add the courts physically present at this venue: number them the way they are signposted on site.",
+          "2": "Pick the surface — players filter venues by surface type.",
+          "3": "Use 'Maintenance' for courts under repair. They stay in the system but won't appear in new bookings."
+        },
+        "result": {
+          "1": "When a slot conflict happens, the system will warn you with the exact court number.",
+          "2": "Tournament draw can spread matches across multiple courts to save time."
+        }
+      },
+      "courts": {
+        "title": "Courts at this venue",
+        "intro": "Add every court at this venue. The 'Number' is what you'll use during a tournament to direct players (e.g. 'Match 12 → Court 3').",
+        "empty": "No courts here yet — add the first one below.",
+        "add_title": "Add new court",
+        "number": "No.",
+        "name": "Name (optional)",
+        "name_placeholder": "Centre court, Court A…",
+        "surface": "Surface",
+        "status": "Status",
+        "status_options": {
+          "active": "Active",
+          "maintenance": "Maintenance"
+        },
+        "surface_options": {
+          "hard": "Hard",
+          "clay": "Clay",
+          "grass": "Grass",
+          "carpet": "Carpet"
+        },
+        "none": "—",
+        "add": "Add court",
+        "adding": "Adding…",
+        "save": "Save",
+        "saving": "…",
+        "saved": "Saved",
+        "delete": "Delete court",
+        "delete_confirm": "Delete this court? Existing slots will be removed too.",
+        "duplicate": "A court with this number already exists at this venue."
+      }
+    }
+  },
+  "slotsCoach": {
+    "title": "Training slots",
+    "subtitle": "Publish open slots and let players book them. Use weekly recurrence to plan a whole month in seconds.",
+    "help": {
+      "why": "Slots are the bookable units of your schedule. Each slot lives on a specific court and can be individual, paired (1+1) or a group lesson.",
+      "what": {
+        "1": "Click 'Add slots' and choose either a one-off date or a weekly recurrence (pick weekdays + how many weeks ahead).",
+        "2": "Players see open slots in 'Bookings' and book them. You'll see participants here.",
+        "3": "Cancelling a slot also cancels all bookings on it — a notification will be sent to players (Phase 2)."
+      },
+      "result": {
+        "1": "Your week fills up with bookings without any back-and-forth messaging.",
+        "2": "Conflicting times are blocked automatically by the database — you can't double-book a court."
+      }
+    },
+    "empty_title": "Nothing scheduled in this window",
+    "empty_description": "Pick another week or publish a few slots — players are waiting.",
+    "empty_cta": "Add slots",
+    "add": "Add slots",
+    "cancel": "Cancel",
+    "cancel_confirm": "Cancel this slot? All confirmed bookings will be cancelled too.",
+    "cancelling": "Cancelling…",
+    "range_label": "{from} – {to}",
+    "prev_week": "Prev week",
+    "next_week": "Next week",
+    "today": "Today",
+    "slot_type_options": {
+      "individual": "Individual",
+      "pair": "Pair (1+1)",
+      "group": "Group"
+    },
+    "status_options": {
+      "open": "Open",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "participants": "Participants",
+    "free": "free",
+    "full": "full",
+    "no_courts_title": "Add a venue first",
+    "no_courts_description": "You need at least one venue with a court before you can publish slots.",
+    "no_courts_cta": "Open Venues",
+    "weekday_short": {
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat",
+      "7": "Sun"
+    },
+    "dialog": {
+      "title": "Add slots",
+      "intro": "Pick a court, choose one-off or weekly recurrence, and we'll create everything in one go.",
+      "fields": {
+        "court": "Court",
+        "kind": "Recurrence",
+        "date": "Date",
+        "start_date": "Start date",
+        "weeks": "How many weeks?",
+        "weekdays": "Weekdays",
+        "start_time": "Start time",
+        "duration": "Duration (min)",
+        "slot_type": "Type",
+        "max_participants": "Max participants",
+        "price_pln": "Price (PLN)",
+        "notes": "Notes (optional)"
+      },
+      "hints": {
+        "weekly": "We'll create a slot for each picked weekday across the chosen weeks.",
+        "duration": "15–480 minutes.",
+        "price": "Optional. Leave empty for free / per-club pricing.",
+        "max_participants": "1 for individual, 2 for pair, more for group."
+      },
+      "kinds": {
+        "single": "One-off",
+        "weekly": "Weekly"
+      },
+      "save": "Create",
+      "saving": "Creating…",
+      "cancel": "Cancel",
+      "result_created": "{n, plural, =0 {Nothing created} =1 {1 slot created} other {# slots created}}.",
+      "result_conflicts": "{n, plural, =1 {1 conflict skipped} other {# conflicts skipped}} — open to see details",
+      "error": "Error",
+      "no_courts": "Add a court to your venues first."
+    }
+  },
+  "bookings": {
+    "title": "Bookings",
+    "subtitle": "Find an open slot with your coach (or a new one) and book it in two clicks.",
+    "help": {
+      "why": "Bookings replace messaging your coach to ask 'are you free Wednesday at 6?'. The slot you see here is guaranteed to be available right now.",
+      "what": {
+        "1": "Pick a date range and (optionally) district. Click Search.",
+        "2": "Tap Book on the slot you want. Your coach is notified by email; you can also message them on WhatsApp from your booking card.",
+        "3": "Need to cancel? Hit Cancel on your booking — earlier the better, your coach can free the slot for someone else."
+      },
+      "result": {
+        "1": "You see all your upcoming sessions in one place.",
+        "2": "Coach knows in advance how many people are coming."
+      }
+    },
+    "search": {
+      "title": "Find a slot",
+      "intro": "Search across all coaches in the platform.",
+      "from": "From",
+      "to": "To",
+      "district": "District",
+      "any_district": "Any district",
+      "submit": "Search",
+      "searching": "Searching…",
+      "empty_title": "Nothing yet",
+      "empty_description": "Tap Search to load open slots.",
+      "no_results": "No open slots in this window. Try a wider range or a different district."
+    },
+    "upcoming_title": "Upcoming",
+    "past_title": "Past",
+    "no_upcoming": "No upcoming bookings yet — find a slot below.",
+    "no_past": "No past bookings yet.",
+    "card": {
+      "book": "Book",
+      "booking": "Booking…",
+      "booked": "Booked!",
+      "cancel": "Cancel",
+      "cancelling": "Cancelling…",
+      "cancel_confirm": "Cancel this booking?",
+      "full": "Full",
+      "error": "Error",
+      "free_seats": "free",
+      "contact_coach": "WhatsApp coach",
+      "no_whatsapp": "Coach has no WhatsApp linked",
+      "notes_label": "Note for coach",
+      "notes_placeholder": "Anything I should know? (injury, late arrival, …)",
+      "whatsapp_prefill": "Hi {name}! It's about my Bury Tennis booking — quick question:"
+    },
+    "status_options": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "attended": "Attended",
+      "no_show": "No-show"
+    },
+    "paid_options": {
+      "unpaid": "Unpaid",
+      "paid": "Paid",
+      "comped": "Complimentary"
+    },
+    "slot_type_options": {
+      "individual": "Individual",
+      "pair": "Pair",
+      "group": "Group"
+    },
+    "unknown_coach": "Coach"
+  },
+  "tournamentsCoach": {
+    "title": "Tournaments",
+    "subtitle": "Run your club tournaments end-to-end: create, register players, draw, score.",
+    "help": {
+      "why": "A clean tournament page replaces messy chat threads, paper brackets and lost scores. Every player sees the same single source of truth.",
+      "what": {
+        "1": "Create a tournament — pick a format (single elimination is supported now; the rest are coming) and match rules (best-of-3, super-tiebreak, timed match, etc.).",
+        "2": "Add participants from your club; you can also let players self-register if you set the tournament to public.",
+        "3": "Generate the bracket. We handle byes, seeding (by Elo / random / manual) and walkovers automatically.",
+        "4": "Enter the score after each match. The winner advances, the bracket updates, and the tournament finishes itself when the final is decided."
+      },
+      "result": {
+        "1": "Players know exactly when, where and against whom they play.",
+        "2": "You spend the day coaching, not chasing scores in WhatsApp."
+      }
+    },
+    "list": {
+      "empty_title": "No tournaments yet",
+      "empty_description": "Create your first tournament — best-of-3, single elimination is a great start.",
+      "empty_cta": "Create tournament",
+      "add": "Create tournament",
+      "edit": "Edit",
+      "delete": "Delete",
+      "delete_confirm": "Delete this tournament? Participants and matches will be removed.",
+      "deleting": "Deleting…",
+      "open": "Open",
+      "no_surface": "Surface n/a",
+      "participants_count": "{n}/{max, plural, =0 {∞} other {#}} players"
+    },
+    "formats": {
+      "single_elimination": "Single elimination",
+      "double_elimination": "Double elimination",
+      "round_robin": "Round robin",
+      "group_playoff": "Group + playoff",
+      "swiss": "Swiss",
+      "compass": "Compass draw"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "registration": "Registration open",
+      "in_progress": "In progress",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "surfaces": {
+      "hard": "Hard",
+      "clay": "Clay",
+      "grass": "Grass",
+      "carpet": "Carpet"
+    },
+    "draw_methods": {
+      "rating": "By Elo (top seeds protected)",
+      "random": "Random (deterministic)",
+      "manual": "Manual (use seed numbers)"
+    },
+    "privacy": {
+      "club": "Club only",
+      "public": "Public (open to all)"
+    },
+    "match_rule_kinds": {
+      "best_of_3": "Best of 3 sets",
+      "best_of_5": "Best of 5 sets",
+      "single_set": "Single set",
+      "pro_set": "Pro set (first to N games)",
+      "first_to_games": "First to N games",
+      "timed": "Timed match"
+    },
+    "dialog": {
+      "create_title": "New tournament",
+      "edit_title": "Edit tournament",
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "format": "Format",
+        "surface": "Surface",
+        "starts_on": "Starts on",
+        "ends_on": "Ends on",
+        "registration_deadline": "Registration deadline",
+        "max_participants": "Max participants",
+        "privacy": "Visibility",
+        "draw_method": "Default seeding",
+        "prizes": "Prizes",
+        "match_rules": "Match rules",
+        "set_target": "Games per set",
+        "target_games": "Games to win",
+        "minutes": "Minutes",
+        "no_ad": "No-ad scoring",
+        "super_tiebreak": "Super-tiebreak instead of decider",
+        "set_tiebreak_at": "Tiebreak at games"
+      },
+      "hints": {
+        "format": "Single elimination is supported in MVP; other formats are coming soon.",
+        "privacy": "Public tournaments appear in /me/tournaments → Open registrations for any player.",
+        "draw_method": "How to assign positions in the bracket. You can override per draw.",
+        "match_rules": "Defines how a single match is played. Used as a default; you can override per match later.",
+        "coming_soon": "coming soon"
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "error": "Error",
+      "none": "None"
+    },
+    "participants": {
+      "title": "Participants",
+      "add_placeholder": "Search players…",
+      "add_button": "Add",
+      "adding": "Adding…",
+      "empty": "No participants yet — add players above.",
+      "remove": "Remove",
+      "remove_confirm": "Remove this participant?",
+      "seed_label": "Seed",
+      "no_seed": "—",
+      "withdrawn": "Withdrawn",
+      "no_options": "No matching players in the directory.",
+      "count": "{n, plural, one {# player} other {# players}}"
+    },
+    "bracket": {
+      "title": "Bracket",
+      "generate": "Generate bracket",
+      "generating": "Generating…",
+      "regenerate_warning": "A bracket already exists. Generating again will erase all current matches. Continue?",
+      "no_matches": "No bracket yet. Add at least 2 participants and click Generate.",
+      "not_supported": "This format will be available in a future iteration. For now, use single elimination.",
+      "draw_method": "Seeding",
+      "round": "Round",
+      "round_label": "Round {n} / {total}",
+      "bye": "Bye",
+      "tbd": "TBD",
+      "edit_score": "Score",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "outcome_label": "Outcome",
+      "outcomes": {
+        "completed": "Completed",
+        "walkover_p1": "Walkover (top wins)",
+        "walkover_p2": "Walkover (bottom wins)",
+        "retired_p1": "Retired (top retired)",
+        "retired_p2": "Retired (bottom retired)",
+        "dsq_p1": "DSQ (top)",
+        "dsq_p2": "DSQ (bottom)"
+      },
+      "add_set": "Add set",
+      "remove_set": "remove",
+      "set": "Set",
+      "error": "Error",
+      "insufficient_players": "Need at least 2 participants to draw a bracket."
+    },
+    "detail": {
+      "back": "Back to tournaments",
+      "help": {
+        "why": "This page is your control room: participants on the left, bracket on the right. Update both, players see changes instantly.",
+        "what": {
+          "1": "Add or remove participants until you're happy with the field, then click Generate bracket.",
+          "2": "After each match, click Score on the match card and enter set-by-set results.",
+          "3": "When the final is scored, the tournament status flips to Finished automatically."
+        },
+        "result": {
+          "1": "A finished bracket is a single, shareable view of who beat whom.",
+          "2": "Elo updates from these matches will land in the next iteration."
+        }
+      }
+    }
+  },
+  "tournamentsPlayer": {
+    "title": "Tournaments",
+    "subtitle": "Find an open tournament, register, and track your bracket.",
+    "help": {
+      "why": "All your tournaments — past, present and open for registration — live here.",
+      "what": {
+        "1": "Open registrations: tap Register on any open tournament. The coach gets your name automatically.",
+        "2": "My tournaments: see the next match you have to play and your opponent.",
+        "3": "Need to drop out? Use Withdraw — earlier is better, so the bracket can be redrawn."
+      },
+      "result": {
+        "1": "You never miss a tournament you wanted to play.",
+        "2": "You always know who you play next."
+      }
+    },
+    "tab_open": "Open registrations",
+    "tab_mine": "My tournaments",
+    "open_empty_title": "No open tournaments right now",
+    "open_empty_description": "Coaches haven't published any public tournaments. Check back soon!",
+    "mine_empty_title": "You're not in any tournament yet",
+    "mine_empty_description": "Browse Open registrations to find one to join.",
+    "register": "Register",
+    "registering": "Registering…",
+    "registered": "Registered",
+    "withdraw": "Withdraw",
+    "withdrawing": "Withdrawing…",
+    "withdraw_confirm": "Withdraw from this tournament? Your spot will be released.",
+    "next_match": "Your next match",
+    "no_next_match": "Nothing scheduled yet — bracket may still be in the works.",
+    "vs": "vs",
+    "by_coach": "Run by",
+    "seats": "{n}/{max, plural, =0 {∞} other {#}} seats",
+    "error": "Error",
+    "formats": {
+      "single_elimination": "Single elimination",
+      "double_elimination": "Double elimination",
+      "round_robin": "Round robin",
+      "group_playoff": "Group + playoff",
+      "swiss": "Swiss",
+      "compass": "Compass draw"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "registration": "Registration open",
+      "in_progress": "In progress",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "surfaces": {
+      "hard": "Hard",
+      "clay": "Clay",
+      "grass": "Grass",
+      "carpet": "Carpet"
+    }
+  }
+}

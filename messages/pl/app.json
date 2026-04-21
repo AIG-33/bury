@@ -1,0 +1,1022 @@
+{
+  "nav": {
+    "leaderboard": "Ranking",
+    "coaches": "Trenerzy",
+    "help": "Pomoc",
+    "login": "Zaloguj się",
+    "logout": "Wyloguj",
+    "rating": "Ranking",
+    "bookings": "Rezerwacje",
+    "tournaments": "Turnieje",
+    "find": "Znajdź rywala",
+    "profile": "Profil",
+    "coach": "Panel trenera",
+    "admin": "Admin"
+  },
+  "coachNav": {
+    "dashboard": "Pulpit",
+    "players": "Gracze",
+    "venues": "Lokalizacje",
+    "slots": "Sloty",
+    "tournaments": "Turnieje",
+    "leaderboard": "Ranking"
+  },
+  "coachLeaderboard": {
+    "title": "Ranking graczy",
+    "subtitle": "Uniwersalny ranking Elo ze wszystkich rozegranych meczów.",
+    "tab_mine": "Moi gracze",
+    "tab_all": "Wszyscy",
+    "count": "{n}",
+    "note_recent_30d": "Kolumny Δ pokazują sumę zmian Elo z meczów w ostatnich 7 / 30 dniach.",
+    "col_rank": "#",
+    "col_player": "Gracz",
+    "col_elo": "Elo",
+    "col_matches": "Mecze",
+    "col_delta_7d": "7d",
+    "col_delta_30d": "30d",
+    "provisional": "tymczasowy",
+    "my_player_badge": "Mój",
+    "empty_mine_title": "Nie masz jeszcze powiązanych graczy",
+    "empty_mine_description": "Gracze pojawiają się tutaj, gdy zarezerwują u Ciebie slot lub wezmą udział w Twoim turnieju. Przełącz na „Wszyscy”, aby zobaczyć pełny katalog.",
+    "empty_all_title": "Brak widocznych graczy",
+    "empty_all_description": "Gdy gracze się zarejestrują i wyrażą zgodę na ranking, pojawią się tu posortowani według Elo.",
+    "help": {
+      "why": "Obserwuj postępy swoich graczy i wyłapuj wschodzące talenty w okolicy.",
+      "what": {
+        "1": "Moi gracze — każdy, kto zarezerwował u Ciebie slot lub zagrał w Twoim turnieju.",
+        "2": "Wszyscy — każdy gracz widoczny w rankingu, posortowany według Elo.",
+        "3": "Δ7d / Δ30d — sumaryczna zmiana Elo z meczów rankingowych w ostatnich 7 / 30 dniach."
+      },
+      "result": {
+        "1": "Jasny obraz tego, kto najszybciej się rozwija w Twoim środowisku.",
+        "2": "Łatwiejsze decyzje, kogo zaprosić do trudniejszych turniejów lub planu treningowego."
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Tenisowa platforma od profesjonalisty",
+      "title": "Twój tenisowy ranking. Bez kompromisów. Z odrobiną stylu Federera.",
+      "subtitle": "Jeden ranking Elo, który podąża za Tobą wszędzie. Znajdź rywala, zagraj turniej, sprawdź trenerów — w jednym miejscu.",
+      "cta_primary": "Zaczynamy!",
+      "cta_secondary": "Zobacz demo komponentów"
+    },
+    "features": {
+      "title": "Co tu robisz",
+      "rating": {
+        "title": "Uniwersalny ranking",
+        "body": "Jedno Elo dla wszystkich Twoich meczów — sparingu, turniejów, lig."
+      },
+      "find": {
+        "title": "Znajdź rywala",
+        "body": "Filtry po dystrykcie, poziomie i Twoim wolnym czasie. Mecz w dwóch kliknięciach."
+      },
+      "coaches": {
+        "title": "Trenerzy z opiniami",
+        "body": "Realne oceny od graczy, którzy faktycznie z nimi trenowali."
+      },
+      "tournaments": {
+        "title": "Turnieje na różne sposoby",
+        "body": "Best-of-3, super-tiebreak, mecz na czas, do X gemów. Wybierasz, jak grasz."
+      }
+    },
+    "quote": {
+      "text": "„Backhand Federera to nie tylko technika — to filozofia.\u00A0Stwórzmy taki ranking, którego nie będzie się wstyd pokazać.\u201D",
+      "author": "— inspiracją projektu jest jednoręczny bekhend (i przy okazji wzrost 203 cm)."
+    }
+  },
+  "helpDemo": {
+    "title": "Komponenty pomocy w akcji",
+    "subtitle": "Każda strona panelu administracyjnego musi używać tych elementów. Tu sprawdzasz, jak wyglądają.",
+    "panel": {
+      "why": "To strona demonstracyjna. Pokazuje, jak HelpPanel wprowadza trenera w sens każdego widoku.",
+      "what": {
+        "1": "Zobaczysz, jak działa zwijanie (stan zapisany w localStorage).",
+        "2": "Sprawdzisz układ trzech bloków: Po co / Co możesz / Co się stanie.",
+        "3": "Skopiujesz wzorzec do swojej strony admina."
+      },
+      "result": {
+        "1": "Trener nigdy nie musi zgadywać, co robi przycisk.",
+        "2": "Mniej supportu, więcej zaufania."
+      }
+    },
+    "tooltip": {
+      "intro": "Najedź lub kliknij na ikonkę „?\u201D obok pojęcia, aby zobaczyć krótkie wyjaśnienie. Przykłady:"
+    },
+    "flow": {
+      "steps": {
+        "1": "Podstawy",
+        "2": "Format",
+        "3": "Zasady meczu",
+        "4": "Gracze",
+        "5": "Potwierdzenie"
+      }
+    },
+    "empty": {
+      "title": "Cisza na korcie",
+      "description": "Tu jeszcze nic nie ma. Każdy pusty stan w aplikacji ma mieć cel i CTA — tak jak ten.",
+      "cta": "Wróć na stronę główną"
+    }
+  },
+  "login": {
+    "title": "Witaj w grze",
+    "subtitle": "Wpisz e-mail — wyślemy Ci magiczny link.",
+    "email": "E-mail",
+    "cta": "Wyślij link",
+    "sending": "Wysyłam…",
+    "sent": "Sprawdź skrzynkę",
+    "help": "Kliknij link w e-mailu, aby się zalogować. Może wylądować w spamie — sprawdź też tam.",
+    "error": "Nie udało się"
+  },
+  "coachDashboard": {
+    "title": "Pulpit trenera",
+    "subtitle": "Twoje centrum dowodzenia. Wszystko, co dzieje się w klubie, w jednym miejscu.",
+    "help": {
+      "why": "Tu widzisz to, co dzieje się w klubie tu i teraz: nadchodzące treningi, świeże rezerwacje, aktywne turnieje, średnią ocenę.",
+      "what": {
+        "1": "Przejść do najbliższego treningu w jednym kliknięciu.",
+        "2": "Zaakceptować nowe rezerwacje (jeśli włączone ręczne potwierdzenie).",
+        "3": "Zobaczyć, ile osób się dziś zalogowało po raz pierwszy."
+      },
+      "result": {
+        "1": "Akcja „Potwierdź rezerwację\u201D wyśle graczowi e-mail i Telegram.",
+        "2": "Tworzenie nowego turnieju otworzy 5-krokowego kreatora."
+      }
+    },
+    "kpi": {
+      "players": { "label": "Gracze klubu", "hint": "Aktywni w ciągu 30 dni" },
+      "tournaments": { "label": "Aktywne turnieje", "hint": "W trakcie lub w rejestracji" },
+      "bookings": { "label": "Najbliższe rezerwacje", "hint": "Następne 7 dni" }
+    },
+    "empty": {
+      "title": "Zacznij od zaproszenia gracza",
+      "description": "Klub bez graczy to jak rakieta bez naciągu. Zaproś pierwszą piątkę — to dosłownie 30 sekund.",
+      "cta": "Zaproś gracza"
+    }
+  },
+  "quiz": {
+    "title": "Twój startowy ranking",
+    "subtitle": "Krótki quiz (2 minuty), aby poznać Twój poziom. Pierwsze 10 meczów dopracuje go z większą wagą.",
+    "help": {
+      "why": "Każdy gracz potrzebuje punktu startowego. Lepiej oszacować ranking z odpowiedzi niż zaczynać od zera.",
+      "what": {
+        "1": "Odpowiedz uczciwie — system i tak się dopasuje.",
+        "2": "Możesz wracać i zmieniać odpowiedzi, dopóki nie zatwierdzisz.",
+        "3": "Po zatwierdzeniu zobaczysz swój ranking w prawym górnym rogu."
+      },
+      "result": {
+        "1": "Ustawimy Twoje początkowe Elo (zakres 800–2200).",
+        "2": "Włączymy „okres próbny\u201D — pierwsze 10 meczów liczy się z większą wagą."
+      }
+    },
+    "ui": {
+      "next": "Dalej",
+      "prev": "Wstecz",
+      "submit": "Zatwierdź",
+      "submitting": "Liczę…",
+      "step": "Pytanie",
+      "required": "To pytanie jest obowiązkowe.",
+      "error": "Błąd",
+      "choose": "Wpisz odpowiedź"
+    },
+    "done": {
+      "title": "Twój start",
+      "body": "Pierwsze 10 meczów liczy się z większą wagą — system szybko skoryguje Twój prawdziwy poziom.",
+      "cta": "Do mojego profilu"
+    }
+  },
+  "coachPlayers": {
+    "title": "Moi gracze",
+    "subtitle": "Zarządzaj klubem: zapraszaj, importuj, śledź statusy zaproszeń.",
+    "help": {
+      "why": "Lista Twoich graczy. Stąd zapraszasz nowych i zarządzasz klubem.",
+      "what": {
+        "1": "Wysłać zaproszenie na e-mail (jeden gracz na raz).",
+        "2": "Zaimportować listę z CSV (wkrótce).",
+        "3": "Sprawdzić, kto już akceptował, a kto jeszcze nie."
+      },
+      "result": {
+        "1": "Zaproszenie tworzy jednorazowy link ważny 14 dni i wysyła e-mail.",
+        "2": "Po akceptacji gracz trafia na quiz, potem do Twojego klubu."
+      }
+    },
+    "invite": {
+      "title": "Zaproś gracza",
+      "subtitle": "Wpisz e-mail. Imię i nazwisko opcjonalne, ale pomagają w identyfikacji.",
+      "email": "E-mail",
+      "first_name": "Imię",
+      "last_name": "Nazwisko",
+      "cta": "Wyślij zaproszenie",
+      "sending": "Wysyłam…",
+      "sent": "Zaproszenie utworzone i wysłane.",
+      "dev_link_label": "Link (dev mode)",
+      "error": "Nie udało się"
+    },
+    "recent": {
+      "title": "Ostatnie zaproszenia",
+      "empty_title": "Brak zaproszeń",
+      "empty_description": "Pierwsze zaproszenia pojawią się tutaj. Średni czas akceptacji to 2 dni.",
+      "col_email": "E-mail",
+      "col_status": "Status",
+      "col_expires": "Wygasa"
+    },
+    "status": {
+      "pending": "Oczekuje",
+      "accepted": "Zaakceptowane",
+      "expired": "Wygasłe",
+      "revoked": "Cofnięte"
+    }
+  },
+  "invite": {
+    "title": "{coach} zaprasza Cię",
+    "for": "Dla: {email}",
+    "body": "Po zalogowaniu trafisz na krótki quiz (2 minuty), który ustali Twój początkowy ranking Elo, a potem na pulpit gracza.",
+    "cta": "Zaloguj się i akceptuj",
+    "help": {
+      "why": "To strona przyjęcia zaproszenia od trenera. Po zalogowaniu Twoje konto zostanie powiązane z jego klubem.",
+      "what": {
+        "1": "Zaloguj się przez magic-link (lub Google).",
+        "2": "Przejdź quiz startowy.",
+        "3": "Zacznij grać, rezerwować korty i szukać partnerów."
+      },
+      "result": {
+        "1": "Trener zobaczy Cię na liście swoich graczy.",
+        "2": "Zaproszenie zostanie oznaczone jako zaakceptowane (jednorazowo)."
+      }
+    },
+    "error": {
+      "invalid": { "title": "Zaproszenie nieważne", "body": "Link jest nieprawidłowy lub został już użyty." },
+      "expired": { "title": "Zaproszenie wygasło", "body": "Poproś trenera o ponowne wysłanie." },
+      "already": { "title": "Zaproszenie już zaakceptowane", "body": "Zaloguj się normalnie ze strony logowania." }
+    }
+  },
+  "rating": {
+    "title": "Mój ranking",
+    "subtitle": "Twoje Elo, historia ostatnich meczów i sezonowy wyścig o nagrody.",
+    "help": {
+      "why": "Tutaj widzisz, jak Twój prawdziwy poziom zmienia się z każdym meczem. Jeden ranking — wszystkie mecze.",
+      "what": {
+        "1": "Sprawdzić aktualne Elo i zmianę z ostatnich 30 dni.",
+        "2": "Zobaczyć, jak rosło / spadało Elo na wykresie (ostatnie 20 meczów).",
+        "3": "Śledzić sezonowy wyścig i ranking topowych trenerów."
+      },
+      "result": {
+        "1": "Po każdym potwierdzonym meczu Elo aktualizuje się automatycznie.",
+        "2": "Pierwsze 10 meczów ma większą wagę — system szybko trafia w Twój prawdziwy poziom."
+      }
+    },
+    "hero": {
+      "label": "Twoje Elo",
+      "matches": "{n, plural, =0 {bez meczów} =1 {1 mecz} few {# mecze} many {# meczów} other {# meczów}}",
+      "status": {
+        "provisional": "Wstępny (pierwsze mecze)",
+        "established": "Ustabilizowany"
+      },
+      "delta_30d": "30 dni",
+      "best": "Maks",
+      "worst": "Min"
+    },
+    "history": {
+      "title": "Historia Elo",
+      "last_n": "ostatnie {n}",
+      "empty": "Jeszcze nie ma meczów. Wykres pojawi się po pierwszej grze.",
+      "axis": "Elo",
+      "delta_label": "pkt",
+      "reasons": {
+        "match": "Mecz",
+        "onboarding": "Start (quiz)",
+        "manual_adjustment": "Korekta trenera",
+        "seasonal_decay": "Wygaszanie sezonowe"
+      }
+    },
+    "race": {
+      "title": "Wyścig sezonowy",
+      "days_left": "Dni do końca",
+      "prizes": "Nagrody",
+      "coming_soon": "Pełne tabele wyścigu pojawią się wkrótce.",
+      "no_season": "Aktualnie brak aktywnego sezonu."
+    },
+    "coaches": {
+      "title": "Top trenerzy",
+      "subtitle": "wg ocen graczy",
+      "empty_title": "Jeszcze nie ma ocen",
+      "empty_description": "Top-20 trenerów pojawi się tutaj, gdy gracze zaczną zostawiać oceny."
+    }
+  },
+  "find": {
+    "title": "Znajdź gracza",
+    "subtitle": "Sparing-partnerzy z Twojej dzielnicy, na Twoim poziomie i w Twoim wolnym czasie.",
+    "proposals_link": "Moje propozycje",
+    "help": {
+      "why": "W Polsce najtrudniej jest znaleźć partnera o podobnym poziomie i wolnego w tym samym oknie czasowym. Tu robimy to za Ciebie.",
+      "what": {
+        "1": "Filtry: dzielnica, zakres Elo, ulubiona ręka i Twoje preferowane sloty czasowe.",
+        "2": "Lista jest sortowana wg dopasowania (Elo + nakładające się sloty + dzielnica + aktywność).",
+        "3": "Możesz napisać bezpośrednio na WhatsApp lub wysłać oficjalną propozycję meczu w aplikacji."
+      },
+      "result": {
+        "1": "Wysłana propozycja trafia do drugiego gracza e-mailem; on może zaakceptować lub odrzucić.",
+        "2": "Po akceptacji macie aktywny mecz w „Moje propozycje\u201D — dogadajcie szczegóły na WhatsApp i wpiszcie wynik."
+      }
+    },
+    "filters": {
+      "title": "Filtry",
+      "district": "Dzielnica",
+      "district_placeholder": "Wszystkie",
+      "elo_radius": "Zakres Elo",
+      "elo_radius_hint": "Pokażemy graczy w przedziale ±{n} punktów Elo od Twojego.",
+      "availability": "Twoje preferowane sloty",
+      "availability_hint": "Zaznacz okna, w których chcesz grać. Sloty muszą się nakładać z partnerem.",
+      "hand": "Ręka",
+      "hand_options": { "both": "Obie", "R": "Prawa", "L": "Lewa" },
+      "query": "Imię",
+      "query_placeholder": "Szukaj po imieniu…",
+      "search": "Szukaj",
+      "searching": "Szukam…",
+      "reset": "Wyczyść filtry"
+    },
+    "results": {
+      "count": "Znaleziono: {n}",
+      "empty_title": "Brak wyników",
+      "empty_description": "Spróbuj rozszerzyć zakres Elo, dodać więcej dzielnic lub usunąć preferowane sloty."
+    },
+    "card": {
+      "elo": "Elo",
+      "matches": "{n} meczów",
+      "score": "dopasowanie",
+      "overlap": "Wspólne okna",
+      "overlap_none": "Brak wspólnych slotów — sprawdźcie szczegóły na WhatsApp.",
+      "propose": "Zaproponuj mecz",
+      "proposing": "Wysyłam…",
+      "sent": "Wysłano",
+      "duplicate": "Macie już aktywną propozycję między sobą.",
+      "self": "Nie możesz zaprosić siebie 😅",
+      "error": "Coś poszło nie tak. Spróbuj ponownie.",
+      "whatsapp": "Napisz na WhatsApp",
+      "whatsapp_unavailable": "Brak numeru WhatsApp",
+      "optional_message": "Wiadomość (opcjonalnie)",
+      "cancel": "Anuluj",
+      "confirm": "Wyślij propozycję"
+    },
+    "weekday": {
+      "mon": "Poniedziałek", "tue": "Wtorek", "wed": "Środa", "thu": "Czwartek",
+      "fri": "Piątek", "sat": "Sobota", "sun": "Niedziela"
+    },
+    "weekday_short": {
+      "mon": "Pon", "tue": "Wt", "wed": "Śr", "thu": "Czw", "fri": "Pt", "sat": "Sob", "sun": "Nd"
+    },
+    "daypart": {
+      "morning": "Rano",
+      "noon": "Południe",
+      "afternoon": "Popołudnie",
+      "evening": "Wieczór",
+      "late": "Późno"
+    },
+    "whatsapp_prefill": "Cześć, {name}! Jestem z Bury Tennis — masz może czas na mecz?",
+    "proposals": {
+      "title": "Moje propozycje",
+      "subtitle": "Przychodzące, wysłane i historia.",
+      "back": "Wróć do wyszukiwarki",
+      "incoming": "Przychodzące",
+      "sent": "Wysłane",
+      "history": "Historia",
+      "empty_incoming_title": "Cisza w skrzynce",
+      "empty_incoming_description": "Gdy ktoś zaproponuje Ci mecz, zobaczysz to tutaj.",
+      "empty_sent_title": "Nic nie wysłałeś",
+      "empty_sent_description": "Otwórz „Znajdź gracza\u201D i wyślij pierwszą propozycję.",
+      "help": {
+        "why": "Wszystkie propozycje meczów towarzyskich w jednym miejscu — dzięki temu nic Ci nie ucieknie.",
+        "what": {
+          "1": "Akceptuj lub odrzucaj przychodzące w jednym kliku.",
+          "2": "Anuluj wysłane, jeśli zmieniłeś plany.",
+          "3": "W każdej chwili napisz partnerowi bezpośrednio na WhatsApp."
+        },
+        "result": {
+          "1": "Po akceptacji mecz pojawia się jako „zaplanowany\u201D i czeka na wpis wyniku.",
+          "2": "Po wpisie wyniku Twój ranking Elo zaktualizuje się automatycznie."
+        }
+      },
+      "card": {
+        "accept": "Akceptuj",
+        "decline": "Odrzuć",
+        "cancel": "Anuluj",
+        "sending": "Wysyłam…",
+        "accepted": "Zaakceptowano",
+        "declined": "Odrzucono",
+        "cancelled": "Anulowano",
+        "scheduled": "Zaplanowany",
+        "proposed_by_you": "Wysłane przez Ciebie",
+        "proposed_by_them": "Otrzymane",
+        "written": "Napisali",
+        "response": "Odpowiedź",
+        "whatsapp": "WhatsApp",
+        "optional_note": "Notatka (opcjonalnie)",
+        "confirm": "Potwierdź",
+        "whatsapp_prefill": "Cześć, {name}! Co do meczu z Bury Tennis…"
+      }
+    }
+  },
+  "profile": {
+    "title": "Mój profil",
+    "hello": "Cześć, {name}!",
+    "help": {
+      "why": "To Twój profil. Wszystko, co system o Tobie wie i pokazuje innym graczom — można tu zmienić.",
+      "what": {
+        "1": "Edytować dane osobowe i kontakty.",
+        "2": "Ustawić preferencje sportowe i wolny czas (potrzebne do „Znajdź rywala\u201D).",
+        "3": "Zarządzać prywatnością i powiadomieniami."
+      },
+      "result": {
+        "1": "Zmiany są widoczne natychmiast.",
+        "2": "Niektóre pola (np. zdrowie) widzi tylko trener, którego masz aktualnie zarezerwowanego."
+      }
+    },
+    "elo": {
+      "label": "Twój ranking Elo",
+      "matches": "{n, plural, =0 {bez meczów} =1 {1 mecz} few {# mecze} many {# meczów} other {# meczów}}",
+      "status": {
+        "provisional": "Wstępny (pierwsze mecze)",
+        "established": "Ustabilizowany"
+      }
+    },
+    "form": {
+      "save": "Zapisz",
+      "saving": "Zapisuję…",
+      "saved": "Zapisano",
+      "error": "Błąd",
+      "none": "— nie wybrano —",
+      "sections": {
+        "personal": "Dane osobowe",
+        "contacts": "Kontakty",
+        "socials": "Social media",
+        "location": "Lokalizacja",
+        "sport": "Preferencje tenisowe",
+        "availability": "Dostępność (kiedy gram)",
+        "privacy": "Prywatność",
+        "notifications": "Powiadomienia",
+        "health": "Zdrowie i kontakt SOS"
+      },
+      "fields": {
+        "first_name": "Imię",
+        "last_name": "Nazwisko",
+        "date_of_birth": "Data urodzenia",
+        "gender": "Płeć",
+        "favorite_player": "Ulubiony gracz",
+        "motto": "Motto",
+        "phone": "Telefon",
+        "whatsapp": "WhatsApp",
+        "telegram_username": "Telegram (opcjonalnie)",
+        "primary_badge": "Główny kontakt",
+        "social_instagram": "Instagram",
+        "social_facebook": "Facebook",
+        "social_x": "X (Twitter)",
+        "social_tiktok": "TikTok",
+        "social_youtube": "YouTube",
+        "social_website": "Strona / blog",
+        "city": "Miasto",
+        "district": "Dzielnica",
+        "dominant_hand": "Ręka dominująca",
+        "backhand_style": "Bekhend",
+        "favorite_surface": "Ulubiona nawierzchnia",
+        "visible_in_find_player": "Widoczność w „Znajdź rywala\u201D",
+        "visible_in_leaderboard": "Widoczność w rankingu",
+        "notification_email": "Powiadomienia e-mail",
+        "notification_whatsapp": "Powiadomienia WhatsApp",
+        "notification_telegram": "Powiadomienia Telegram",
+        "locale": "Język interfejsu",
+        "health_notes": "Notatki zdrowotne",
+        "emergency_contact": "Kontakt w razie nagłego wypadku"
+      },
+      "hints": {
+        "date_of_birth": "Używamy tylko do statystyk wieku w rankingu i turniejach.",
+        "motto": "Krótkie motto pojawi się przy Twoim imieniu w „Znajdź rywala\u201D.",
+        "phone": "Numer rezerwowy (telefon / SMS). Trener zobaczy go po Twojej rezerwacji.",
+        "whatsapp": "Główny komunikator w Polsce. Po kliknięciu „Napisz\u201D otwiera się czat WhatsApp z partnerem lub trenerem.",
+        "telegram_username": "Opcjonalnie. Bez @. Tylko jeśli wolisz Telegram od WhatsAppa.",
+        "district": "Dzielnica jest kluczowa dla wyszukiwania rywala blisko Ciebie.",
+        "backhand_style": "Jednoręczny vs oburęczny — pomaga partnerom dopasować styl gry.",
+        "availability": "Zaznacz, kiedy zwykle grasz. „Znajdź rywala\u201D dopasuje innych z tym samym oknem.",
+        "visible_in_find_player": "Wyłącz, jeśli nie chcesz dostawać propozycji meczów.",
+        "visible_in_leaderboard": "Wyłącz, jeśli nie chcesz pokazywać się w publicznym rankingu.",
+        "notification_email": "Główny kanał automatycznych powiadomień (zaproszenia, potwierdzenia rezerwacji, wyniki turniejów).",
+        "notification_whatsapp": "Wkrótce: automatyczne powiadomienia przez WhatsApp Business. Na razie WhatsApp służy do bezpośredniego kontaktu.",
+        "notification_telegram": "Opcjonalne. Wymaga podłączenia konta do bota Telegram.",
+        "health_notes": "Kontuzje, alergie — widzi tylko Twój aktualny trener."
+      },
+      "enums": {
+        "gender": { "m": "Mężczyzna", "f": "Kobieta", "other": "Inna" },
+        "hand": { "R": "Prawa", "L": "Lewa" },
+        "backhand": { "one_handed": "Jednoręczny", "two_handed": "Oburęczny" },
+        "surface": { "hard": "Hard", "clay": "Mączka", "grass": "Trawa", "carpet": "Dywan" },
+        "locale": { "pl": "Polski", "en": "English", "ru": "Русский" },
+        "weekday": {
+          "mon": "Pon", "tue": "Wt", "wed": "Śr", "thu": "Czw", "fri": "Pt", "sat": "Sob", "sun": "Nd"
+        },
+        "daypart": {
+          "morning": "Rano (6–10)",
+          "noon": "Południe (10–14)",
+          "afternoon": "Popołudnie (14–18)",
+          "evening": "Wieczór (18–21)",
+          "late": "Późno (21–24)"
+        }
+      },
+      "avatar": {
+        "upload": "Wgraj zdjęcie",
+        "uploading": "Wgrywam…",
+        "remove": "Usuń",
+        "too_large": "Plik za duży (max 2 MB).",
+        "bad_mime": "Niewspierany format. Użyj JPG, PNG, WebP lub GIF.",
+        "requirements": "JPG / PNG / WebP / GIF, do 2 MB."
+      }
+    }
+  },
+  "venues": {
+    "title": "Lokalizacje i korty",
+    "subtitle": "Zarządzaj miejscami, w których trenujesz. Później przypiszesz do nich sloty treningowe i mecze turniejowe.",
+    "help": {
+      "why": "Lokalizacja to klub lub obiekt, w którym uczysz. Każda lokalizacja ma jeden lub kilka kortów. Do konkretnych kortów przypiszesz sloty treningowe i mecze, więc to fundament Twojego harmonogramu.",
+      "what": {
+        "1": "Dodaj lokalizację: nazwa, miasto/dzielnica i udogodnienia (oświetlenie, hala, parking itp.).",
+        "2": "Otwórz lokalizację i dodaj jej korty: numer, nawierzchnia i status (aktywny / w remoncie).",
+        "3": "Jeśli kort jest w naprawie, ustaw status „W remoncie\u201D — automatycznie zniknie z nowych rezerwacji."
+      },
+      "result": {
+        "1": "Gracze zobaczą czytelny adres i listę udogodnień przy rezerwacji.",
+        "2": "Tworząc slot lub mecz turniejowy, wybierasz tylko kort — data i miejsce uzupełniają się same."
+      }
+    },
+    "list": {
+      "empty_title": "Brak lokalizacji",
+      "empty_description": "Dodaj pierwszą lokalizację — to chwila, a odblokowuje sloty i turnieje.",
+      "empty_cta": "Dodaj pierwszą lokalizację",
+      "add": "Dodaj lokalizację",
+      "edit": "Edytuj",
+      "delete": "Usuń",
+      "delete_confirm": "Usunąć tę lokalizację razem ze wszystkimi kortami? Tej operacji nie można cofnąć.",
+      "deleting": "Usuwam…",
+      "open": "Otwórz",
+      "courts": "{n, plural, =0 {brak kortów} one {# kort} few {# korty} many {# kortów} other {# kortów}}",
+      "indoor": "Hala",
+      "outdoor": "Otwarte",
+      "no_district": "Lokalizacja nieuzupełniona"
+    },
+    "dialog": {
+      "create_title": "Nowa lokalizacja",
+      "edit_title": "Edytuj lokalizację",
+      "fields": {
+        "name": "Nazwa",
+        "city": "Miasto",
+        "district": "Dzielnica",
+        "district_placeholder": "Wybierz dzielnicę",
+        "address": "Ulica i numer",
+        "lat": "Szerokość geogr.",
+        "lng": "Długość geogr.",
+        "is_indoor": "Hala (korty kryte)",
+        "amenities": "Udogodnienia"
+      },
+      "hints": {
+        "lat_lng": "Opcjonalne. Użyte na mapie lokalizacji (Faza 2). Możesz skopiować współrzędne z Google Maps.",
+        "address": "Widoczne dla graczy. Pomaga w nawigacji.",
+        "amenities": "Kliknij, aby przełączyć. Lista pokazuje się graczom przy rezerwacji."
+      },
+      "save": "Zapisz",
+      "saving": "Zapisuję…",
+      "cancel": "Anuluj",
+      "saved": "Zapisano",
+      "error": "Błąd",
+      "none": "— brak —"
+    },
+    "amenities": {
+      "indoor": "Korty kryte",
+      "outdoor": "Korty otwarte",
+      "lights": "Oświetlenie",
+      "shower": "Prysznice",
+      "lockers": "Szafki",
+      "parking": "Parking",
+      "shop": "Sklep tenisowy",
+      "wifi": "Wi-Fi",
+      "cafe": "Kawiarnia",
+      "bathrooms": "Toalety"
+    },
+    "detail": {
+      "back": "Wróć do lokalizacji",
+      "amenities_title": "Udogodnienia",
+      "help": {
+        "why": "Każdy kort to najmniejsza jednostka grafiku. Sloty, treningi i mecze turniejowe są przypisywane do konkretnych kortów.",
+        "what": {
+          "1": "Dodaj korty fizycznie istniejące w tej lokalizacji — używaj tych samych numerów, co na obiekcie.",
+          "2": "Wybierz nawierzchnię — gracze filtrują lokalizacje po typie nawierzchni.",
+          "3": "Użyj „W remoncie\u201D dla kortów w naprawie. Pozostaną w systemie, ale nie pojawią się w nowych rezerwacjach."
+        },
+        "result": {
+          "1": "Przy konflikcie slotów system ostrzeże Cię z dokładnym numerem kortu.",
+          "2": "Drabinka turniejowa może rozłożyć mecze na wiele kortów, by oszczędzić czas."
+        }
+      },
+      "courts": {
+        "title": "Korty w tej lokalizacji",
+        "intro": "Dodaj każdy kort tej lokalizacji. „Numer\u201D użyjesz w turnieju, by skierować graczy (np. „Mecz 12 → Kort 3\u201D).",
+        "empty": "Nie ma jeszcze kortów — dodaj pierwszy poniżej.",
+        "add_title": "Dodaj nowy kort",
+        "number": "Nr",
+        "name": "Nazwa (opcjonalna)",
+        "name_placeholder": "Kort centralny, Kort A…",
+        "surface": "Nawierzchnia",
+        "status": "Status",
+        "status_options": {
+          "active": "Aktywny",
+          "maintenance": "W remoncie"
+        },
+        "surface_options": {
+          "hard": "Twarda",
+          "clay": "Mączka",
+          "grass": "Trawa",
+          "carpet": "Dywan"
+        },
+        "none": "—",
+        "add": "Dodaj kort",
+        "adding": "Dodaję…",
+        "save": "Zapisz",
+        "saving": "…",
+        "saved": "Zapisano",
+        "delete": "Usuń kort",
+        "delete_confirm": "Usunąć ten kort? Istniejące sloty również zostaną usunięte.",
+        "duplicate": "Kort o tym numerze już istnieje w tej lokalizacji."
+      }
+    }
+  },
+  "slotsCoach": {
+    "title": "Sloty treningowe",
+    "subtitle": "Publikuj wolne sloty — gracze sami się zapiszą. Tryb cotygodniowy planuje cały miesiąc w kilka sekund.",
+    "help": {
+      "why": "Slot to jednostka grafiku, którą można zarezerwować. Każdy slot jest na konkretnym korcie i może być indywidualny, parowy (1+1) lub grupowy.",
+      "what": {
+        "1": "Kliknij „Dodaj sloty\u201D i wybierz datę jednorazową albo cotygodniową (dni tygodnia + ile tygodni do przodu).",
+        "2": "Gracze widzą wolne sloty w „Rezerwacjach\u201D i zapisują się sami. Tutaj zobaczysz uczestników.",
+        "3": "Anulując slot anulujesz wszystkie rezerwacje na nim — gracz dostanie powiadomienie (Faza 2)."
+      },
+      "result": {
+        "1": "Tydzień zapełnia się rezerwacjami bez wymiany wiadomości.",
+        "2": "Konflikty czasowe blokuje sama baza — kortu nie da się podwójnie zarezerwować."
+      }
+    },
+    "empty_title": "Brak slotów w tym oknie",
+    "empty_description": "Wybierz inny tydzień lub opublikuj kilka slotów — gracze czekają.",
+    "empty_cta": "Dodaj sloty",
+    "add": "Dodaj sloty",
+    "cancel": "Anuluj",
+    "cancel_confirm": "Anulować ten slot? Wszystkie potwierdzone rezerwacje też zostaną anulowane.",
+    "cancelling": "Anuluję…",
+    "range_label": "{from} – {to}",
+    "prev_week": "Poprz. tydzień",
+    "next_week": "Nast. tydzień",
+    "today": "Dziś",
+    "slot_type_options": {
+      "individual": "Indywidualny",
+      "pair": "Para (1+1)",
+      "group": "Grupowy"
+    },
+    "status_options": {
+      "open": "Otwarty",
+      "closed": "Zamknięty",
+      "cancelled": "Anulowany"
+    },
+    "participants": "Uczestnicy",
+    "free": "wolne",
+    "full": "pełny",
+    "no_courts_title": "Najpierw dodaj lokalizację",
+    "no_courts_description": "Potrzebujesz przynajmniej jednej lokalizacji z kortem, by publikować sloty.",
+    "no_courts_cta": "Otwórz lokalizacje",
+    "weekday_short": {
+      "1": "pn",
+      "2": "wt",
+      "3": "śr",
+      "4": "cz",
+      "5": "pt",
+      "6": "sb",
+      "7": "nd"
+    },
+    "dialog": {
+      "title": "Dodaj sloty",
+      "intro": "Wybierz kort, datę jednorazową lub cotygodniową — utworzymy wszystko za jednym razem.",
+      "fields": {
+        "court": "Kort",
+        "kind": "Powtarzalność",
+        "date": "Data",
+        "start_date": "Data rozpoczęcia",
+        "weeks": "Ile tygodni?",
+        "weekdays": "Dni tygodnia",
+        "start_time": "Godz. startu",
+        "duration": "Czas trwania (min)",
+        "slot_type": "Typ",
+        "max_participants": "Maks. uczestników",
+        "price_pln": "Cena (PLN)",
+        "notes": "Notatka (opcjonalna)"
+      },
+      "hints": {
+        "weekly": "Utworzymy slot dla każdego wybranego dnia tygodnia w danym oknie tygodni.",
+        "duration": "15–480 minut.",
+        "price": "Opcjonalna. Zostaw puste dla bezpłatnych / wg cennika klubu.",
+        "max_participants": "1 dla indywidualnego, 2 dla pary, więcej dla grupy."
+      },
+      "kinds": {
+        "single": "Jednorazowo",
+        "weekly": "Cotygodniowo"
+      },
+      "save": "Utwórz",
+      "saving": "Tworzę…",
+      "cancel": "Anuluj",
+      "result_created": "{n, plural, =0 {Nic nie utworzono} =1 {Utworzono 1 slot} few {Utworzono # sloty} many {Utworzono # slotów} other {Utworzono # slotów}}.",
+      "result_conflicts": "{n, plural, =1 {Pominięto 1 konflikt} few {Pominięto # konflikty} many {Pominięto # konfliktów} other {Pominięto # konfliktów}} — rozwiń, by zobaczyć szczegóły",
+      "error": "Błąd",
+      "no_courts": "Najpierw dodaj kort do swojej lokalizacji."
+    }
+  },
+  "bookings": {
+    "title": "Rezerwacje",
+    "subtitle": "Znajdź wolny slot u swojego trenera (lub nowego) i zarezerwuj w dwa kliknięcia.",
+    "help": {
+      "why": "Rezerwacje zastępują pisanie do trenera „masz czas w środę o 18?\u201D. Slot, który widzisz, jest teraz dostępny.",
+      "what": {
+        "1": "Wybierz zakres dat i (opcjonalnie) dzielnicę. Kliknij Szukaj.",
+        "2": "Kliknij Rezerwuj na wybranym slocie. Trener dostanie powiadomienie e-mail; możesz też napisać do niego na WhatsApp z karty rezerwacji.",
+        "3": "Musisz odwołać? Naciśnij Anuluj — im wcześniej, tym lepiej, trener zwolni miejsce dla kogoś innego."
+      },
+      "result": {
+        "1": "Wszystkie nadchodzące treningi w jednym miejscu.",
+        "2": "Trener wie z wyprzedzeniem, ile osób przyjdzie."
+      }
+    },
+    "search": {
+      "title": "Znajdź slot",
+      "intro": "Przeszukaj wszystkich trenerów na platformie.",
+      "from": "Od",
+      "to": "Do",
+      "district": "Dzielnica",
+      "any_district": "Dowolna",
+      "submit": "Szukaj",
+      "searching": "Szukam…",
+      "empty_title": "Jeszcze nic",
+      "empty_description": "Kliknij Szukaj, aby załadować wolne sloty.",
+      "no_results": "Brak wolnych slotów w tym oknie. Spróbuj szerszego zakresu lub innej dzielnicy."
+    },
+    "upcoming_title": "Nadchodzące",
+    "past_title": "Poprzednie",
+    "no_upcoming": "Brak nadchodzących rezerwacji — znajdź slot poniżej.",
+    "no_past": "Brak poprzednich rezerwacji.",
+    "card": {
+      "book": "Rezerwuj",
+      "booking": "Rezerwuję…",
+      "booked": "Zarezerwowane!",
+      "cancel": "Anuluj",
+      "cancelling": "Anuluję…",
+      "cancel_confirm": "Anulować tę rezerwację?",
+      "full": "Pełny",
+      "error": "Błąd",
+      "free_seats": "wolne",
+      "contact_coach": "Napisz na WhatsApp",
+      "no_whatsapp": "Trener nie podpiął WhatsApp",
+      "notes_label": "Notatka dla trenera",
+      "notes_placeholder": "Coś co powinienem wiedzieć? (kontuzja, spóźnienie, …)",
+      "whatsapp_prefill": "Cześć, {name}! Co do mojej rezerwacji w Bury Tennis — krótkie pytanie:"
+    },
+    "status_options": {
+      "pending": "Oczekuje",
+      "confirmed": "Potwierdzone",
+      "cancelled": "Anulowane",
+      "attended": "Obecność",
+      "no_show": "Nieobecność"
+    },
+    "paid_options": {
+      "unpaid": "Nieopłacone",
+      "paid": "Opłacone",
+      "comped": "Bezpłatne"
+    },
+    "slot_type_options": {
+      "individual": "Indywidualny",
+      "pair": "Para",
+      "group": "Grupa"
+    },
+    "unknown_coach": "Trener"
+  },
+  "tournamentsCoach": {
+    "title": "Turnieje",
+    "subtitle": "Prowadź turnieje klubu od A do Z: utwórz, zapisz graczy, losuj, wpisuj wyniki.",
+    "help": {
+      "why": "Czysta strona turnieju zastępuje chaos w czatach, drabinki na kartce i zaginione wyniki. Każdy gracz widzi to samo źródło prawdy.",
+      "what": {
+        "1": "Utwórz turniej — wybierz format (na razie wspierane jest single elimination; reszta wkrótce) i zasady meczu (do 2 wygranych setów, super-tiebreak, mecz na czas itd.).",
+        "2": "Dodaj uczestników z klubu; możesz też pozwolić graczom samodzielnie się zapisywać, ustawiając turniej jako publiczny.",
+        "3": "Wygeneruj drabinkę. Sami obsłużymy wolne losy (bye), rozstawienie (po Elo / losowe / ręczne) i walkowery.",
+        "4": "Wpisz wynik po każdym meczu. Zwycięzca przechodzi dalej, drabinka się aktualizuje, a turniej kończy się sam, gdy rozstrzygnięty zostanie finał."
+      },
+      "result": {
+        "1": "Gracze dokładnie wiedzą, kiedy, gdzie i z kim grają.",
+        "2": "Cały dzień trenujesz, zamiast szukać wyników w WhatsAppie."
+      }
+    },
+    "list": {
+      "empty_title": "Brak turniejów",
+      "empty_description": "Utwórz pierwszy turniej — do dwóch wygranych setów, single elimination to świetny start.",
+      "empty_cta": "Utwórz turniej",
+      "add": "Utwórz turniej",
+      "edit": "Edytuj",
+      "delete": "Usuń",
+      "delete_confirm": "Usunąć turniej? Uczestnicy i mecze zostaną skasowane.",
+      "deleting": "Usuwanie…",
+      "open": "Otwórz",
+      "no_surface": "Nawierzchnia nieznana",
+      "participants_count": "{n}/{max, plural, =0 {∞} other {#}} graczy"
+    },
+    "formats": {
+      "single_elimination": "Single elimination",
+      "double_elimination": "Double elimination",
+      "round_robin": "Każdy z każdym",
+      "group_playoff": "Grupy + play-off",
+      "swiss": "System szwajcarski",
+      "compass": "Compass draw"
+    },
+    "statuses": {
+      "draft": "Szkic",
+      "registration": "Rejestracja otwarta",
+      "in_progress": "W trakcie",
+      "finished": "Zakończony",
+      "cancelled": "Anulowany"
+    },
+    "surfaces": {
+      "hard": "Hard",
+      "clay": "Mączka",
+      "grass": "Trawa",
+      "carpet": "Dywan"
+    },
+    "draw_methods": {
+      "rating": "Po Elo (top sianie chronione)",
+      "random": "Losowo (deterministycznie)",
+      "manual": "Ręcznie (po numerze rozstawienia)"
+    },
+    "privacy": {
+      "club": "Tylko klub",
+      "public": "Publiczny (dla wszystkich)"
+    },
+    "match_rule_kinds": {
+      "best_of_3": "Do 2 wygranych setów",
+      "best_of_5": "Do 3 wygranych setów",
+      "single_set": "Pojedynczy set",
+      "pro_set": "Pro set (do N gemów)",
+      "first_to_games": "Pierwszy do N gemów",
+      "timed": "Mecz na czas"
+    },
+    "dialog": {
+      "create_title": "Nowy turniej",
+      "edit_title": "Edytuj turniej",
+      "fields": {
+        "name": "Nazwa",
+        "description": "Opis",
+        "format": "Format",
+        "surface": "Nawierzchnia",
+        "starts_on": "Start",
+        "ends_on": "Koniec",
+        "registration_deadline": "Termin rejestracji",
+        "max_participants": "Maks. uczestników",
+        "privacy": "Widoczność",
+        "draw_method": "Domyślne rozstawienie",
+        "prizes": "Nagrody",
+        "match_rules": "Zasady meczu",
+        "set_target": "Gemów na set",
+        "target_games": "Gemów do wygranej",
+        "minutes": "Minuty",
+        "no_ad": "No-ad scoring",
+        "super_tiebreak": "Super-tiebreak zamiast 3. seta",
+        "set_tiebreak_at": "Tiebreak przy"
+      },
+      "hints": {
+        "format": "W MVP wspierany jest single elimination; pozostałe formaty wkrótce.",
+        "privacy": "Publiczne turnieje pojawiają się w /me/tournaments → Otwarte rejestracje dla każdego.",
+        "draw_method": "Jak ułożyć graczy w drabince. Możesz nadpisać przy losowaniu.",
+        "match_rules": "Jak rozgrywany jest pojedynczy mecz. Domyślne — możesz zmienić per mecz.",
+        "coming_soon": "wkrótce"
+      },
+      "save": "Zapisz",
+      "saving": "Zapisuję…",
+      "cancel": "Anuluj",
+      "error": "Błąd",
+      "none": "—"
+    },
+    "participants": {
+      "title": "Uczestnicy",
+      "add_placeholder": "Szukaj graczy…",
+      "add_button": "Dodaj",
+      "adding": "Dodawanie…",
+      "empty": "Brak uczestników — dodaj graczy powyżej.",
+      "remove": "Usuń",
+      "remove_confirm": "Usunąć tego uczestnika?",
+      "seed_label": "Rozstawienie",
+      "no_seed": "—",
+      "withdrawn": "Wycofany",
+      "no_options": "Nie znaleziono graczy w katalogu.",
+      "count": "{n, plural, one {# gracz} few {# graczy} many {# graczy} other {# gracza}}"
+    },
+    "bracket": {
+      "title": "Drabinka",
+      "generate": "Wygeneruj drabinkę",
+      "generating": "Generowanie…",
+      "regenerate_warning": "Drabinka już istnieje. Ponowne wygenerowanie skasuje wszystkie aktualne mecze. Kontynuować?",
+      "no_matches": "Brak drabinki. Dodaj co najmniej 2 uczestników i kliknij Wygeneruj.",
+      "not_supported": "Ten format pojawi się w kolejnej iteracji. Na razie używaj single elimination.",
+      "draw_method": "Rozstawienie",
+      "round": "Runda",
+      "round_label": "Runda {n} / {total}",
+      "bye": "Wolny los",
+      "tbd": "TBD",
+      "edit_score": "Wynik",
+      "save": "Zapisz",
+      "saving": "Zapisuję…",
+      "cancel": "Anuluj",
+      "outcome_label": "Wynik",
+      "outcomes": {
+        "completed": "Rozegrany",
+        "walkover_p1": "Walkower (góra wygrywa)",
+        "walkover_p2": "Walkower (dół wygrywa)",
+        "retired_p1": "Krecz (góra)",
+        "retired_p2": "Krecz (dół)",
+        "dsq_p1": "DSQ (góra)",
+        "dsq_p2": "DSQ (dół)"
+      },
+      "add_set": "Dodaj seta",
+      "remove_set": "usuń",
+      "set": "Set",
+      "error": "Błąd",
+      "insufficient_players": "Potrzeba co najmniej 2 uczestników, by zrobić losowanie."
+    },
+    "detail": {
+      "back": "Powrót do turniejów",
+      "help": {
+        "why": "Ta strona to twoja sterownia: uczestnicy po lewej, drabinka po prawej. Aktualizuj — gracze widzą zmiany od razu.",
+        "what": {
+          "1": "Dodaj/usuń uczestników aż do skompletowania składu i kliknij Wygeneruj drabinkę.",
+          "2": "Po każdym meczu kliknij Wynik na karcie meczu i wpisz wynik set po secie.",
+          "3": "Gdy finał ma wynik, status turnieju przełączy się automatycznie na Zakończony."
+        },
+        "result": {
+          "1": "Skończona drabinka to jeden, łatwy do udostępnienia obraz wyników.",
+          "2": "Aktualizacje Elo z tych meczów pojawią się w kolejnej iteracji."
+        }
+      }
+    }
+  },
+  "tournamentsPlayer": {
+    "title": "Turnieje",
+    "subtitle": "Znajdź otwarty turniej, zapisz się i śledź swoją drabinkę.",
+    "help": {
+      "why": "Wszystkie twoje turnieje — przeszłe, bieżące i otwarte do zapisów — są tutaj.",
+      "what": {
+        "1": "Otwarte rejestracje: kliknij Zapisz się przy dowolnym otwartym turnieju. Trener dostanie twoje nazwisko automatycznie.",
+        "2": "Moje turnieje: zobacz, jaki masz następny mecz i z kim.",
+        "3": "Musisz zrezygnować? Użyj Wycofaj — im wcześniej, tym lepiej, by drabinka mogła zostać przelosowana."
+      },
+      "result": {
+        "1": "Nigdy nie przegapisz turnieju, w którym chciałeś zagrać.",
+        "2": "Zawsze wiesz, z kim grasz dalej."
+      }
+    },
+    "tab_open": "Otwarte rejestracje",
+    "tab_mine": "Moje turnieje",
+    "open_empty_title": "Brak otwartych turniejów",
+    "open_empty_description": "Trenerzy nie opublikowali jeszcze publicznych turniejów. Zajrzyj wkrótce!",
+    "mine_empty_title": "Nie jesteś jeszcze w żadnym turnieju",
+    "mine_empty_description": "Sprawdź Otwarte rejestracje, by znaleźć turniej do dołączenia.",
+    "register": "Zapisz się",
+    "registering": "Zapisuję…",
+    "registered": "Zapisany",
+    "withdraw": "Wycofaj",
+    "withdrawing": "Wycofuję…",
+    "withdraw_confirm": "Wycofać się z turnieju? Twoje miejsce zostanie zwolnione.",
+    "next_match": "Twój następny mecz",
+    "no_next_match": "Nic jeszcze nie zaplanowano — drabinka może być w przygotowaniu.",
+    "vs": "vs",
+    "by_coach": "Trener",
+    "seats": "{n}/{max, plural, =0 {∞} other {#}} miejsc",
+    "error": "Błąd",
+    "formats": {
+      "single_elimination": "Single elimination",
+      "double_elimination": "Double elimination",
+      "round_robin": "Każdy z każdym",
+      "group_playoff": "Grupy + play-off",
+      "swiss": "System szwajcarski",
+      "compass": "Compass draw"
+    },
+    "statuses": {
+      "draft": "Szkic",
+      "registration": "Rejestracja otwarta",
+      "in_progress": "W trakcie",
+      "finished": "Zakończony",
+      "cancelled": "Anulowany"
+    },
+    "surfaces": {
+      "hard": "Hard",
+      "clay": "Mączka",
+      "grass": "Trawa",
+      "carpet": "Dywan"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 142 24% 8%;
+    --muted: 142 8% 95%;
+    --muted-foreground: 142 8% 36%;
+    --border: 142 6% 86%;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-white text-ink-900 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    @apply bg-ball-200 text-ink-900;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-grass-500 ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
