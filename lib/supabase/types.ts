@@ -100,8 +100,10 @@ export type RatingAlgorithmConfigRow = {
       scoring: Record<string, number>;
       top_n_for_prizes: number;
     };
-    margin_of_victory_enabled: boolean;
+    margin_of_victory_enabled?: boolean;
   };
+  notes: string | null;
+  created_at: string;
 };
 
 type AnyRow = Record<string, unknown>;
