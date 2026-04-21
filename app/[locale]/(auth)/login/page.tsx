@@ -44,13 +44,26 @@ export default async function LoginPage({ params }: Props) {
         <div className="mt-8 surface-card">
           <Suspense fallback={null}>
             <LoginForm
+              locale={locale}
               labels={{
                 email: t("email"),
-                cta: t("cta"),
+                password: t("password"),
+                cta_password: t("cta_password"),
+                cta_signup: t("cta_signup"),
+                cta_magic: t("cta_magic"),
                 sending: t("sending"),
                 sent: t("sent"),
-                help: t("help"),
+                help_magic: t("help_magic"),
+                help_signup_confirm: t("help_signup_confirm"),
                 error: t("error"),
+                tab_password: t("tab_password"),
+                tab_signup: t("tab_signup"),
+                tab_magic: t("tab_magic"),
+                forgot: t("forgot"),
+                forgot_sent_title: t("forgot_sent_title"),
+                forgot_sent_body: t("forgot_sent_body"),
+                back: t("back"),
+                password_min_hint: t("password_min_hint"),
               }}
             />
           </Suspense>
