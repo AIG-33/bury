@@ -2,7 +2,6 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { PillarsSection } from "@/components/landing/pillars-section";
-import { NavThemeBridge } from "@/components/landing/nav-theme-bridge";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -37,7 +36,6 @@ export default async function LandingPage({ params }: Props) {
 
   return (
     <>
-      <NavThemeBridge theme="dark" />
       <LandingHero
         primaryCtaHref={ctaHref}
         primaryCtaLabel={t("hero.cta_primary")}

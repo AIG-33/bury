@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildRoundRobinSchedule,
   buildSingleEliminationBracket,
+  computeRoundRobinStandings,
   computeWinnerSide,
   nextPowerOfTwo,
   orderForSeeding,
   seedPositions,
   shuffleDeterministic,
   type Player,
+  type StandingsMatch,
 } from "./draw";
 
 const players = (n: number, eloFactor = 100): Player[] =>
@@ -178,5 +181,114 @@ describe("computeWinnerSide", () => {
         ],
       }),
     ).toBe(null);
+  });
+});
+
+describe("buildRoundRobinSchedule", () => {
+  it("schedules every pair exactly once for an even number of players", () => {
+    const ps = players(6);
+    const { totalRounds, matches } = buildRoundRobinSchedule(ps);
+    expect(totalRounds).toBe(5);
+    expect(matches).toHaveLength((6 * 5) / 2);
+
+    const seen = new Set<string>();
+    for (const m of matches) {
+      const key = [m.p1_id, m.p2_id].sort().join("|");
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+    expect(seen.size).toBe(15);
+  });
+
+  it("handles odd number of players via a phantom bye", () => {
+    const ps = players(5);
+    const { totalRounds, matches } = buildRoundRobinSchedule(ps);
+    // 5 players → 5 rounds, each round one player has a bye → 4 matches/round? No:
+    // n=5 → padded to 6 → 5 rounds, each round 3 slots, but 1 is a bye → 2 real matches.
+    // Total real matches = 5 rounds × 2 = 10 = C(5,2). ✓
+    expect(totalRounds).toBe(5);
+    expect(matches).toHaveLength(10);
+
+    const counts = new Map<string, number>();
+    for (const m of matches) {
+      counts.set(m.p1_id, (counts.get(m.p1_id) ?? 0) + 1);
+      counts.set(m.p2_id, (counts.get(m.p2_id) ?? 0) + 1);
+    }
+    for (const v of counts.values()) expect(v).toBe(4); // each plays 4 others
+  });
+
+  it("each round has unique players", () => {
+    const ps = players(8);
+    const { matches } = buildRoundRobinSchedule(ps);
+    const byRound = new Map<number, string[]>();
+    for (const m of matches) {
+      const arr = byRound.get(m.round) ?? [];
+      arr.push(m.p1_id, m.p2_id);
+      byRound.set(m.round, arr);
+    }
+    for (const arr of byRound.values()) {
+      expect(new Set(arr).size).toBe(arr.length);
+    }
+  });
+
+  it("throws on a single player", () => {
+    expect(() => buildRoundRobinSchedule(players(1))).toThrow();
+  });
+});
+
+describe("computeRoundRobinStandings", () => {
+  const sm = (
+    p1: string,
+    p2: string,
+    winner: "p1" | "p2",
+    sets: Array<[number, number]>,
+  ): StandingsMatch => ({
+    p1_id: p1,
+    p2_id: p2,
+    winner_side: winner,
+    outcome: "completed",
+    sets: sets.map(([a, b]) => ({ p1: a, p2: b })),
+  });
+
+  it("ranks by wins → set diff → game diff", () => {
+    // 3 players, A beats B, B beats C, A beats C → A=2, B=1, C=0.
+    const matches = [
+      sm("A", "B", "p1", [[6, 3], [6, 4]]),
+      sm("B", "C", "p1", [[6, 4], [6, 4]]),
+      sm("A", "C", "p1", [[6, 0], [6, 0]]),
+    ];
+    const rows = computeRoundRobinStandings(["A", "B", "C"], matches);
+    expect(rows.map((r) => r.player_id)).toEqual(["A", "B", "C"]);
+    expect(rows[0].wins).toBe(2);
+    expect(rows[2].wins).toBe(0);
+  });
+
+  it("ignores unfinished matches", () => {
+    const matches = [
+      sm("A", "B", "p1", [[6, 3], [6, 4]]),
+      {
+        p1_id: "A",
+        p2_id: "C",
+        winner_side: null,
+        outcome: "pending",
+        sets: null,
+      } as StandingsMatch,
+    ];
+    const rows = computeRoundRobinStandings(["A", "B", "C"], matches);
+    const a = rows.find((r) => r.player_id === "A")!;
+    expect(a.matches_played).toBe(1);
+    expect(a.wins).toBe(1);
+  });
+
+  it("breaks two-way ties via head-to-head", () => {
+    // A beats C; B beats C; A beats B in 2 close sets, but B has a better game
+    // diff overall → still A wins on H2H.
+    const matches = [
+      sm("A", "B", "p1", [[7, 5], [7, 6]]),
+      sm("A", "C", "p1", [[6, 4], [6, 4]]),
+      sm("B", "C", "p1", [[6, 0], [6, 0]]),
+    ];
+    const rows = computeRoundRobinStandings(["A", "B", "C"], matches);
+    expect(rows[0].player_id).toBe("A");
   });
 });

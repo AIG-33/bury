@@ -3,12 +3,13 @@ import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, CalendarDays, Trophy, Eye } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
-import { loadTournamentDetail } from "../actions";
+import { loadRoundRobinStandings, loadTournamentDetail } from "../actions";
 import {
   ParticipantsSection,
   type ParticipantsCopy,
 } from "./participants-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
+import { StandingsSection, type StandingsCopy } from "./standings-section";
 import {
   TOURNAMENT_FORMATS,
   TOURNAMENT_STATUSES,
@@ -188,6 +189,26 @@ export default async function TournamentDetailPage({ params }: Props) {
         format={tournament.format}
         matchRules={tournament.match_rules}
       />
+
+      {tournament.format === "round_robin" && (
+        <StandingsSection
+          rows={await loadRoundRobinStandings(tournament.id)}
+          copy={
+            {
+              title: t("standings.title"),
+              empty: t("standings.empty"),
+              col_pos: t("standings.col_pos"),
+              col_player: t("standings.col_player"),
+              col_played: t("standings.col_played"),
+              col_wins: t("standings.col_wins"),
+              col_losses: t("standings.col_losses"),
+              col_sets: t("standings.col_sets"),
+              col_games: t("standings.col_games"),
+              col_elo: t("standings.col_elo"),
+            } satisfies StandingsCopy
+          }
+        />
+      )}
     </div>
   );
 }

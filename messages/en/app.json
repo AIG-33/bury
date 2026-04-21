@@ -402,7 +402,6 @@
         "tagline_top": "ONE RATING — EVERY MATCH"
       },
       "hero": {
-        "eyebrow": "A digital cathedral of modern tennis",
         "first_name": "Bury",
         "last_name": "Tennis",
         "tagline": "One rating. Every match. Zero compromises.",
@@ -1304,17 +1303,29 @@
     "detail": {
       "back": "Back to tournaments",
       "help": {
-        "why": "This page is your control room: participants on the left, bracket on the right. Update both, players see changes instantly.",
+        "why": "This page is your control room: participants on the left, bracket (or schedule for round-robin) on the right. Update both, players see changes instantly.",
         "what": {
           "1": "Add or remove participants until you're happy with the field, then click Generate bracket.",
           "2": "After each match, click Score on the match card and enter set-by-set results.",
-          "3": "When the final is scored, the tournament status flips to Finished automatically."
+          "3": "Single-elim auto-advances winners; round-robin auto-finishes when every match has a result and standings update live."
         },
         "result": {
-          "1": "A finished bracket is a single, shareable view of who beat whom.",
-          "2": "Elo updates from these matches will land in the next iteration."
+          "1": "A finished bracket — or final standings table — is a single, shareable view of how the tournament played out.",
+          "2": "Every result feeds the universal Elo with the correct multiplier."
         }
       }
+    },
+    "standings": {
+      "title": "Standings",
+      "empty": "Standings will appear once matches are scored.",
+      "col_pos": "#",
+      "col_player": "Player",
+      "col_played": "P",
+      "col_wins": "W",
+      "col_losses": "L",
+      "col_sets": "Sets",
+      "col_games": "Games",
+      "col_elo": "Elo"
     }
   },
   "tournamentsPlayer": {

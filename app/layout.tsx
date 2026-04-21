@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: "%s · Bury Tennis",
   },
   description:
-    "A digital cathedral of modern tennis. Universal Elo rating, find-a-player, tournaments and a club run by a pro.",
+    "Universal Elo rating, find-a-player, tournaments and a tennis club run by a pro.",
 };
 
 export default function RootLayout({

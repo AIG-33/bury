@@ -402,7 +402,6 @@
         "tagline_top": "JEDEN RANKING — KAŻDY MECZ"
       },
       "hero": {
-        "eyebrow": "Cyfrowa świątynia nowoczesnego tenisa",
         "first_name": "Bury",
         "last_name": "Tennis",
         "tagline": "Jeden ranking. Każdy mecz. Zero kompromisów.",
@@ -1304,17 +1303,29 @@
     "detail": {
       "back": "Powrót do turniejów",
       "help": {
-        "why": "Ta strona to twoja sterownia: uczestnicy po lewej, drabinka po prawej. Aktualizuj — gracze widzą zmiany od razu.",
+        "why": "Ta strona to twoja sterownia: uczestnicy po lewej, drabinka (lub harmonogram round-robin) po prawej. Aktualizuj — gracze widzą zmiany od razu.",
         "what": {
           "1": "Dodaj/usuń uczestników aż do skompletowania składu i kliknij Wygeneruj drabinkę.",
           "2": "Po każdym meczu kliknij Wynik na karcie meczu i wpisz wynik set po secie.",
-          "3": "Gdy finał ma wynik, status turnieju przełączy się automatycznie na Zakończony."
+          "3": "Single-elim awansuje zwycięzców automatycznie; round-robin sam się kończy, gdy wszystkie mecze mają wynik, a tabela aktualizuje się na żywo."
         },
         "result": {
-          "1": "Skończona drabinka to jeden, łatwy do udostępnienia obraz wyników.",
-          "2": "Aktualizacje Elo z tych meczów pojawią się w kolejnej iteracji."
+          "1": "Skończona drabinka albo finalna tabela to jeden, łatwy do udostępnienia obraz turnieju.",
+          "2": "Każdy wynik zasila uniwersalne Elo właściwym mnożnikiem."
         }
       }
+    },
+    "standings": {
+      "title": "Tabela",
+      "empty": "Tabela pojawi się, gdy zostaną wpisane wyniki meczów.",
+      "col_pos": "#",
+      "col_player": "Gracz",
+      "col_played": "M",
+      "col_wins": "W",
+      "col_losses": "P",
+      "col_sets": "Sety",
+      "col_games": "Gemy",
+      "col_elo": "Elo"
     }
   },
   "tournamentsPlayer": {

@@ -14,9 +14,12 @@ import {
   type MatchRules,
 } from "@/lib/tournaments/schema";
 import {
+  buildRoundRobinSchedule,
   buildSingleEliminationBracket,
+  computeRoundRobinStandings,
   computeWinnerSide,
   type Player as DrawPlayer,
+  type StandingRow,
 } from "@/lib/tournaments/draw";
 import { recalcMatchElo } from "@/lib/rating/recalc";
 
@@ -515,7 +518,7 @@ export async function generateBracket(
     } | null;
   };
   if (!t || t.owner_coach_id !== userId) return { ok: false, error: "not_owner" };
-  if (t.format !== "single_elimination") {
+  if (t.format !== "single_elimination" && t.format !== "round_robin") {
     return { ok: false, error: "format_not_supported_yet" };
   }
   if (t.status === "in_progress" || t.status === "finished") {
@@ -565,38 +568,61 @@ export async function generateBracket(
     orderedPlayers = ordering.map((id) => byId.get(id)!).filter(Boolean);
   }
 
-  const { matches } = buildSingleEliminationBracket({
-    players: orderedPlayers,
-    method,
-    rngSeed: opts.rngSeed ?? Date.now() % 1_000_000,
-  });
+  let rows: Array<{
+    tournament_id: string;
+    round: number;
+    bracket_slot: number;
+    p1_id: string;
+    p2_id: string | null;
+    outcome: "pending" | "walkover_p1";
+    winner_side: "p1" | null;
+    match_rules: MatchRules;
+  }>;
 
-  // Persist matches. p1_id is required (NOT NULL) in the schema → for byes
-  // we need to seed the non-null side as p1 and leave the auto-advanced
-  // matches in round 2+ with p2 = null until both halves of the parent
-  // are determined.
-  const rows = matches
-    // Skip matches where both players are null (e.g. 2 chained byes).
-    .filter((m) => m.p1_id || m.p2_id)
-    .map((m) => {
-      const [p1, p2] =
-        m.p1_id == null && m.p2_id != null
-          ? [m.p2_id, null] // move bye-advancing player to p1
-          : [m.p1_id, m.p2_id];
-      // For chained-bye R1 matches (only one player) we can immediately mark
-      // them as a walkover; no game was actually played.
-      const isAutoBye = m.round === 1 && (m.p1_id == null || m.p2_id == null);
-      return {
-        tournament_id: tournamentId,
-        round: m.round,
-        bracket_slot: m.bracket_slot,
-        p1_id: p1!,
-        p2_id: p2,
-        outcome: isAutoBye ? "walkover_p1" : "pending",
-        winner_side: isAutoBye ? "p1" : null,
-        match_rules: t.match_rules,
-      };
+  if (t.format === "round_robin") {
+    // Round-robin ignores seeding (everyone plays everyone). We still respect
+    // the requested `method` for any future tie-break / seeded scheduling.
+    const { matches } = buildRoundRobinSchedule(orderedPlayers);
+    rows = matches.map((m) => ({
+      tournament_id: tournamentId,
+      round: m.round,
+      bracket_slot: m.bracket_slot,
+      p1_id: m.p1_id,
+      p2_id: m.p2_id,
+      outcome: "pending" as const,
+      winner_side: null,
+      match_rules: t.match_rules,
+    }));
+  } else {
+    const { matches } = buildSingleEliminationBracket({
+      players: orderedPlayers,
+      method,
+      rngSeed: opts.rngSeed ?? Date.now() % 1_000_000,
     });
+    // Persist matches. p1_id is required (NOT NULL) in the schema → for byes
+    // we need to seed the non-null side as p1 and leave the auto-advanced
+    // matches in round 2+ with p2 = null until both halves of the parent
+    // are determined.
+    rows = matches
+      .filter((m) => m.p1_id || m.p2_id)
+      .map((m) => {
+        const [p1, p2] =
+          m.p1_id == null && m.p2_id != null
+            ? [m.p2_id, null]
+            : [m.p1_id, m.p2_id];
+        const isAutoBye = m.round === 1 && (m.p1_id == null || m.p2_id == null);
+        return {
+          tournament_id: tournamentId,
+          round: m.round,
+          bracket_slot: m.bracket_slot,
+          p1_id: p1!,
+          p2_id: p2,
+          outcome: isAutoBye ? ("walkover_p1" as const) : ("pending" as const),
+          winner_side: isAutoBye ? ("p1" as const) : null,
+          match_rules: t.match_rules,
+        };
+      });
+  }
 
   const { error: insertErr } = await supabase
     .from("matches")
@@ -634,7 +660,7 @@ export async function setMatchScore(input: unknown): Promise<
     .from("matches")
     .select(
       "id, tournament_id, round, bracket_slot, p1_id, p2_id, " +
-        "tournaments(owner_coach_id)",
+        "tournaments(owner_coach_id, format)",
     )
     .eq("id", v.match_id)
     .single()) as {
@@ -645,7 +671,7 @@ export async function setMatchScore(input: unknown): Promise<
       bracket_slot: number | null;
       p1_id: string;
       p2_id: string | null;
-      tournaments: { owner_coach_id: string } | null;
+      tournaments: { owner_coach_id: string; format: TournamentFormat } | null;
     } | null;
   };
   if (!m) return { ok: false, error: "match_not_found" };
@@ -655,6 +681,7 @@ export async function setMatchScore(input: unknown): Promise<
   if (!m.tournament_id || m.round == null || m.bracket_slot == null) {
     return { ok: false, error: "not_a_bracket_match" };
   }
+  const isRoundRobin = m.tournaments.format === "round_robin";
 
   const winner = computeWinnerSide({
     outcome: v.outcome,
@@ -684,40 +711,58 @@ export async function setMatchScore(input: unknown): Promise<
     eloP2Delta = recalc.p2Delta;
   }
 
-  // Propagate winner to the next-round match (single elimination only).
-  const winnerId = winner === "p1" ? m.p1_id : m.p2_id;
-  if (winnerId) {
-    const nextRound = m.round + 1;
-    const nextSlot = Math.ceil(m.bracket_slot / 2);
-    // Even slots feed into p2, odd slots into p1.
-    const side: "p1_id" | "p2_id" = m.bracket_slot % 2 === 1 ? "p1_id" : "p2_id";
-
-    const { data: nextMatch } = (await supabase
+  if (isRoundRobin) {
+    // Round-robin: no winner propagation. Mark tournament `finished` once
+    // every match has a result.
+    const { data: remaining } = (await supabase
       .from("matches")
-      .select("id, p1_id, p2_id")
+      .select("id", { count: "exact" })
       .eq("tournament_id", m.tournament_id)
-      .eq("round", nextRound)
-      .eq("bracket_slot", nextSlot)
-      .maybeSingle()) as {
-      data: { id: string; p1_id: string | null; p2_id: string | null } | null;
-    };
-
-    if (nextMatch) {
+      .eq("outcome", "pending")
+      .limit(1)) as { data: Array<{ id: string }> | null };
+    if (!remaining || remaining.length === 0) {
       await supabase
-        .from("matches")
-        .update({ [side]: winnerId } as never)
-        .eq("id", nextMatch.id);
+        .from("tournaments")
+        .update({ status: "finished" } as never)
+        .eq("id", m.tournament_id);
     }
   } else {
-    // No next round (final). If outcome was the final, mark the tournament finished.
-    const { data: maxRoundRow } = (await supabase
+    // Single-elim: propagate the winner into the next-round slot.
+    const winnerId = winner === "p1" ? m.p1_id : m.p2_id;
+    if (winnerId) {
+      const nextRound = m.round + 1;
+      const nextSlot = Math.ceil(m.bracket_slot / 2);
+      const side: "p1_id" | "p2_id" = m.bracket_slot % 2 === 1 ? "p1_id" : "p2_id";
+
+      const { data: nextMatch } = (await supabase
+        .from("matches")
+        .select("id, p1_id, p2_id")
+        .eq("tournament_id", m.tournament_id)
+        .eq("round", nextRound)
+        .eq("bracket_slot", nextSlot)
+        .maybeSingle()) as {
+        data: { id: string; p1_id: string | null; p2_id: string | null } | null;
+      };
+
+      if (nextMatch) {
+        await supabase
+          .from("matches")
+          .update({ [side]: winnerId } as never)
+          .eq("id", nextMatch.id);
+      }
+    }
+
+    // Mark tournament finished if the final has a winner.
+    const { data: finalMatch } = (await supabase
       .from("matches")
-      .select("round")
+      .select("round, winner_side")
       .eq("tournament_id", m.tournament_id)
       .order("round", { ascending: false })
       .limit(1)
-      .maybeSingle()) as { data: { round: number | null } | null };
-    if (maxRoundRow?.round === m.round) {
+      .maybeSingle()) as {
+      data: { round: number; winner_side: string | null } | null;
+    };
+    if (finalMatch?.winner_side) {
       await supabase
         .from("tournaments")
         .update({ status: "finished" } as never)
@@ -725,24 +770,85 @@ export async function setMatchScore(input: unknown): Promise<
     }
   }
 
-  // After updating, also mark tournament finished if the final has a winner.
-  const { data: finalMatch } = (await supabase
-    .from("matches")
-    .select("round, winner_side")
-    .eq("tournament_id", m.tournament_id)
-    .order("round", { ascending: false })
-    .limit(1)
-    .maybeSingle()) as {
-    data: { round: number; winner_side: string | null } | null;
-  };
-  if (finalMatch?.winner_side) {
-    await supabase
-      .from("tournaments")
-      .update({ status: "finished" } as never)
-      .eq("id", m.tournament_id);
-  }
-
   revalidatePath(`/coach/tournaments/${m.tournament_id}`);
   return { ok: true, eloP1Delta, eloP2Delta };
+}
+
+// =============================================================================
+// Round-robin standings, used both by coach and player tournament pages.
+// =============================================================================
+
+export type StandingsLine = StandingRow & {
+  display_name: string | null;
+  avatar_url: string | null;
+  current_elo: number;
+};
+
+export async function loadRoundRobinStandings(
+  tournamentId: string,
+): Promise<StandingsLine[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: parts } = (await supabase
+    .from("tournament_participants")
+    .select(
+      "player_id, withdrawn, " +
+        "profiles!tournament_participants_player_id_fkey(display_name, avatar_url, current_elo)",
+    )
+    .eq("tournament_id", tournamentId)
+    .eq("withdrawn", false)) as {
+    data: Array<{
+      player_id: string;
+      withdrawn: boolean;
+      profiles: {
+        display_name: string | null;
+        avatar_url: string | null;
+        current_elo: number;
+      } | null;
+    }> | null;
+  };
+
+  const playerIds = (parts ?? []).map((p) => p.player_id);
+  if (playerIds.length === 0) return [];
+
+  const { data: matches } = (await supabase
+    .from("matches")
+    .select("p1_id, p2_id, winner_side, outcome, sets")
+    .eq("tournament_id", tournamentId)) as {
+    data: Array<{
+      p1_id: string;
+      p2_id: string | null;
+      winner_side: "p1" | "p2" | null;
+      outcome: string;
+      sets: Array<{ p1: number; p2: number }> | null;
+    }> | null;
+  };
+
+  const standings = computeRoundRobinStandings(
+    playerIds,
+    (matches ?? [])
+      .filter((m) => m.p2_id != null)
+      .map((m) => ({
+        p1_id: m.p1_id,
+        p2_id: m.p2_id as string,
+        winner_side: m.winner_side,
+        outcome: m.outcome,
+        sets: m.sets,
+      })),
+  );
+
+  const profileById = new Map(
+    (parts ?? []).map((p) => [p.player_id, p.profiles] as const),
+  );
+
+  return standings.map((s) => {
+    const prof = profileById.get(s.player_id);
+    return {
+      ...s,
+      display_name: prof?.display_name ?? null,
+      avatar_url: prof?.avatar_url ?? null,
+      current_elo: prof?.current_elo ?? 1000,
+    };
+  });
 }
 

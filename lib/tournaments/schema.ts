@@ -12,7 +12,10 @@ export const TOURNAMENT_FORMATS = [
 ] as const;
 export type TournamentFormat = (typeof TOURNAMENT_FORMATS)[number];
 
-export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = ["single_elimination"];
+export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = [
+  "single_elimination",
+  "round_robin",
+];
 
 export const TOURNAMENT_STATUSES = [
   "draft",

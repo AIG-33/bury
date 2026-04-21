@@ -81,7 +81,7 @@ export function BracketSection({
     });
   }
 
-  if (format !== "single_elimination") {
+  if (format !== "single_elimination" && format !== "round_robin") {
     return (
       <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
         <h2 className="font-display text-lg font-semibold text-ink-900">{copy.title}</h2>

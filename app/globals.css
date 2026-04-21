@@ -67,6 +67,9 @@
 
   /* Editorial micro-cap label, used for meta/eyebrow text. */
   .label-eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500;
+  }
+  .label-eyebrow-dark {
     @apply font-mono text-[11px] uppercase tracking-[0.18em] text-silver;
   }
 
@@ -77,36 +80,36 @@
     inset: 0;
     pointer-events: none;
     mix-blend-mode: overlay;
-    opacity: 0.06;
+    opacity: 0.04;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     background-size: 160px 160px;
   }
 
-  /* Night aura — monochrome blue depth for cinematic dark sections. */
-  .aura-night {
+  /* Soft court ambience — light grass→ball wash for editorial hero. */
+  .aura-court {
     background:
       radial-gradient(
-        60% 60% at 30% 30%,
-        rgba(14, 91, 216, 0.35) 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        70% 70% at 80% 75%,
-        rgba(0, 43, 91, 0.55) 0%,
+        60% 60% at 80% 25%,
+        rgba(226, 246, 68, 0.55) 0%,
         transparent 65%
       ),
-      #001530;
-    filter: blur(80px) saturate(120%);
+      radial-gradient(
+        70% 70% at 15% 85%,
+        rgba(166, 224, 181, 0.6) 0%,
+        transparent 65%
+      ),
+      #f4faf0;
+    filter: blur(50px) saturate(115%);
     will-change: transform, opacity;
-    animation: breathe 9s ease-in-out infinite;
+    animation: breathe 11s ease-in-out infinite;
   }
 
   /* Hairline divider used between editorial blocks. */
   .hairline {
-    @apply h-px w-full bg-white/10;
+    @apply h-px w-full bg-ink-900/10;
   }
   .hairline-dark {
-    @apply h-px w-full bg-ink-900/10;
+    @apply h-px w-full bg-white/10;
   }
 
   /* Press-physics for buttons. */
@@ -120,9 +123,9 @@
 
 /* Reduced motion: tame the heavy stuff. */
 @media (prefers-reduced-motion: reduce) {
-  .aura-night {
+  .aura-court {
     animation: none;
-    filter: blur(60px);
+    filter: blur(40px);
   }
   .animate-bounceBall,
   .animate-breathe {

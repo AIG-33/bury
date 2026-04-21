@@ -65,16 +65,22 @@ export function PillarsSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative bg-atp-night text-ink-50 film-grain"
+      className="relative bg-grass-50 text-ink-900 film-grain"
       aria-label="Platform pillars"
     >
-      <div className="relative mx-auto max-w-[1440px] px-6 pb-32 pt-24 md:px-12 md:pb-40 md:pt-32">
+      {/* Soft separator wash from hero */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-12 h-24 bg-gradient-to-b from-grass-50/0 via-grass-50/60 to-grass-50"
+      />
+
+      <div className="relative mx-auto max-w-[1440px] px-6 pb-32 pt-20 md:px-12 md:pb-40 md:pt-28">
         {/* Section header */}
         <div className="grid grid-cols-12 items-end gap-6">
           <div className="col-span-12 md:col-span-7">
             <p className="label-eyebrow">{t("section_label")}</p>
             <motion.h2
-              className="mt-5 font-display font-bold leading-[0.94] tracking-tightest"
+              className="mt-5 font-display font-bold leading-[0.94] tracking-tightest text-grass-900"
               style={{ fontSize: "clamp(40px, 6vw, 96px)" }}
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -84,7 +90,7 @@ export function PillarsSection() {
             </motion.h2>
           </div>
           <div className="col-span-12 md:col-span-5">
-            <p className="max-w-md text-base leading-relaxed text-silver md:text-lg">
+            <p className="max-w-md text-base leading-relaxed text-ink-600 md:text-lg">
               {t("subtitle")}
             </p>
           </div>
@@ -93,7 +99,7 @@ export function PillarsSection() {
         <div className="hairline my-12 md:my-16" />
 
         {/* Pillars grid */}
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl3 border border-white/10 bg-white/10 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl3 border border-ink-200 bg-ink-200 md:grid-cols-3">
           {PILLARS.map((id, i) => (
             <PillarCard
               key={id}
@@ -139,14 +145,14 @@ function PillarCard({
       initial={{ opacity: 0, y: 30 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative flex min-h-[460px] flex-col justify-between bg-atp-night p-8 transition-colors duration-500 ease-followthrough hover:bg-atp-deep md:p-10"
+      className="group relative flex min-h-[460px] flex-col justify-between bg-white p-8 transition-colors duration-500 ease-followthrough hover:bg-grass-50 md:p-10"
     >
       {/* Top: index + icon */}
       <div className="flex items-start justify-between">
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-silver">
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-500">
           {index}
         </span>
-        <div className="h-12 w-12 text-silver transition-colors duration-500 ease-followthrough group-hover:text-lime-neon md:h-14 md:w-14">
+        <div className="h-12 w-12 text-ink-400 transition-colors duration-500 ease-followthrough group-hover:text-grass-700 md:h-14 md:w-14">
           {ICONS[id]}
         </div>
       </div>
@@ -154,29 +160,29 @@ function PillarCard({
       {/* Middle: title + body */}
       <div className="mt-12">
         <h3
-          className="font-display font-bold leading-[0.95] tracking-tightest text-ink-50"
+          className="font-display font-bold leading-[0.95] tracking-tightest text-ink-900"
           style={{ fontSize: "clamp(28px, 2.6vw, 40px)" }}
         >
           {name}
         </h3>
-        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-silver">
+        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-ink-600">
           {body}
         </p>
       </div>
 
       {/* Bottom: stat */}
-      <div className="mt-10 flex items-end justify-between border-t border-white/10 pt-5">
+      <div className="mt-10 flex items-end justify-between border-t border-ink-200 pt-5">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-silver">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-500">
             {statLabel}
           </p>
-          <p className="mt-1 font-display text-2xl font-bold tabular text-ink-50">
+          <p className="mt-1 font-display text-2xl font-bold tabular text-ink-900">
             {statValue}
           </p>
         </div>
         <span
           aria-hidden
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-ink-50 transition-all duration-500 ease-followthrough group-hover:border-lime-neon group-hover:text-lime-neon"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-300 text-ink-700 transition-all duration-500 ease-followthrough group-hover:border-grass-700 group-hover:text-grass-700"
         >
           <svg
             viewBox="0 0 16 16"
@@ -191,10 +197,10 @@ function PillarCard({
         </span>
       </div>
 
-      {/* Hover accent: lime hairline along top edge */}
+      {/* Hover accent: grass hairline along top edge */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-lime-neon transition-transform duration-700 ease-followthrough group-hover:scale-x-100"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-grass-700 transition-transform duration-700 ease-followthrough group-hover:scale-x-100"
       />
     </motion.article>
   );

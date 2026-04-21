@@ -202,6 +202,189 @@ export function buildSingleEliminationBracket(opts: {
   return { bracketSize, totalRounds, matches };
 }
 
+// =============================================================================
+// Round-robin scheduler.
+//
+// Uses the classic "circle method": fix one player, rotate the rest around.
+// For N players we produce R = (N-1) rounds (N even) or N rounds (N odd, one
+// bye per round). Each player meets each other exactly once.
+//
+// We emit `round` 1..R and a `bracket_slot` that's 1..N/2 within the round.
+// `bracket_slot` here is just an ordered index per round (no propagation).
+// =============================================================================
+
+export type RoundRobinMatch = {
+  round: number;
+  bracket_slot: number;
+  p1_id: string;
+  p2_id: string;
+};
+
+export function buildRoundRobinSchedule(
+  players: Player[],
+): { totalRounds: number; matches: RoundRobinMatch[] } {
+  if (players.length < 2) {
+    throw new Error("Need at least 2 players to build a round-robin schedule");
+  }
+  const ids = players.map((p) => p.id);
+  // The circle method needs an even number — add a "BYE" sentinel for odd N.
+  const BYE = "__bye__";
+  if (ids.length % 2 === 1) ids.push(BYE);
+  const n = ids.length;
+  const rounds = n - 1;
+  const matches: RoundRobinMatch[] = [];
+
+  // The first player stays fixed; the rest rotate clockwise.
+  const fixed = ids[0];
+  const rotating = ids.slice(1);
+
+  for (let r = 0; r < rounds; r++) {
+    const roundList = [fixed, ...rotating];
+    let slot = 1;
+    for (let i = 0; i < n / 2; i++) {
+      const a = roundList[i];
+      const b = roundList[n - 1 - i];
+      if (a !== BYE && b !== BYE) {
+        // Stable order: lower id first to keep cross-round consistency in tests.
+        const [p1, p2] = a < b ? [a, b] : [b, a];
+        matches.push({ round: r + 1, bracket_slot: slot, p1_id: p1, p2_id: p2 });
+        slot += 1;
+      }
+    }
+    // Rotate: take last and put it second (after the fixed player).
+    rotating.unshift(rotating.pop()!);
+  }
+
+  return { totalRounds: rounds, matches };
+}
+
+// =============================================================================
+// Round-robin standings.
+//
+// Tiebreakers, in order:
+//   1. Wins (matches won).
+//   2. Set difference (sets won − sets lost).
+//   3. Game difference (games won − games lost).
+//   4. Head-to-head (only if exactly two players are tied at this point).
+//   5. Player id (stable, deterministic last-resort).
+// =============================================================================
+
+export type StandingsMatch = {
+  p1_id: string;
+  p2_id: string;
+  winner_side: "p1" | "p2" | null;
+  outcome: string;
+  sets: Array<{ p1: number; p2: number }> | null;
+};
+
+export type StandingRow = {
+  player_id: string;
+  matches_played: number;
+  wins: number;
+  losses: number;
+  sets_won: number;
+  sets_lost: number;
+  games_won: number;
+  games_lost: number;
+  position: number;
+};
+
+const FINISHED = new Set([
+  "completed",
+  "walkover_p1",
+  "walkover_p2",
+  "retired_p1",
+  "retired_p2",
+  "dsq_p1",
+  "dsq_p2",
+]);
+
+export function computeRoundRobinStandings(
+  playerIds: string[],
+  matches: StandingsMatch[],
+): StandingRow[] {
+  const rows = new Map<string, StandingRow>();
+  for (const id of playerIds) {
+    rows.set(id, {
+      player_id: id,
+      matches_played: 0,
+      wins: 0,
+      losses: 0,
+      sets_won: 0,
+      sets_lost: 0,
+      games_won: 0,
+      games_lost: 0,
+      position: 0,
+    });
+  }
+
+  for (const m of matches) {
+    if (!FINISHED.has(m.outcome)) continue;
+    const a = rows.get(m.p1_id);
+    const b = rows.get(m.p2_id);
+    if (!a || !b) continue;
+    a.matches_played += 1;
+    b.matches_played += 1;
+
+    let aSets = 0;
+    let bSets = 0;
+    for (const s of m.sets ?? []) {
+      a.games_won += s.p1;
+      a.games_lost += s.p2;
+      b.games_won += s.p2;
+      b.games_lost += s.p1;
+      if (s.p1 > s.p2) aSets += 1;
+      else if (s.p2 > s.p1) bSets += 1;
+    }
+    a.sets_won += aSets;
+    a.sets_lost += bSets;
+    b.sets_won += bSets;
+    b.sets_lost += aSets;
+
+    if (m.winner_side === "p1") {
+      a.wins += 1;
+      b.losses += 1;
+    } else if (m.winner_side === "p2") {
+      b.wins += 1;
+      a.losses += 1;
+    }
+  }
+
+  const sorted = [...rows.values()].sort((x, y) => {
+    if (y.wins !== x.wins) return y.wins - x.wins;
+    const sdX = x.sets_won - x.sets_lost;
+    const sdY = y.sets_won - y.sets_lost;
+    if (sdY !== sdX) return sdY - sdX;
+    const gdX = x.games_won - x.games_lost;
+    const gdY = y.games_won - y.games_lost;
+    if (gdY !== gdX) return gdY - gdX;
+    // Head-to-head when exactly two are tied at this level.
+    const h2h = matches.find(
+      (m) =>
+        FINISHED.has(m.outcome) &&
+        ((m.p1_id === x.player_id && m.p2_id === y.player_id) ||
+          (m.p1_id === y.player_id && m.p2_id === x.player_id)),
+    );
+    if (h2h) {
+      const xWonH2H =
+        (h2h.winner_side === "p1" && h2h.p1_id === x.player_id) ||
+        (h2h.winner_side === "p2" && h2h.p2_id === x.player_id);
+      const yWonH2H =
+        (h2h.winner_side === "p1" && h2h.p1_id === y.player_id) ||
+        (h2h.winner_side === "p2" && h2h.p2_id === y.player_id);
+      if (xWonH2H && !yWonH2H) return -1;
+      if (yWonH2H && !xWonH2H) return 1;
+    }
+    return x.player_id.localeCompare(y.player_id);
+  });
+
+  sorted.forEach((row, i) => {
+    row.position = i + 1;
+  });
+
+  return sorted;
+}
+
 /**
  * Compute the winning side of a finished match according to its `outcome`
  * + sets payload. Returns null if the outcome is "pending" / invalid.
