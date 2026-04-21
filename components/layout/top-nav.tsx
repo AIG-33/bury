@@ -1,7 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { LogOut } from "lucide-react";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { LanguageSwitcher } from "./language-switcher";
+import { NavShell } from "./nav-shell";
+import { NavLink } from "./nav-link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function TopNav() {
@@ -25,16 +28,39 @@ export async function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <TennisBall className="h-7 w-7 text-ball-500" />
-          <span className="font-display text-lg font-semibold text-ink-900">
-            Bury Tennis
+    <NavShell>
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-5 md:px-10">
+        {/* Wordmark — ball spins on hover */}
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2.5"
+          aria-label="Alex Bury Tennis Club"
+        >
+          <span className="relative inline-flex h-7 w-7 items-center justify-center">
+            <span
+              aria-hidden
+              className="absolute inset-0 rounded-full bg-grass-100/0 blur-md transition-colors duration-500 group-hover:bg-grass-200/60"
+            />
+            <TennisBall className="relative h-6 w-6 text-ball-500 drop-shadow-[0_2px_6px_rgba(31,138,76,0.25)] transition-transform duration-700 ease-followthrough group-hover:rotate-[360deg]" />
+          </span>
+          <span className="hidden flex-col leading-none sm:flex">
+            <span className="font-display text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-500">
+              Alex Bury
+            </span>
+            <span className="mt-0.5 font-display text-[14px] font-bold tracking-tight text-grass-900">
+              Tennis Club
+            </span>
+          </span>
+          <span className="font-display text-[15px] font-bold tracking-tight text-grass-900 sm:hidden">
+            ABTC
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-5 text-sm md:flex">
+        {/* Centre capsule — floating glass pill with nav links */}
+        <nav
+          aria-label="Primary"
+          className="hidden h-10 items-center gap-0.5 rounded-full border border-ink-200/70 bg-white/55 px-1.5 backdrop-blur-md md:flex"
+        >
           {user ? (
             <>
               <NavLink href="/me/rating">{t("rating")}</NavLink>
@@ -64,51 +90,46 @@ export async function TopNav() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
+        {/* Right cluster */}
+        <div className="flex items-center gap-2">
           <LanguageSwitcher />
           {user ? (
-            <form action="/api/auth/signout" method="post" className="hidden md:block">
+            <form
+              action="/api/auth/signout"
+              method="post"
+              className="hidden md:block"
+            >
               <button
                 type="submit"
-                className="inline-flex h-9 items-center rounded-lg border border-ink-200 px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+                aria-label={t("logout")}
+                className="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200/70 bg-white/60 text-ink-600 backdrop-blur-md transition-all duration-300 ease-followthrough hover:-translate-y-0.5 hover:border-clay-300 hover:bg-white hover:text-clay-700"
               >
-                {t("logout")}
+                <LogOut className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-0.5" />
               </button>
             </form>
           ) : (
             <Link
               href="/login"
-              className="hidden h-9 items-center rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600 md:inline-flex"
+              className="group hidden h-9 items-center gap-2 rounded-full bg-grass-700 pl-4 pr-2 text-[12.5px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_8px_24px_-10px_rgba(21,94,54,0.6)] transition-all duration-400 ease-followthrough hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_14px_34px_-10px_rgba(21,94,54,0.7)] md:inline-flex"
             >
               {t("login")}
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-followthrough group-hover:translate-x-0.5">
+                <svg
+                  viewBox="0 0 16 16"
+                  className="h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  aria-hidden
+                >
+                  <path d="M2 8h12M9 3l5 5-5 5" />
+                </svg>
+              </span>
             </Link>
           )}
         </div>
       </div>
-    </header>
-  );
-}
-
-function NavLink({
-  href,
-  children,
-  highlight = false,
-}: {
-  href: string;
-  children: React.ReactNode;
-  highlight?: boolean;
-}) {
-  return (
-    <Link
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      href={href as any}
-      className={
-        highlight
-          ? "rounded-md bg-grass-50 px-2 py-1 text-grass-700 transition hover:bg-grass-100"
-          : "text-ink-600 transition hover:text-grass-600"
-      }
-    >
-      {children}
-    </Link>
+    </NavShell>
   );
 }

@@ -331,7 +331,8 @@
     "venues": "Lokalizacje",
     "slots": "Sloty",
     "tournaments": "Turnieje",
-    "leaderboard": "Ranking"
+    "leaderboard": "Ranking",
+    "profile": "Profil publiczny"
   },
   "coachLeaderboard": {
     "title": "Ranking graczy",
@@ -1389,16 +1390,33 @@
   "coachesPublic": {
     "title": "Trenerzy",
     "subtitle": "Przeglądaj trenerów w sieci — rezerwuj lekcje, czytaj opinie, znajdź swojego.",
+    "view_map": "Zobacz mapę",
+    "podium": {
+      "title": "Podium tygodnia",
+      "subtitle": "Według ważonej ocenami punktacji (min {min} opinii)."
+    },
+    "controls": {
+      "sort_by": "Sortuj wg",
+      "verified_only": "Tylko zweryfikowani",
+      "sort": {
+        "weighted": "Z wagą zaufania",
+        "raw": "Surowe gwiazdki",
+        "popular": "Najwięcej opinii"
+      }
+    },
+    "badges": {
+      "verified": "Zweryfikowany"
+    },
     "help": {
       "why": "Wybór dobrego trenera to połowa sukcesu. Prawdziwe opinie od prawdziwych zawodników przebijają marketingowy szum.",
       "what": {
-        "1": "Lista trenerów posortowana wg średniej oceny.",
-        "2": "Otwórz trenera, aby zobaczyć profil i ostatnie opinie.",
-        "3": "Po potwierdzonej lekcji lub turnieju możesz wystawić własną opinię."
+        "1": "Domyślnie używamy średniej Bayesowskiej — pięć opinii po 5★ nie wyprzedzi pięćdziesięciu po 4.85★.",
+        "2": "Przełącz na „Surowe gwiazdki” lub „Najwięcej opinii”, aby spojrzeć z innej strony.",
+        "3": "Wejdź na profil trenera, aby przeczytać opinie, sprawdzić cenę i wystawić własną opinię po realnej lekcji."
       },
       "result": {
-        "1": "Bardziej przejrzysty rynek trenerów — gracze wiedzą, co dostają.",
-        "2": "Świetni trenerzy zyskują widoczność, słabi dostają konkretną informację zwrotną."
+        "1": "Wiarygodne podium najlepszych trenerów co tydzień.",
+        "2": "Świetni trenerzy szybko awansują, słabsi dostają konkretną informację zwrotną."
       }
     },
     "reviews_count": "{count, plural, =0 {brak opinii} one {# opinia} few {# opinie} many {# opinii} other {# opinii}}",
@@ -1535,6 +1553,71 @@
       "publish": "Opublikuj",
       "hide": "Ukryj",
       "remove": "Usuń"
+    }
+  },
+  "coachesMap": {
+    "title": "Mapa trenerów",
+    "subtitle": "{count, plural, =0 {Brak trenerów na mapie} one {# trener na mapie} few {# trenerów na mapie} many {# trenerów na mapie} other {# trenerów na mapie}} — kliknij pinezkę, aby zobaczyć szczegóły.",
+    "switch_to_list": "Widok listy",
+    "view_profile": "Otwórz profil",
+    "reviews_count": "{count} opinii",
+    "no_reviews": "Brak opinii",
+    "hourly_rate": "{amount} PLN/godz.",
+    "attribution": "Mapa © współtwórcy OpenStreetMap",
+    "empty_title": "Brak przypiętych trenerów",
+    "empty_body": "Trenerzy, którzy dodadzą lokalizację do profilu, pojawią się na mapie.",
+    "help": {
+      "why": "Mapa odpowiada na najprostsze pytanie zawodnika: kto jest faktycznie blisko mnie?",
+      "what": {
+        "1": "Pinezki to trenerzy, którzy zgodzili się być widoczni i ustawili współrzędne.",
+        "2": "Naklejka na pinezce pokazuje ocenę; kliknij, aby otworzyć profil.",
+        "3": "Jesteś trenerem? Ustaw pinezkę w Panel trenera → Profil publiczny."
+      },
+      "result": {
+        "1": "Gracze szybko znajdują trenerów w swojej okolicy.",
+        "2": "Trenerzy z pinezką są bardziej widoczni — geografia w tenisie ma znaczenie."
+      }
+    }
+  },
+  "coachProfile": {
+    "title": "Publiczny profil trenera",
+    "subtitle": "Dostosuj to, co widzą gracze na Twoim profilu i mapie.",
+    "rating_summary": "Ocena: {avg} ({count} opinii)",
+    "section": {
+      "public_card": "Karta publiczna",
+      "map": "Lokalizacja i mapa"
+    },
+    "field": {
+      "bio": "Krótki opis",
+      "rate": "Stawka godzinowa",
+      "rate_currency": "PLN / godz.",
+      "show_on_map": "Pokaż mnie na publicznej mapie trenerów"
+    },
+    "placeholder": {
+      "bio": "Opowiedz graczom, kim jesteś: doświadczenie, styl pracy, grupy wiekowe…"
+    },
+    "hint": {
+      "rate": "Opcjonalnie. Gracze widzą to na karcie; zostaw puste, jeśli zmienia się dynamicznie.",
+      "map": "Wyszukaj miejsce albo kliknij mapę, aby ustawić pinezkę. Pinezka jest przeciągana.",
+      "show_on_map": "Wyłącz, jeśli nie chcesz być na publicznej mapie (profil nadal jest dostępny)."
+    },
+    "map": {
+      "search_placeholder": "Wyszukaj miasto, klub lub adres…",
+      "picked": "Pinezka",
+      "clear": "Usuń pinezkę",
+      "hint": "Kliknij mapę lub przeciągnij pinezkę, aby ustawić lokalizację.",
+      "none": "Nie znaleziono — spróbuj inaczej."
+    },
+    "save": "Zapisz",
+    "saving": "Zapisywanie…",
+    "saved": "Zapisano",
+    "errors": {
+      "not_authenticated": "Zaloguj się.",
+      "invalid_payload": "Niektóre pola wyglądają nie tak — sprawdź i spróbuj ponownie.",
+      "rate_out_of_range": "Stawka musi być między 0 a 10000.",
+      "lat_out_of_range": "Szerokość musi być między -90 a 90.",
+      "lng_out_of_range": "Długość musi być między -180 a 180.",
+      "latlng_must_be_paired": "Ustaw obie współrzędne (lub usuń pinezkę)."
     }
   }
 }

@@ -41,17 +41,19 @@ export function LanguageSwitcher() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
-        className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+        className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200/70 bg-white/60 px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700 backdrop-blur-md transition-all duration-300 ease-followthrough hover:-translate-y-0.5 hover:bg-white hover:text-grass-800 disabled:opacity-60"
         aria-expanded={open}
         aria-haspopup="listbox"
       >
         {locale.toUpperCase()}
-        <ChevronDown className="h-3.5 w-3.5" />
+        <ChevronDown
+          className={`h-3 w-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 top-full z-50 mt-1 w-36 overflow-hidden rounded-lg border border-ink-200 bg-white shadow-card"
+          className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-2xl border border-ink-200/70 bg-white/85 shadow-[0_16px_40px_-18px_rgba(15,27,20,0.25)] backdrop-blur-xl"
         >
           {LANGS.map((l) => (
             <li key={l.code}>
@@ -60,12 +62,16 @@ export function LanguageSwitcher() {
                 onClick={() => change(l.code)}
                 role="option"
                 aria-selected={l.code === locale}
-                className={`flex w-full items-center justify-between px-3 py-2 text-sm transition hover:bg-grass-50 ${
-                  l.code === locale ? "bg-grass-50 text-grass-700" : "text-ink-700"
+                className={`flex w-full items-center justify-between px-3.5 py-2.5 text-[13px] transition-colors duration-200 hover:bg-grass-50 ${
+                  l.code === locale
+                    ? "bg-grass-50 font-semibold text-grass-800"
+                    : "text-ink-700"
                 }`}
               >
                 <span>{l.full}</span>
-                <span className="text-xs text-ink-400">{l.label}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-500">
+                  {l.label}
+                </span>
               </button>
             </li>
           ))}

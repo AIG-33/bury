@@ -331,7 +331,8 @@
     "venues": "Venues",
     "slots": "Slots",
     "tournaments": "Tournaments",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "profile": "Public profile"
   },
   "coachLeaderboard": {
     "title": "Player leaderboard",
@@ -1389,16 +1390,33 @@
   "coachesPublic": {
     "title": "Coaches",
     "subtitle": "Browse coaches in the network — book lessons, read reviews, find your match.",
+    "view_map": "View map",
+    "podium": {
+      "title": "This week's podium",
+      "subtitle": "Ranked by review-weighted score (min {min} reviews)."
+    },
+    "controls": {
+      "sort_by": "Sort by",
+      "verified_only": "Verified only",
+      "sort": {
+        "weighted": "Trust-weighted",
+        "raw": "Raw stars",
+        "popular": "Most reviewed"
+      }
+    },
+    "badges": {
+      "verified": "Verified"
+    },
     "help": {
       "why": "Choosing the right coach is half the result. Real reviews from real students cut through the marketing noise.",
       "what": {
-        "1": "Browse coaches sorted by their average star rating.",
-        "2": "Open a coach to read recent reviews and their public profile.",
-        "3": "After a confirmed booking or tournament you can leave your own review."
+        "1": "Default sort uses a Bayesian-weighted average — five reviews at 5★ won't outrank fifty at 4.85★.",
+        "2": "Switch to “Raw stars” or “Most reviewed” to slice the list differently.",
+        "3": "Open a coach to read reviews, see hourly rate and write your own after a real lesson."
       },
       "result": {
-        "1": "More transparent coach market — players know what they get.",
-        "2": "Great coaches climb the leaderboard, weak ones get clear feedback to improve."
+        "1": "Trustworthy podium of top coaches each week.",
+        "2": "Great coaches climb fast; weak ones get the feedback they need to grow."
       }
     },
     "reviews_count": "{count, plural, =0 {no reviews} one {# review} other {# reviews}}",
@@ -1535,6 +1553,71 @@
       "publish": "Publish",
       "hide": "Hide",
       "remove": "Remove"
+    }
+  },
+  "coachesMap": {
+    "title": "Coach map",
+    "subtitle": "{count, plural, =0 {No coaches on the map yet} one {# coach pinned} other {# coaches pinned}} — click a marker to see details.",
+    "switch_to_list": "List view",
+    "view_profile": "Open profile",
+    "reviews_count": "{count} reviews",
+    "no_reviews": "No reviews yet",
+    "hourly_rate": "{amount} PLN/h",
+    "attribution": "Map © OpenStreetMap contributors",
+    "empty_title": "No pinned coaches yet",
+    "empty_body": "Coaches who add their location to their profile will appear here.",
+    "help": {
+      "why": "A map answers the most basic player question: who's actually nearby?",
+      "what": {
+        "1": "Markers show coaches who opted into the public map and set coordinates.",
+        "2": "Marker badge shows current star rating; click to open the full profile.",
+        "3": "If you're a coach, set your pin in Coach panel → Public profile."
+      },
+      "result": {
+        "1": "Players quickly find coaches in their district.",
+        "2": "Coaches with a pin get more visibility — geography matters in tennis."
+      }
+    }
+  },
+  "coachProfile": {
+    "title": "Public coach profile",
+    "subtitle": "Tune what players see when they open your profile or the map.",
+    "rating_summary": "Rating: {avg} ({count} reviews)",
+    "section": {
+      "public_card": "Public card",
+      "map": "Location & map"
+    },
+    "field": {
+      "bio": "Short bio",
+      "rate": "Hourly rate",
+      "rate_currency": "PLN / hour",
+      "show_on_map": "Show me on the public coach map"
+    },
+    "placeholder": {
+      "bio": "Tell players who you are: experience, training style, age groups…"
+    },
+    "hint": {
+      "rate": "Optional. Players see this on your card; leave empty if it varies.",
+      "map": "Search a place or click the map to drop a pin. You can drag the pin to fine-tune.",
+      "show_on_map": "Turn off if you'd rather not appear on the public map (your profile remains accessible)."
+    },
+    "map": {
+      "search_placeholder": "Search city, club or address…",
+      "picked": "Picked",
+      "clear": "Remove pin",
+      "hint": "Click the map or drag the pin to set your location.",
+      "none": "Place not found — try a different query."
+    },
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "errors": {
+      "not_authenticated": "Please sign in.",
+      "invalid_payload": "Some fields look off — please check and retry.",
+      "rate_out_of_range": "Hourly rate must be between 0 and 10000.",
+      "lat_out_of_range": "Latitude must be between -90 and 90.",
+      "lng_out_of_range": "Longitude must be between -180 and 180.",
+      "latlng_must_be_paired": "Set both latitude and longitude (or clear the pin)."
     }
   }
 }

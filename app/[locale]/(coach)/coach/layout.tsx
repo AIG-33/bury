@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Trophy,
   BarChart3,
+  UserCircle,
 } from "lucide-react";
 
 type Props = {
@@ -26,6 +27,7 @@ export default async function CoachLayout({ children, params }: Props) {
     { href: "/coach/slots", label: t("slots"), icon: CalendarDays },
     { href: "/coach/tournaments", label: t("tournaments"), icon: Trophy },
     { href: "/coach/leaderboard", label: t("leaderboard"), icon: BarChart3 },
+    { href: "/coach/profile", label: t("profile"), icon: UserCircle },
   ] as const;
 
   return (

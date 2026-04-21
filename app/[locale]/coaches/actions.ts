@@ -26,6 +26,56 @@ export type CoachListItem = {
   coach_reviews_count: number;
 };
 
+export type CoachMapPin = {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  coach_avg_rating: number | null;
+  coach_reviews_count: number;
+  coach_hourly_rate_pln: number | null;
+  lat: number;
+  lng: number;
+};
+
+export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = (await supabase
+    .from("profiles")
+    .select(
+      "id, display_name, avatar_url, city, coach_avg_rating, " +
+        "coach_reviews_count, coach_hourly_rate_pln, coach_lat, coach_lng",
+    )
+    .eq("is_coach", true)
+    .eq("coach_show_on_map", true)
+    .not("coach_lat", "is", null)
+    .not("coach_lng", "is", null)
+    .limit(500)) as {
+    data: Array<{
+      id: string;
+      display_name: string | null;
+      avatar_url: string | null;
+      city: string | null;
+      coach_avg_rating: number | null;
+      coach_reviews_count: number;
+      coach_hourly_rate_pln: number | null;
+      coach_lat: number;
+      coach_lng: number;
+    }> | null;
+  };
+  return (data ?? []).map((c) => ({
+    id: c.id,
+    display_name: c.display_name,
+    avatar_url: c.avatar_url,
+    city: c.city,
+    coach_avg_rating: c.coach_avg_rating,
+    coach_reviews_count: c.coach_reviews_count,
+    coach_hourly_rate_pln: c.coach_hourly_rate_pln,
+    lat: Number(c.coach_lat),
+    lng: Number(c.coach_lng),
+  }));
+}
+
 export async function loadCoaches(): Promise<CoachListItem[]> {
   const supabase = await createSupabaseServerClient();
   const { data } = (await supabase
