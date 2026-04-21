@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   Mail,
@@ -36,7 +36,7 @@ export type LoginLabels = {
 
 type Mode = "password" | "signup" | "magic" | "forgot";
 
-export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: string }) {
+export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +45,6 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
   const [done, setDone] = useState<null | "magic" | "signup" | "forgot">(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
 
@@ -59,6 +58,12 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
     return cb.toString();
   }
 
+  function postLoginUrl(): string {
+    const url = new URL(`${siteBase()}/api/auth/post-login`);
+    if (next) url.searchParams.set("next", next);
+    return url.toString();
+  }
+
   async function handlePasswordSignIn(e: React.FormEvent) {
     e.preventDefault();
     setErrMsg(null);
@@ -70,10 +75,9 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
       setErrMsg(error.message);
       return;
     }
-    // Hard navigate so server middleware/cookies refresh and post-login redirect logic kicks in.
-    const target = next && next.startsWith("/") ? `/${locale}${next}` : `/${locale}`;
-    router.push(target);
-    router.refresh();
+    // Hard navigate through /api/auth/post-login so the server decides between
+    // onboarding quiz (first login) and the rating / coach dashboard.
+    window.location.assign(postLoginUrl());
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -91,11 +95,11 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
       setErrMsg(error.message);
       return;
     }
-    // If email confirmations are disabled in Supabase, we get a session straight away.
+    // If email confirmations are disabled in Supabase, we get a session straight
+    // away — fresh accounts must go through the onboarding quiz, so route via
+    // /api/auth/post-login which enforces that.
     if (data.session) {
-      const target = next && next.startsWith("/") ? `/${locale}${next}` : `/${locale}`;
-      router.push(target);
-      router.refresh();
+      window.location.assign(postLoginUrl());
       return;
     }
     setDone("signup");

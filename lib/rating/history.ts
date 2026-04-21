@@ -52,6 +52,9 @@ export type RatingTabPayload = {
   history: EloPoint[];
   season: SeasonInfo;
   topCoaches: TopCoach[];
+  // True when the player still needs to take the onboarding quiz to get a
+  // real starting Elo. The rating page uses this to surface a prominent CTA.
+  needs_onboarding_quiz: boolean;
 };
 
 const HISTORY_LIMIT = 20;
@@ -66,7 +69,9 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
   const [profileRes, historyRes, seasonRes, topCoachesRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("current_elo, elo_status, rated_matches_count")
+      .select(
+        "current_elo, elo_status, rated_matches_count, onboarding_completed_at",
+      )
       .eq("id", user.id)
       .single(),
     supabase
@@ -101,10 +106,12 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
     current_elo: number;
     elo_status: "provisional" | "established";
     rated_matches_count: number;
+    onboarding_completed_at: string | null;
   } | null) ?? {
     current_elo: 1000,
     elo_status: "provisional" as const,
     rated_matches_count: 0,
+    onboarding_completed_at: null,
   };
 
   const history = ((historyRes.data ?? []) as EloPoint[])
@@ -152,5 +159,11 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
 
   const topCoaches = (topCoachesRes.data ?? []) as TopCoach[];
 
-  return { hero, history, season, topCoaches };
+  return {
+    hero,
+    history,
+    season,
+    topCoaches,
+    needs_onboarding_quiz: !profile.onboarding_completed_at,
+  };
 }

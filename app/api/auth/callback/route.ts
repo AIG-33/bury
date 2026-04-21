@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     if (profile.is_coach) {
       return NextResponse.redirect(`${origin}/${locale}/coach/dashboard`);
     }
-    return NextResponse.redirect(`${origin}/${locale}/me/profile`);
+    return NextResponse.redirect(`${origin}/${locale}/me/rating`);
   }
 
   return NextResponse.redirect(`${origin}${next}`);

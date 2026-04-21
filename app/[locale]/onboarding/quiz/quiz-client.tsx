@@ -86,7 +86,7 @@ export function QuizClient({ locale, versionId, questions, copy }: Props) {
         <p className="mx-auto mt-3 max-w-md text-sm text-ink-700">{copy.done_body}</p>
         <button
           type="button"
-          onClick={() => router.push("/me/profile")}
+          onClick={() => router.push("/me/rating")}
           className="mt-5 inline-flex h-11 items-center rounded-lg bg-grass-500 px-6 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
         >
           {copy.done_cta}

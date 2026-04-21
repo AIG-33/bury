@@ -1,6 +1,15 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { ArrowDown, ArrowUp, Calendar, Trophy, Star } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowDown,
+  ArrowUp,
+  Calendar,
+  Trophy,
+  Star,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadMyRatingTab } from "@/lib/rating/history";
@@ -17,7 +26,7 @@ export default async function MyRatingPage({ params }: Props) {
   const data = await loadMyRatingTab();
   if (!data) redirect(`/${locale}/login`);
 
-  const { hero, history, season, topCoaches } = data;
+  const { hero, history, season, topCoaches, needs_onboarding_quiz } = data;
   const deltaPositive = hero.delta_30d >= 0;
 
   return (
@@ -34,6 +43,60 @@ export default async function MyRatingPage({ params }: Props) {
         what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
         result={[t("help.result.1"), t("help.result.2")]}
       />
+
+      {needs_onboarding_quiz && (
+        <section
+          aria-live="polite"
+          className="relative overflow-hidden rounded-2xl border-2 border-ball-400 bg-gradient-to-br from-ball-50 via-white to-grass-50 p-5 shadow-[0_18px_48px_-18px_rgba(234,179,8,0.45)] sm:p-6"
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-ball-200/60 blur-2xl"
+          />
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-ball-500 text-white shadow-[0_10px_24px_-10px_rgba(234,179,8,0.9)]">
+                <Sparkles className="h-6 w-6" />
+              </span>
+              <div className="min-w-0">
+                <p className="label-eyebrow text-ball-700">
+                  {t("quiz_cta.eyebrow")}
+                </p>
+                <h2 className="mt-1 font-display text-xl font-bold text-ink-900 sm:text-2xl">
+                  {t("quiz_cta.title")}
+                </h2>
+                <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-ink-700">
+                  {t("quiz_cta.body")}
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-ink-600">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-grass-600" />
+                    {t("quiz_cta.bullet1")}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-grass-600" />
+                    {t("quiz_cta.bullet2")}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-grass-600" />
+                    {t("quiz_cta.bullet3")}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <Link
+              href={`/${locale}/onboarding/quiz`}
+              className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 self-stretch rounded-full bg-grass-700 px-6 font-mono text-[12.5px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_18px_40px_-16px_rgba(21,94,54,0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-grass-800 sm:self-auto"
+            >
+              {t("quiz_cta.cta")}
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5">
+                <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Hero: current Elo */}
       <section className="surface-card overflow-hidden bg-gradient-to-br from-grass-50 via-white to-white">

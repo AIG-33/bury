@@ -37,9 +37,10 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel }: Props) {
 
         {/* Stage */}
         <div className="relative mt-4 grid flex-1 grid-cols-12 items-center gap-6 md:mt-6">
-          {/* Living ball — centred on mobile, right on desktop */}
+          {/* Living ball — pushed off the right edge on mobile so the
+               headline stays fully readable; centred-right on desktop. */}
           <div className="col-span-12 md:col-span-6 md:col-start-7">
-            <div className="relative mx-auto aspect-square w-[40vw] max-w-[340px] md:w-[26vw]">
+            <div className="relative ml-auto -mr-[14vw] aspect-square w-[44vw] max-w-[260px] md:mx-auto md:mr-0 md:w-[26vw] md:max-w-none">
               <LivingBall className="absolute inset-0" />
             </div>
           </div>

@@ -402,7 +402,7 @@
       "meta": {
         "city": "WARSZAWA · POLSKA",
         "est": "EST. 2018",
-        "tagline_top": "JEDEN RANKING — KAŻDY MECZ"
+        "tagline_top": "AMATOR · GRACZ · PRO"
       },
       "hero": {
         "first_name": "Bury",
@@ -619,7 +619,7 @@
     "done": {
       "title": "Twój start",
       "body": "Pierwsze 10 meczów liczy się z większą wagą — system szybko skoryguje Twój prawdziwy poziom.",
-      "cta": "Do mojego profilu"
+      "cta": "Zobacz mój ranking"
     }
   },
   "coachPlayers": {
@@ -738,6 +738,15 @@
       "subtitle": "wg ocen graczy",
       "empty_title": "Jeszcze nie ma ocen",
       "empty_description": "Top-20 trenerów pojawi się tutaj, gdy gracze zaczną zostawiać oceny."
+    },
+    "quiz_cta": {
+      "eyebrow": "Akcja wymagana",
+      "title": "Wypełnij quiz, aby ustalić Twój startowy ranking",
+      "body": "Dopóki nie odpowiesz na kilka krótkich pytań o Twoim doświadczeniu, Twoje Elo to wartość domyślna (1000). Quiz zajmuje ~2 minuty i pokazuje Twój prawdziwy punkt startowy.",
+      "bullet1": "~2 minuty, kilkanaście pytań.",
+      "bullet2": "Dostaniesz spersonalizowane startowe Elo (~800–2200).",
+      "bullet3": "Po pierwszych meczach system i tak dostroi ranking — quiz przyspiesza trafienie w Twój poziom.",
+      "cta": "Wypełnij quiz"
     }
   },
   "find": {
@@ -1838,5 +1847,26 @@
       "ios_step_3": "Wybierz „Dodaj do ekranu głównego” i potwierdź.",
       "close": "Zamknij"
     }
+  },
+  "accountSecurity": {
+    "title": "Hasło i bezpieczeństwo",
+    "subtitle": "Zmień swoje hasło lub wyślij do siebie link resetujący e-mailem.",
+    "email_label": "Konto",
+    "current_password": "Obecne hasło",
+    "new_password": "Nowe hasło",
+    "confirm_password": "Powtórz nowe hasło",
+    "cta_change": "Zmień hasło",
+    "cta_send_link": "Wyślij link resetujący",
+    "link_mode_hint": "Wyślemy jednorazowy link na Twój adres. Otworzysz go, ustawisz nowe hasło i gotowe.",
+    "toggle_to_link": "Nie pamiętasz hasła? Wyślij link resetujący",
+    "toggle_to_direct": "Znam obecne hasło — zmień je tutaj",
+    "sending": "Wysyłam…",
+    "saving": "Zapisuję…",
+    "success_changed": "Hasło zostało zmienione. Przy następnym logowaniu użyj nowego hasła.",
+    "success_link_sent": "Wysłaliśmy link resetujący na Twój e-mail. Sprawdź skrzynkę (również spam).",
+    "error": "Błąd",
+    "mismatch": "Hasła się nie zgadzają.",
+    "min_hint": "Minimum 8 znaków. Użyj unikalnej kombinacji.",
+    "wrong_current": "Obecne hasło jest niepoprawne."
   }
 }

@@ -402,7 +402,7 @@
       "meta": {
         "city": "WARSAW · POLAND",
         "est": "EST. 2018",
-        "tagline_top": "ONE RATING — EVERY MATCH"
+        "tagline_top": "AMATEUR · PLAYER · PRO"
       },
       "hero": {
         "first_name": "Bury",
@@ -619,7 +619,7 @@
     "done": {
       "title": "Your start",
       "body": "Your first 10 matches count with extra weight — the system will quickly correct your true level.",
-      "cta": "Go to my profile"
+      "cta": "See my rating"
     }
   },
   "coachPlayers": {
@@ -738,6 +738,15 @@
       "subtitle": "by player ratings",
       "empty_title": "No ratings yet",
       "empty_description": "The top-20 coaches will show up here once players start leaving reviews."
+    },
+    "quiz_cta": {
+      "eyebrow": "Action required",
+      "title": "Take the quiz to set your starting rating",
+      "body": "Until you answer a few quick questions about your experience, your Elo is the default (1000). The quiz takes ~2 minutes and gives you your true starting point.",
+      "bullet1": "~2 minutes, about a dozen questions.",
+      "bullet2": "You get a personalised starting Elo (~800–2200).",
+      "bullet3": "Matches will still fine-tune your rating — the quiz just gets you to your level faster.",
+      "cta": "Take the quiz"
     }
   },
   "find": {
@@ -1838,5 +1847,26 @@
       "ios_step_3": "Choose \"Add to Home Screen\" and confirm.",
       "close": "Close"
     }
+  },
+  "accountSecurity": {
+    "title": "Password & security",
+    "subtitle": "Change your password directly, or email yourself a reset link.",
+    "email_label": "Account",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Confirm new password",
+    "cta_change": "Change password",
+    "cta_send_link": "Email me a reset link",
+    "link_mode_hint": "We will send a one-time link to your inbox. Open it, pick a new password, and you're done.",
+    "toggle_to_link": "Forgot your password? Send me a reset link",
+    "toggle_to_direct": "I know my current password — change it here",
+    "sending": "Sending…",
+    "saving": "Saving…",
+    "success_changed": "Password updated. Use the new one next time you sign in.",
+    "success_link_sent": "Reset link sent. Check your inbox (and spam folder).",
+    "error": "Error",
+    "mismatch": "Passwords do not match.",
+    "min_hint": "Minimum 8 characters. Use a unique combination.",
+    "wrong_current": "Current password is incorrect."
   }
 }
