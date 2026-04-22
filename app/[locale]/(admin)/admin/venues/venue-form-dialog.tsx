@@ -3,14 +3,7 @@
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  X,
-  Loader2,
-  AlertCircle,
-  Building2,
-  CheckCircle2,
-  MapPin,
-} from "lucide-react";
+import { X, Loader2, AlertCircle, Building2, CheckCircle2, MapPin } from "lucide-react";
 import {
   VenueFormSchema,
   VENUE_AMENITIES,
@@ -52,14 +45,7 @@ type Props = {
   onSaved: () => void;
 };
 
-export function VenueFormDialog({
-  open,
-  onClose,
-  initial,
-  districts,
-  copy,
-  onSaved,
-}: Props) {
+export function VenueFormDialog({ open, onClose, initial, districts, copy, onSaved }: Props) {
   const isEdit = Boolean(initial?.id);
   const [pending, startT] = useTransition();
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -129,7 +115,7 @@ export function VenueFormDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4 backdrop-blur-sm">
       <div
         ref={dialogRef}
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-pop"
+        className="shadow-pop relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white"
         role="dialog"
         aria-modal="true"
       >
@@ -161,10 +147,7 @@ export function VenueFormDialog({
           )}
 
           <Field label={copy.fields.name} required>
-            <Input
-              {...form.register("name")}
-              placeholder="Bury Tennis Centre — Mokotów"
-            />
+            <Input {...form.register("name")} placeholder="Bury Tennis Centre — Mokotów" />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -178,9 +161,7 @@ export function VenueFormDialog({
                 render={({ field }) => (
                   <select
                     value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(e.target.value === "" ? null : e.target.value)
-                    }
+                    onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
                     className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
                   >
                     <option value="">{copy.none}</option>
@@ -196,10 +177,7 @@ export function VenueFormDialog({
           </div>
 
           <Field label={copy.fields.address} hint={copy.hints.address}>
-            <Input
-              {...form.register("address")}
-              placeholder="ul. Puławska 100, 02-595 Warszawa"
-            />
+            <Input {...form.register("address")} placeholder="ul. Puławska 100, 02-595 Warszawa" />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -225,11 +203,7 @@ export function VenueFormDialog({
             </Field>
           </div>
 
-          <Toggle
-            label={copy.fields.is_indoor}
-            control={form.control}
-            name="is_indoor"
-          />
+          <Toggle label={copy.fields.is_indoor} control={form.control} name="is_indoor" />
 
           <div>
             <label className="mb-2 block text-xs font-medium text-ink-700">

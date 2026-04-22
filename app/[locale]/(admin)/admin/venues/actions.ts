@@ -43,10 +43,11 @@ export type CourtRow = {
 export type DistrictOption = { id: string; name: string };
 
 // =============================================================================
-// Auth helper — guarantees we have a coach.
+// Auth helper — admin-only. Venues are an admin-curated directory; coaches
+// and players just SELECT from it via the public read policy.
 // =============================================================================
 
-async function requireCoach() {
+async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -55,35 +56,34 @@ async function requireCoach() {
 
   const { data: profile } = (await supabase
     .from("profiles")
-    .select("id, is_coach, is_admin")
+    .select("id, is_admin")
     .eq("id", user.id)
-    .single()) as { data: { id: string; is_coach: boolean; is_admin: boolean } | null };
+    .single()) as { data: { id: string; is_admin: boolean } | null };
 
   if (!profile) return { ok: false as const, error: "no_profile" as const };
-  if (!profile.is_coach && !profile.is_admin) {
-    return { ok: false as const, error: "not_a_coach" as const };
+  if (!profile.is_admin) {
+    return { ok: false as const, error: "not_an_admin" as const };
   }
-  return { ok: true as const, supabase, userId: profile.id };
+  return { ok: true as const, supabase };
 }
 
 // =============================================================================
-// Load venues for the current coach + district options.
+// Load venues directory + district options.
 // =============================================================================
 
-export async function loadCoachVenues(): Promise<
+export async function loadAdminVenues(): Promise<
   | { ok: true; venues: VenueRow[]; districts: DistrictOption[] }
-  | { ok: false; error: "not_authenticated" | "no_profile" | "not_a_coach" }
+  | { ok: false; error: "not_authenticated" | "no_profile" | "not_an_admin" }
 > {
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return auth;
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
   const { data: venues } = (await supabase
     .from("venues")
     .select(
       "id, name, city, district_id, address, lat, lng, is_indoor, amenities, created_at, updated_at",
     )
-    .eq("owner_id", userId)
     .order("created_at", { ascending: false })) as {
     data: Array<Omit<VenueRow, "courts_count" | "district_name">> | null;
   };
@@ -101,11 +101,7 @@ export async function loadCoachVenues(): Promise<
   }
 
   const districtIds = Array.from(
-    new Set(
-      (venues ?? [])
-        .map((v) => v.district_id)
-        .filter((x): x is string => Boolean(x)),
-    ),
+    new Set((venues ?? []).map((v) => v.district_id).filter((x): x is string => Boolean(x))),
   );
   const districtMap = new Map<string, string>();
   if (districtIds.length > 0) {
@@ -151,12 +147,12 @@ export async function loadVenueDetail(venueId: string): Promise<
     }
   | {
       ok: false;
-      error: "not_authenticated" | "no_profile" | "not_a_coach" | "not_found";
+      error: "not_authenticated" | "no_profile" | "not_an_admin" | "not_found";
     }
 > {
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return auth;
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
   const { data: row } = (await supabase
     .from("venues")
@@ -164,7 +160,6 @@ export async function loadVenueDetail(venueId: string): Promise<
       "id, name, city, district_id, address, lat, lng, is_indoor, amenities, created_at, updated_at",
     )
     .eq("id", venueId)
-    .eq("owner_id", userId)
     .single()) as {
     data: Omit<VenueRow, "courts_count" | "district_name"> | null;
   };
@@ -212,7 +207,7 @@ export async function loadVenueDetail(venueId: string): Promise<
 }
 
 // =============================================================================
-// Mutations
+// Mutations — all admin-only
 // =============================================================================
 
 export type SaveResult =
@@ -229,15 +224,14 @@ export async function createVenue(input: unknown): Promise<SaveResult> {
     };
   }
 
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return { ok: false, error: auth.error };
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
   const v = parsed.data;
   const { data, error } = (await supabase
     .from("venues")
     .insert({
-      owner_id: userId,
       name: v.name,
       city: v.city,
       district_id: v.district_id ?? null,
@@ -252,13 +246,11 @@ export async function createVenue(input: unknown): Promise<SaveResult> {
 
   if (error || !data) return { ok: false, error: error?.message ?? "db_error" };
 
-  revalidatePath("/coach/venues");
+  revalidatePath("/admin/venues");
   return { ok: true, id: data.id };
 }
 
-const UpdateVenueInput = z
-  .object({ id: z.string().uuid() })
-  .and(VenueFormSchema);
+const UpdateVenueInput = z.object({ id: z.string().uuid() }).and(VenueFormSchema);
 
 export async function updateVenue(input: unknown): Promise<SaveResult> {
   const parsed = UpdateVenueInput.safeParse(input);
@@ -270,9 +262,9 @@ export async function updateVenue(input: unknown): Promise<SaveResult> {
     };
   }
 
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return { ok: false, error: auth.error };
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
   const { id, ...v } = parsed.data;
   const { error } = await supabase
@@ -287,13 +279,12 @@ export async function updateVenue(input: unknown): Promise<SaveResult> {
       is_indoor: v.is_indoor,
       amenities: v.amenities,
     } as never)
-    .eq("id", id)
-    .eq("owner_id", userId);
+    .eq("id", id);
 
   if (error) return { ok: false, error: error.message };
 
-  revalidatePath("/coach/venues");
-  revalidatePath(`/coach/venues/${id}`);
+  revalidatePath("/admin/venues");
+  revalidatePath(`/admin/venues/${id}`);
   return { ok: true, id };
 }
 
@@ -303,26 +294,20 @@ export async function deleteVenue(
   if (!z.string().uuid().safeParse(venueId).success) {
     return { ok: false, error: "invalid_id" };
   }
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return { ok: false, error: auth.error };
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
-  const { error } = await supabase
-    .from("venues")
-    .delete()
-    .eq("id", venueId)
-    .eq("owner_id", userId);
+  const { error } = await supabase.from("venues").delete().eq("id", venueId);
 
   if (error) return { ok: false, error: error.message };
-  revalidatePath("/coach/venues");
+  revalidatePath("/admin/venues");
   return { ok: true };
 }
 
 // ─── Courts ──────────────────────────────────────────────────────────────────
 
-const CreateCourtInput = z
-  .object({ venue_id: z.string().uuid() })
-  .and(CourtFormSchema);
+const CreateCourtInput = z.object({ venue_id: z.string().uuid() }).and(CourtFormSchema);
 
 export async function createCourt(input: unknown): Promise<SaveResult> {
   const parsed = CreateCourtInput.safeParse(input);
@@ -333,20 +318,17 @@ export async function createCourt(input: unknown): Promise<SaveResult> {
       fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     };
   }
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return { ok: false, error: auth.error };
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
   const { venue_id, ...c } = parsed.data;
 
-  // Verify ownership of the venue (defense-in-depth on top of RLS).
-  const { data: v } = (await supabase
-    .from("venues")
-    .select("id")
-    .eq("id", venue_id)
-    .eq("owner_id", userId)
-    .single()) as { data: { id: string } | null };
-  if (!v) return { ok: false, error: "not_authorized" };
+  // Verify venue exists (defense-in-depth on top of RLS).
+  const { data: v } = (await supabase.from("venues").select("id").eq("id", venue_id).single()) as {
+    data: { id: string } | null;
+  };
+  if (!v) return { ok: false, error: "venue_not_found" };
 
   const { data, error } = (await supabase
     .from("courts")
@@ -371,8 +353,8 @@ export async function createCourt(input: unknown): Promise<SaveResult> {
   }
   if (!data) return { ok: false, error: "db_error" };
 
-  revalidatePath(`/coach/venues/${venue_id}`);
-  revalidatePath("/coach/venues");
+  revalidatePath(`/admin/venues/${venue_id}`);
+  revalidatePath("/admin/venues");
   return { ok: true, id: data.id };
 }
 
@@ -389,19 +371,11 @@ export async function updateCourt(input: unknown): Promise<SaveResult> {
       fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     };
   }
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return { ok: false, error: auth.error };
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
   const { id, venue_id, ...c } = parsed.data;
-
-  const { data: v } = (await supabase
-    .from("venues")
-    .select("id")
-    .eq("id", venue_id)
-    .eq("owner_id", userId)
-    .single()) as { data: { id: string } | null };
-  if (!v) return { ok: false, error: "not_authorized" };
 
   const { error } = (await supabase
     .from("courts")
@@ -419,7 +393,7 @@ export async function updateCourt(input: unknown): Promise<SaveResult> {
     return { ok: false, error: error.message };
   }
 
-  revalidatePath(`/coach/venues/${venue_id}`);
+  revalidatePath(`/admin/venues/${venue_id}`);
   return { ok: true, id };
 }
 
@@ -429,28 +403,22 @@ export async function deleteCourt(
   if (!z.string().uuid().safeParse(courtId).success) {
     return { ok: false, error: "invalid_id" };
   }
-  const auth = await requireCoach();
+  const auth = await requireAdmin();
   if (!auth.ok) return { ok: false, error: auth.error };
-  const { supabase, userId } = auth;
+  const { supabase } = auth;
 
-  // RLS already restricts, but we still resolve venue_id for revalidation.
+  // Resolve venue_id for revalidation.
   const { data: court } = (await supabase
     .from("courts")
-    .select("venue_id, venues!inner(owner_id)")
+    .select("venue_id")
     .eq("id", courtId)
-    .single()) as {
-    data:
-      | { venue_id: string; venues: { owner_id: string } | { owner_id: string }[] }
-      | null;
-  };
+    .single()) as { data: { venue_id: string } | null };
   if (!court) return { ok: false, error: "not_found" };
-  const owner = Array.isArray(court.venues) ? court.venues[0]?.owner_id : court.venues.owner_id;
-  if (owner !== userId) return { ok: false, error: "not_authorized" };
 
   const { error } = await supabase.from("courts").delete().eq("id", courtId);
   if (error) return { ok: false, error: error.message };
 
-  revalidatePath(`/coach/venues/${court.venue_id}`);
-  revalidatePath("/coach/venues");
+  revalidatePath(`/admin/venues/${court.venue_id}`);
+  revalidatePath("/admin/venues");
   return { ok: true };
 }

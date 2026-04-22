@@ -75,6 +75,7 @@
   },
   "adminNav": {
     "overview": "Przegląd",
+    "venues": "Obiekty",
     "database": "Baza danych",
     "quiz": "Quiz",
     "rating": "Silnik rankingu",
@@ -659,44 +660,51 @@
   },
   "coachJourney": {
     "title": "Ścieżka trenera: od czego zacząć",
-    "subtitle": "6 kroków, aby uruchomić klub. Idź po kolei — następny krok podświetli się automatycznie.",
+    "subtitle": "4 aktywne kroki, aby uruchomić klub. Obiekty i korty prowadzi administrator — wybierasz je przy tworzeniu slotu.",
     "subtitle_done": "Konfiguracja podstawowa gotowa. Pulpit pokazuje teraz Twój klub w czasie rzeczywistym.",
     "progress_label": "Postęp konfiguracji",
     "completed_badge": "Gotowe do startu",
     "cta": {
       "do_now": "Zrób teraz",
       "open": "Otwórz",
-      "review": "Sprawdź"
+      "review": "Sprawdź",
+      "browse": "Otwórz katalog"
     },
     "steps": {
       "profile": {
         "title": "Opublikuj swój profil",
         "description": "Bez bio, stawki i pinezki na mapie gracze nie znajdą Cię w katalogu. To pierwsze, co widzą.",
+        "description_passive": "",
         "unit": ""
       },
       "venue": {
-        "title": "Dodaj obiekt",
-        "description": "Obiekt to klub lub korty, gdzie prowadzisz treningi. Adres i udogodnienia trafiają na Twoją kartę publiczną.",
+        "title": "Obiekty w katalogu",
+        "description": "Obiekt to klub lub korty, gdzie prowadzisz treningi.",
+        "description_passive": "Katalog obiektów prowadzi administrator. Jeśli Twojego nie ma — napisz do admina, doda go dla wszystkich trenerów.",
         "unit": "obiektów"
       },
       "court": {
-        "title": "Opisz korty na obiekcie",
-        "description": "Każdy kort ma swój numer i nawierzchnię. Sloty są przypisane do konkretnego kortu, żeby nie było podwójnych rezerwacji.",
+        "title": "Korty w katalogu",
+        "description": "Każdy kort ma swój numer i nawierzchnię.",
+        "description_passive": "Listę kortów prowadzi administrator. Tworząc slot, po prostu wybierasz kort z udostępnionego katalogu.",
         "unit": "kortów"
       },
       "slot": {
         "title": "Utwórz pierwszy slot",
         "description": "Slot to okno na korcie, które gracze mogą zarezerwować. Dodaj pojedyncze zajęcia lub szablon cykliczny (RRULE: co Wt/Czw o 18:00).",
+        "description_passive": "",
         "unit": "slotów"
       },
       "player": {
         "title": "Zaproś pierwszych graczy",
         "description": "Bez graczy nie ma rezerwacji ani meczów. Wyślij zaproszenie e-mailem — gracz zarejestruje się przez link i dołączy do klubu.",
+        "description_passive": "",
         "unit": "zaproszeń"
       },
       "tournament": {
         "title": "Uruchom turniej",
         "description": "Gdy masz 4+ graczy, zorganizuj pierwszy turniej. Drabinka (single-elim, round-robin, swiss) rysowana jest automatycznie z listy uczestników.",
+        "description_passive": "",
         "unit": "turniejów"
       }
     }
@@ -1275,8 +1283,8 @@
     "participants": "Uczestnicy",
     "free": "wolne",
     "full": "pełny",
-    "no_courts_title": "Najpierw dodaj lokalizację",
-    "no_courts_description": "Potrzebujesz przynajmniej jednej lokalizacji z kortem, by publikować sloty.",
+    "no_courts_title": "Brak kortów w katalogu",
+    "no_courts_description": "Obiekty i korty prowadzi administrator klubu. Napisz do niego — gdy doda Twój obiekt do katalogu, pojawią się tu korty do rezerwacji.",
     "no_courts_cta": "Otwórz lokalizacje",
     "weekday_short": {
       "1": "pn",
@@ -1637,7 +1645,13 @@
         "weighted": "Z wagą zaufania",
         "raw": "Surowe gwiazdki",
         "popular": "Najwięcej opinii"
-      }
+      },
+      "venue": "Obiekt",
+      "any_venue": "Dowolny obiekt",
+      "district": "Dzielnica",
+      "any_district": "Dowolna dzielnica",
+      "apply": "Zastosuj",
+      "reset": "Wyczyść"
     },
     "badges": {
       "verified": "Zweryfikowany"
@@ -1659,6 +1673,8 @@
     "hourly_rate": "{amount} PLN / godz.",
     "empty_title": "Nie ma jeszcze trenerów",
     "empty_body": "Gdy trenerzy dołączą do platformy, pojawią się tutaj.",
+    "empty_filter_title": "Nie znaleziono trenerów dla tego filtra",
+    "empty_filter_body": "Wyczyść filtr lub wybierz inny obiekt albo dzielnicę — żaden trener nie ma jeszcze otwartych slotów w wybranym miejscu.",
     "detail": {
       "about": "O trenerze",
       "anonymous": "Anonim",
@@ -1682,6 +1698,34 @@
         "result": {
           "1": "Wiarygodny system reputacji zamiast pustego marketingu.",
           "2": "Konstruktywna informacja zwrotna pomaga trenerom rosnąć."
+        }
+      },
+      "slots": {
+        "heading": "Wolne sloty",
+        "hint": "Najbliższe sloty tego trenera. Zapis jednym kliknięciem.",
+        "empty_title": "Brak wolnych slotów",
+        "empty_body": "Trener doda sloty — pojawią się tutaj. Możesz śledzić aktualizacje w katalogu.",
+        "book": "Zapisz się",
+        "booking": "Zapisujemy…",
+        "booked": "Zapisany",
+        "full": "Brak miejsc",
+        "seats_left": "{count, plural, one {Wolne # miejsce} few {Wolne # miejsca} many {Wolnych # miejsc} other {Wolnych # miejsc}}",
+        "self_hint": "To Twój slot — zapisują się gracze.",
+        "login_to_book": "Zaloguj się, aby się zapisać",
+        "price": "{amount} PLN",
+        "slot_type": {
+          "individual": "Indywidualnie",
+          "pair": "Para",
+          "group": "Grupa"
+        },
+        "errors": {
+          "not_authenticated": "Zaloguj się, aby się zapisać.",
+          "invalid_payload": "Nie udało się wysłać żądania — odśwież stronę.",
+          "slot_not_found": "Slot nie jest już dostępny.",
+          "slot_full": "Wszystkie miejsca są zajęte.",
+          "slot_cancelled": "Slot został anulowany przez trenera.",
+          "already_booked": "Już jesteś zapisany na ten slot.",
+          "db_error": "Coś poszło nie tak. Spróbuj ponownie."
         }
       },
       "review_form": {
@@ -1718,23 +1762,33 @@
     }
   },
   "myCoaches": {
-    "title": "Moi trenerzy",
-    "subtitle": "Wszyscy trenerzy, z którymi pracowałeś — podziel się szczerą opinią.",
+    "title": "Trenerzy",
+    "subtitle": "Wybierz trenera, sprawdź wolne sloty i zapisz się na trening.",
     "help": {
-      "why": "Uczciwe opinie pomagają innym wybrać dobrego trenera, a świetnym trenerom — się wyróżnić.",
+      "why": "To jest lista wszystkich trenerów platformy. Otwórz profil, poznaj podejście i ceny, przeczytaj opinie i zapisz się na najbliższy slot.",
       "what": {
-        "1": "Każda karta to trener, z którym miałeś potwierdzoną lekcję lub turniej.",
-        "2": "Kliknij zielony przycisk, aby napisać lub zaktualizować opinię.",
-        "3": "Opinie można edytować w każdej chwili; status pokazuje stan moderacji."
+        "1": "Otwórz kartę trenera, aby zobaczyć jego wolne sloty i zapisać się jednym kliknięciem.",
+        "2": "Sekcja „Do opinii” poniżej — trenerzy, z którymi miałeś już potwierdzoną lekcję lub turniej.",
+        "3": "Podziel się szczerą opinią — pomaga to innym graczom wybrać swojego trenera."
       },
       "result": {
-        "1": "Trenerzy dostają prawdziwy feedback od źródła.",
-        "2": "Społeczność dostaje wiarygodniejszy ranking trenerów."
+        "1": "Szybciej znajdujesz trenera i zapisujesz się bez wymiany wiadomości.",
+        "2": "Trenerzy dostają bezpośredni feedback, a społeczność — uczciwy ranking."
       }
     },
+    "section_my": "Do opinii",
+    "section_my_hint": "Trenerzy, z którymi miałeś już potwierdzoną lekcję lub turniej.",
+    "section_all": "Wszyscy trenerzy",
+    "section_all_hint": "Otwórz profil, aby zobaczyć wolne sloty i zapisać się.",
+    "open_full_catalog": "Otwórz pełny katalog",
+    "see_slots": "Sloty i zapis",
+    "no_more_coaches": "Nie ma więcej trenerów — wszyscy już powyżej.",
+    "reviews_count": "{count, plural, =0 {brak opinii} one {# opinia} few {# opinie} many {# opinii} other {# opinii}}",
+    "no_reviews_yet": "Brak opinii",
+    "hourly_rate": "{amount} PLN / h",
     "empty_title": "Brak trenerów",
-    "empty_body": "Po pierwszej potwierdzonej lekcji lub turnieju trener pojawi się tutaj.",
-    "browse_coaches": "Przeglądaj trenerów",
+    "empty_body": "Gdy trenerzy dołączą do platformy, pojawią się tutaj.",
+    "browse_coaches": "Zobacz wszystkich trenerów",
     "source": {
       "booking": "Po lekcji",
       "tournament": "Turniej, w którym grałeś"

@@ -2,27 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Plus,
-  Trash2,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-  CircleDot,
-  Wrench,
-} from "lucide-react";
+import { Plus, Trash2, Loader2, AlertCircle, CheckCircle2, CircleDot, Wrench } from "lucide-react";
 import {
   COURT_SURFACES,
   COURT_STATUSES,
   type CourtSurface,
   type CourtStatus,
 } from "@/lib/venues/schema";
-import {
-  createCourt,
-  updateCourt,
-  deleteCourt,
-  type CourtRow,
-} from "../actions";
+import { createCourt, updateCourt, deleteCourt, type CourtRow } from "../actions";
 
 export type CourtsManagerCopy = {
   title: string;
@@ -63,9 +50,7 @@ export function CourtsManager({
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
   // New-court form state.
-  const [newNumber, setNewNumber] = useState<number>(
-    nextFreeNumber(initialCourts),
-  );
+  const [newNumber, setNewNumber] = useState<number>(nextFreeNumber(initialCourts));
   const [newName, setNewName] = useState("");
   const [newSurface, setNewSurface] = useState<CourtSurface | "">("");
   const [newStatus, setNewStatus] = useState<CourtStatus>("active");
@@ -95,9 +80,7 @@ export function CourtsManager({
   return (
     <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
       <header className="mb-3 flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
-          {copy.title}
-        </h2>
+        <h2 className="font-display text-lg font-semibold text-ink-900">{copy.title}</h2>
       </header>
       <p className="mb-4 text-sm text-ink-600">{copy.intro}</p>
 
@@ -136,11 +119,7 @@ export function CourtsManager({
           {copy.add_title}
         </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[80px_1fr_140px_140px_auto] sm:items-end">
-          <NumberField
-            label={copy.number}
-            value={newNumber}
-            onChange={setNewNumber}
-          />
+          <NumberField label={copy.number} value={newNumber} onChange={setNewNumber} />
           <TextField
             label={copy.name}
             value={newName}
@@ -286,12 +265,8 @@ function CourtRowEditor({
         }
       />
       <div className="flex items-center gap-2 sm:justify-end">
-        {savedAt && (
-          <CheckCircle2 className="h-4 w-4 text-grass-700" />
-        )}
-        {errMsg && (
-          <span className="text-[11px] text-clay-700">{errMsg}</span>
-        )}
+        {savedAt && <CheckCircle2 className="h-4 w-4 text-grass-700" />}
+        {errMsg && <span className="text-[11px] text-clay-700">{errMsg}</span>}
         <button
           type="button"
           onClick={save}
@@ -337,7 +312,7 @@ function NumberField({
         max={99}
         value={value}
         onChange={(e) => onChange(Number(e.target.value) || 1)}
-        className="h-9 w-full rounded-md border border-ink-200 bg-white px-2 text-center text-sm font-mono outline-none transition focus:border-grass-500"
+        className="h-9 w-full rounded-md border border-ink-200 bg-white px-2 text-center font-mono text-sm outline-none transition focus:border-grass-500"
       />
     </div>
   );

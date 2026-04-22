@@ -3,21 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Plus,
-  MapPin,
-  Building2,
-  Trash2,
-  Pencil,
-  ArrowRight,
-  Loader2,
-} from "lucide-react";
+import { Plus, MapPin, Building2, Trash2, Pencil, ArrowRight, Loader2 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
 import { deleteVenue, type DistrictOption, type VenueRow } from "./actions";
-import {
-  VenueFormDialog,
-  type VenueDialogCopy,
-} from "./venue-form-dialog";
+import { VenueFormDialog, type VenueDialogCopy } from "./venue-form-dialog";
 import type { VenueAmenity } from "@/lib/venues/schema";
 
 export type VenuesListCopy = {
@@ -106,17 +95,14 @@ export function VenuesClient({
           {venues.map((v) => (
             <li
               key={v.id}
-              className="flex flex-col rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-pop"
+              className="hover:shadow-pop flex flex-col rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-display text-lg font-semibold text-ink-900">
-                    {v.name}
-                  </h3>
+                  <h3 className="font-display text-lg font-semibold text-ink-900">{v.name}</h3>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-600">
                     <MapPin className="h-3 w-3" />
-                    {[v.city, v.district_name].filter(Boolean).join(" · ") ||
-                      copy.no_district}
+                    {[v.city, v.district_name].filter(Boolean).join(" · ") || copy.no_district}
                   </p>
                 </div>
                 <span
@@ -131,9 +117,7 @@ export function VenuesClient({
                 </span>
               </div>
 
-              {v.address && (
-                <p className="mt-2 text-xs text-ink-500">{v.address}</p>
-              )}
+              {v.address && <p className="mt-2 text-xs text-ink-500">{v.address}</p>}
 
               {v.amenities.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
@@ -146,9 +130,7 @@ export function VenuesClient({
                     </span>
                   ))}
                   {v.amenities.length > 6 && (
-                    <span className="text-[10px] text-ink-400">
-                      +{v.amenities.length - 6}
-                    </span>
+                    <span className="text-[10px] text-ink-400">+{v.amenities.length - 6}</span>
                   )}
                 </div>
               )}
@@ -181,7 +163,7 @@ export function VenuesClient({
                   </button>
                   <Link
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/${locale}/coach/venues/${v.id}` as any}
+                    href={`/${locale}/admin/venues/${v.id}` as any}
                     className="inline-flex h-8 items-center gap-1 rounded-md bg-ink-900 px-3 text-xs font-semibold text-white transition hover:bg-ink-700"
                   >
                     {copy.open} <ArrowRight className="h-3 w-3" />

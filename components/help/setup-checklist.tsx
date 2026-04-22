@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, ChevronRight, Circle } from "lucide-react";
+import { Check, ChevronRight, Circle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SetupChecklistStep = {
@@ -7,7 +7,12 @@ export type SetupChecklistStep = {
   title: string;
   description: string;
   href: string;
-  state: "done" | "current" | "future";
+  /**
+   * - "done" / "current" / "future": active step in the coach's flow
+   * - "info": passive context the coach doesn't control (e.g. directory
+   *   counts maintained by an admin). Shown without a CTA.
+   */
+  state: "done" | "current" | "future" | "info";
   count?: number;
   countLabel?: string;
   ctaLabel: string;
@@ -104,6 +109,7 @@ function Item({
 }) {
   const isCurrent = step.state === "current";
   const isDone = step.state === "done";
+  const isInfo = step.state === "info";
 
   return (
     <li
@@ -111,6 +117,7 @@ function Item({
         "relative flex gap-4 rounded-xl border p-4 transition",
         isCurrent && "border-leaf-300 bg-leaf-50/60",
         isDone && "border-grass-100 bg-grass-50/40",
+        isInfo && "border-dashed border-ink-200 bg-ink-50/40",
         step.state === "future" && "border-ink-100 bg-white",
       )}
     >
@@ -121,10 +128,17 @@ function Item({
             "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
             isDone && "bg-grass-500 text-white",
             isCurrent && "bg-leaf-600 ring-leaf-100 text-white ring-4",
+            isInfo && "bg-ink-200 text-ink-600",
             step.state === "future" && "bg-ink-100 text-ink-500",
           )}
         >
-          {isDone ? <Check className="h-4 w-4" /> : index + 1}
+          {isDone ? (
+            <Check className="h-4 w-4" />
+          ) : isInfo ? (
+            <Info className="h-4 w-4" />
+          ) : (
+            index + 1
+          )}
         </span>
       </div>
       <div className="min-w-0 flex-1">
@@ -134,20 +148,29 @@ function Item({
               "font-medium",
               isCurrent && "text-leaf-900",
               isDone && "text-grass-800",
+              isInfo && "text-ink-700",
               step.state === "future" && "text-ink-700",
             )}
           >
             {step.title}
           </h3>
-          {typeof step.count === "number" && step.count > 0 && step.countLabel && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 text-[11px] font-medium text-ink-600">
+          {typeof step.count === "number" && step.count >= 0 && step.countLabel && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                isInfo ? "bg-white text-ink-700 ring-1 ring-ink-200" : "bg-ink-50 text-ink-600",
+              )}
+            >
               <Circle className="h-2 w-2 fill-current" />
               {step.count} {step.countLabel}
             </span>
           )}
         </div>
         <p
-          className={cn("mt-1 text-sm", step.state === "future" ? "text-ink-500" : "text-ink-600")}
+          className={cn(
+            "mt-1 text-sm",
+            step.state === "future" || isInfo ? "text-ink-500" : "text-ink-600",
+          )}
         >
           {step.description}
         </p>
@@ -166,6 +189,14 @@ function Item({
               className="inline-flex items-center gap-1 text-xs font-medium text-grass-700 hover:underline"
             >
               {doneLabel}
+              <ChevronRight className="h-3 w-3" />
+            </Link>
+          ) : isInfo ? (
+            <Link
+              href={step.href}
+              className="inline-flex items-center gap-1 text-xs text-ink-500 hover:text-ink-700"
+            >
+              {step.ctaLabel}
               <ChevronRight className="h-3 w-3" />
             </Link>
           ) : (

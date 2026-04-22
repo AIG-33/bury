@@ -4,7 +4,11 @@ import { Link } from "@/i18n/routing";
 import { Award, MapPin, Star, Trophy, Map as MapIcon } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
-import { loadCoaches } from "./actions";
+import {
+  loadCoaches,
+  loadVenueOptions,
+  loadDistrictOptionsForCoaches,
+} from "./actions";
 import {
   rankCoaches,
   sortCoaches,
@@ -15,10 +19,43 @@ import {
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ sort?: string; verified?: string }>;
+  searchParams: Promise<{
+    sort?: string;
+    verified?: string;
+    venue?: string;
+    district?: string;
+  }>;
 };
 
 const SORT_KEYS: SortKey[] = ["weighted", "raw", "popular"];
+
+function buildHref(
+  next: Partial<{
+    sort: string;
+    verified: "1" | "0";
+    venue: string;
+    district: string;
+  }>,
+  current: {
+    sort: string;
+    verified: boolean;
+    venueId: string;
+    districtId: string;
+  },
+) {
+  const sp = new URLSearchParams();
+  const sort = next.sort ?? current.sort;
+  if (sort && sort !== "weighted") sp.set("sort", sort);
+  const verifiedNext =
+    next.verified !== undefined ? next.verified === "1" : current.verified;
+  if (verifiedNext) sp.set("verified", "1");
+  const venue = next.venue !== undefined ? next.venue : current.venueId;
+  if (venue) sp.set("venue", venue);
+  const district = next.district !== undefined ? next.district : current.districtId;
+  if (district) sp.set("district", district);
+  const qs = sp.toString();
+  return `/coaches${qs ? `?${qs}` : ""}`;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -43,8 +80,17 @@ export default async function CoachesPage({ params, searchParams }: Props) {
     ? (sp.sort as SortKey)
     : "weighted";
   const verifiedOnly = sp.verified === "1";
+  const venueId = sp.venue ?? "";
+  const districtId = sp.district ?? "";
 
-  const rawCoaches = await loadCoaches();
+  const [rawCoaches, venues, districts] = await Promise.all([
+    loadCoaches({
+      venueId: venueId || null,
+      districtId: venueId ? null : districtId || null,
+    }),
+    loadVenueOptions(),
+    loadDistrictOptionsForCoaches(),
+  ]);
   const ranked = rankCoaches(rawCoaches);
   const top3 = podium(ranked, 3);
   const top3Ids = new Set(top3.map((p) => p.id));
@@ -52,6 +98,14 @@ export default async function CoachesPage({ params, searchParams }: Props) {
   const filtered = verifiedOnly ? ranked.filter((r) => r.qualifies) : ranked;
   const sorted = sortCoaches(filtered, sortKey);
   const coachesById = new Map(rawCoaches.map((c) => [c.id, c] as const));
+
+  const filterState = {
+    sort: sortKey,
+    verified: verifiedOnly,
+    venueId,
+    districtId,
+  };
+  const hasFilter = Boolean(venueId || districtId || verifiedOnly);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
@@ -146,50 +200,128 @@ export default async function CoachesPage({ params, searchParams }: Props) {
         </section>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl2 border border-ink-100 bg-white px-4 py-3 shadow-card">
-        <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-          {t("controls.sort_by")}
-        </span>
-        {SORT_KEYS.map((k) => (
+      <div className="space-y-3 rounded-xl2 border border-ink-100 bg-white px-4 py-3 shadow-card">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+            {t("controls.sort_by")}
+          </span>
+          {SORT_KEYS.map((k) => (
+            <Link
+              key={k}
+              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+              href={buildHref({ sort: k }, filterState) as any}
+              className={
+                "rounded-lg px-3 py-1.5 text-sm font-medium transition " +
+                (sortKey === k
+                  ? "bg-grass-500 text-white"
+                  : "bg-grass-50 text-grass-800 hover:bg-grass-100")
+              }
+            >
+              {t(`controls.sort.${k}`)}
+            </Link>
+          ))}
+          <span className="ml-auto text-xs text-ink-500">
+            {t("controls.verified_only")}
+          </span>
           <Link
-            key={k}
             /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             href={
-              `/coaches?sort=${k}${verifiedOnly ? "&verified=1" : ""}` as any
+              buildHref(
+                { verified: verifiedOnly ? "0" : "1" },
+                filterState,
+              ) as any
             }
             className={
-              "rounded-lg px-3 py-1.5 text-sm font-medium transition " +
-              (sortKey === k
-                ? "bg-grass-500 text-white"
-                : "bg-grass-50 text-grass-800 hover:bg-grass-100")
+              "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition " +
+              (verifiedOnly ? "bg-grass-500" : "bg-ink-200")
             }
+            aria-pressed={verifiedOnly}
           >
-            {t(`controls.sort.${k}`)}
+            <span
+              className={
+                "inline-block h-5 w-5 rounded-full bg-white shadow transition " +
+                (verifiedOnly ? "translate-x-5" : "translate-x-0.5")
+              }
+            />
           </Link>
-        ))}
-        <span className="ml-auto text-xs text-ink-500">
-          {t("controls.verified_only")}
-        </span>
-        <Link
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          href={`/coaches?sort=${sortKey}${verifiedOnly ? "" : "&verified=1"}` as any}
-          className={
-            "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition " +
-            (verifiedOnly ? "bg-grass-500" : "bg-ink-200")
-          }
-          aria-pressed={verifiedOnly}
+        </div>
+
+        <form
+          action={`/${locale}/coaches`}
+          method="get"
+          className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
         >
-          <span
-            className={
-              "inline-block h-5 w-5 rounded-full bg-white shadow transition " +
-              (verifiedOnly ? "translate-x-5" : "translate-x-0.5")
-            }
-          />
-        </Link>
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block uppercase tracking-wider text-ink-500">
+              {t("controls.venue")}
+            </span>
+            <select
+              name="venue"
+              defaultValue={venueId}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("controls.any_venue")}</option>
+              {venues.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                  {v.district_name ? ` · ${v.district_name}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block uppercase tracking-wider text-ink-500">
+              {t("controls.district")}
+            </span>
+            <select
+              name="district"
+              defaultValue={districtId}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500 disabled:bg-ink-50 disabled:text-ink-400"
+              disabled={Boolean(venueId)}
+            >
+              <option value="">{t("controls.any_district")}</option>
+              {districts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.city} · {d.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <input type="hidden" name="sort" value={sortKey} />
+          {verifiedOnly && (
+            <input type="hidden" name="verified" value="1" />
+          )}
+          <div className="flex items-end gap-2">
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600"
+            >
+              {t("controls.apply")}
+            </button>
+            {hasFilter && (
+              <Link
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                href={"/coaches" as any}
+                className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+              >
+                {t("controls.reset")}
+              </Link>
+            )}
+          </div>
+        </form>
       </div>
 
       {sorted.length === 0 ? (
-        <EmptyState title={t("empty_title")} description={t("empty_body")} />
+        hasFilter ? (
+          <EmptyState
+            title={t("empty_filter_title")}
+            description={t("empty_filter_body")}
+            ctaLabel={t("controls.reset")}
+            ctaHref={`/${locale}/coaches`}
+          />
+        ) : (
+          <EmptyState title={t("empty_title")} description={t("empty_body")} />
+        )
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sorted.map((p) => {

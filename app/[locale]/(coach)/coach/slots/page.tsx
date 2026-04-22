@@ -2,11 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
 import { loadCoachSlots } from "./actions";
-import {
-  SlotsClient,
-  WeekNav,
-  type SlotsListCopy,
-} from "./slots-client";
+import { SlotsClient, WeekNav, type SlotsListCopy } from "./slots-client";
 import { SLOT_TYPES, ISO_WEEKDAYS, type SlotType, type IsoWeekday } from "@/lib/slots/schema";
 
 type Props = {
@@ -31,8 +27,7 @@ export default async function CoachSlotsPage({ params, searchParams }: Props) {
     toIso: toDate.toISOString(),
   });
   if (!result.ok) {
-    if (result.error === "not_authenticated")
-      redirect(`/${locale}/login?next=/coach/slots`);
+    if (result.error === "not_authenticated") redirect(`/${locale}/login?next=/coach/slots`);
     if (result.error === "not_a_coach") redirect(`/${locale}/me/profile`);
     redirect(`/${locale}/login`);
   }
@@ -135,11 +130,7 @@ export default async function CoachSlotsPage({ params, searchParams }: Props) {
         })}
       </p>
 
-      <SlotsClient
-        initialSlots={result.slots}
-        courts={result.courts}
-        copy={copy}
-      />
+      <SlotsClient initialSlots={result.slots} courts={result.courts} copy={copy} />
     </div>
   );
 }

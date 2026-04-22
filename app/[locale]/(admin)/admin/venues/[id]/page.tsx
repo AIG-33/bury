@@ -49,10 +49,11 @@ export default async function VenueDetailPage({ params }: Props) {
   const result = await loadVenueDetail(id);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
-      redirect(`/${locale}/login?next=/coach/venues/${id}`);
+      redirect(`/${locale}/login?next=/admin/venues/${id}`);
     }
+    if (result.error === "not_an_admin") redirect(`/${locale}/me/profile`);
     if (result.error === "not_found") notFound();
-    redirect(`/${locale}/coach/venues`);
+    redirect(`/${locale}/admin/venues`);
   }
 
   const { venue, courts } = result;
@@ -89,7 +90,7 @@ export default async function VenueDetailPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
       <Link
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        href={`/${locale}/coach/venues` as any}
+        href={`/${locale}/admin/venues` as any}
         className="inline-flex items-center gap-1 text-sm text-ink-500 transition hover:text-grass-700"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> {t("detail.back")}
@@ -111,14 +112,13 @@ export default async function VenueDetailPage({ params }: Props) {
         </div>
         <p className="inline-flex items-center gap-1 text-sm text-ink-600">
           <MapPin className="h-3.5 w-3.5" />
-          {[venue.city, venue.district_name].filter(Boolean).join(" · ") ||
-            t("list.no_district")}
+          {[venue.city, venue.district_name].filter(Boolean).join(" · ") || t("list.no_district")}
         </p>
         {venue.address && <p className="text-sm text-ink-500">{venue.address}</p>}
       </header>
 
       <HelpPanel
-        pageId="coach-venue-detail"
+        pageId="admin-venue-detail"
         why={t("detail.help.why")}
         what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
         result={[t("detail.help.result.1"), t("detail.help.result.2")]}
@@ -143,11 +143,7 @@ export default async function VenueDetailPage({ params }: Props) {
         </section>
       )}
 
-      <CourtsManager
-        venueId={venue.id}
-        initialCourts={courts}
-        copy={courtsCopy}
-      />
+      <CourtsManager venueId={venue.id} initialCourts={courts} copy={courtsCopy} />
     </div>
   );
 }

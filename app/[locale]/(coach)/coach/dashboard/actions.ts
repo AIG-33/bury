@@ -37,8 +37,7 @@ export type CoachDashboardData = {
 };
 
 export async function loadCoachDashboard(): Promise<
-  | { ok: true; data: CoachDashboardData }
-  | { ok: false; error: "not_authenticated" | "not_a_coach" }
+  { ok: true; data: CoachDashboardData } | { ok: false; error: "not_authenticated" | "not_a_coach" }
 > {
   const supabase = await createSupabaseServerClient();
   const {
@@ -194,17 +193,20 @@ export async function loadCoachDashboard(): Promise<
     }> | null;
   };
   const pendingPlayerIds = Array.from(
-    new Set(
-      (pendingMatchesRaw ?? []).flatMap((m) => [m.p1_id, m.p2_id]),
-    ),
+    new Set((pendingMatchesRaw ?? []).flatMap((m) => [m.p1_id, m.p2_id])),
   );
   const { data: pendingNames } = (await supabase
     .from("profiles")
     .select("id, display_name")
-    .in("id", pendingPlayerIds.length > 0 ? pendingPlayerIds : ["00000000-0000-0000-0000-000000000000"])) as {
+    .in(
+      "id",
+      pendingPlayerIds.length > 0 ? pendingPlayerIds : ["00000000-0000-0000-0000-000000000000"],
+    )) as {
     data: Array<{ id: string; display_name: string | null }> | null;
   };
-  const pendingNameIndex = new Map((pendingNames ?? []).map((p) => [p.id, p.display_name] as const));
+  const pendingNameIndex = new Map(
+    (pendingNames ?? []).map((p) => [p.id, p.display_name] as const),
+  );
   const pending_matches: CoachDashboardData["pending_matches"] = (pendingMatchesRaw ?? []).map(
     (m) => ({
       id: m.id,

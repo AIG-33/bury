@@ -75,6 +75,7 @@
   },
   "adminNav": {
     "overview": "Overview",
+    "venues": "Venues",
     "database": "Database",
     "quiz": "Quiz",
     "rating": "Rating engine",
@@ -659,44 +660,51 @@
   },
   "coachJourney": {
     "title": "Coach setup: where to start",
-    "subtitle": "6 steps to launch your club. Follow them in order — the next step lights up automatically.",
+    "subtitle": "4 active steps to launch your club. Venues and courts are maintained by the admin — you just pick them when scheduling a slot.",
     "subtitle_done": "Base setup is complete. The dashboard now reflects your club in real time.",
     "progress_label": "Setup progress",
     "completed_badge": "Ready to roll",
     "cta": {
       "do_now": "Do it now",
       "open": "Open",
-      "review": "Review"
+      "review": "Review",
+      "browse": "Browse catalog"
     },
     "steps": {
       "profile": {
         "title": "Publish your profile",
         "description": "Without a bio, hourly rate and map pin, players won't find you in the directory. This is the first thing they see.",
+        "description_passive": "",
         "unit": ""
       },
       "venue": {
-        "title": "Add a venue",
-        "description": "A venue is the club or facility where you coach. Address and amenities show up on your public card.",
+        "title": "Venues in the catalog",
+        "description": "A venue is the club or facility where you coach.",
+        "description_passive": "Venues are curated by the admin. If yours isn't listed, ping the admin — they'll add it for every coach to use.",
         "unit": "venues"
       },
       "court": {
-        "title": "Describe the courts",
-        "description": "Each court has its own number and surface. Slots are tied to a specific court so you never double-book.",
+        "title": "Courts in the catalog",
+        "description": "Each court has its own number and surface.",
+        "description_passive": "Courts are curated by the admin. When you schedule a slot, you just pick the court you want from the shared directory.",
         "unit": "courts"
       },
       "slot": {
         "title": "Create your first slot",
         "description": "A slot is a bookable window on a court. You can post a one-off session or a recurring template (RRULE: every Tue/Thu at 18:00).",
+        "description_passive": "",
         "unit": "slots"
       },
       "player": {
         "title": "Invite your first players",
         "description": "No players, no bookings, no matches. Send an email invite — the player registers via the link and joins your club.",
+        "description_passive": "",
         "unit": "invites"
       },
       "tournament": {
         "title": "Launch a tournament",
         "description": "Once you have 4+ players, run your first tournament. The bracket (single-elim, round-robin, swiss) is drawn automatically from the entry list.",
+        "description_passive": "",
         "unit": "tournaments"
       }
     }
@@ -1275,8 +1283,8 @@
     "participants": "Participants",
     "free": "free",
     "full": "full",
-    "no_courts_title": "Add a venue first",
-    "no_courts_description": "You need at least one venue with a court before you can publish slots.",
+    "no_courts_title": "No courts in the directory yet",
+    "no_courts_description": "Venues and courts are maintained by the club admin. Reach out — once they add your venue to the directory, courts appear here for booking.",
     "no_courts_cta": "Open Venues",
     "weekday_short": {
       "1": "Mon",
@@ -1637,7 +1645,13 @@
         "weighted": "Trust-weighted",
         "raw": "Raw stars",
         "popular": "Most reviewed"
-      }
+      },
+      "venue": "Venue",
+      "any_venue": "Any venue",
+      "district": "District",
+      "any_district": "Any district",
+      "apply": "Apply",
+      "reset": "Reset"
     },
     "badges": {
       "verified": "Verified"
@@ -1659,6 +1673,8 @@
     "hourly_rate": "{amount} PLN / hour",
     "empty_title": "No coaches yet",
     "empty_body": "When coaches join the platform they will appear here.",
+    "empty_filter_title": "No coaches match this filter",
+    "empty_filter_body": "Reset the filter or pick a different venue or district — none of the coaches have open slots in this place yet.",
     "detail": {
       "about": "About",
       "anonymous": "Anonymous",
@@ -1682,6 +1698,34 @@
         "result": {
           "1": "A trustworthy reputation system instead of empty marketing.",
           "2": "Constructive feedback that helps coaches grow."
+        }
+      },
+      "slots": {
+        "heading": "Open slots",
+        "hint": "Upcoming slots from this coach. One-click booking.",
+        "empty_title": "No open slots yet",
+        "empty_body": "When the coach adds slots, they'll appear here. Watch the catalogue for updates.",
+        "book": "Book",
+        "booking": "Booking…",
+        "booked": "Booked",
+        "full": "Full",
+        "seats_left": "{count, plural, one {# seat left} other {# seats left}}",
+        "self_hint": "This is your own slot — players book it.",
+        "login_to_book": "Log in to book",
+        "price": "{amount} PLN",
+        "slot_type": {
+          "individual": "Individual",
+          "pair": "Pair",
+          "group": "Group"
+        },
+        "errors": {
+          "not_authenticated": "Log in to book.",
+          "invalid_payload": "Couldn't send the request — refresh the page.",
+          "slot_not_found": "This slot is no longer available.",
+          "slot_full": "All seats are taken.",
+          "slot_cancelled": "The coach cancelled this slot.",
+          "already_booked": "You're already booked for this slot.",
+          "db_error": "Something went wrong. Please try again."
         }
       },
       "review_form": {
@@ -1718,23 +1762,33 @@
     }
   },
   "myCoaches": {
-    "title": "My coaches",
-    "subtitle": "All coaches you've worked with — share your honest feedback.",
+    "title": "Coaches",
+    "subtitle": "Pick a coach, check their open slots and book a session.",
     "help": {
-      "why": "Honest reviews help other players pick the right coach and help great coaches stand out.",
+      "why": "This is the list of every coach on the platform. Open a profile to read about their approach and pricing, scan reviews and book the next available slot.",
       "what": {
-        "1": "Each card shows a coach you had a confirmed lesson or tournament with.",
-        "2": "Tap the green button to write or update your review.",
-        "3": "Reviews can be edited any time; status reflects moderation state."
+        "1": "Open a coach card to see their open slots and book in one click.",
+        "2": "The \"For review\" section below lists coaches you've already had a confirmed lesson or tournament with.",
+        "3": "Share an honest review — it helps other players pick the right coach."
       },
       "result": {
-        "1": "Coaches receive direct, source-of-truth feedback.",
-        "2": "The community gets a more trustworthy coach leaderboard."
+        "1": "You find a coach faster and book without back-and-forth messages.",
+        "2": "Coaches get direct feedback and the community gets a fair ranking."
       }
     },
+    "section_my": "For review",
+    "section_my_hint": "Coaches you've had a confirmed lesson or tournament with.",
+    "section_all": "All coaches",
+    "section_all_hint": "Open a profile to see open slots and book a session.",
+    "open_full_catalog": "Open full catalogue",
+    "see_slots": "Slots & booking",
+    "no_more_coaches": "No more coaches — they are all above.",
+    "reviews_count": "{count, plural, =0 {no reviews} one {# review} other {# reviews}}",
+    "no_reviews_yet": "No reviews yet",
+    "hourly_rate": "{amount} PLN / hour",
     "empty_title": "No coaches yet",
-    "empty_body": "After your first confirmed lesson or tournament, the coach will show up here.",
-    "browse_coaches": "Browse coaches",
+    "empty_body": "When coaches join the platform, they'll appear here.",
+    "browse_coaches": "Browse all coaches",
     "source": {
       "booking": "After a lesson",
       "tournament": "Tournament you played in"

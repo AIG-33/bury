@@ -76,17 +76,138 @@ export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
   }));
 }
 
-export async function loadCoaches(): Promise<CoachListItem[]> {
+export type CoachFilter = {
+  /** Restrict to coaches who currently have at least one open slot at this venue. */
+  venueId?: string | null;
+  /** Restrict to coaches whose `profiles.district_id` matches OR who have slots in the district. */
+  districtId?: string | null;
+};
+
+export async function loadCoaches(
+  filter: CoachFilter = {},
+): Promise<CoachListItem[]> {
   const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
+
+  // If venue/district filter is set, first resolve the set of coach ids that
+  // have open upcoming slots matching the filter. Two-step query keeps the
+  // Supabase join syntax simple and works without RLS gymnastics.
+  let restrictToIds: string[] | null = null;
+  if (filter.venueId || filter.districtId) {
+    let courtIdsQ = supabase.from("courts").select("id, venue_id");
+    if (filter.venueId) {
+      courtIdsQ = courtIdsQ.eq("venue_id", filter.venueId);
+    } else if (filter.districtId) {
+      // Need venues in this district first.
+      const { data: venuesInDistrict } = (await supabase
+        .from("venues")
+        .select("id")
+        .eq("district_id", filter.districtId)) as {
+        data: Array<{ id: string }> | null;
+      };
+      const venueIds = (venuesInDistrict ?? []).map((v) => v.id);
+      if (venueIds.length === 0) return [];
+      courtIdsQ = courtIdsQ.in("venue_id", venueIds);
+    }
+    const { data: courts } = (await courtIdsQ) as {
+      data: Array<{ id: string; venue_id: string }> | null;
+    };
+    const courtIds = (courts ?? []).map((c) => c.id);
+    if (courtIds.length === 0) return [];
+
+    const { data: slots } = (await supabase
+      .from("slots")
+      .select("owner_id")
+      .in("court_id", courtIds)
+      .eq("status", "open")
+      .gte("starts_at", new Date().toISOString())) as {
+      data: Array<{ owner_id: string }> | null;
+    };
+    restrictToIds = Array.from(
+      new Set((slots ?? []).map((s) => s.owner_id)),
+    );
+    if (restrictToIds.length === 0) return [];
+  }
+
+  let q = supabase
     .from("profiles")
     .select(
       "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
         "coach_avg_rating, coach_reviews_count",
     )
-    .eq("is_coach", true)
+    .eq("is_coach", true);
+  if (restrictToIds) q = q.in("id", restrictToIds);
+  const { data } = (await q
     .order("coach_avg_rating", { ascending: false, nullsFirst: false })
     .limit(120)) as { data: CoachListItem[] | null };
+  return data ?? [];
+}
+
+// =============================================================================
+// Venue + district options for filter dropdowns.
+// =============================================================================
+
+export type VenueOption = {
+  id: string;
+  name: string;
+  city: string | null;
+  district_id: string | null;
+  district_name: string | null;
+};
+
+export async function loadVenueOptions(): Promise<VenueOption[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data: venues } = (await supabase
+    .from("venues")
+    .select("id, name, city, district_id")
+    .order("name", { ascending: true })) as {
+    data: Array<{
+      id: string;
+      name: string;
+      city: string | null;
+      district_id: string | null;
+    }> | null;
+  };
+  const list = venues ?? [];
+  const districtIds = Array.from(
+    new Set(
+      list
+        .map((v) => v.district_id)
+        .filter((x): x is string => Boolean(x)),
+    ),
+  );
+  const districtMap = new Map<string, string>();
+  if (districtIds.length > 0) {
+    const { data: ds } = (await supabase
+      .from("districts")
+      .select("id, name")
+      .in("id", districtIds)) as {
+      data: Array<{ id: string; name: string }> | null;
+    };
+    for (const d of ds ?? []) districtMap.set(d.id, d.name);
+  }
+  return list.map((v) => ({
+    id: v.id,
+    name: v.name,
+    city: v.city,
+    district_id: v.district_id,
+    district_name: v.district_id
+      ? (districtMap.get(v.district_id) ?? null)
+      : null,
+  }));
+}
+
+export type DistrictOption = { id: string; name: string; city: string };
+
+export async function loadDistrictOptionsForCoaches(): Promise<DistrictOption[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = (await supabase
+    .from("districts")
+    .select("id, name, city")
+    .eq("country", "PL")
+    .order("city", { ascending: true })
+    .order("name", { ascending: true })) as {
+    data: Array<{ id: string; name: string; city: string }> | null;
+  };
   return data ?? [];
 }
 
@@ -231,6 +352,197 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
     my_eligibility,
     viewer_is_self,
   };
+}
+
+// =============================================================================
+// Upcoming open slots for a coach (used by coach profile + booking CTA).
+// =============================================================================
+
+export type CoachUpcomingSlot = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  slot_type: "individual" | "pair" | "group";
+  max_participants: number;
+  bookings_count: number;
+  price_pln: number | null;
+  notes: string | null;
+  court_label: string;
+  venue_name: string;
+  venue_id: string;
+  city: string | null;
+  district_name: string | null;
+  /** True when the current viewer already holds a non-cancelled booking. */
+  i_booked: boolean;
+};
+
+const UPCOMING_SLOT_LIMIT = 30;
+
+export async function loadCoachUpcomingSlots(
+  coachId: string,
+): Promise<CoachUpcomingSlot[]> {
+  const supabase = await createSupabaseServerClient();
+  const nowIso = new Date().toISOString();
+
+  const { data: rawSlots } = (await supabase
+    .from("slots")
+    .select(
+      "id, starts_at, ends_at, slot_type, max_participants, price_pln, notes, court_id",
+    )
+    .eq("owner_id", coachId)
+    .eq("status", "open")
+    .gte("starts_at", nowIso)
+    .order("starts_at", { ascending: true })
+    .limit(UPCOMING_SLOT_LIMIT)) as {
+    data:
+      | Array<{
+          id: string;
+          starts_at: string;
+          ends_at: string;
+          slot_type: "individual" | "pair" | "group";
+          max_participants: number;
+          price_pln: number | null;
+          notes: string | null;
+          court_id: string;
+        }>
+      | null;
+  };
+  if (!rawSlots || rawSlots.length === 0) return [];
+
+  const courtIds = Array.from(new Set(rawSlots.map((s) => s.court_id)));
+  const slotIds = rawSlots.map((s) => s.id);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [{ data: courtsRaw }, { data: bookingsRaw }, mineRes] =
+    await Promise.all([
+      supabase
+        .from("courts")
+        .select(
+          "id, number, name, venues!inner(id, name, city, district_id)",
+        )
+        .in("id", courtIds) as unknown as Promise<{
+        data:
+          | Array<{
+              id: string;
+              number: number;
+              name: string | null;
+              venues:
+                | {
+                    id: string;
+                    name: string;
+                    city: string | null;
+                    district_id: string | null;
+                  }
+                | Array<{
+                    id: string;
+                    name: string;
+                    city: string | null;
+                    district_id: string | null;
+                  }>;
+            }>
+          | null;
+      }>,
+      supabase
+        .from("bookings")
+        .select("slot_id, status")
+        .in("slot_id", slotIds) as unknown as Promise<{
+        data: Array<{ slot_id: string; status: string }> | null;
+      }>,
+      user
+        ? (supabase
+            .from("bookings")
+            .select("slot_id, status")
+            .eq("player_id", user.id)
+            .in("slot_id", slotIds) as unknown as Promise<{
+            data: Array<{ slot_id: string; status: string }> | null;
+          }>)
+        : Promise.resolve({ data: null } as {
+            data: Array<{ slot_id: string; status: string }> | null;
+          }),
+    ]);
+
+  const districtIds = Array.from(
+    new Set(
+      (courtsRaw ?? [])
+        .map((c) => {
+          const v = Array.isArray(c.venues) ? c.venues[0] : c.venues;
+          return v?.district_id ?? null;
+        })
+        .filter((x): x is string => Boolean(x)),
+    ),
+  );
+  const districtMap = new Map<string, string>();
+  if (districtIds.length > 0) {
+    const { data: ds } = (await supabase
+      .from("districts")
+      .select("id, name")
+      .in("id", districtIds)) as {
+      data: Array<{ id: string; name: string }> | null;
+    };
+    for (const d of ds ?? []) districtMap.set(d.id, d.name);
+  }
+
+  const courtIndex = new Map<
+    string,
+    {
+      label: string;
+      venue_name: string;
+      venue_id: string;
+      city: string | null;
+      district_id: string | null;
+    }
+  >();
+  for (const c of courtsRaw ?? []) {
+    const v = Array.isArray(c.venues) ? c.venues[0] : c.venues;
+    if (!v) continue;
+    courtIndex.set(c.id, {
+      label: c.name ? `${c.name} (#${c.number})` : `Court #${c.number}`,
+      venue_name: v.name,
+      venue_id: v.id,
+      city: v.city,
+      district_id: v.district_id,
+    });
+  }
+
+  const counts = new Map<string, number>();
+  for (const b of bookingsRaw ?? []) {
+    if (b.status === "cancelled") continue;
+    counts.set(b.slot_id, (counts.get(b.slot_id) ?? 0) + 1);
+  }
+
+  const mineSet = new Set<string>();
+  for (const b of mineRes.data ?? []) {
+    if (b.status === "cancelled") continue;
+    mineSet.add(b.slot_id);
+  }
+
+  const out: CoachUpcomingSlot[] = [];
+  for (const s of rawSlots) {
+    const c = courtIndex.get(s.court_id);
+    if (!c) continue;
+    out.push({
+      id: s.id,
+      starts_at: s.starts_at,
+      ends_at: s.ends_at,
+      slot_type: s.slot_type,
+      max_participants: s.max_participants,
+      bookings_count: counts.get(s.id) ?? 0,
+      price_pln: s.price_pln,
+      notes: s.notes,
+      court_label: c.label,
+      venue_name: c.venue_name,
+      venue_id: c.venue_id,
+      city: c.city,
+      district_name: c.district_id
+        ? (districtMap.get(c.district_id) ?? null)
+        : null,
+      i_booked: mineSet.has(s.id),
+    });
+  }
+  return out;
 }
 
 // =============================================================================

@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Award, MapPin, Star, MessageCircle } from "lucide-react";
+import { Award, MapPin, Star, MessageCircle, CalendarClock } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
-import { loadCoachProfile } from "../actions";
+import { loadCoachProfile, loadCoachUpcomingSlots } from "../actions";
 import { ReviewFormCard } from "./review-form-card";
+import { CoachSlotsBookable } from "./coach-slots";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -15,6 +17,12 @@ export default async function CoachProfilePage({ params }: Props) {
 
   const coach = await loadCoachProfile(id);
   if (!coach) notFound();
+
+  const slots = await loadCoachUpcomingSlots(id);
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
@@ -81,6 +89,23 @@ export default async function CoachProfilePage({ params }: Props) {
           </p>
         </section>
       )}
+
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-ink-900">
+            <CalendarClock className="h-5 w-5 text-grass-700" />
+            {t("detail.slots.heading")}
+          </h2>
+          <p className="text-xs text-ink-500">{t("detail.slots.hint")}</p>
+        </div>
+        <CoachSlotsBookable
+          coachId={coach.id}
+          locale={locale}
+          slots={slots}
+          viewerSignedIn={Boolean(user)}
+          viewerIsSelf={coach.viewer_is_self}
+        />
+      </section>
 
       {/* Review form (only when viewer is eligible). */}
       {!coach.viewer_is_self && coach.my_eligibility && (

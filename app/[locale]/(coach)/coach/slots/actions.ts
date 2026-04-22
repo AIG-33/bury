@@ -61,10 +61,7 @@ async function requireCoach() {
 // Load slots in a date window for the current coach + their courts list.
 // =============================================================================
 
-export async function loadCoachSlots(opts: {
-  fromIso: string;
-  toIso: string;
-}): Promise<
+export async function loadCoachSlots(opts: { fromIso: string; toIso: string }): Promise<
   | {
       ok: true;
       slots: CoachSlotRow[];
@@ -76,19 +73,18 @@ export async function loadCoachSlots(opts: {
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
-  // Coach's courts via venues join.
+  // Venues are now an admin-curated directory: any coach picks any court
+  // when scheduling. We load every active court for the dropdown, then
+  // restrict the slot list to slots owned by this coach.
   const { data: venuesRaw } = (await supabase
     .from("venues")
     .select("id, name, courts(id, number, name)")
-    .eq("owner_id", userId)
     .order("name", { ascending: true })) as {
-    data:
-      | Array<{
-          id: string;
-          name: string;
-          courts: Array<{ id: string; number: number; name: string | null }>;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      name: string;
+      courts: Array<{ id: string; number: number; name: string | null }>;
+    }> | null;
   };
 
   const courts: CourtOption[] = [];
@@ -103,37 +99,28 @@ export async function loadCoachSlots(opts: {
       });
     }
   }
-  courts.sort((a, b) =>
-    a.venue_name.localeCompare(b.venue_name) || a.number - b.number,
-  );
+  courts.sort((a, b) => a.venue_name.localeCompare(b.venue_name) || a.number - b.number);
 
-  if (courts.length === 0) {
-    return { ok: true, slots: [], courts: [] };
-  }
-
-  const courtIds = courts.map((c) => c.id);
   const { data: slotsRaw } = (await supabase
     .from("slots")
     .select(
       "id, court_id, starts_at, ends_at, slot_type, max_participants, price_pln, notes, status",
     )
-    .in("court_id", courtIds)
+    .eq("owner_id", userId)
     .gte("starts_at", opts.fromIso)
     .lte("starts_at", opts.toIso)
     .order("starts_at", { ascending: true })) as {
-    data:
-      | Array<{
-          id: string;
-          court_id: string;
-          starts_at: string;
-          ends_at: string;
-          slot_type: SlotType;
-          max_participants: number;
-          price_pln: number | null;
-          notes: string | null;
-          status: "open" | "closed" | "cancelled";
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      court_id: string;
+      starts_at: string;
+      ends_at: string;
+      slot_type: SlotType;
+      max_participants: number;
+      price_pln: number | null;
+      notes: string | null;
+      status: "open" | "closed" | "cancelled";
+    }> | null;
   };
 
   const slotIds = (slotsRaw ?? []).map((s) => s.id);
@@ -157,11 +144,7 @@ export async function loadCoachSlots(opts: {
     return {
       id: s.id,
       court_id: s.court_id,
-      court_label: c
-        ? c.name
-          ? `${c.name} (#${c.number})`
-          : `Court #${c.number}`
-        : "Court",
+      court_label: c ? (c.name ? `${c.name} (#${c.number})` : `Court #${c.number}`) : "Court",
       venue_name: c?.venue_name ?? "—",
       starts_at: s.starts_at,
       ends_at: s.ends_at,
@@ -207,21 +190,15 @@ export async function createSlots(input: unknown): Promise<CreateSlotsResult> {
 
   const form = parsed.data;
 
-  // Verify coach owns the court.
+  // Venues are an admin-curated directory now — coaches just pick any
+  // existing court. We only verify the court row exists; the GIST exclude
+  // constraint on slots prevents double-booking the same physical court.
   const { data: court } = (await supabase
     .from("courts")
-    .select("id, venues!inner(owner_id)")
+    .select("id")
     .eq("id", form.court_id)
-    .single()) as {
-    data:
-      | { id: string; venues: { owner_id: string } | { owner_id: string }[] }
-      | null;
-  };
+    .single()) as { data: { id: string } | null };
   if (!court) return { ok: false, error: "court_not_found" };
-  const ownerId = Array.isArray(court.venues)
-    ? court.venues[0]?.owner_id
-    : court.venues.owner_id;
-  if (ownerId !== userId) return { ok: false, error: "not_authorized" };
 
   const occurrences = expandRecurrence(form);
   if (occurrences.length === 0) {
@@ -237,10 +214,7 @@ export async function createSlots(input: unknown): Promise<CreateSlotsResult> {
     // — we use a single round-trip with a tiny RPC-less expression: insert and let
     // the DB convert via timestamp + interval. Easiest path: pass an ISO timestamp
     // built in JS using Europe/Warsaw via Intl.
-    const startsUtc = warsawWallClockToUtcIso(
-      occ.local_date,
-      occ.local_start_time,
-    );
+    const startsUtc = warsawWallClockToUtcIso(occ.local_date, occ.local_start_time);
     const endsUtc = new Date(
       new Date(startsUtc).getTime() + occ.duration_minutes * 60_000,
     ).toISOString();

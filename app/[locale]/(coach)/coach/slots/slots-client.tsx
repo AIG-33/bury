@@ -13,11 +13,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
-import {
-  cancelSlot,
-  type CoachSlotRow,
-  type CourtOption,
-} from "./actions";
+import { cancelSlot, type CoachSlotRow, type CourtOption } from "./actions";
 import { SlotFormDialog, type SlotDialogCopy } from "./slot-form-dialog";
 import type { SlotType, IsoWeekday } from "@/lib/slots/schema";
 
@@ -60,10 +56,7 @@ export function SlotsClient({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [_, startT] = useTransition();
 
-  const grouped = useMemo(() => groupByDay(initialSlots, copy.locale), [
-    initialSlots,
-    copy.locale,
-  ]);
+  const grouped = useMemo(() => groupByDay(initialSlots, copy.locale), [initialSlots, copy.locale]);
 
   function onCancel(slot: CoachSlotRow) {
     if (!confirm(copy.cancel_confirm)) return;
@@ -77,14 +70,7 @@ export function SlotsClient({
   }
 
   if (courts.length === 0) {
-    return (
-      <EmptyState
-        title={copy.no_courts_title}
-        description={copy.no_courts_description}
-        ctaLabel={copy.no_courts_cta}
-        ctaHref="/coach/venues"
-      />
-    );
+    return <EmptyState title={copy.no_courts_title} description={copy.no_courts_description} />;
   }
 
   return (
@@ -152,9 +138,7 @@ export function SlotsClient({
                         {s.price_pln} PLN
                       </span>
                     )}
-                    {s.notes && (
-                      <span className="text-xs text-ink-500">«{s.notes}»</span>
-                    )}
+                    {s.notes && <span className="text-xs text-ink-500">«{s.notes}»</span>}
                     {s.status === "cancelled" ? (
                       <span className="ml-auto rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-clay-700">
                         {copy.status_options.cancelled}
@@ -198,8 +182,9 @@ export function SlotsClient({
 function groupByDay(slots: CoachSlotRow[], locale: string) {
   const map = new Map<string, CoachSlotRow[]>();
   for (const s of slots) {
-    const dateKey = new Date(s.starts_at)
-      .toLocaleDateString("en-CA", { timeZone: "Europe/Warsaw" });
+    const dateKey = new Date(s.starts_at).toLocaleDateString("en-CA", {
+      timeZone: "Europe/Warsaw",
+    });
     if (!map.has(dateKey)) map.set(dateKey, []);
     map.get(dateKey)!.push(s);
   }
@@ -227,20 +212,10 @@ function formatTimeRange(s: CoachSlotRow, locale: string): string {
 
 // ─── Date-range nav (server-side via querystring) ─────────────────────────────
 
-export function WeekNav({
-  fromIso,
-  copy,
-}: {
-  fromIso: string;
-  copy: SlotsListCopy;
-}) {
+export function WeekNav({ fromIso, copy }: { fromIso: string; copy: SlotsListCopy }) {
   const from = new Date(fromIso);
-  const prev = new Date(from.getTime() - 7 * 86400_000)
-    .toISOString()
-    .slice(0, 10);
-  const next = new Date(from.getTime() + 7 * 86400_000)
-    .toISOString()
-    .slice(0, 10);
+  const prev = new Date(from.getTime() - 7 * 86400_000).toISOString().slice(0, 10);
+  const next = new Date(from.getTime() + 7 * 86400_000).toISOString().slice(0, 10);
   const todayIso = new Date().toISOString().slice(0, 10);
 
   return (

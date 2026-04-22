@@ -1,21 +1,21 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
-import { loadCoachVenues } from "./actions";
+import { loadAdminVenues } from "./actions";
 import { VenuesClient, type VenuesListCopy } from "./venues-client";
 import { VENUE_AMENITIES, type VenueAmenity } from "@/lib/venues/schema";
 
 type Props = { params: Promise<{ locale: string }> };
 
-export default async function CoachVenuesPage({ params }: Props) {
+export default async function AdminVenuesPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("venues");
 
-  const result = await loadCoachVenues();
+  const result = await loadAdminVenues();
   if (!result.ok) {
-    if (result.error === "not_authenticated") redirect(`/${locale}/login?next=/coach/venues`);
-    if (result.error === "not_a_coach") redirect(`/${locale}/me/profile`);
+    if (result.error === "not_authenticated") redirect(`/${locale}/login?next=/admin/venues`);
+    if (result.error === "not_an_admin") redirect(`/${locale}/me/profile`);
     redirect(`/${locale}/login`);
   }
 
@@ -75,7 +75,7 @@ export default async function CoachVenuesPage({ params }: Props) {
       </header>
 
       <HelpPanel
-        pageId="coach-venues"
+        pageId="admin-venues"
         why={t("help.why")}
         what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
         result={[t("help.result.1"), t("help.result.2")]}

@@ -14,7 +14,6 @@ export default async function CoachLayout({ children, params }: Props) {
   const items = [
     { href: "/coach/dashboard", label: t("dashboard"), icon: "dashboard" },
     { href: "/coach/players", label: t("players"), icon: "users" },
-    { href: "/coach/venues", label: t("venues"), icon: "venues" },
     { href: "/coach/slots", label: t("slots"), icon: "calendar" },
     { href: "/coach/tournaments", label: t("tournaments"), icon: "trophy" },
     { href: "/coach/leaderboard", label: t("leaderboard"), icon: "chart" },
