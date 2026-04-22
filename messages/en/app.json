@@ -1,4 +1,45 @@
 {
+  "publicMatches": {
+    "title": "All matches",
+    "subtitle": "Played friendly and tournament matches — an open results feed.",
+    "help": {
+      "why": "So anyone — even visitors without an account — can see club and tournament results, keeping ratings transparent.",
+      "what": {
+        "1": "The feed only shows finished matches: friendlies (once both players confirmed) and tournament games whose tournament is set to public visibility.",
+        "2": "Filter by tournament to inspect a specific bracket.",
+        "3": "Coach names link to their public profile; tournament badge links to the tournament page."
+      },
+      "result": {
+        "1": "Visitors see honest results and understand how Elo is earned.",
+        "2": "Players and coaches can share a direct link to a single match or full tournament."
+      }
+    },
+    "filter": {
+      "tournament": "Tournament",
+      "all_tournaments": "All tournaments and friendlies",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "count_summary": "Found: {count}",
+    "vs": "vs",
+    "no_score": "Score not recorded",
+    "no_date": "No date",
+    "badge": {
+      "tournament": "Tournament",
+      "friendly": "Friendly",
+      "doubles": "Doubles"
+    },
+    "empty": {
+      "title": "No public matches yet",
+      "description": "Finished matches will appear here: confirmed friendlies and tournament games whose tournament is set to public visibility."
+    },
+    "pagination": {
+      "aria": "Pagination",
+      "prev": "Previous",
+      "next": "Next",
+      "page_of": "Page {page} of {total}"
+    }
+  },
   "myMatches": {
     "title": "My matches",
     "subtitle": "Friendly matches outside tournaments. Both players confirm the score before Elo moves.",
@@ -522,6 +563,7 @@
     "tournaments": "Tournaments",
     "find": "Find a Player",
     "profile": "Profile",
+    "my_matches": "My matches",
     "coach": "Coach panel",
     "admin": "Admin",
     "menu_open": "Open menu",

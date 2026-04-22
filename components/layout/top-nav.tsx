@@ -5,6 +5,7 @@ import { TennisBall } from "@/components/icons/tennis-ball";
 import { LanguageSwitcher } from "./language-switcher";
 import { NavShell } from "./nav-shell";
 import { NavLink } from "./nav-link";
+import { ProfileMenu } from "./profile-menu";
 import { MobileMenu, type MobileMenuItem } from "./mobile-menu";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -30,16 +31,21 @@ export async function TopNav() {
 
   // All entry points are listed for authenticated users — even if onboarding
   // (quiz) isn't done yet — so they can navigate the platform freely.
+  // The "matches" entry in the centre capsule is the PUBLIC feed (`/matches`),
+  // shown to everyone. The personal "my matches" page (`/me/matches`) lives
+  // under the profile dropdown for authed users — see the desktop nav below
+  // and the mobile menu entry that follows `/me/profile`.
   const mobileItems: MobileMenuItem[] = user
     ? [
         { href: "/me/rating", label: t("rating") },
         { href: "/me/bookings", label: t("bookings") },
-        { href: "/me/matches", label: t("matches") },
+        { href: "/matches", label: t("matches") },
         { href: "/me/tournaments", label: t("tournaments") },
         { href: "/me/find", label: t("find") },
         { href: "/me/coaches", label: t("coaches") },
         { href: "/venues", label: t("venues") },
         { href: "/me/profile", label: t("profile") },
+        { href: "/me/matches", label: t("my_matches") },
         { href: "/help", label: t("help") },
         ...(isCoach
           ? [{ href: "/coach/dashboard", label: t("coach"), highlight: true }]
@@ -50,6 +56,7 @@ export async function TopNav() {
       ]
     : [
         { href: "/tournaments", label: t("tournaments") },
+        { href: "/matches", label: t("matches") },
         { href: "/coaches", label: t("coaches") },
         { href: "/venues", label: t("venues") },
         { href: "/help", label: t("help") },
@@ -93,12 +100,22 @@ export async function TopNav() {
             <>
               <NavLink href="/me/rating">{t("rating")}</NavLink>
               <NavLink href="/me/bookings">{t("bookings")}</NavLink>
-              <NavLink href="/me/matches">{t("matches")}</NavLink>
+              <NavLink href="/matches">{t("matches")}</NavLink>
               <NavLink href="/me/tournaments">{t("tournaments")}</NavLink>
               <NavLink href="/me/find">{t("find")}</NavLink>
               <NavLink href="/me/coaches">{t("coaches")}</NavLink>
               <NavLink href="/venues">{t("venues")}</NavLink>
-              <NavLink href="/me/profile">{t("profile")}</NavLink>
+              <ProfileMenu
+                label={t("profile")}
+                items={[
+                  { href: "/me/profile", label: t("profile"), icon: "user" },
+                  {
+                    href: "/me/matches",
+                    label: t("my_matches"),
+                    icon: "matches",
+                  },
+                ]}
+              />
               {isCoach && (
                 <NavLink href="/coach/dashboard" highlight>
                   {t("coach")}
@@ -113,6 +130,7 @@ export async function TopNav() {
           ) : (
             <>
               <NavLink href="/tournaments">{t("tournaments")}</NavLink>
+              <NavLink href="/matches">{t("matches")}</NavLink>
               <NavLink href="/coaches">{t("coaches")}</NavLink>
               <NavLink href="/venues">{t("venues")}</NavLink>
               <NavLink href="/help">{t("help")}</NavLink>

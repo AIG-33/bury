@@ -1,4 +1,45 @@
 {
+  "publicMatches": {
+    "title": "Wszystkie mecze",
+    "subtitle": "Rozegrane mecze towarzyskie i turniejowe — otwarty kanał wyników.",
+    "help": {
+      "why": "Aby każdy — nawet osoba bez konta — mógł zobaczyć wyniki klubu i turniejów, dzięki czemu ranking jest przejrzysty.",
+      "what": {
+        "1": "Kanał pokazuje tylko zakończone mecze: towarzyskie (po potwierdzeniu przez obu graczy) i mecze turniejowe oznaczone jako publiczne.",
+        "2": "Filtruj po turnieju, aby zobaczyć konkretną drabinkę.",
+        "3": "Nazwiska trenerów prowadzą do ich publicznego profilu; baner turnieju otwiera stronę turnieju."
+      },
+      "result": {
+        "1": "Odwiedzający widzą uczciwe wyniki i rozumieją, jak naliczane jest Elo.",
+        "2": "Gracze i trenerzy mogą udostępnić bezpośredni link do meczu lub turnieju."
+      }
+    },
+    "filter": {
+      "tournament": "Turniej",
+      "all_tournaments": "Wszystkie turnieje i mecze towarzyskie",
+      "apply": "Zastosuj",
+      "reset": "Wyczyść"
+    },
+    "count_summary": "Znaleziono: {count}",
+    "vs": "vs",
+    "no_score": "Wynik nie zapisany",
+    "no_date": "Brak daty",
+    "badge": {
+      "tournament": "Turniej",
+      "friendly": "Towarzyski",
+      "doubles": "Debel"
+    },
+    "empty": {
+      "title": "Brak publicznych meczów",
+      "description": "Tu pojawią się zakończone mecze: potwierdzone mecze towarzyskie i mecze turniejowe oznaczone jako publiczne."
+    },
+    "pagination": {
+      "aria": "Stronicowanie",
+      "prev": "Poprzednia",
+      "next": "Następna",
+      "page_of": "Strona {page} z {total}"
+    }
+  },
   "myMatches": {
     "title": "Moje mecze",
     "subtitle": "Mecze towarzyskie poza turniejami. Oboje gracze potwierdzają wynik, zanim Elo się zmieni.",
@@ -522,6 +563,7 @@
     "tournaments": "Turnieje",
     "find": "Znajdź rywala",
     "profile": "Profil",
+    "my_matches": "Moje mecze",
     "coach": "Panel trenera",
     "admin": "Admin",
     "menu_open": "Otwórz menu",
