@@ -1,9 +1,12 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { Link } from "@/i18n/routing";
+import { Award, ArrowRight } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
 import { ProfileForm } from "./profile-form";
 import { loadMyProfile } from "./actions";
+import { loadMyCoachApplications } from "../become-coach/actions";
 import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -13,11 +16,25 @@ export default async function ProfilePage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("profile");
   const tSec = await getTranslations("accountSecurity");
+  const tBecome = await getTranslations("becomeCoach");
 
   const result = await loadMyProfile();
   if (!result.ok) redirect(`/${locale}/login`);
 
   const { profile, districts } = result;
+
+  // Surface the "become a coach" entry point right inside the player profile.
+  // We piggyback on the same loader so we know whether the player is already
+  // a coach, has a pending application, or can submit one.
+  const applicationsResult = await loadMyCoachApplications();
+  const becomeCoachState =
+    applicationsResult.ok && applicationsResult.is_already_coach
+      ? "is_coach"
+      : applicationsResult.ok && applicationsResult.applications[0]?.status === "pending"
+        ? "pending"
+        : applicationsResult.ok && applicationsResult.applications[0]?.status === "rejected"
+          ? "rejected"
+          : "none";
 
   // Build copy for the client form
   const fields: Record<string, string> = Object.fromEntries(
@@ -151,6 +168,31 @@ export default async function ProfilePage({ params }: Props) {
         what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
         result={[t("help.result.1"), t("help.result.2")]}
       />
+
+      {becomeCoachState !== "is_coach" && (
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={"/me/become-coach" as any}
+          className="group flex items-start gap-3 rounded-xl2 border border-grass-200 bg-grass-50/60 p-4 shadow-card transition hover:border-grass-300 hover:bg-grass-50"
+        >
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-700">
+            <Award className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-base font-semibold text-grass-900">
+              {tBecome("profile_card.title")}
+            </p>
+            <p className="mt-1 text-sm text-grass-800">
+              {becomeCoachState === "pending"
+                ? tBecome("profile_card.body_pending")
+                : becomeCoachState === "rejected"
+                  ? tBecome("profile_card.body_rejected")
+                  : tBecome("profile_card.body_none")}
+            </p>
+          </div>
+          <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-grass-700 transition group-hover:translate-x-0.5" />
+        </Link>
+      )}
 
       <ProfileForm
         locale={locale as "pl" | "en" | "ru"}

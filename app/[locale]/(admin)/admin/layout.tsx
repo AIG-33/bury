@@ -42,6 +42,7 @@ export default async function AdminLayout({ children, params }: Props) {
   const items = [
     { href: "/admin", label: t("overview"), icon: "dashboard" },
     { href: "/admin/venues", label: t("venues"), icon: "venues" },
+    { href: "/admin/coach-applications", label: t("coach_applications"), icon: "award" },
     { href: "/admin/db", label: t("database"), icon: "database" },
     { href: "/admin/quiz", label: t("quiz"), icon: "help" },
     { href: "/admin/rating", label: t("rating"), icon: "sliders" },

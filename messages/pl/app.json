@@ -76,12 +76,143 @@
   "adminNav": {
     "overview": "Przegląd",
     "venues": "Obiekty",
+    "coach_applications": "Wnioski trenerskie",
     "database": "Baza danych",
     "quiz": "Quiz",
     "rating": "Silnik rankingu",
     "reviews": "Opinie",
     "forbidden_title": "Tylko dla administratorów",
     "forbidden_body": "Nie masz uprawnień do panelu administracyjnego."
+  },
+  "becomeCoach": {
+    "eyebrow": "Profil · Zostań trenerem",
+    "title": "Zostań trenerem klubu",
+    "subtitle": "Wypełnij wniosek, dołącz dokumenty (dyplom, certyfikaty, dowód) — administrator sprawdzi i podejmie decyzję.",
+    "help": {
+      "why": "Trenerów dodajemy ręcznie: zanim ktoś zacznie publikować sloty i pobierać opłaty od graczy, chcemy zobaczyć dokumenty i krótki list motywacyjny. Chroni to graczy przed oszustami i utrzymuje jakość klubu.",
+      "what": {
+        "1": "Opisz swoje doświadczenie: gdzie grałeś/uczyłeś, języki, metodyka, godziny pracy.",
+        "2": "Dołącz dokumenty: dyplom, certyfikaty, opcjonalnie dowód tożsamości.",
+        "3": "Wyślij. Po odrzuceniu możesz złożyć nowy wniosek."
+      },
+      "result": {
+        "1": "Administrator zobaczy Twój wniosek w panelu i podejmie decyzję.",
+        "2": "Po zatwierdzeniu od razu otrzymasz panel trenera: profil, sloty, gracze, turnieje."
+      }
+    },
+    "profile_card": {
+      "title": "Zostań trenerem",
+      "body_none": "Chcesz publikować sloty i przyjmować graczy? Wypełnij wniosek i wyślij dokumenty do administratora.",
+      "body_pending": "Twój wniosek jest rozpatrywany. Możesz sprawdzić status i swoją wiadomość.",
+      "body_rejected": "Poprzedni wniosek został odrzucony. Możesz złożyć nowy z poprawkami."
+    },
+    "already_coach": {
+      "title": "Jesteś już trenerem",
+      "body": "Masz pełny dostęp do panelu trenera: profil, sloty, gracze, turnieje.",
+      "cta": "Otwórz panel trenera"
+    },
+    "pending": {
+      "title": "Wniosek w trakcie weryfikacji",
+      "body": "Otrzymaliśmy Twój wniosek. Administrator skontaktuje się lub podejmie decyzję w ciągu kilku dni. W trakcie oczekiwania nie można złożyć kolejnego.",
+      "submitted_at": "Złożono",
+      "attachments_count": "{n, plural, =0 {bez plików} =1 {# plik} few {# pliki} many {# plików} other {# plików}}",
+      "message_label": "Pokaż treść mojego wniosku"
+    },
+    "rejected": {
+      "title": "Poprzedni wniosek został odrzucony",
+      "body": "Przeczytaj komentarz administratora i złóż nowy wniosek z poprawkami.",
+      "comment_label": "Komentarz administratora",
+      "decided_at": "Decyzja"
+    },
+    "history": {
+      "title": "Historia moich wniosków",
+      "admin_comment": "Komentarz administratora"
+    },
+    "status": {
+      "pending": "W trakcie weryfikacji",
+      "approved": "Zatwierdzony",
+      "rejected": "Odrzucony"
+    },
+    "empty_title": "Brak wniosków",
+    "empty_body": "Wypełnij formularz powyżej i wyślij wniosek, by zostać trenerem klubu.",
+    "form": {
+      "message_label": "List motywacyjny",
+      "message_placeholder": "Opowiedz o sobie: doświadczenie gry, praktyka trenerska, języki, preferowane godziny i format zajęć, obiekty itd.",
+      "message_hint": "Od {min} do {max} znaków. Im więcej szczegółów, tym szybciej podejmiemy decyzję.",
+      "files_label": "Dokumenty",
+      "files_hint": "Maks. {max_files} plików, każdy do {max_mb} MB. Akceptujemy PDF, JPG, PNG, WEBP.",
+      "files_add": "Dodaj plik",
+      "files_remove": "Usuń plik",
+      "submit": "Wyślij wniosek",
+      "submitting": "Wysyłam…",
+      "submitted": "Wniosek wysłany",
+      "error": "Nie udało się wysłać wniosku",
+      "error_message_too_short": "List motywacyjny jest za krótki",
+      "error_too_many_files": "Możesz dołączyć maks. {max_files} plików",
+      "error_file_too_large": "Plik przekracza limit {max_mb} MB",
+      "error_bad_mime": "Akceptujemy tylko PDF, JPG, PNG, WEBP",
+      "error_pending_exists": "Masz już wniosek w trakcie weryfikacji — poczekaj na decyzję",
+      "error_already_coach": "Jesteś już trenerem — wniosek nie jest potrzebny"
+    }
+  },
+  "adminCoachApplications": {
+    "title": "Wnioski o status trenera",
+    "subtitle": "Gracze składają tutaj wnioski z dokumentami. Zatwierdzenie nadaje status trenera i panel trenera.",
+    "help": {
+      "why": "Trenerów dodajemy ręcznie po weryfikacji dokumentów — żeby narzędzie monetyzacji nie trafiło w przypadkowe ręce i jakość pozostała wysoka.",
+      "what": {
+        "1": "Otwórz wniosek, przeczytaj list motywacyjny i obejrzyj dołączone dokumenty.",
+        "2": "Zatwierdź lub odrzuć z obowiązkowym komentarzem — gracz zobaczy powód.",
+        "3": "Przejrzyj zdecydowane wnioski i w razie potrzeby skoryguj flagi profilu w bazie."
+      },
+      "result": {
+        "1": "Po zatwierdzeniu flaga is_coach gracza ustawia się natychmiast i pojawia się panel trenera.",
+        "2": "Po odrzuceniu gracz widzi Twój komentarz i może złożyć nowy wniosek."
+      }
+    },
+    "filter": {
+      "pending": "Nowe",
+      "decided": "Zdecydowane",
+      "all": "Wszystkie"
+    },
+    "status": {
+      "pending": "Nowy",
+      "approved": "Zatwierdzony",
+      "rejected": "Odrzucony"
+    },
+    "actions": {
+      "approve": "Zatwierdź",
+      "reject": "Odrzuć",
+      "view_files": "Pokaż pliki",
+      "hide_files": "Ukryj pliki",
+      "open_file": "Otwórz",
+      "open_player": "Profil w bazie"
+    },
+    "dialog": {
+      "approve_title": "Zatwierdzić i nadać status trenera?",
+      "reject_title": "Odrzucić wniosek",
+      "comment_label_optional": "Komentarz dla gracza (opcjonalnie)",
+      "comment_label_required": "Komentarz dla gracza (wymagany)",
+      "comment_placeholder": "Przykład: „Brakuje skanu certyfikatu ITF — dograj i złóż nowy wniosek\".",
+      "cancel": "Anuluj",
+      "confirm": "Potwierdź",
+      "confirming": "Zapisuję…",
+      "reject_requires_comment": "Przy odrzuceniu wymagany jest powód"
+    },
+    "fields": {
+      "submitted_at": "Złożono",
+      "decided_at": "Zdecydowano",
+      "decided_by": "przez",
+      "attachments": "Pliki",
+      "message": "List motywacyjny",
+      "admin_comment": "Komentarz administratora",
+      "already_coach": "Jest już trenerem"
+    },
+    "error_generic": "Błąd",
+    "error_not_pending": "Ten wniosek nie jest już „nowy\" — odśwież stronę",
+    "files_loading": "Generuję podpisane linki do plików…",
+    "empty_title": "Brak wniosków",
+    "empty_body": "Gdy gracz wyśle wniosek — pojawi się tutaj."
   },
   "adminDb": {
     "title": "Baza danych",

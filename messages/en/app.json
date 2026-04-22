@@ -76,12 +76,143 @@
   "adminNav": {
     "overview": "Overview",
     "venues": "Venues",
+    "coach_applications": "Coach applications",
     "database": "Database",
     "quiz": "Quiz",
     "rating": "Rating engine",
     "reviews": "Reviews",
     "forbidden_title": "Admin only",
     "forbidden_body": "You do not have permission to view the admin area."
+  },
+  "becomeCoach": {
+    "eyebrow": "Profile · Become a coach",
+    "title": "Become a club coach",
+    "subtitle": "Fill in the form, attach your documents (diploma, certificates, ID) — an admin will review and decide.",
+    "help": {
+      "why": "Coaches in the club are added manually: before someone can publish slots and charge players, we want to see the documents and a short cover letter. This protects players from impostors and keeps club quality.",
+      "what": {
+        "1": "Describe your experience: where you played/taught, languages, methodology, working hours.",
+        "2": "Attach documents: diploma, certificates, optionally an ID.",
+        "3": "Submit. You may submit a new application if a previous one was rejected."
+      },
+      "result": {
+        "1": "An admin sees your application in the admin panel and makes a decision.",
+        "2": "Once approved you immediately get the coach workspace: profile, slots, players, tournaments."
+      }
+    },
+    "profile_card": {
+      "title": "Become a coach",
+      "body_none": "Want to publish slots and accept players? Fill in the application and send the documents to the admin.",
+      "body_pending": "Your application is under review. You can check its status and your message.",
+      "body_rejected": "Your previous application was rejected. You may submit a new one with corrections."
+    },
+    "already_coach": {
+      "title": "You are already a coach",
+      "body": "You have full access to the coach workspace: profile, slots, players, tournaments.",
+      "cta": "Open the coach workspace"
+    },
+    "pending": {
+      "title": "Application under review",
+      "body": "We have received your application. An admin will reach out or decide within a few days. While we wait, you cannot submit another one.",
+      "submitted_at": "Submitted",
+      "attachments_count": "{n, plural, =0 {no files} =1 {# file} other {# files}}",
+      "message_label": "Show my application text"
+    },
+    "rejected": {
+      "title": "Your previous application was rejected",
+      "body": "Read the admin's comment and submit a new application addressing the issues.",
+      "comment_label": "Admin comment",
+      "decided_at": "Decided"
+    },
+    "history": {
+      "title": "My applications history",
+      "admin_comment": "Admin comment"
+    },
+    "status": {
+      "pending": "Under review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "empty_title": "No applications yet",
+    "empty_body": "Fill in the form above and submit to apply for coach status.",
+    "form": {
+      "message_label": "Cover letter",
+      "message_placeholder": "Tell us about yourself: playing experience, coaching practice, languages, preferred hours and lesson format, venues, etc.",
+      "message_hint": "Between {min} and {max} characters. The more detail you provide, the faster we can decide.",
+      "files_label": "Documents",
+      "files_hint": "Up to {max_files} files, each at most {max_mb} MB. PDF, JPG, PNG, WEBP are accepted.",
+      "files_add": "Add file",
+      "files_remove": "Remove file",
+      "submit": "Submit application",
+      "submitting": "Submitting…",
+      "submitted": "Application submitted",
+      "error": "Could not submit the application",
+      "error_message_too_short": "Cover letter is too short",
+      "error_too_many_files": "You can attach at most {max_files} files",
+      "error_file_too_large": "File exceeds the {max_mb} MB limit",
+      "error_bad_mime": "Only PDF, JPG, PNG, WEBP are accepted",
+      "error_pending_exists": "You already have a pending application — wait for a decision",
+      "error_already_coach": "You are already a coach — no application needed"
+    }
+  },
+  "adminCoachApplications": {
+    "title": "Coach applications",
+    "subtitle": "Players submit applications with documents here. Approval grants coach status and the coach workspace.",
+    "help": {
+      "why": "Coaches are added manually after document review — so the monetization tool is not handed to random people and quality stays high.",
+      "what": {
+        "1": "Open the application, read the cover letter and view the attached documents.",
+        "2": "Approve or reject with a mandatory comment — the player will see the reason.",
+        "3": "Browse decided applications and adjust profile flags via the database table if needed."
+      },
+      "result": {
+        "1": "On approval the player's is_coach flag flips immediately and the coach workspace appears.",
+        "2": "On rejection the player sees your comment and can submit a new application."
+      }
+    },
+    "filter": {
+      "pending": "New",
+      "decided": "Decided",
+      "all": "All"
+    },
+    "status": {
+      "pending": "New",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "view_files": "Show files",
+      "hide_files": "Hide files",
+      "open_file": "Open",
+      "open_player": "Open in DB"
+    },
+    "dialog": {
+      "approve_title": "Approve and grant coach status?",
+      "reject_title": "Reject application",
+      "comment_label_optional": "Comment to the player (optional)",
+      "comment_label_required": "Comment to the player (required)",
+      "comment_placeholder": "Example: \"Missing scan of the ITF certificate — please upload and submit a new application\".",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "confirming": "Saving…",
+      "reject_requires_comment": "A reason is required when rejecting"
+    },
+    "fields": {
+      "submitted_at": "Submitted",
+      "decided_at": "Decided",
+      "decided_by": "by",
+      "attachments": "Files",
+      "message": "Cover letter",
+      "admin_comment": "Admin comment",
+      "already_coach": "Already a coach"
+    },
+    "error_generic": "Error",
+    "error_not_pending": "This application is no longer in 'new' state — refresh the page",
+    "files_loading": "Generating signed file links…",
+    "empty_title": "No applications",
+    "empty_body": "When a player submits an application it will show up here."
   },
   "adminDb": {
     "title": "Database",

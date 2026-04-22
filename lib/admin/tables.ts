@@ -160,6 +160,39 @@ export const TABLES: readonly TableDef[] = [
       { key: "linked_at", label: "Linked", type: "datetime", readonly: true },
     ],
   },
+  {
+    name: "coach_applications",
+    label: "Coach applications",
+    group: "people",
+    pk: "id",
+    defaultSort: { column: "created_at", ascending: false },
+    searchColumns: ["message", "admin_comment"],
+    filterColumns: ["status"],
+    description:
+      "Player → admin requests to be granted coach status. Use /admin/coach-applications for the moderation UI; this table is for raw fixes.",
+    columns: [
+      { key: "id", label: "ID", type: "uuid", readonly: true, hideInList: true },
+      { key: "player_id", label: "Player", type: "uuid", required: true },
+      {
+        key: "status",
+        label: "Status",
+        type: "select",
+        options: ["pending", "approved", "rejected"] as const,
+        required: true,
+      },
+      { key: "message", label: "Message", type: "textarea", required: true },
+      {
+        key: "attachments",
+        label: "Attachments (JSON)",
+        type: "json",
+        hint: 'Array of {path, name, size, mime_type}. Files live in the "coach-applications" private bucket.',
+      },
+      { key: "admin_comment", label: "Admin comment", type: "textarea" },
+      { key: "decided_by", label: "Decided by", type: "uuid" },
+      { key: "decided_at", label: "Decided at", type: "datetime" },
+      ...META_COLUMNS.slice(1),
+    ],
+  },
 
   // ---------------------------------------------------------------------------
   // VENUES & DISTRICTS

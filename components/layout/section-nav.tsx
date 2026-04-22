@@ -13,6 +13,7 @@ import {
   Sliders,
   Star,
   Database,
+  Award,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ const ICONS: Record<string, LucideIcon> = {
   sliders: Sliders,
   star: Star,
   database: Database,
+  award: Award,
 };
 
 export type SectionNavIconName = keyof typeof ICONS;
