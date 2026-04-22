@@ -35,6 +35,7 @@
       "won": "Won",
       "lost": "Lost",
       "cancelled": "Cancelled",
+      "tournament_generic": "Tournament",
       "whatsapp": "WhatsApp",
       "awaiting_my_confirmation_hint": "The opponent reported this score. Confirm to apply Elo, or dispute to ask them to re-enter it.",
       "awaiting_their_confirmation_hint": "Waiting for the opponent to confirm the score you submitted.",

@@ -35,6 +35,7 @@
       "won": "Победа",
       "lost": "Поражение",
       "cancelled": "Отменён",
+      "tournament_generic": "Турнир",
       "whatsapp": "WhatsApp",
       "awaiting_my_confirmation_hint": "Соперник внёс этот счёт. Подтвердите — Elo применится; оспорьте — соперник перепишет.",
       "awaiting_their_confirmation_hint": "Ждём, пока соперник подтвердит счёт, который ты внёс.",

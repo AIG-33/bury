@@ -449,6 +449,8 @@ export type MatchListItem = {
     whatsapp: string | null;
   };
   tournament_id: string | null;
+  /** Display name of the tournament; null for friendly matches. */
+  tournament_name: string | null;
 };
 
 export type MyMatchesPayload = {
@@ -465,21 +467,32 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  // Pull both friendly AND tournament matches the player is in. Tournament
+  // matches are owned by the coach (results entered there + Elo applied
+  // automatically), so they are read-only here — they only appear in the
+  // "recent" history group, never in the awaiting/scheduled groups.
+  // We also include the partner slots for doubles so the player sees pair
+  // matches.
   const { data: rows } = (await supabase
     .from("matches")
     .select(
-      "id, p1_id, p2_id, outcome, sets, winner_side, played_at, scheduled_at, " +
-        "created_at, confirmed_by_p1, confirmed_by_p2, tournament_id",
+      "id, p1_id, p2_id, p1_partner_id, p2_partner_id, outcome, sets, winner_side, " +
+        "played_at, scheduled_at, created_at, confirmed_by_p1, confirmed_by_p2, " +
+        "tournament_id",
     )
-    .is("tournament_id", null)
-    .or(`p1_id.eq.${user.id},p2_id.eq.${user.id}`)
+    .or(
+      `p1_id.eq.${user.id},p2_id.eq.${user.id},` +
+        `p1_partner_id.eq.${user.id},p2_partner_id.eq.${user.id}`,
+    )
     .in("outcome", ["scheduled", "completed", "cancelled"])
     .order("created_at", { ascending: false })
-    .limit(80)) as {
+    .limit(120)) as {
     data: Array<{
       id: string;
       p1_id: string;
       p2_id: string;
+      p1_partner_id: string | null;
+      p2_partner_id: string | null;
       outcome: string;
       sets: MatchListItem["sets"];
       winner_side: "p1" | "p2" | null;
@@ -493,8 +506,18 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
   };
 
   const list = rows ?? [];
+
+  // Resolve the "main opponent" for each row.
+  //   - If the viewer is on side P1 (either p1_id or p1_partner_id), the
+  //     opponent is p2_id (we show the captain of the other side).
+  //   - Otherwise the viewer is on side P2 and the opponent is p1_id.
+  // is_p1 is used downstream to compare winner_side, so it must reflect the
+  // viewer's side, not just whether they are the captain.
+  const sideOf = (m: (typeof list)[number]) =>
+    m.p1_id === user.id || m.p1_partner_id === user.id ? "p1" : "p2";
+
   const otherIds = Array.from(
-    new Set(list.map((m) => (m.p1_id === user.id ? m.p2_id : m.p1_id))),
+    new Set(list.map((m) => (sideOf(m) === "p1" ? m.p2_id : m.p1_id))),
   );
 
   const peopleById = new Map<string, MatchListItem["opponent"]>();
@@ -508,8 +531,28 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
     for (const p of people ?? []) peopleById.set(p.id, p);
   }
 
+  // Resolve tournament names for any tournament rows we received.
+  const tournamentIds = Array.from(
+    new Set(
+      list
+        .map((m) => m.tournament_id)
+        .filter((x): x is string => x != null),
+    ),
+  );
+  const tournamentNameById = new Map<string, string>();
+  if (tournamentIds.length > 0) {
+    const { data: tours } = (await supabase
+      .from("tournaments")
+      .select("id, name")
+      .in("id", tournamentIds)) as {
+      data: Array<{ id: string; name: string }> | null;
+    };
+    for (const t of tours ?? []) tournamentNameById.set(t.id, t.name);
+  }
+
   const items: MatchListItem[] = list.flatMap((m) => {
-    const isP1 = m.p1_id === user.id;
+    const side = sideOf(m);
+    const isP1 = side === "p1";
     const otherId = isP1 ? m.p2_id : m.p1_id;
     const opponent = peopleById.get(otherId);
     if (!opponent) return [];
@@ -541,20 +584,32 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
         awaiting_my_confirmation: awaitingMyConfirmation,
         opponent,
         tournament_id: m.tournament_id,
+        tournament_name: m.tournament_id
+          ? (tournamentNameById.get(m.tournament_id) ?? null)
+          : null,
       },
     ];
   });
 
+  // Tournament matches are managed by the coach — they only surface in the
+  // "recent" history list. The awaiting/scheduled groups are friendly-only.
+  const friendly = items.filter((m) => m.tournament_id == null);
+
   return {
-    awaitingMyConfirmation: items.filter((m) => m.awaiting_my_confirmation),
-    awaitingTheirConfirmation: items.filter(
+    awaitingMyConfirmation: friendly.filter((m) => m.awaiting_my_confirmation),
+    awaitingTheirConfirmation: friendly.filter(
       (m) =>
         m.outcome === "scheduled" &&
         m.sets != null &&
         m.reported_by_me &&
         !m.opponent_confirmed,
     ),
-    scheduled: items.filter((m) => m.outcome === "scheduled" && m.sets == null),
+    scheduled: friendly.filter(
+      (m) => m.outcome === "scheduled" && m.sets == null,
+    ),
+    // Recent = any completed/cancelled match (friendly OR tournament).
+    // Tournament `scheduled` rows that haven't been played yet are hidden
+    // here; the player sees them in /me/tournaments.
     recent: items.filter(
       (m) => m.outcome === "completed" || m.outcome === "cancelled",
     ),

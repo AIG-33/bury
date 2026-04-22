@@ -137,6 +137,12 @@ export function MatchCard({
                 {t("cancelled")}
               </span>
             )}
+            {m.tournament_id && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-ball-50 px-2 py-0.5 text-[11px] font-medium text-ball-800 ring-1 ring-ball-200">
+                <Trophy className="h-3 w-3" />
+                {m.tournament_name ?? t("tournament_generic")}
+              </span>
+            )}
           </div>
           <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-500">
             <Clock className="h-3 w-3" />

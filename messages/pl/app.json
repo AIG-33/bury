@@ -35,6 +35,7 @@
       "won": "Wygrana",
       "lost": "Porażka",
       "cancelled": "Anulowany",
+      "tournament_generic": "Turniej",
       "whatsapp": "WhatsApp",
       "awaiting_my_confirmation_hint": "Przeciwnik wpisał ten wynik. Potwierdź, by zastosować Elo, albo zakwestionuj, by go wpisał ponownie.",
       "awaiting_their_confirmation_hint": "Czekamy aż przeciwnik potwierdzi wynik, który wpisałeś.",
