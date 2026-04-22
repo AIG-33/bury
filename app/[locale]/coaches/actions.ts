@@ -40,13 +40,14 @@ export type CoachMapPin = {
 
 export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
   const supabase = await createSupabaseServerClient();
+  // Public view bypasses RLS on `profiles` and exposes only safe coach
+  // fields. See migration 20260422000400_public_profile_views.sql.
   const { data } = (await supabase
-    .from("profiles")
+    .from("public_coach_directory")
     .select(
       "id, display_name, avatar_url, city, coach_avg_rating, " +
         "coach_reviews_count, coach_hourly_rate_pln, coach_lat, coach_lng",
     )
-    .eq("is_coach", true)
     .eq("coach_show_on_map", true)
     .not("coach_lat", "is", null)
     .not("coach_lng", "is", null)
@@ -128,13 +129,14 @@ export async function loadCoaches(
     if (restrictToIds.length === 0) return [];
   }
 
+  // Public view bypasses RLS on `profiles` and exposes only safe coach
+  // fields. See migration 20260422000400_public_profile_views.sql.
   let q = supabase
-    .from("profiles")
+    .from("public_coach_directory")
     .select(
       "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
         "coach_avg_rating, coach_reviews_count",
-    )
-    .eq("is_coach", true);
+    );
   if (restrictToIds) q = q.in("id", restrictToIds);
   const { data } = (await q
     .order("coach_avg_rating", { ascending: false, nullsFirst: false })
@@ -244,21 +246,20 @@ export type CoachProfile = {
 export async function loadCoachProfile(coachId: string): Promise<CoachProfile | null> {
   const supabase = await createSupabaseServerClient();
 
+  // Public view bypasses RLS on `profiles`. Rows in the view already
+  // satisfy `is_coach = true`, so a `maybeSingle()` miss means either
+  // the id doesn't exist or the user is no longer a coach.
   const { data: coach } = (await supabase
-    .from("profiles")
+    .from("public_coach_directory")
     .select(
       "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
-        "coach_avg_rating, coach_reviews_count, is_coach",
+        "coach_avg_rating, coach_reviews_count",
     )
     .eq("id", coachId)
     .maybeSingle()) as {
-    data:
-      | (CoachListItem & {
-          is_coach: boolean;
-        })
-      | null;
+    data: CoachListItem | null;
   };
-  if (!coach || !coach.is_coach) return null;
+  if (!coach) return null;
 
   const { data: rawReviews } = (await supabase
     .from("coach_reviews")
@@ -291,8 +292,10 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
     { display_name: string | null; avatar_url: string | null }
   >();
   if (reviewerIds.length > 0) {
+    // Public basic view exposes id/display_name/avatar_url across all
+    // profiles, bypassing RLS so reviewer cards render for any viewer.
     const { data: reviewers } = (await supabase
-      .from("profiles")
+      .from("public_profile_basic")
       .select("id, display_name, avatar_url")
       .in("id", reviewerIds)) as {
       data: Array<{
@@ -773,7 +776,7 @@ export async function loadMyCoaches(): Promise<MyCoachEntry[] | null> {
 
   const coachIds = eligibility.map((e) => e.coach_id);
   const { data: coachRows } = (await supabase
-    .from("profiles")
+    .from("public_coach_directory")
     .select(
       "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
         "coach_avg_rating, coach_reviews_count",
