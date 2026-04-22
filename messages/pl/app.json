@@ -31,7 +31,24 @@
     },
     "empty": {
       "title": "Brak publicznych meczów",
-      "description": "Tu pojawią się zakończone mecze: potwierdzone mecze towarzyskie i mecze turniejowe oznaczone jako publiczne."
+      "description": "Tu pojawią się zakończone mecze: potwierdzone mecze towarzyskie i mecze turniejowe oznaczone jako publiczne. Poniżej trzy sposoby, jak trafiają tu mecze.",
+      "guide": {
+        "friendly": {
+          "title": "1. Rozegrałeś mecz towarzyski",
+          "body": "Zarejestruj go w „Moje mecze”, wpisz wynik set po secie i poczekaj na potwierdzenie przeciwnika. Po potwierdzeniu mecz od razu pojawi się tutaj.",
+          "cta": "Otwórz „Moje mecze”"
+        },
+        "tournament_score": {
+          "title": "2. Trener: wpisz wyniki w turnieju",
+          "body": "Otwórz swój turniej w /coach/tournaments, kliknij „Wynik” na karcie meczu w drabince i wpisz sety — mecz przejdzie w status Rozegrany, a Elo przeliczy się automatycznie.",
+          "cta": "Przejdź do turniejów"
+        },
+        "tournament_publish": {
+          "title": "3. Trener: ustaw widoczność na Publiczny",
+          "body": "Na stronie turnieju przełącz Widoczność na Publiczny (duży zielony przycisk „Opublikuj wyniki”). Dopiero wtedy rozegrane mecze pojawią się tutaj i na publicznej stronie turnieju.",
+          "cta": "Opublikuj turniej"
+        }
+      }
     },
     "pagination": {
       "aria": "Stronicowanie",
@@ -1753,6 +1770,19 @@
       "club": "Tylko klub",
       "public": "Publiczny (dla wszystkich)"
     },
+    "privacy_control": {
+      "status_label": "Widoczność:",
+      "club_hint": "tylko uczestnicy i właściciel widzą drabinkę i wyniki.",
+      "public_hint": "widoczne dla wszystkich; rozegrane mecze trafiają do /matches.",
+      "publish_button": "Opublikuj wyniki",
+      "unpublish_button": "Tylko klub",
+      "publishing": "Publikuję…",
+      "hidden_results_title": "Wyniki tego turnieju widzą tylko członkowie klubu",
+      "hidden_results_body": "Aktualnie widoczność to Tylko klub. Przełącz na Publiczny, aby rozegrane mecze pojawiły się w globalnym /matches i na publicznej stronie turnieju.",
+      "visible_results_title": "Wyniki publikują się automatycznie",
+      "visible_results_body": "Każdy mecz oznaczony jako Rozegrany od razu pojawia się w globalnym /matches i na publicznej stronie turnieju. Wystarczy wpisać wynik przyciskiem „Wynik” na karcie meczu.",
+      "view_public": "Otwórz stronę publiczną"
+    },
     "match_rule_kinds": {
       "best_of_3": "Do 2 wygranych setów",
       "best_of_5": "Do 3 wygranych setów",
@@ -1856,15 +1886,15 @@
       "entry_fee_free": "Bezpłatnie",
       "entry_fee_pln": "{n} PLN",
       "help": {
-        "why": "Ta strona to twoja sterownia: uczestnicy po lewej, drabinka (lub harmonogram round-robin) po prawej. Aktualizuj — gracze widzą zmiany od razu.",
+        "why": "Ta strona to twoja sterownia: uczestnicy, drabinka (lub harmonogram round-robin) i przełącznik widoczności. Aktualizuj — gracze widzą zmiany od razu.",
         "what": {
           "1": "Dodaj/usuń uczestników aż do skompletowania składu i kliknij Wygeneruj drabinkę.",
-          "2": "Po każdym meczu kliknij Wynik na karcie meczu i wpisz wynik set po secie.",
-          "3": "Single-elim awansuje zwycięzców automatycznie; round-robin sam się kończy, gdy wszystkie mecze mają wynik, a tabela aktualizuje się na żywo."
+          "2": "Po każdym meczu kliknij „Wynik” na karcie meczu i wpisz rezultat set po secie — mecz przejdzie w status Rozegrany, a Elo przeliczy się automatycznie.",
+          "3": "Aby wyniki były widoczne dla wszystkich (w /matches i na publicznej stronie turnieju) — w bloku powyżej przełącz Widoczność na „Publiczny”."
         },
         "result": {
           "1": "Skończona drabinka albo finalna tabela to jeden, łatwy do udostępnienia obraz turnieju.",
-          "2": "Każdy wynik zasila uniwersalne Elo właściwym mnożnikiem."
+          "2": "Każdy wynik zasila uniwersalne Elo właściwym mnożnikiem; przy widoczności Publiczny trafia także do globalnego /matches."
         }
       }
     },

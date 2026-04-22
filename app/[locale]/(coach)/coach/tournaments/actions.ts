@@ -507,6 +507,35 @@ export async function setTournamentStatus(
   return { ok: true };
 }
 
+// Targeted privacy switch — used by the inline toggle on the coach
+// tournament detail page so coaches can publish results to /matches
+// without opening the full edit dialog.
+export async function setTournamentPrivacy(
+  id: string,
+  privacy: Privacy,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireCoach();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  if (privacy !== "club" && privacy !== "public") {
+    return { ok: false, error: "invalid_privacy" };
+  }
+
+  const { error } = await supabase
+    .from("tournaments")
+    .update({ privacy } as never)
+    .eq("id", id)
+    .eq("owner_coach_id", userId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/coach/tournaments/${id}`);
+  revalidatePath(`/tournaments/${id}`);
+  revalidatePath("/coach/tournaments");
+  revalidatePath("/tournaments");
+  revalidatePath("/matches");
+  return { ok: true };
+}
+
 export async function deleteTournament(
   id: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {

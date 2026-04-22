@@ -5,11 +5,13 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  Globe2,
+  Send,
   Trophy,
   Users,
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
-import { EmptyState } from "@/components/help/empty-state";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // =============================================================================
@@ -200,10 +202,7 @@ export default async function PublicMatchesPage({
       </form>
 
       {rows.length === 0 ? (
-        <EmptyState
-          title={t("empty.title")}
-          description={t("empty.description")}
-        />
+        <EmptyHowTo locale={locale} t={t} />
       ) : (
         <ul className="space-y-2">
           {rows.map((m) => (
@@ -245,6 +244,114 @@ export default async function PublicMatchesPage({
           />
         </nav>
       )}
+    </div>
+  );
+}
+
+// Rich, actionable empty state. The previous bare "no matches" card left
+// players (and coaches) wondering how matches actually land in this feed.
+// The new layout keeps the hero copy AND lays out the three concrete
+// paths to populate the feed, so the page itself answers
+// "как сохранять результаты и как настраивать публичность".
+function EmptyHowTo({
+  locale,
+  t,
+}: {
+  locale: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}) {
+  const cards = [
+    {
+      icon: Send,
+      title: t("empty.guide.friendly.title"),
+      body: t("empty.guide.friendly.body"),
+      href: `/${locale}/me/matches`,
+      cta: t("empty.guide.friendly.cta"),
+      tone: "grass" as const,
+    },
+    {
+      icon: Trophy,
+      title: t("empty.guide.tournament_score.title"),
+      body: t("empty.guide.tournament_score.body"),
+      href: `/${locale}/coach/tournaments`,
+      cta: t("empty.guide.tournament_score.cta"),
+      tone: "ball" as const,
+    },
+    {
+      icon: Globe2,
+      title: t("empty.guide.tournament_publish.title"),
+      body: t("empty.guide.tournament_publish.body"),
+      href: `/${locale}/coach/tournaments`,
+      cta: t("empty.guide.tournament_publish.cta"),
+      tone: "clay" as const,
+    },
+  ];
+
+  const toneClasses: Record<
+    "grass" | "ball" | "clay",
+    { wrap: string; icon: string; cta: string }
+  > = {
+    grass: {
+      wrap: "border-grass-200 bg-grass-50/40",
+      icon: "bg-grass-100 text-grass-700",
+      cta: "text-grass-800 hover:text-grass-900",
+    },
+    ball: {
+      wrap: "border-ball-200 bg-ball-50/40",
+      icon: "bg-ball-100 text-ball-700",
+      cta: "text-ball-800 hover:text-ball-900",
+    },
+    clay: {
+      wrap: "border-clay-200 bg-clay-50/40",
+      icon: "bg-clay-100 text-clay-700",
+      cta: "text-clay-800 hover:text-clay-900",
+    },
+  };
+
+  return (
+    <div className="space-y-4 rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink-100 text-ink-700">
+          <Eye className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="font-display text-base font-semibold text-ink-900">
+            {t("empty.title")}
+          </p>
+          <p className="text-sm text-ink-600">{t("empty.description")}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {cards.map((c) => {
+          const tone = toneClasses[c.tone];
+          const Icon = c.icon;
+          return (
+            <a
+              key={c.title}
+              href={c.href}
+              className={`group flex flex-col gap-2 rounded-xl2 border p-4 transition hover:-translate-y-0.5 hover:shadow-pop ${tone.wrap}`}
+            >
+              <span
+                className={`grid h-8 w-8 place-items-center rounded-full ${tone.icon}`}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <p className="font-display text-sm font-semibold text-ink-900">
+                {c.title}
+              </p>
+              <p className="text-xs leading-snug text-ink-700">{c.body}</p>
+              <span
+                className={`mt-auto inline-flex items-center gap-1 text-[12px] font-semibold ${tone.cta}`}
+              >
+                {c.cta}
+                <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+              </span>
+            </a>
+          );
+        })}
+      </div>
     </div>
   );
 }

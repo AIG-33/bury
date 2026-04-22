@@ -31,7 +31,24 @@
     },
     "empty": {
       "title": "No public matches yet",
-      "description": "Finished matches will appear here: confirmed friendlies and tournament games whose tournament is set to public visibility."
+      "description": "Finished matches will appear here: confirmed friendlies and tournament games whose tournament is set to public visibility. Below are the three ways they end up in this feed.",
+      "guide": {
+        "friendly": {
+          "title": "1. You played a friendly",
+          "body": "Log it under My matches, enter the score set by set, and wait for your opponent to confirm. Once confirmed, the match shows up here right away.",
+          "cta": "Open My matches"
+        },
+        "tournament_score": {
+          "title": "2. Coach: enter scores in your tournament",
+          "body": "Open your tournament under /coach/tournaments, click Score on a match card in the bracket and fill in the sets — the match flips to Completed and Elo recalculates automatically.",
+          "cta": "Go to tournaments"
+        },
+        "tournament_publish": {
+          "title": "3. Coach: flip visibility to Public",
+          "body": "On the tournament page, set Visibility to Public (the big green Publish results button). Only then do completed matches show up here and on the public tournament page.",
+          "cta": "Publish a tournament"
+        }
+      }
     },
     "pagination": {
       "aria": "Pagination",
@@ -1753,6 +1770,19 @@
       "club": "Club only",
       "public": "Public (open to all)"
     },
+    "privacy_control": {
+      "status_label": "Visibility:",
+      "club_hint": "only participants and the owner can see the bracket and results.",
+      "public_hint": "visible to everyone; completed matches feed into /matches.",
+      "publish_button": "Publish results",
+      "unpublish_button": "Make club-only",
+      "publishing": "Publishing…",
+      "hidden_results_title": "This tournament's results are visible to club members only",
+      "hidden_results_body": "Visibility is currently set to Club only. Switch it to Public to surface completed matches in the global /matches feed and on the public tournament page.",
+      "visible_results_title": "Results are published automatically",
+      "visible_results_body": "Every match marked Completed shows up in the global /matches feed and on the public tournament page right away. Just enter the score with the Score button on each match card.",
+      "view_public": "Open public page"
+    },
     "match_rule_kinds": {
       "best_of_3": "Best of 3 sets",
       "best_of_5": "Best of 5 sets",
@@ -1856,15 +1886,15 @@
       "entry_fee_free": "Free",
       "entry_fee_pln": "{n} PLN",
       "help": {
-        "why": "This page is your control room: participants on the left, bracket (or schedule for round-robin) on the right. Update both, players see changes instantly.",
+        "why": "This page is your control room: participants, bracket (or schedule for round-robin), and the visibility switch. Update them and players see changes instantly.",
         "what": {
           "1": "Add or remove participants until you're happy with the field, then click Generate bracket.",
-          "2": "After each match, click Score on the match card and enter set-by-set results.",
-          "3": "Single-elim auto-advances winners; round-robin auto-finishes when every match has a result and standings update live."
+          "2": "After each match, click Score on the match card and enter set-by-set results — the match flips to Completed and Elo recalculates automatically.",
+          "3": "To make results visible to everyone (in /matches and on the public tournament page) — flip Visibility to Public in the block above."
         },
         "result": {
           "1": "A finished bracket — or final standings table — is a single, shareable view of how the tournament played out.",
-          "2": "Every result feeds the universal Elo with the correct multiplier."
+          "2": "Every result feeds the universal Elo with the correct multiplier; with Public visibility it lands in the global /matches feed too."
         }
       }
     },

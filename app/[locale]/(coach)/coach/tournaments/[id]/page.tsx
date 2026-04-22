@@ -10,6 +10,7 @@ import {
 } from "./participants-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
+import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
 import {
   TOURNAMENT_FORMATS,
   TOURNAMENT_STATUSES,
@@ -197,6 +198,30 @@ export default async function TournamentDetailPage({ params }: Props) {
           t("detail.help.what.3"),
         ]}
         result={[t("detail.help.result.1"), t("detail.help.result.2")]}
+      />
+
+      <PrivacyControl
+        tournamentId={tournament.id}
+        initialPrivacy={tournament.privacy}
+        publicHref={`/${locale}/tournaments/${tournament.id}`}
+        copy={
+          {
+            status_label: t("privacy_control.status_label"),
+            club_label: t("privacy.club"),
+            public_label: t("privacy.public"),
+            club_hint: t("privacy_control.club_hint"),
+            public_hint: t("privacy_control.public_hint"),
+            publish_button: t("privacy_control.publish_button"),
+            unpublish_button: t("privacy_control.unpublish_button"),
+            publishing: t("privacy_control.publishing"),
+            hidden_results_title: t("privacy_control.hidden_results_title"),
+            hidden_results_body: t("privacy_control.hidden_results_body"),
+            visible_results_title: t("privacy_control.visible_results_title"),
+            visible_results_body: t("privacy_control.visible_results_body"),
+            view_public: t("privacy_control.view_public"),
+            error_prefix: t("bracket.error"),
+          } satisfies PrivacyControlCopy
+        }
       />
 
       <ParticipantsSection
