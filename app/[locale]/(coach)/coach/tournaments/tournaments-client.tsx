@@ -12,10 +12,13 @@ import {
   Loader2,
   Trophy,
   CalendarDays,
+  Clock,
+  Coins,
+  MapPin,
   Users,
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
-import { deleteTournament, type TournamentRow } from "./actions";
+import { deleteTournament, type TournamentRow, type VenueOption } from "./actions";
 import {
   TournamentFormDialog,
   type TournamentDialogCopy,
@@ -38,6 +41,8 @@ export type TournamentsListCopy = {
   deleting: string;
   open: string;
   no_surface: string;
+  entry_fee_free: string;
+  entry_fee_pln: string;
   format_labels: Record<TournamentFormat, string>;
   status_labels: Record<TournamentStatus, string>;
   surface_labels: Record<Surface, string>;
@@ -47,10 +52,12 @@ export type TournamentsListCopy = {
 export function TournamentsClient({
   locale,
   tournaments,
+  venueOptions,
   copy,
 }: {
   locale: string;
   tournaments: TournamentRow[];
+  venueOptions: VenueOption[];
   copy: TournamentsListCopy;
 }) {
   const t = useTranslations("tournamentsCoach");
@@ -88,15 +95,20 @@ export function TournamentsClient({
           format: editing.format,
           surface: editing.surface,
           starts_on: editing.starts_on,
+          start_time: editing.start_time
+            ? editing.start_time.slice(0, 5)
+            : null,
           ends_on: editing.ends_on,
           registration_deadline: editing.registration_deadline
             ? editing.registration_deadline.slice(0, 10)
             : null,
           max_participants: editing.max_participants,
+          entry_fee_pln: editing.entry_fee_pln,
           privacy: editing.privacy,
           draw_method: editing.draw_method ?? "rating",
           prizes_description: editing.prizes_description,
           match_rules: editing.match_rules as MatchRules,
+          venue_ids: editing.venues.map((v) => v.id),
         },
       }
     : null;
@@ -147,15 +159,23 @@ export function TournamentsClient({
                 <StatusPill status={tour.status} label={copy.status_labels[tour.status]} />
               </div>
 
-              <p className="mt-3 inline-flex items-center gap-1 text-xs text-ink-600">
-                <CalendarDays className="h-3 w-3" />
-                {tour.starts_on}
-                {tour.ends_on && tour.ends_on !== tour.starts_on
-                  ? ` → ${tour.ends_on}`
-                  : ""}
+              <p className="mt-3 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
+                <span className="inline-flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" />
+                  {tour.starts_on}
+                  {tour.ends_on && tour.ends_on !== tour.starts_on
+                    ? ` → ${tour.ends_on}`
+                    : ""}
+                </span>
+                {tour.start_time && (
+                  <span className="inline-flex items-center gap-1 tabular-nums">
+                    <Clock className="h-3 w-3" />
+                    {tour.start_time.slice(0, 5)}
+                  </span>
+                )}
               </p>
 
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-md bg-grass-50 px-2 py-1 text-xs font-semibold text-grass-800">
                   <Users className="h-3.5 w-3.5" />
                   {t("list.participants_count", {
@@ -168,7 +188,28 @@ export function TournamentsClient({
                     {copy.surface_labels[tour.surface]}
                   </span>
                 )}
+                <span className="inline-flex items-center gap-1 rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-700 tabular-nums">
+                  <Coins className="h-3.5 w-3.5" />
+                  {tour.entry_fee_pln == null || tour.entry_fee_pln === 0
+                    ? copy.entry_fee_free
+                    : copy.entry_fee_pln.replace("{n}", String(tour.entry_fee_pln))}
+                </span>
               </div>
+
+              {tour.venues.length > 0 && (
+                <ul className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-600">
+                  {tour.venues.map((v) => (
+                    <li
+                      key={v.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-grass-50/60 px-2 py-0.5 text-grass-800"
+                    >
+                      <MapPin className="h-3 w-3" />
+                      {v.name}
+                      {v.city && <span className="text-ink-500">· {v.city}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -212,6 +253,7 @@ export function TournamentsClient({
         open={open}
         onClose={() => setOpen(false)}
         initial={initialForm}
+        venueOptions={venueOptions}
         copy={copy.dialog}
         onSaved={(id) => {
           setOpen(false);

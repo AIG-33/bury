@@ -393,9 +393,11 @@ export const TABLES: readonly TableDef[] = [
         options: ["hard", "clay", "grass", "carpet"],
       },
       { key: "starts_on", label: "Starts", type: "date", required: true },
+      { key: "start_time", label: "Start time", type: "text" },
       { key: "ends_on", label: "Ends", type: "date" },
       { key: "registration_deadline", label: "Reg deadline", type: "datetime", hideInList: true },
       { key: "max_participants", label: "Max", type: "number", hideInList: true },
+      { key: "entry_fee_pln", label: "Entry fee (PLN)", type: "number" },
       {
         key: "privacy",
         label: "Privacy",
@@ -437,6 +439,22 @@ export const TABLES: readonly TableDef[] = [
       { key: "seed", label: "Seed", type: "number" },
       { key: "withdrawn", label: "Withdrawn", type: "boolean" },
       { key: "registered_at", label: "Registered", type: "datetime", readonly: true },
+    ],
+  },
+  {
+    name: "tournament_venues",
+    label: "Tournament venues",
+    group: "play",
+    pk: "tournament_id",
+    defaultSort: { column: "created_at", ascending: false },
+    searchColumns: [],
+    filterColumns: [],
+    description:
+      "Junction: a tournament may use multiple venues. Composite PK (tournament_id, venue_id).",
+    columns: [
+      { key: "tournament_id", label: "Tournament", type: "uuid", required: true },
+      { key: "venue_id", label: "Venue", type: "uuid", required: true },
+      { key: "created_at", label: "Linked at", type: "datetime", readonly: true },
     ],
   },
   {

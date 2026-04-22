@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { Trophy, Calendar, Users } from "lucide-react";
+import { Trophy, Calendar, Clock, Coins, MapPin, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadPublicTournaments } from "./actions";
@@ -112,6 +112,32 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
                       {tn.participants_count}
                       {tn.max_participants ? ` / ${tn.max_participants}` : ""}
                     </div>
+                    {tn.start_time && (
+                      <div className="flex items-center gap-1 tabular-nums">
+                        <Clock className="h-3.5 w-3.5" />
+                        {tn.start_time.slice(0, 5)}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 tabular-nums">
+                      <Coins className="h-3.5 w-3.5" />
+                      {tn.entry_fee_pln == null || tn.entry_fee_pln === 0
+                        ? t("entry_fee_free")
+                        : t("entry_fee_pln", { n: tn.entry_fee_pln })}
+                    </div>
+                    {tn.venues.length > 0 && (
+                      <div className="col-span-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-ink-600">
+                        <MapPin className="h-3.5 w-3.5 text-leaf-700" />
+                        {tn.venues.map((v) => (
+                          <span
+                            key={v.id}
+                            className="rounded-full bg-leaf-50 px-2 py-0.5 text-leaf-700"
+                          >
+                            {v.name}
+                            {v.city && <span className="text-ink-500">· {v.city}</span>}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="col-span-2 mt-1 inline-flex items-center gap-2">
                       <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-[10px] font-medium uppercase text-leaf-700">
                         {t(`format.${tn.format}`)}

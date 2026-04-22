@@ -1545,7 +1545,9 @@
       "deleting": "Usuwanie…",
       "open": "Otwórz",
       "no_surface": "Nawierzchnia nieznana",
-      "participants_count": "{n}/{max, plural, =0 {∞} other {#}} graczy"
+      "participants_count": "{n}/{max, plural, =0 {∞} other {#}} graczy",
+      "entry_fee_free": "Bezpłatnie",
+      "entry_fee_pln": "{n} PLN"
     },
     "formats": {
       "single_elimination": "Single elimination",
@@ -1593,10 +1595,14 @@
         "description": "Opis",
         "format": "Format",
         "surface": "Nawierzchnia",
-        "starts_on": "Start",
+        "starts_on": "Data startu",
+        "start_time": "Godzina startu",
         "ends_on": "Koniec",
         "registration_deadline": "Termin rejestracji",
         "max_participants": "Maks. uczestników",
+        "entry_fee": "Wpisowe",
+        "entry_fee_currency": "PLN",
+        "venues": "Obiekty",
         "privacy": "Widoczność",
         "draw_method": "Domyślne rozstawienie",
         "prizes": "Nagrody",
@@ -1613,7 +1619,11 @@
         "privacy": "Publiczne turnieje pojawiają się w /me/tournaments → Otwarte rejestracje dla każdego.",
         "draw_method": "Jak ułożyć graczy w drabince. Możesz nadpisać przy losowaniu.",
         "match_rules": "Jak rozgrywany jest pojedynczy mecz. Domyślne — możesz zmienić per mecz.",
-        "coming_soon": "wkrótce"
+        "coming_soon": "wkrótce",
+        "start_time": "Czas lokalny, Europe/Warsaw. Zostaw puste, jeśli godzina jest jeszcze nieustalona.",
+        "entry_fee": "Ile gracz płaci za udział. Zostaw puste lub 0, aby oznaczyć turniej jako bezpłatny.",
+        "venues": "Możesz wybrać kilka obiektów — np. faza grupowa w jednym, finały w innym. Katalog prowadzi admin klubu.",
+        "venues_empty_catalogue": "W katalogu nie ma jeszcze obiektów. Poproś admina o dodanie przynajmniej jednego."
       },
       "save": "Zapisz",
       "saving": "Zapisuję…",
@@ -1669,6 +1679,8 @@
     },
     "detail": {
       "back": "Powrót do turniejów",
+      "entry_fee_free": "Bezpłatnie",
+      "entry_fee_pln": "{n} PLN",
       "help": {
         "why": "Ta strona to twoja sterownia: uczestnicy po lewej, drabinka (lub harmonogram round-robin) po prawej. Aktualizuj — gracze widzą zmiany od razu.",
         "what": {
@@ -2187,10 +2199,14 @@
       "description": "Sprawdź inną zakładkę — lub, jeśli jesteś trenerem, stwórz turniej w swoim panelu.",
       "cta": "Moje turnieje"
     },
+    "entry_fee_free": "Bezpłatnie",
+    "entry_fee_pln": "{n} PLN",
     "detail": {
       "starts": "Start",
       "participants": "Uczestnicy",
       "coach": "Organizator",
+      "entry_fee": "Wpisowe",
+      "venues": "Obiekty",
       "participants_title": "Uczestnicy",
       "participants_empty": "Jeszcze brak uczestników.",
       "matches_title": "Mecze",

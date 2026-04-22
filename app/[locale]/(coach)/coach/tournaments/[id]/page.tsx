@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { ArrowLeft, CalendarDays, Trophy, Eye } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Coins, MapPin, Trophy, Eye } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { loadRoundRobinStandings, loadTournamentDetail } from "../actions";
 import {
@@ -142,7 +142,7 @@ export default async function TournamentDetailPage({ params }: Props) {
           </span>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-ink-600">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
           <span className="inline-flex items-center gap-1">
             <CalendarDays className="h-3 w-3" />
             {tournament.starts_on}
@@ -150,11 +150,38 @@ export default async function TournamentDetailPage({ params }: Props) {
               ? ` → ${tournament.ends_on}`
               : ""}
           </span>
+          {tournament.start_time && (
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <Clock className="h-3 w-3" />
+              {tournament.start_time.slice(0, 5)}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <Coins className="h-3 w-3" />
+            {tournament.entry_fee_pln == null || tournament.entry_fee_pln === 0
+              ? t("detail.entry_fee_free")
+              : t("detail.entry_fee_pln", { n: tournament.entry_fee_pln })}
+          </span>
           <span className="inline-flex items-center gap-1">
             <Eye className="h-3 w-3" />
             {t(`privacy.${tournament.privacy}`)}
           </span>
         </div>
+
+        {tournament.venues.length > 0 && (
+          <ul className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-600">
+            {tournament.venues.map((v) => (
+              <li
+                key={v.id}
+                className="inline-flex items-center gap-1 rounded-full bg-grass-50/60 px-2 py-0.5 text-grass-800"
+              >
+                <MapPin className="h-3 w-3" />
+                {v.name}
+                {v.city && <span className="text-ink-500">· {v.city}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {tournament.description && (
           <p className="mt-3 text-sm text-ink-700">{tournament.description}</p>

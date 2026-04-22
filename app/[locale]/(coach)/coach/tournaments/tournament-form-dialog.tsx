@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, MapPin } from "lucide-react";
 import { HelpTooltip } from "@/components/help/help-tooltip";
 import {
   TournamentFormSchema,
@@ -21,7 +21,7 @@ import {
   type Surface,
   type MatchRuleKind,
 } from "@/lib/tournaments/schema";
-import { createTournament, updateTournament } from "./actions";
+import { createTournament, updateTournament, type VenueOption } from "./actions";
 
 export type TournamentDialogCopy = {
   create_title: string;
@@ -32,9 +32,13 @@ export type TournamentDialogCopy = {
     format: string;
     surface: string;
     starts_on: string;
+    start_time: string;
     ends_on: string;
     registration_deadline: string;
     max_participants: string;
+    entry_fee: string;
+    entry_fee_currency: string;
+    venues: string;
     privacy: string;
     draw_method: string;
     prizes: string;
@@ -52,6 +56,10 @@ export type TournamentDialogCopy = {
     draw_method: string;
     match_rules: string;
     coming_soon: string;
+    start_time: string;
+    entry_fee: string;
+    venues: string;
+    venues_empty_catalogue: string;
   };
   format_labels: Record<TournamentFormat, string>;
   surface_labels: Record<Surface, string>;
@@ -72,11 +80,19 @@ type Props = {
     id: string;
     form: TournamentForm;
   } | null;
+  venueOptions: VenueOption[];
   copy: TournamentDialogCopy;
   onSaved: (id: string) => void;
 };
 
-export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: Props) {
+export function TournamentFormDialog({
+  open,
+  onClose,
+  initial,
+  venueOptions,
+  copy,
+  onSaved,
+}: Props) {
   const [pending, startT] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -88,13 +104,16 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
       format: "single_elimination",
       surface: null,
       starts_on: new Date().toISOString().slice(0, 10),
+      start_time: null,
       ends_on: null,
       registration_deadline: null,
       max_participants: null,
+      entry_fee_pln: null,
       privacy: "club",
       draw_method: "rating",
       prizes_description: null,
       match_rules: DEFAULT_MATCH_RULES,
+      venue_ids: [],
     },
   });
 
@@ -277,6 +296,28 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-ink-700">
+                {copy.fields.start_time}
+              </label>
+              <Controller
+                control={form.control}
+                name="start_time"
+                render={({ field }) => (
+                  <input
+                    type="time"
+                    step={300}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === "" ? null : e.target.value)
+                    }
+                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                  />
+                )}
+              />
+              <p className="mt-1 text-[11px] text-ink-500">{copy.hints.start_time}</p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink-700">
                 {copy.fields.ends_on}
               </label>
               <input
@@ -309,6 +350,80 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
                 className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
               />
             </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink-700">
+                {copy.fields.entry_fee}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={100000}
+                  step={10}
+                  {...form.register("entry_fee_pln")}
+                  className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                />
+                <span className="text-xs text-ink-500">{copy.fields.entry_fee_currency}</span>
+              </div>
+              <p className="mt-1 text-[11px] text-ink-500">{copy.hints.entry_fee}</p>
+            </div>
+          </div>
+
+          {/* Venues — multi-select chips, sourced from the public venues catalogue. */}
+          <div className="rounded-xl border border-ink-100 bg-white p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-grass-600" />
+              <p className="text-xs font-semibold uppercase tracking-wider text-grass-800">
+                {copy.fields.venues}
+              </p>
+            </div>
+            <p className="mb-3 text-[11px] text-ink-600">{copy.hints.venues}</p>
+            <Controller
+              control={form.control}
+              name="venue_ids"
+              render={({ field }) => {
+                const selected = new Set<string>(field.value ?? []);
+                if (venueOptions.length === 0) {
+                  return (
+                    <p className="text-xs text-ink-500">
+                      {copy.hints.venues_empty_catalogue}
+                    </p>
+                  );
+                }
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    {venueOptions.map((v) => {
+                      const isOn = selected.has(v.id);
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => {
+                            const next = new Set(selected);
+                            if (isOn) next.delete(v.id);
+                            else next.add(v.id);
+                            field.onChange(Array.from(next));
+                          }}
+                          aria-pressed={isOn}
+                          className={
+                            "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition " +
+                            (isOn
+                              ? "border-grass-500 bg-grass-50 text-grass-800"
+                              : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50")
+                          }
+                        >
+                          <span>{v.name}</span>
+                          {v.city && (
+                            <span className="text-[10px] text-ink-500">· {v.city}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              }}
+            />
           </div>
 
           {/* Match rules */}

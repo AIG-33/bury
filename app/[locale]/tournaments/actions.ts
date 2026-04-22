@@ -9,6 +9,12 @@ import type {
   MatchRules,
 } from "@/lib/tournaments/schema";
 
+export type PublicTournamentVenue = {
+  id: string;
+  name: string;
+  city: string | null;
+};
+
 export type PublicTournamentRow = {
   id: string;
   name: string;
@@ -16,14 +22,17 @@ export type PublicTournamentRow = {
   format: TournamentFormat;
   surface: Surface | null;
   starts_on: string;
+  start_time: string | null;
   ends_on: string | null;
   registration_deadline: string | null;
   max_participants: number | null;
+  entry_fee_pln: number | null;
   participants_count: number;
   privacy: Privacy;
   status: TournamentStatus;
   coach_name: string | null;
   match_rules: MatchRules;
+  venues: PublicTournamentVenue[];
 };
 
 export async function loadPublicTournaments(opts: {
@@ -33,7 +42,9 @@ export async function loadPublicTournaments(opts: {
   let query = supabase
     .from("tournaments")
     .select(
-      "id, name, description, format, surface, starts_on, ends_on, registration_deadline, max_participants, privacy, status, match_rules, profiles!tournaments_owner_coach_id_fkey(display_name)",
+      "id, name, description, format, surface, starts_on, start_time, ends_on, " +
+        "registration_deadline, max_participants, entry_fee_pln, privacy, status, " +
+        "match_rules, profiles!tournaments_owner_coach_id_fkey(display_name)",
     )
     .eq("privacy", "public")
     .order("starts_on", { ascending: true });
@@ -54,9 +65,11 @@ export async function loadPublicTournaments(opts: {
       format: TournamentFormat;
       surface: Surface | null;
       starts_on: string;
+      start_time: string | null;
       ends_on: string | null;
       registration_deadline: string | null;
       max_participants: number | null;
+      entry_fee_pln: number | null;
       privacy: Privacy;
       status: TournamentStatus;
       match_rules: MatchRules;
@@ -67,15 +80,36 @@ export async function loadPublicTournaments(opts: {
   if (!rows || rows.length === 0) return [];
 
   const ids = rows.map((r) => r.id);
-  const { data: counts } = (await supabase
-    .from("tournament_participants")
-    .select("tournament_id, withdrawn")
-    .in("tournament_id", ids)) as {
-    data: Array<{ tournament_id: string; withdrawn: boolean }> | null;
-  };
+  const [{ data: counts }, { data: tvs }] = await Promise.all([
+    supabase
+      .from("tournament_participants")
+      .select("tournament_id, withdrawn")
+      .in("tournament_id", ids) as unknown as Promise<{
+      data: Array<{ tournament_id: string; withdrawn: boolean }> | null;
+    }>,
+    supabase
+      .from("tournament_venues")
+      .select("tournament_id, venues!inner(id, name, city)")
+      .in("tournament_id", ids) as unknown as Promise<{
+      data: Array<{
+        tournament_id: string;
+        venues:
+          | { id: string; name: string; city: string | null }
+          | Array<{ id: string; name: string; city: string | null }>;
+      }> | null;
+    }>,
+  ]);
   const cnt = new Map<string, number>();
   for (const p of counts ?? []) {
     if (!p.withdrawn) cnt.set(p.tournament_id, (cnt.get(p.tournament_id) ?? 0) + 1);
+  }
+  const venuesByT = new Map<string, PublicTournamentVenue[]>();
+  for (const v of tvs ?? []) {
+    const ref = Array.isArray(v.venues) ? v.venues[0] : v.venues;
+    if (!ref) continue;
+    const arr = venuesByT.get(v.tournament_id) ?? [];
+    arr.push({ id: ref.id, name: ref.name, city: ref.city });
+    venuesByT.set(v.tournament_id, arr);
   }
 
   return rows.map((r) => ({
@@ -85,14 +119,17 @@ export async function loadPublicTournaments(opts: {
     format: r.format,
     surface: r.surface,
     starts_on: r.starts_on,
+    start_time: r.start_time,
     ends_on: r.ends_on,
     registration_deadline: r.registration_deadline,
     max_participants: r.max_participants,
+    entry_fee_pln: r.entry_fee_pln,
     participants_count: cnt.get(r.id) ?? 0,
     privacy: r.privacy,
     status: r.status,
     coach_name: r.profiles?.display_name ?? null,
     match_rules: r.match_rules,
+    venues: venuesByT.get(r.id) ?? [],
   }));
 }
 
@@ -128,7 +165,9 @@ export async function loadPublicTournamentDetail(
   const { data: row } = (await supabase
     .from("tournaments")
     .select(
-      "id, name, description, format, surface, starts_on, ends_on, registration_deadline, max_participants, privacy, status, match_rules, profiles!tournaments_owner_coach_id_fkey(display_name)",
+      "id, name, description, format, surface, starts_on, start_time, ends_on, " +
+        "registration_deadline, max_participants, entry_fee_pln, privacy, status, " +
+        "match_rules, profiles!tournaments_owner_coach_id_fkey(display_name)",
     )
     .eq("id", tournamentId)
     .eq("privacy", "public")
@@ -141,9 +180,11 @@ export async function loadPublicTournamentDetail(
           format: TournamentFormat;
           surface: Surface | null;
           starts_on: string;
+          start_time: string | null;
           ends_on: string | null;
           registration_deadline: string | null;
           max_participants: number | null;
+          entry_fee_pln: number | null;
           privacy: Privacy;
           status: TournamentStatus;
           match_rules: MatchRules;
@@ -153,6 +194,21 @@ export async function loadPublicTournamentDetail(
   };
 
   if (!row) return null;
+
+  const { data: tvs } = (await supabase
+    .from("tournament_venues")
+    .select("venues!inner(id, name, city)")
+    .eq("tournament_id", tournamentId)) as {
+    data: Array<{
+      venues:
+        | { id: string; name: string; city: string | null }
+        | Array<{ id: string; name: string; city: string | null }>;
+    }> | null;
+  };
+  const venues: PublicTournamentVenue[] = (tvs ?? [])
+    .map((v) => (Array.isArray(v.venues) ? v.venues[0] : v.venues))
+    .filter((v): v is { id: string; name: string; city: string | null } => v != null)
+    .map((v) => ({ id: v.id, name: v.name, city: v.city }));
 
   const [{ data: parts }, { data: matches }] = await Promise.all([
     supabase
@@ -228,14 +284,17 @@ export async function loadPublicTournamentDetail(
       format: row.format,
       surface: row.surface,
       starts_on: row.starts_on,
+      start_time: row.start_time,
       ends_on: row.ends_on,
       registration_deadline: row.registration_deadline,
       max_participants: row.max_participants,
+      entry_fee_pln: row.entry_fee_pln,
       participants_count,
       privacy: row.privacy,
       status: row.status,
       coach_name: row.profiles?.display_name ?? null,
       match_rules: row.match_rules,
+      venues,
     },
     participants,
     matches: matchesOut,

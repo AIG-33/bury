@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
-import { loadCoachTournaments } from "./actions";
+import { loadCoachTournaments, loadVenueOptions } from "./actions";
 import { TournamentsClient, type TournamentsListCopy } from "./tournaments-client";
 import {
   TOURNAMENT_FORMATS,
@@ -25,7 +25,10 @@ export default async function CoachTournamentsPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsCoach");
 
-  const result = await loadCoachTournaments();
+  const [result, venueOptions] = await Promise.all([
+    loadCoachTournaments(),
+    loadVenueOptions(),
+  ]);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
       redirect(`/${locale}/login?next=/coach/tournaments`);
@@ -64,6 +67,8 @@ export default async function CoachTournamentsPage({ params }: Props) {
     deleting: t("list.deleting"),
     open: t("list.open"),
     no_surface: t("list.no_surface"),
+    entry_fee_free: t("list.entry_fee_free"),
+    entry_fee_pln: t("list.entry_fee_pln"),
     format_labels: formatLabels,
     status_labels: statusLabels,
     surface_labels: surfaceLabels,
@@ -76,9 +81,13 @@ export default async function CoachTournamentsPage({ params }: Props) {
         format: t("dialog.fields.format"),
         surface: t("dialog.fields.surface"),
         starts_on: t("dialog.fields.starts_on"),
+        start_time: t("dialog.fields.start_time"),
         ends_on: t("dialog.fields.ends_on"),
         registration_deadline: t("dialog.fields.registration_deadline"),
         max_participants: t("dialog.fields.max_participants"),
+        entry_fee: t("dialog.fields.entry_fee"),
+        entry_fee_currency: t("dialog.fields.entry_fee_currency"),
+        venues: t("dialog.fields.venues"),
         privacy: t("dialog.fields.privacy"),
         draw_method: t("dialog.fields.draw_method"),
         prizes: t("dialog.fields.prizes"),
@@ -96,6 +105,10 @@ export default async function CoachTournamentsPage({ params }: Props) {
         draw_method: t("dialog.hints.draw_method"),
         match_rules: t("dialog.hints.match_rules"),
         coming_soon: t("dialog.hints.coming_soon"),
+        start_time: t("dialog.hints.start_time"),
+        entry_fee: t("dialog.hints.entry_fee"),
+        venues: t("dialog.hints.venues"),
+        venues_empty_catalogue: t("dialog.hints.venues_empty_catalogue"),
       },
       format_labels: formatLabels,
       surface_labels: surfaceLabels,
@@ -124,7 +137,12 @@ export default async function CoachTournamentsPage({ params }: Props) {
         result={[t("help.result.1"), t("help.result.2")]}
       />
 
-      <TournamentsClient locale={locale} tournaments={result.tournaments} copy={copy} />
+      <TournamentsClient
+        locale={locale}
+        tournaments={result.tournaments}
+        venueOptions={venueOptions}
+        copy={copy}
+      />
     </div>
   );
 }

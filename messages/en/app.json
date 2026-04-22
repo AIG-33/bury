@@ -1545,7 +1545,9 @@
       "deleting": "Deleting…",
       "open": "Open",
       "no_surface": "Surface n/a",
-      "participants_count": "{n}/{max, plural, =0 {∞} other {#}} players"
+      "participants_count": "{n}/{max, plural, =0 {∞} other {#}} players",
+      "entry_fee_free": "Free",
+      "entry_fee_pln": "{n} PLN"
     },
     "formats": {
       "single_elimination": "Single elimination",
@@ -1593,10 +1595,14 @@
         "description": "Description",
         "format": "Format",
         "surface": "Surface",
-        "starts_on": "Starts on",
+        "starts_on": "Start date",
+        "start_time": "Start time",
         "ends_on": "Ends on",
         "registration_deadline": "Registration deadline",
         "max_participants": "Max participants",
+        "entry_fee": "Entry fee",
+        "entry_fee_currency": "PLN",
+        "venues": "Venues",
         "privacy": "Visibility",
         "draw_method": "Default seeding",
         "prizes": "Prizes",
@@ -1613,7 +1619,11 @@
         "privacy": "Public tournaments appear in /me/tournaments → Open registrations for any player.",
         "draw_method": "How to assign positions in the bracket. You can override per draw.",
         "match_rules": "Defines how a single match is played. Used as a default; you can override per match later.",
-        "coming_soon": "coming soon"
+        "coming_soon": "coming soon",
+        "start_time": "Local time, Europe/Warsaw. Leave empty if the start time is still TBD.",
+        "entry_fee": "How much each player pays to enter. Leave empty or 0 to mark the tournament as free.",
+        "venues": "Pick one or more venues — e.g. group stage at venue A, finals at venue B. The catalogue is curated by the club admin.",
+        "venues_empty_catalogue": "No venues in the catalogue yet. Ask your admin to add at least one."
       },
       "save": "Save",
       "saving": "Saving…",
@@ -1669,6 +1679,8 @@
     },
     "detail": {
       "back": "Back to tournaments",
+      "entry_fee_free": "Free",
+      "entry_fee_pln": "{n} PLN",
       "help": {
         "why": "This page is your control room: participants on the left, bracket (or schedule for round-robin) on the right. Update both, players see changes instantly.",
         "what": {
@@ -2190,10 +2202,14 @@
       "description": "Try a different tab — or, if you're a coach, create one in your dashboard.",
       "cta": "Open my tournaments"
     },
+    "entry_fee_free": "Free",
+    "entry_fee_pln": "{n} PLN",
     "detail": {
       "starts": "Starts",
       "participants": "Participants",
       "coach": "Organiser",
+      "entry_fee": "Entry fee",
+      "venues": "Venues",
       "participants_title": "Participants",
       "participants_empty": "No participants yet.",
       "matches_title": "Matches",

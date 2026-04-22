@@ -27,6 +27,12 @@ import { recalcMatchElo } from "@/lib/rating/recalc";
 // Types returned to the UI
 // =============================================================================
 
+export type TournamentVenueRef = {
+  id: string;
+  name: string;
+  city: string | null;
+};
+
 export type TournamentRow = {
   id: string;
   name: string;
@@ -34,16 +40,25 @@ export type TournamentRow = {
   format: TournamentFormat;
   surface: Surface | null;
   starts_on: string;
+  start_time: string | null;
   ends_on: string | null;
   registration_deadline: string | null;
   max_participants: number | null;
+  entry_fee_pln: number | null;
   privacy: Privacy;
   status: TournamentStatus;
   draw_method: SeedingMethod | null;
   prizes_description: string | null;
   match_rules: MatchRules;
   participants_count: number;
+  venues: TournamentVenueRef[];
   created_at: string;
+};
+
+export type VenueOption = {
+  id: string;
+  name: string;
+  city: string | null;
 };
 
 export type ParticipantRow = {
@@ -122,27 +137,45 @@ export async function loadCoachTournaments(): Promise<
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
-      "id, name, description, format, surface, starts_on, ends_on, registration_deadline, " +
-        "max_participants, privacy, status, draw_method, prizes_description, match_rules, created_at",
+      "id, name, description, format, surface, starts_on, start_time, ends_on, " +
+        "registration_deadline, max_participants, entry_fee_pln, privacy, status, " +
+        "draw_method, prizes_description, match_rules, created_at",
     )
     .eq("owner_coach_id", userId)
     .order("created_at", { ascending: false })) as {
-    data: Array<Omit<TournamentRow, "participants_count">> | null;
+    data: Array<Omit<TournamentRow, "participants_count" | "venues">> | null;
   };
 
   const tournaments = rows ?? [];
   const ids = tournaments.map((t) => t.id);
   const counts = new Map<string, number>();
+  const venuesByTournament = new Map<string, TournamentVenueRef[]>();
   if (ids.length > 0) {
-    const { data: parts } = (await supabase
-      .from("tournament_participants")
-      .select("tournament_id")
-      .in("tournament_id", ids)
-      .eq("withdrawn", false)) as {
-      data: Array<{ tournament_id: string }> | null;
-    };
-    for (const p of parts ?? []) {
+    const [partsRes, venuesRes] = await Promise.all([
+      supabase
+        .from("tournament_participants")
+        .select("tournament_id")
+        .in("tournament_id", ids)
+        .eq("withdrawn", false),
+      supabase
+        .from("tournament_venues")
+        .select("tournament_id, venues!inner(id, name, city)")
+        .in("tournament_id", ids),
+    ]);
+    for (const p of (partsRes.data ?? []) as Array<{ tournament_id: string }>) {
       counts.set(p.tournament_id, (counts.get(p.tournament_id) ?? 0) + 1);
+    }
+    for (const v of (venuesRes.data ?? []) as Array<{
+      tournament_id: string;
+      venues:
+        | { id: string; name: string; city: string | null }
+        | Array<{ id: string; name: string; city: string | null }>;
+    }>) {
+      const ref = Array.isArray(v.venues) ? v.venues[0] : v.venues;
+      if (!ref) continue;
+      const arr = venuesByTournament.get(v.tournament_id) ?? [];
+      arr.push({ id: ref.id, name: ref.name, city: ref.city });
+      venuesByTournament.set(v.tournament_id, arr);
     }
   }
 
@@ -151,8 +184,21 @@ export async function loadCoachTournaments(): Promise<
     tournaments: tournaments.map((t) => ({
       ...t,
       participants_count: counts.get(t.id) ?? 0,
+      venues: venuesByTournament.get(t.id) ?? [],
     })),
   };
+}
+
+// ─── Lightweight venues catalogue for the create/edit form ──────────────────
+export async function loadVenueOptions(): Promise<VenueOption[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = (await supabase
+    .from("venues")
+    .select("id, name, city")
+    .order("name", { ascending: true })) as {
+    data: Array<VenueOption> | null;
+  };
+  return data ?? [];
 }
 
 export async function loadTournamentDetail(tournamentId: string): Promise<
@@ -172,18 +218,35 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
   const { data: t } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_coach_id, name, description, format, surface, starts_on, ends_on, " +
-        "registration_deadline, max_participants, privacy, status, draw_method, " +
-        "prizes_description, match_rules, created_at",
+      "id, owner_coach_id, name, description, format, surface, starts_on, start_time, " +
+        "ends_on, registration_deadline, max_participants, entry_fee_pln, privacy, status, " +
+        "draw_method, prizes_description, match_rules, created_at",
     )
     .eq("id", tournamentId)
     .single()) as {
     data:
-      | (Omit<TournamentRow, "participants_count"> & { owner_coach_id: string })
+      | (Omit<TournamentRow, "participants_count" | "venues"> & {
+          owner_coach_id: string;
+        })
       | null;
   };
   if (!t) return { ok: false, error: "not_found" };
   if (t.owner_coach_id !== userId) return { ok: false, error: "not_owner" };
+
+  const { data: tvenues } = (await supabase
+    .from("tournament_venues")
+    .select("venues!inner(id, name, city)")
+    .eq("tournament_id", tournamentId)) as {
+    data: Array<{
+      venues:
+        | { id: string; name: string; city: string | null }
+        | Array<{ id: string; name: string; city: string | null }>;
+    }> | null;
+  };
+  const venues: TournamentVenueRef[] = (tvenues ?? [])
+    .map((v) => (Array.isArray(v.venues) ? v.venues[0] : v.venues))
+    .filter((v): v is { id: string; name: string; city: string | null } => v != null)
+    .map((v) => ({ id: v.id, name: v.name, city: v.city }));
 
   const { data: parts } = (await supabase
     .from("tournament_participants")
@@ -261,15 +324,18 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       format: t.format,
       surface: t.surface,
       starts_on: t.starts_on,
+      start_time: t.start_time,
       ends_on: t.ends_on,
       registration_deadline: t.registration_deadline,
       max_participants: t.max_participants,
+      entry_fee_pln: t.entry_fee_pln,
       privacy: t.privacy,
       status: t.status,
       draw_method: t.draw_method,
       prizes_description: t.prizes_description,
       match_rules: t.match_rules,
       participants_count: participants.filter((p) => !p.withdrawn).length,
+      venues,
       created_at: t.created_at,
     },
     participants,
@@ -281,6 +347,35 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
 // =============================================================================
 // Tournament create / update / status / delete
 // =============================================================================
+
+async function syncTournamentVenues(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tournamentId: string,
+  venueIds: string[],
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Idempotent replace: drop everything, then re-insert the new set.
+  // The table is small (a tournament has 1–5 venues in practice) so
+  // delete+insert is cheaper than diffing.
+  const { error: delErr } = await supabase
+    .from("tournament_venues")
+    .delete()
+    .eq("tournament_id", tournamentId);
+  if (delErr) return { ok: false, error: delErr.message };
+
+  const unique = Array.from(new Set(venueIds));
+  if (unique.length === 0) return { ok: true };
+
+  const rows = unique.map((venue_id) => ({
+    tournament_id: tournamentId,
+    venue_id,
+  }));
+  const { error: insErr } = await supabase
+    .from("tournament_venues")
+    .insert(rows as never);
+  if (insErr) return { ok: false, error: insErr.message };
+  return { ok: true };
+}
 
 export async function createTournament(input: unknown): Promise<SaveResult> {
   const auth = await requireCoach();
@@ -302,11 +397,13 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
       format: v.format,
       surface: v.surface ?? null,
       starts_on: v.starts_on,
+      start_time: v.start_time,
       ends_on: v.ends_on,
       registration_deadline: v.registration_deadline
         ? `${v.registration_deadline}T23:59:59Z`
         : null,
       max_participants: v.max_participants,
+      entry_fee_pln: v.entry_fee_pln,
       privacy: v.privacy,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
@@ -318,6 +415,9 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
     .single()) as { data: { id: string } | null; error: { message: string } | null };
 
   if (error || !data) return { ok: false, error: error?.message ?? "insert_failed" };
+
+  const venueSync = await syncTournamentVenues(supabase, data.id, v.venue_ids);
+  if (!venueSync.ok) return { ok: false, error: venueSync.error };
 
   revalidatePath("/coach/tournaments");
   return { ok: true, id: data.id };
@@ -345,11 +445,13 @@ export async function updateTournament(
       format: v.format,
       surface: v.surface ?? null,
       starts_on: v.starts_on,
+      start_time: v.start_time,
       ends_on: v.ends_on,
       registration_deadline: v.registration_deadline
         ? `${v.registration_deadline}T23:59:59Z`
         : null,
       max_participants: v.max_participants,
+      entry_fee_pln: v.entry_fee_pln,
       privacy: v.privacy,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
@@ -359,6 +461,10 @@ export async function updateTournament(
     .eq("owner_coach_id", userId);
 
   if (error) return { ok: false, error: error.message };
+
+  const venueSync = await syncTournamentVenues(supabase, id, v.venue_ids);
+  if (!venueSync.ok) return { ok: false, error: venueSync.error };
+
   revalidatePath(`/coach/tournaments/${id}`);
   revalidatePath("/coach/tournaments");
   return { ok: true, id };

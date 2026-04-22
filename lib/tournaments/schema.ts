@@ -140,19 +140,37 @@ const optionalIntInRange = (min: number, max: number) =>
     z.coerce.number().int().min(min).max(max).nullable(),
   );
 
+// HH:MM (24h). Stored in `tournaments.start_time` as `time without time zone`,
+// interpreted in Europe/Warsaw per AGENTS.md §1. Optional.
+const optionalTimeOfDay = z.preprocess(
+  (v) => {
+    if (v == null) return null;
+    if (typeof v === "string" && v.trim().length === 0) return null;
+    return v;
+  },
+  z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "expected HH:MM")
+    .nullable(),
+);
+
 export const TournamentFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: optionalText,
   format: z.enum(TOURNAMENT_FORMATS).default("single_elimination"),
   surface: z.enum(SURFACES).optional().nullable(),
   starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD"),
+  start_time: optionalTimeOfDay,
   ends_on: optionalDateString,
   registration_deadline: optionalDateString,
   max_participants: optionalIntInRange(2, 128),
+  entry_fee_pln: optionalIntInRange(0, 100000),
   privacy: z.enum(PRIVACY_OPTIONS).default("club"),
   draw_method: z.enum(SEEDING_METHODS).default("rating"),
   prizes_description: optionalText,
   match_rules: MatchRulesSchema.default(DEFAULT_MATCH_RULES),
+  // Empty array = no venues bound (e.g. "TBD"). Order is not significant.
+  venue_ids: z.array(z.string().uuid()).max(20).default([]),
 });
 
 export type TournamentForm = z.infer<typeof TournamentFormSchema>;

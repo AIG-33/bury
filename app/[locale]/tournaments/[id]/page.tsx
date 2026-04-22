@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Coins, MapPin, Users, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { loadPublicTournamentDetail } from "../actions";
 
@@ -81,9 +81,17 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.starts")}
           </dt>
-          <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Calendar className="h-4 w-4 text-leaf-700" />
-            {fmtDate.format(new Date(tournament.starts_on))}
+          <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
+            <span className="inline-flex items-center gap-1">
+              <Calendar className="h-4 w-4 text-leaf-700" />
+              {fmtDate.format(new Date(tournament.starts_on))}
+            </span>
+            {tournament.start_time && (
+              <span className="inline-flex items-center gap-1 text-sm text-ink-700 tabular-nums">
+                <Clock className="h-3.5 w-3.5 text-leaf-700" />
+                {tournament.start_time.slice(0, 5)}
+              </span>
+            )}
           </dd>
         </div>
         <div className="rounded-lg border border-ink-100 bg-white p-3">
@@ -98,6 +106,17 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         </div>
         <div className="rounded-lg border border-ink-100 bg-white p-3">
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
+            {t("detail.entry_fee")}
+          </dt>
+          <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900 tabular-nums">
+            <Coins className="h-4 w-4 text-leaf-700" />
+            {tournament.entry_fee_pln == null || tournament.entry_fee_pln === 0
+              ? t("entry_fee_free")
+              : t("entry_fee_pln", { n: tournament.entry_fee_pln })}
+          </dd>
+        </div>
+        <div className="rounded-lg border border-ink-100 bg-white p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.coach")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
@@ -105,6 +124,25 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             {tournament.coach_name ?? "—"}
           </dd>
         </div>
+        {tournament.venues.length > 0 && (
+          <div className="rounded-lg border border-ink-100 bg-white p-3 sm:col-span-2">
+            <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
+              {t("detail.venues")}
+            </dt>
+            <dd className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-900">
+              {tournament.venues.map((v) => (
+                <span
+                  key={v.id}
+                  className="inline-flex items-center gap-1 rounded-full bg-leaf-50 px-2 py-0.5 text-xs text-leaf-700"
+                >
+                  <MapPin className="h-3 w-3" />
+                  {v.name}
+                  {v.city && <span className="text-ink-500">· {v.city}</span>}
+                </span>
+              ))}
+            </dd>
+          </div>
+        )}
       </dl>
 
       {/* Participants */}
