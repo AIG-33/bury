@@ -72,12 +72,15 @@ export async function loadCoachJourney(): Promise<
     profile.coach_lat !== null &&
     profile.coach_lng !== null;
 
-  const [slotsRes, invitationsRes, tournamentsRes] = await Promise.all([
+  const [slotsRes, acceptedInvitesRes, bookingsRes, tournamentsRes] = await Promise.all([
     supabase.from("slots").select("id", { count: "exact", head: true }).eq("owner_id", userId),
     supabase
       .from("invitations")
-      .select("id", { count: "exact", head: true })
-      .eq("coach_id", userId),
+      .select("accepted_by")
+      .eq("coach_id", userId)
+      .eq("status", "accepted")
+      .not("accepted_by", "is", null),
+    supabase.from("bookings").select("player_id").eq("coach_id", userId),
     supabase
       .from("tournaments")
       .select("id", { count: "exact", head: true })
@@ -85,8 +88,20 @@ export async function loadCoachJourney(): Promise<
   ]);
 
   const slotsCount = slotsRes.count ?? 0;
-  const invitationsCount = invitationsRes.count ?? 0;
   const tournamentsCount = tournamentsRes.count ?? 0;
+
+  // "Players" = real user accounts in the coach's orbit:
+  //   - accepted an invitation (invitations.accepted_by, status='accepted')
+  //   - OR booked at least one of the coach's slots (bookings.player_id)
+  // Distinct profile ids across both sources.
+  const playerIds = new Set<string>();
+  for (const r of (acceptedInvitesRes.data ?? []) as Array<{ accepted_by: string | null }>) {
+    if (r.accepted_by) playerIds.add(r.accepted_by);
+  }
+  for (const r of (bookingsRes.data ?? []) as Array<{ player_id: string }>) {
+    playerIds.add(r.player_id);
+  }
+  const playersCount = playerIds.size;
 
   const baseSteps: Array<Omit<JourneyStep, "state">> = [
     {
@@ -102,9 +117,9 @@ export async function loadCoachJourney(): Promise<
     },
     {
       id: "player",
-      done: invitationsCount > 0,
+      done: playersCount > 0,
       href: "/coach/players",
-      count: invitationsCount,
+      count: playersCount,
     },
     {
       id: "tournament",

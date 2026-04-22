@@ -731,18 +731,33 @@
   },
   "coachPlayers": {
     "title": "My players",
-    "subtitle": "Manage your club: invite, import, track invitation status.",
+    "subtitle": "Club players: those who accepted your invitation or booked a session at least once.",
     "help": {
-      "why": "Your players list. Invite new ones and manage the club from here.",
+      "why": "Real user accounts linked to you as a coach: people who accepted your invitation and people who booked at least one of your slots. This is your client base — track activity here and invite more.",
       "what": {
-        "1": "Send an email invitation (one player at a time).",
-        "2": "Import a list from CSV (coming soon).",
-        "3": "Check who already accepted and who hasn't."
+        "1": "See your club players: name, source (invitation / booking), session count, last activity date.",
+        "2": "Send an email invitation — the player gets a one-time link valid for 14 days.",
+        "3": "Check the status of recent invitations (pending / accepted / expired)."
       },
       "result": {
-        "1": "An invitation creates a one-time link valid for 14 days and sends an email.",
-        "2": "On accept, the player goes through the quiz and joins your club."
+        "1": "A player joins this list after accepting an invitation OR booking any of your slots.",
+        "2": "The list refreshes automatically — no separate action needed."
       }
+    },
+    "club": {
+      "title": "Club players",
+      "subtitle": "Accounts that accepted an invitation or booked your slots.",
+      "count": "{n, plural, =0 {0 players} one {# player} other {# players}}",
+      "empty_title": "No players yet",
+      "empty_description": "Players show up here once they accept an invitation or book one of your slots.",
+      "col_player": "Player",
+      "col_source": "Source",
+      "col_sessions": "Bookings",
+      "col_last": "Activity",
+      "source_invited": "Invitation",
+      "source_booked": "Booking",
+      "sessions_value": "{active}/{total}",
+      "unknown_name": "No name"
     },
     "invite": {
       "title": "Invite a player",
@@ -1897,6 +1912,18 @@
     "title": "Public coach profile",
     "subtitle": "Tune what players see when they open your profile or the map.",
     "rating_summary": "Rating: {avg} ({count} reviews)",
+    "help": {
+      "why": "Your public profile is the first thing a player sees in the coach catalogue and on the map. Without a bio, hourly rate and a map pin, your card looks empty and players go to other coaches. This screen collects everything a player sees before booking.",
+      "what": {
+        "1": "Write a bio — 2–3 sentences: experience, style, audience (adults/kids, beginners/tournament players).",
+        "2": "Set your hourly rate in PLN (leave empty if it varies) and toggle whether you appear on the public map.",
+        "3": "Drop a pin on the map by searching an address or clicking — this is the point players use to find nearby coaches."
+      },
+      "result": {
+        "1": "Your card appears in the public catalogue `/coaches` and on the map `/coaches/map`.",
+        "2": "Players see your bio, rate and distance to your pin — booking and message rates go up."
+      }
+    },
     "section": {
       "public_card": "Public card",
       "map": "Location & map"

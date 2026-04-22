@@ -731,18 +731,33 @@
   },
   "coachPlayers": {
     "title": "Moi gracze",
-    "subtitle": "Zarządzaj klubem: zapraszaj, importuj, śledź statusy zaproszeń.",
+    "subtitle": "Gracze klubu: ci, którzy zaakceptowali zaproszenie lub przynajmniej raz zapisali się na trening.",
     "help": {
-      "why": "Lista Twoich graczy. Stąd zapraszasz nowych i zarządzasz klubem.",
+      "why": "Prawdziwe konta użytkowników powiązane z Tobą jako trenerem: ludzie, którzy zaakceptowali zaproszenie i ci, którzy zarezerwowali co najmniej jeden Twój slot. To Twoja baza klientów — śledź aktywność i zapraszaj kolejnych.",
       "what": {
-        "1": "Wysłać zaproszenie na e-mail (jeden gracz na raz).",
-        "2": "Zaimportować listę z CSV (wkrótce).",
-        "3": "Sprawdzić, kto już akceptował, a kto jeszcze nie."
+        "1": "Zobacz graczy klubu: imię, źródło (zaproszenie / rezerwacja), liczbę rezerwacji, datę ostatniej aktywności.",
+        "2": "Wyślij zaproszenie e-mailem — gracz dostaje jednorazowy link ważny 14 dni.",
+        "3": "Sprawdź status ostatnich zaproszeń (oczekuje / zaakceptowane / wygasłe)."
       },
       "result": {
-        "1": "Zaproszenie tworzy jednorazowy link ważny 14 dni i wysyła e-mail.",
-        "2": "Po akceptacji gracz trafia na quiz, potem do Twojego klubu."
+        "1": "Gracz trafia na listę po akceptacji zaproszenia LUB rezerwacji któregokolwiek Twojego slotu.",
+        "2": "Lista odświeża się automatycznie — nie trzeba nic robić ręcznie."
       }
+    },
+    "club": {
+      "title": "Gracze klubu",
+      "subtitle": "Konta, które zaakceptowały zaproszenie lub rezerwowały Twoje sloty.",
+      "count": "{n, plural, =0 {0 graczy} one {# gracz} few {# graczy} many {# graczy} other {# graczy}}",
+      "empty_title": "Brak graczy",
+      "empty_description": "Gracze pojawią się tu, gdy zaakceptują zaproszenie lub zarezerwują któryś z Twoich slotów.",
+      "col_player": "Gracz",
+      "col_source": "Źródło",
+      "col_sessions": "Rezerwacje",
+      "col_last": "Aktywność",
+      "source_invited": "Zaproszenie",
+      "source_booked": "Rezerwacja",
+      "sessions_value": "{active}/{total}",
+      "unknown_name": "Bez imienia"
     },
     "invite": {
       "title": "Zaproś gracza",
@@ -1897,6 +1912,18 @@
     "title": "Publiczny profil trenera",
     "subtitle": "Dostosuj to, co widzą gracze na Twoim profilu i mapie.",
     "rating_summary": "Ocena: {avg} ({count} opinii)",
+    "help": {
+      "why": "Publiczny profil to pierwsza rzecz, którą gracz widzi w katalogu trenerów i na mapie. Bez bio, stawki godzinowej i pinezki na mapie karta wygląda pusto, a gracze idą do innych trenerów. Ten ekran zbiera wszystko, co gracz widzi przed rezerwacją.",
+      "what": {
+        "1": "Napisz bio — 2–3 zdania: doświadczenie, styl, dla kogo trenujesz (dorośli/dzieci, początkujący/turniejowi).",
+        "2": "Ustaw stawkę godzinową w PLN (zostaw puste, jeśli płynna) i przełącznik pokazywania na publicznej mapie.",
+        "3": "Postaw pinezkę na mapie przez wyszukiwarkę adresu lub kliknięciem — to punkt, po którym gracze szukają najbliższych trenerów."
+      },
+      "result": {
+        "1": "Karta pojawia się w publicznym katalogu `/coaches` i na mapie `/coaches/map`.",
+        "2": "Gracze widzą bio, stawkę i odległość do pinezki — wzrasta liczba rezerwacji i wiadomości."
+      }
+    },
     "section": {
       "public_card": "Karta publiczna",
       "map": "Lokalizacja i mapa"

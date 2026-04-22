@@ -152,7 +152,12 @@ function Item({
               step.state === "future" && "text-ink-700",
             )}
           >
-            {step.title}
+            <Link
+              href={step.href}
+              className="hover:underline focus-visible:underline focus-visible:outline-none"
+            >
+              {step.title}
+            </Link>
           </h3>
           {typeof step.count === "number" && step.count >= 0 && step.countLabel && (
             <span
