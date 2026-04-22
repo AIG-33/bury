@@ -40,32 +40,17 @@ export default async function CoachDashboardPage({ params }: Props) {
 
   const checklistSteps: SetupChecklistStep[] = (journey?.steps ?? []).map((s) => {
     const id = s.id as JourneyStepId;
-    const ctaKey: "do_now" | "open" | "review" | "browse" =
-      s.state === "info"
-        ? "browse"
-        : s.state === "current"
-          ? "do_now"
-          : s.state === "future"
-            ? "open"
-            : "review";
+    const ctaKey: "do_now" | "open" | "review" =
+      s.state === "current" ? "do_now" : s.state === "future" ? "open" : "review";
     return {
       id: s.id,
       title: tJourney(`steps.${id}.title`),
-      description:
-        s.state === "info"
-          ? tJourney(`steps.${id}.description_passive`)
-          : tJourney(`steps.${id}.description`),
+      description: tJourney(`steps.${id}.description`),
       href: `/${locale}${s.href}`,
       state: s.state,
       count: s.count,
-      // For passive/info rows we always render the count badge (even 0),
-      // because "0 venues" is itself useful info ("ask the admin").
       countLabel:
-        s.state === "info"
-          ? tJourney(`steps.${id}.unit`)
-          : typeof s.count === "number" && s.count > 0
-            ? tJourney(`steps.${id}.unit`)
-            : undefined,
+        typeof s.count === "number" && s.count > 0 ? tJourney(`steps.${id}.unit`) : undefined,
       ctaLabel: tJourney(`cta.${ctaKey}`),
     };
   });

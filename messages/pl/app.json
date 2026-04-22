@@ -380,6 +380,7 @@
   "nav": {
     "leaderboard": "Ranking",
     "coaches": "Trenerzy",
+    "venues": "Obiekty",
     "help": "Pomoc",
     "login": "Zaloguj się",
     "logout": "Wyloguj",
@@ -676,18 +677,6 @@
         "description": "Bez bio, stawki i pinezki na mapie gracze nie znajdą Cię w katalogu. To pierwsze, co widzą.",
         "description_passive": "",
         "unit": ""
-      },
-      "venue": {
-        "title": "Obiekty w katalogu",
-        "description": "Obiekt to klub lub korty, gdzie prowadzisz treningi.",
-        "description_passive": "Katalog obiektów prowadzi administrator. Jeśli Twojego nie ma — napisz do admina, doda go dla wszystkich trenerów.",
-        "unit": "obiektów"
-      },
-      "court": {
-        "title": "Korty w katalogu",
-        "description": "Każdy kort ma swój numer i nawierzchnię.",
-        "description_passive": "Listę kortów prowadzi administrator. Tworząc slot, po prostu wybierasz kort z udostępnionego katalogu.",
-        "unit": "kortów"
       },
       "slot": {
         "title": "Utwórz pierwszy slot",
@@ -1126,6 +1115,30 @@
         "too_large": "Plik za duży (max 2 MB).",
         "bad_mime": "Niewspierany format. Użyj JPG, PNG, WebP lub GIF.",
         "requirements": "JPG / PNG / WebP / GIF, do 2 MB."
+      }
+    }
+  },
+  "venuesCatalog": {
+    "title": "Obiekty",
+    "subtitle": "{venues} obiektów · {courts} kortów we wspólnym katalogu klubu.",
+    "indoor": "Kryty",
+    "outdoor": "Otwarty",
+    "open_in_maps": "Pokaż na mapie",
+    "courts_title": "{n, plural, =0 {Brak kortów} one {# kort} few {# korty} many {# kortów} other {# kortów}}",
+    "courts_empty": "Do tego obiektu nie dodano jeszcze kortów.",
+    "empty_title": "Brak obiektów",
+    "empty_description": "Katalog obiektów prowadzi administrator klubu. Gdy obiekty zostaną dodane do katalogu, pojawią się tutaj.",
+    "footnote_surfaces": "Nawierzchnie: {surfaces}.",
+    "help": {
+      "why": "Katalog obiektów to jeden wspólny rejestr klubów i kortów dostępnych trenerom i graczom. Prowadzi go administrator. Trener wybiera dowolny obiekt i dowolny kort przy tworzeniu slotu; gracz widzi adres i udogodnienia przed rezerwacją.",
+      "what": {
+        "1": "Przeglądaj obiekty wg dzielnicy, adresu, kryte/otwarte oraz udogodnień.",
+        "2": "Sprawdź listę kortów każdego obiektu — numer, nazwę, nawierzchnię i status.",
+        "3": "Jeśli Twojego obiektu nie ma — napisz do admina, doda go dla wszystkich trenerów."
+      },
+      "result": {
+        "1": "Trener od razu wybierze właściwy kort przy tworzeniu slotu.",
+        "2": "Gracz wie, dokąd jedzie, jeszcze przed potwierdzeniem rezerwacji."
       }
     }
   },

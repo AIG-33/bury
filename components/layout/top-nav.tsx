@@ -38,6 +38,7 @@ export async function TopNav() {
         { href: "/me/tournaments", label: t("tournaments") },
         { href: "/me/find", label: t("find") },
         { href: "/me/coaches", label: t("coaches") },
+        { href: "/venues", label: t("venues") },
         { href: "/me/profile", label: t("profile") },
         { href: "/help", label: t("help") },
         ...(isCoach
@@ -50,6 +51,7 @@ export async function TopNav() {
     : [
         { href: "/tournaments", label: t("tournaments") },
         { href: "/coaches", label: t("coaches") },
+        { href: "/venues", label: t("venues") },
         { href: "/help", label: t("help") },
       ];
 
@@ -95,6 +97,7 @@ export async function TopNav() {
               <NavLink href="/me/tournaments">{t("tournaments")}</NavLink>
               <NavLink href="/me/find">{t("find")}</NavLink>
               <NavLink href="/me/coaches">{t("coaches")}</NavLink>
+              <NavLink href="/venues">{t("venues")}</NavLink>
               <NavLink href="/me/profile">{t("profile")}</NavLink>
               {isCoach && (
                 <NavLink href="/coach/dashboard" highlight>
@@ -111,6 +114,7 @@ export async function TopNav() {
             <>
               <NavLink href="/tournaments">{t("tournaments")}</NavLink>
               <NavLink href="/coaches">{t("coaches")}</NavLink>
+              <NavLink href="/venues">{t("venues")}</NavLink>
               <NavLink href="/help">{t("help")}</NavLink>
             </>
           )}

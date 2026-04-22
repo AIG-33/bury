@@ -380,6 +380,7 @@
   "nav": {
     "leaderboard": "Leaderboard",
     "coaches": "Coaches",
+    "venues": "Venues",
     "help": "Help",
     "login": "Sign in",
     "logout": "Sign out",
@@ -676,18 +677,6 @@
         "description": "Without a bio, hourly rate and map pin, players won't find you in the directory. This is the first thing they see.",
         "description_passive": "",
         "unit": ""
-      },
-      "venue": {
-        "title": "Venues in the catalog",
-        "description": "A venue is the club or facility where you coach.",
-        "description_passive": "Venues are curated by the admin. If yours isn't listed, ping the admin — they'll add it for every coach to use.",
-        "unit": "venues"
-      },
-      "court": {
-        "title": "Courts in the catalog",
-        "description": "Each court has its own number and surface.",
-        "description_passive": "Courts are curated by the admin. When you schedule a slot, you just pick the court you want from the shared directory.",
-        "unit": "courts"
       },
       "slot": {
         "title": "Create your first slot",
@@ -1126,6 +1115,30 @@
         "too_large": "File too large (max 2 MB).",
         "bad_mime": "Unsupported format. Use JPG, PNG, WebP or GIF.",
         "requirements": "JPG / PNG / WebP / GIF, up to 2 MB."
+      }
+    }
+  },
+  "venuesCatalog": {
+    "title": "Venues",
+    "subtitle": "{venues} venues · {courts} courts in the shared club directory.",
+    "indoor": "Indoor",
+    "outdoor": "Outdoor",
+    "open_in_maps": "Open in Maps",
+    "courts_title": "{n, plural, =0 {No courts} one {# court} other {# courts}}",
+    "courts_empty": "No courts have been added to this venue yet.",
+    "empty_title": "No venues yet",
+    "empty_description": "The venue catalogue is curated by the club admin. As soon as venues are added, they will show up here.",
+    "footnote_surfaces": "Surfaces: {surfaces}.",
+    "help": {
+      "why": "The venue catalogue is the single shared directory of clubs and courts available to coaches and players. The admin maintains it. A coach picks any venue and any court when scheduling a slot; a player sees the address and amenities before booking.",
+      "what": {
+        "1": "Browse venues by district, address, indoor/outdoor and amenities.",
+        "2": "Open each venue's court list to see number, name, surface and status.",
+        "3": "If your venue isn't listed, ask the admin — they'll add it for every coach."
+      },
+      "result": {
+        "1": "Coaches pick the right court immediately when posting a slot.",
+        "2": "Players know exactly where they're going before confirming a booking."
       }
     }
   },

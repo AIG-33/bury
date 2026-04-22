@@ -70,7 +70,14 @@ export function SlotsClient({
   }
 
   if (courts.length === 0) {
-    return <EmptyState title={copy.no_courts_title} description={copy.no_courts_description} />;
+    return (
+      <EmptyState
+        title={copy.no_courts_title}
+        description={copy.no_courts_description}
+        ctaLabel={copy.no_courts_cta}
+        ctaHref={`/${copy.locale}/venues`}
+      />
+    );
   }
 
   return (
