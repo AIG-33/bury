@@ -248,12 +248,15 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     .filter((v): v is { id: string; name: string; city: string | null } => v != null)
     .map((v) => ({ id: v.id, name: v.name, city: v.city }));
 
+  // NOTE: we deliberately do NOT join `profiles` here. The
+  // `profiles_self_read` RLS policy lets a coach see only their own row,
+  // so a `profiles!fk(...)` join would silently return `null` for every
+  // OTHER participant — producing a "TBD" bracket. We pull display_name
+  // / avatar_url / current_elo from `public_player_basic`, which is an
+  // RLS-bypassing projection of non-PII profile fields.
   const { data: parts } = (await supabase
     .from("tournament_participants")
-    .select(
-      "id, player_id, seed, withdrawn, registered_at, " +
-        "profiles!tournament_participants_player_id_fkey(display_name, avatar_url, current_elo)",
-    )
+    .select("id, player_id, seed, withdrawn, registered_at")
     .eq("tournament_id", tournamentId)
     .order("seed", { ascending: true, nullsFirst: false })
     .order("registered_at", { ascending: true })) as {
@@ -263,24 +266,38 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       seed: number | null;
       withdrawn: boolean;
       registered_at: string;
-      profiles: {
-        display_name: string | null;
-        avatar_url: string | null;
-        current_elo: number;
-      } | null;
     }> | null;
   };
 
-  const participants: ParticipantRow[] = (parts ?? []).map((p) => ({
-    id: p.id,
-    player_id: p.player_id,
-    seed: p.seed,
-    withdrawn: p.withdrawn,
-    registered_at: p.registered_at,
-    display_name: p.profiles?.display_name ?? null,
-    avatar_url: p.profiles?.avatar_url ?? null,
-    current_elo: p.profiles?.current_elo ?? 1000,
-  }));
+  const playerIds = Array.from(new Set((parts ?? []).map((p) => p.player_id)));
+  type Basic = {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    current_elo: number | null;
+  };
+  let basicById = new Map<string, Basic>();
+  if (playerIds.length > 0) {
+    const { data: basics } = (await supabase
+      .from("public_player_basic")
+      .select("id, display_name, avatar_url, current_elo")
+      .in("id", playerIds)) as { data: Basic[] | null };
+    basicById = new Map((basics ?? []).map((b) => [b.id, b] as const));
+  }
+
+  const participants: ParticipantRow[] = (parts ?? []).map((p) => {
+    const b = basicById.get(p.player_id);
+    return {
+      id: p.id,
+      player_id: p.player_id,
+      seed: p.seed,
+      withdrawn: p.withdrawn,
+      registered_at: p.registered_at,
+      display_name: b?.display_name ?? null,
+      avatar_url: b?.avatar_url ?? null,
+      current_elo: b?.current_elo ?? 1000,
+    };
+  });
 
   const { data: ms } = (await supabase
     .from("matches")
@@ -302,13 +319,14 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     p2_name: m.p2_id ? nameById.get(m.p2_id) ?? null : null,
   }));
 
-  // Player options for the "add participant" picker — visible profiles minus
-  // those already registered.
+  // Player options for the "add participant" picker. Same RLS reason
+  // as participants above — `profiles` is self-only for coaches, so
+  // we read from the `public_player_basic` projection.
   const registeredIds = new Set(participants.map((p) => p.player_id));
   const { data: pool } = (await supabase
-    .from("profiles")
+    .from("public_player_basic")
     .select("id, display_name, current_elo")
-    .eq("visible_in_find_player", true)
+    .eq("visible_in_leaderboard", true)
     .order("current_elo", { ascending: false })
     .limit(200)) as {
     data: Array<PlayerOption> | null;

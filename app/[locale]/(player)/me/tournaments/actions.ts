@@ -66,26 +66,39 @@ export async function loadOpenTournaments(): Promise<
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
+  // Coach name resolved via `public_profile_basic` (RLS-safe). The
+  // `profiles` table is self-only.
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
-      "id, name, description, format, surface, starts_on, ends_on, registration_deadline, " +
-        "max_participants, privacy, status, match_rules, " +
-        "profiles!tournaments_owner_coach_id_fkey(display_name)",
+      "id, owner_coach_id, name, description, format, surface, starts_on, ends_on, registration_deadline, " +
+        "max_participants, privacy, status, match_rules",
     )
     .eq("privacy", "public")
     .in("status", ["draft", "registration"])
     .order("starts_on", { ascending: true })) as {
     data: Array<
       Omit<OpenTournamentRow, "participants_count" | "is_registered" | "coach_name"> & {
-        profiles: { display_name: string | null } | null;
+        owner_coach_id: string;
       }
     > | null;
   };
 
+  const ownerIds = Array.from(new Set((rows ?? []).map((r) => r.owner_coach_id)));
+  const ownerNameById = new Map<string, string | null>();
+  if (ownerIds.length > 0) {
+    const { data: owners } = (await supabase
+      .from("public_profile_basic")
+      .select("id, display_name")
+      .in("id", ownerIds)) as {
+      data: Array<{ id: string; display_name: string | null }> | null;
+    };
+    for (const o of owners ?? []) ownerNameById.set(o.id, o.display_name);
+  }
+
   const tournaments = (rows ?? []).map((r) => ({
     ...r,
-    coach_name: r.profiles?.display_name ?? null,
+    coach_name: ownerNameById.get(r.owner_coach_id) ?? null,
   }));
 
   const ids = tournaments.map((t) => t.id);
@@ -132,9 +145,8 @@ export async function loadMyTournaments(): Promise<
     .from("tournament_participants")
     .select(
       "tournament_id, withdrawn, " +
-        "tournaments(id, name, description, format, surface, starts_on, ends_on, " +
-        "registration_deadline, max_participants, privacy, status, match_rules, " +
-        "profiles!tournaments_owner_coach_id_fkey(display_name))",
+        "tournaments(id, owner_coach_id, name, description, format, surface, starts_on, ends_on, " +
+        "registration_deadline, max_participants, privacy, status, match_rules)",
     )
     .eq("player_id", userId)) as {
     data: Array<{
@@ -142,6 +154,7 @@ export async function loadMyTournaments(): Promise<
       withdrawn: boolean;
       tournaments: {
         id: string;
+        owner_coach_id: string;
         name: string;
         description: string | null;
         format: TournamentFormat;
@@ -153,13 +166,27 @@ export async function loadMyTournaments(): Promise<
         privacy: Privacy;
         status: TournamentStatus;
         match_rules: MatchRules;
-        profiles: { display_name: string | null } | null;
       } | null;
     }> | null;
   };
 
   const filtered = (regs ?? []).filter((r) => r.tournaments != null);
   const ids = filtered.map((r) => r.tournament_id);
+
+  // Coach names of every distinct owner (RLS-bypassing).
+  const ownerIds = Array.from(
+    new Set(filtered.map((r) => r.tournaments!.owner_coach_id)),
+  );
+  const coachNameById = new Map<string, string | null>();
+  if (ownerIds.length > 0) {
+    const { data: owners } = (await supabase
+      .from("public_profile_basic")
+      .select("id, display_name")
+      .in("id", ownerIds)) as {
+      data: Array<{ id: string; display_name: string | null }> | null;
+    };
+    for (const o of owners ?? []) coachNameById.set(o.id, o.display_name);
+  }
 
   // Headcounts.
   const counts = new Map<string, number>();
@@ -213,14 +240,14 @@ export async function loadMyTournaments(): Promise<
     }
   }
 
-  // Resolve opponent display names.
+  // Opponent display names via the RLS-bypassing public projection.
   const opponentIds = Array.from(nextMatches.values())
     .map((v) => v.opponent_id)
     .filter((x): x is string => x !== null);
   const namesById = new Map<string, string | null>();
   if (opponentIds.length > 0) {
     const { data: ps } = (await supabase
-      .from("profiles")
+      .from("public_profile_basic")
       .select("id, display_name")
       .in("id", opponentIds)) as {
       data: Array<{ id: string; display_name: string | null }> | null;
@@ -244,7 +271,7 @@ export async function loadMyTournaments(): Promise<
       privacy: t.privacy,
       status: t.status,
       participants_count: counts.get(t.id) ?? 0,
-      coach_name: t.profiles?.display_name ?? null,
+      coach_name: coachNameById.get(t.owner_coach_id) ?? null,
       is_registered: !r.withdrawn,
       match_rules: t.match_rules,
       withdrawn: r.withdrawn,
