@@ -105,12 +105,23 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
     },
   });
 
-  const recurrenceKind = form.watch("recurrence.kind") as "single" | "weekly";
+  // `recurrence.kind` is never registered directly (only its sibling fields
+  // are, via register/Controller), so `form.watch("recurrence.kind")` does
+  // not always re-render when we replace the whole `recurrence` object via
+  // setValue. We mirror the active kind in local state — the button group
+  // becomes the source of truth for which sub-form is visible, and setValue
+  // keeps the actual form payload in sync.
+  const [recurrenceKind, setRecurrenceKind] = useState<"single" | "weekly" | "dates">("single");
 
   useEffect(() => {
     if (!open) return;
     setErrMsg(null);
     setResult(null);
+    setRecurrenceKind("single");
+    form.setValue("recurrence", { kind: "single", date: today });
+    // We intentionally only react to `open` flipping — re-syncing on every
+    // form/today change would clobber user input mid-edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
@@ -139,6 +150,7 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
   });
 
   function switchKind(kind: "single" | "weekly" | "dates") {
+    setRecurrenceKind(kind);
     if (kind === "single") {
       form.setValue("recurrence", { kind: "single", date: today });
     } else if (kind === "weekly") {
