@@ -42,7 +42,7 @@ export async function loadCoachJourney(): Promise<
 
   const { data: profile } = (await supabase
     .from("profiles")
-    .select("id, is_coach, is_admin, coach_bio, coach_hourly_rate_pln, coach_lat, coach_lng")
+    .select("id, is_coach, is_admin, coach_bio, coach_hourly_rate_pln")
     .eq("id", user.id)
     .maybeSingle()) as {
     data: {
@@ -51,8 +51,6 @@ export async function loadCoachJourney(): Promise<
       is_admin: boolean;
       coach_bio: string | null;
       coach_hourly_rate_pln: number | null;
-      coach_lat: number | null;
-      coach_lng: number | null;
     } | null;
   };
 
@@ -62,15 +60,13 @@ export async function loadCoachJourney(): Promise<
 
   const userId = profile.id;
 
-  // Active step 1: profile is "done" only when bio + hourly rate + map pin
-  // are all present. A half-filled profile is the most common reason
-  // players bounce off a coach card, so we hold the green-check until
-  // everything is there.
+  // Active step 1: profile is "done" once bio (≥30 chars) + hourly rate are
+  // both set. We intentionally do NOT require a map pin — coach discovery
+  // happens via published slots, not a separate coach map, so asking for a
+  // pin would be busy-work that never closes the green check.
   const profileDone =
     Boolean(profile.coach_bio && profile.coach_bio.trim().length >= 30) &&
-    Boolean(profile.coach_hourly_rate_pln && profile.coach_hourly_rate_pln > 0) &&
-    profile.coach_lat !== null &&
-    profile.coach_lng !== null;
+    Boolean(profile.coach_hourly_rate_pln && profile.coach_hourly_rate_pln > 0);
 
   const [slotsRes, acceptedInvitesRes, bookingsRes, tournamentsRes] = await Promise.all([
     supabase.from("slots").select("id", { count: "exact", head: true }).eq("owner_id", userId),

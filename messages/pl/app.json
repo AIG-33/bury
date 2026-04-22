@@ -731,33 +731,113 @@
   },
   "coachPlayers": {
     "title": "Moi gracze",
-    "subtitle": "Gracze klubu: ci, którzy zaakceptowali zaproszenie lub przynajmniej raz zapisali się na trening.",
+    "subtitle": "Klub, ranking i zaproszenia — wszystko w jednym miejscu.",
     "help": {
-      "why": "Prawdziwe konta użytkowników powiązane z Tobą jako trenerem: ludzie, którzy zaakceptowali zaproszenie i ci, którzy zarezerwowali co najmniej jeden Twój slot. To Twoja baza klientów — śledź aktywność i zapraszaj kolejnych.",
+      "why": "Jedna strona o Twoich graczach: prawdziwe konta klubu (zaproszeni lub rezerwujący), ranking Elo z dynamiką oraz wysyłanie nowych zaproszeń. Wcześniej ranking był osobną zakładką — teraz to po prostu sekcja tutaj.",
       "what": {
-        "1": "Zobacz graczy klubu: imię, źródło (zaproszenie / rezerwacja), liczbę rezerwacji, datę ostatniej aktywności.",
-        "2": "Wyślij zaproszenie e-mailem — gracz dostaje jednorazowy link ważny 14 dni.",
-        "3": "Sprawdź status ostatnich zaproszeń (oczekuje / zaakceptowane / wygasłe)."
+        "1": "Gracze klubu — klikalna lista kont z lokalizacją, Elo i liczbą rezerwacji. Klik = karta gracza.",
+        "2": "Ranking — Elo wszystkich graczy z deltą 7/30 dni, filtr Moi / Wszyscy.",
+        "3": "Zaproś gracza — jednorazowy link ważny 14 dni + dziennik ostatnich zaproszeń."
       },
       "result": {
-        "1": "Gracz trafia na listę po akceptacji zaproszenia LUB rezerwacji któregokolwiek Twojego slotu.",
-        "2": "Lista odświeża się automatycznie — nie trzeba nic robić ręcznie."
+        "1": "Gracz trafia do klubu po akceptacji zaproszenia LUB rezerwacji któregokolwiek Twojego slotu.",
+        "2": "Stary URL `/coach/leaderboard` przekierowuje tutaj — zakładki działają."
       }
     },
     "club": {
       "title": "Gracze klubu",
-      "subtitle": "Konta, które zaakceptowały zaproszenie lub rezerwowały Twoje sloty.",
+      "subtitle": "Konta, które zaakceptowały zaproszenie lub rezerwowały Twoje sloty. Kliknij wiersz, aby otworzyć kartę gracza.",
       "count": "{n, plural, =0 {0 graczy} one {# gracz} few {# graczy} many {# graczy} other {# graczy}}",
       "empty_title": "Brak graczy",
       "empty_description": "Gracze pojawią się tu, gdy zaakceptują zaproszenie lub zarezerwują któryś z Twoich slotów.",
       "col_player": "Gracz",
+      "col_elo": "Elo",
+      "col_matches": "Mecze",
       "col_source": "Źródło",
       "col_sessions": "Rezerwacje",
       "col_last": "Aktywność",
       "source_invited": "Zaproszenie",
       "source_booked": "Rezerwacja",
       "sessions_value": "{active}/{total}",
+      "elo_provisional": "wst.",
       "unknown_name": "Bez imienia"
+    },
+    "detail": {
+      "back": "Do listy graczy",
+      "unknown_name": "Bez imienia",
+      "elo_provisional": "Rating wstępny — stabilizuje się po ok. 10 meczach.",
+      "badge_invited": "Zaakceptował zaproszenie",
+      "badge_booked": "Ma rezerwacje",
+      "badge_not_in_club": "Nie w Twoim klubie",
+      "stat_elo": "Elo",
+      "stat_matches": "Mecze",
+      "stat_bookings": "Rezerwacje (akt./razem)",
+      "help": {
+        "why": "Karta gracza widoczna tylko dla trenera: jak zmieniał się jego Elo, jakie mecze i kiedy rozegrał oraz ile razy zarezerwował u Ciebie trening. Gracze tej strony nie widzą.",
+        "what": {
+          "1": "Śledź dynamikę Elo: aktualna wartość, zmiana z 30 dni, ostatnie 20 zdarzeń ratingu (mecze, korekty, sezonowe pomniejszenia).",
+          "2": "Przeglądaj dostępne mecze gracza (Twoje turnieje i mecze, w których brałeś udział).",
+          "3": "Zobacz wszystkie rezerwacje tego gracza na Twoich slotach: data, status (potwierdzona / odbyta / anulowana), płatność."
+        },
+        "result": {
+          "1": "Wchodzisz na trening znając formę gracza i mocne/słabe strony z ostatnich meczów.",
+          "2": "Jeśli gracz często anuluje — zobaczysz to od razu i możesz się odezwać."
+        }
+      },
+      "rating": {
+        "title": "Dynamika ratingu",
+        "subtitle_30d": "ostatnie 30 dni",
+        "current": "Aktualne Elo",
+        "delta_30d": "Δ 30 dni",
+        "empty": "Brak historii ratingu dla tego gracza.",
+        "reason": {
+          "match": "mecz",
+          "manual_adjustment": "ręczna korekta",
+          "onboarding": "quiz startowy",
+          "seasonal_decay": "sezonowy decay"
+        }
+      },
+      "matches": {
+        "title": "Mecze",
+        "in_tournament": "Mecz turniejowy",
+        "friendly": "Towarzyski",
+        "doubles": "Debel",
+        "no_date": "Bez daty",
+        "win": "Wygrana",
+        "loss": "Przegrana",
+        "empty_title": "Brak dostępnych meczów",
+        "empty_description": "Widzisz tu tylko mecze, do których masz dostęp: z Twoich turniejów lub z Twoim udziałem. Mecze towarzyskie między innymi graczami się nie pojawiają.",
+        "outcome": {
+          "pending": "oczekuje",
+          "proposed": "zaproponowany",
+          "scheduled": "zaplanowany",
+          "completed": "rozegrany",
+          "walkover_p1": "walkower (P1)",
+          "walkover_p2": "walkower (P2)",
+          "retired_p1": "P1 wycofał",
+          "retired_p2": "P2 wycofał",
+          "dsq_p1": "P1 DSQ",
+          "dsq_p2": "P2 DSQ",
+          "cancelled": "anulowany"
+        }
+      },
+      "bookings": {
+        "title": "Rezerwacje treningów",
+        "empty_title": "Brak rezerwacji",
+        "empty_description": "Gdy gracz zarezerwuje Twój slot, pojawi się tutaj.",
+        "status": {
+          "pending": "oczekuje",
+          "confirmed": "potwierdzona",
+          "cancelled": "anulowana",
+          "attended": "odbyta",
+          "no_show": "nieobecność"
+        },
+        "paid": {
+          "unpaid": "nieopłacona",
+          "paid": "opłacona",
+          "comped": "gratis"
+        }
+      }
     },
     "invite": {
       "title": "Zaproś gracza",
@@ -1910,18 +1990,18 @@
   },
   "coachProfile": {
     "title": "Publiczny profil trenera",
-    "subtitle": "Dostosuj to, co widzą gracze na Twoim profilu i mapie.",
+    "subtitle": "Dostosuj to, co widzą gracze na Twojej karcie.",
     "rating_summary": "Ocena: {avg} ({count} opinii)",
     "help": {
-      "why": "Publiczny profil to pierwsza rzecz, którą gracz widzi w katalogu trenerów i na mapie. Bez bio, stawki godzinowej i pinezki na mapie karta wygląda pusto, a gracze idą do innych trenerów. Ten ekran zbiera wszystko, co gracz widzi przed rezerwacją.",
+      "why": "Publiczny profil to pierwsza rzecz, którą gracz widzi w katalogu trenerów. Bez bio i stawki karta wygląda pusto, a gracze idą do innych trenerów. Ten ekran zbiera wszystko, co gracz widzi przed rezerwacją.",
       "what": {
         "1": "Napisz bio — 2–3 zdania: doświadczenie, styl, dla kogo trenujesz (dorośli/dzieci, początkujący/turniejowi).",
-        "2": "Ustaw stawkę godzinową w PLN (zostaw puste, jeśli płynna) i przełącznik pokazywania na publicznej mapie.",
-        "3": "Postaw pinezkę na mapie przez wyszukiwarkę adresu lub kliknięciem — to punkt, po którym gracze szukają najbliższych trenerów."
+        "2": "Ustaw stawkę godzinową w PLN — zostaw puste, jeśli zmienia się dynamicznie.",
+        "3": "Lokalizacja nie jest potrzebna: gracze znajdą Cię po opublikowanych slotach, a każdy slot ma już obiekt i adres kortu."
       },
       "result": {
-        "1": "Karta pojawia się w publicznym katalogu `/coaches` i na mapie `/coaches/map`.",
-        "2": "Gracze widzą bio, stawkę i odległość do pinezki — wzrasta liczba rezerwacji i wiadomości."
+        "1": "Karta pojawia się w publicznym katalogu `/coaches` z bio i stawką.",
+        "2": "Gracze trafiają do Ciebie przez `/slots` i `/venues` dzięki Twojemu grafikowi — rośnie liczba rezerwacji i wiadomości."
       }
     },
     "section": {
@@ -1940,7 +2020,8 @@
     "hint": {
       "rate": "Opcjonalnie. Gracze widzą to na karcie; zostaw puste, jeśli zmienia się dynamicznie.",
       "map": "Wyszukaj miejsce albo kliknij mapę, aby ustawić pinezkę. Pinezka jest przeciągana.",
-      "show_on_map": "Wyłącz, jeśli nie chcesz być na publicznej mapie (profil nadal jest dostępny)."
+      "show_on_map": "Wyłącz, jeśli nie chcesz być na publicznej mapie (profil nadal jest dostępny).",
+      "location_via_slots": "Lokalizacji nie ustawiasz — gracze znajdą Cię przez opublikowane sloty w `/slots`, a każdy slot ma już obiekt i adres kortu."
     },
     "map": {
       "search_placeholder": "Wyszukaj miasto, klub lub adres…",

@@ -12,23 +12,29 @@ export function LeaderboardTabs({
   totalMine,
   totalAll,
   copy,
+  basePath = "/coach/leaderboard",
+  paramName = "scope",
 }: {
   active: "mine" | "all";
   totalMine: number;
   totalAll: number;
   copy: LeaderboardTabsCopy;
+  /** Base path for the tab links. Defaults to /coach/leaderboard for back-compat. */
+  basePath?: string;
+  /** Query param name. Defaults to "scope". */
+  paramName?: string;
 }) {
   return (
     <div className="inline-flex rounded-lg border border-ink-200 bg-white p-1 shadow-card">
       <Tab
         active={active === "mine"}
-        href="/coach/leaderboard?scope=mine"
+        href={`${basePath}?${paramName}=mine`}
         label={copy.tab_mine}
         count={totalMine}
       />
       <Tab
         active={active === "all"}
-        href="/coach/leaderboard?scope=all"
+        href={`${basePath}?${paramName}=all`}
         label={copy.tab_all}
         count={totalAll}
       />

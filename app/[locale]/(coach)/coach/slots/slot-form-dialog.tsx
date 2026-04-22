@@ -144,8 +144,16 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
         setErrMsg(r.error);
         return;
       }
-      setResult({ created: r.created, conflicts: r.conflicts });
       onSaved();
+      // Auto-close on full success. If there were conflicts (some dates
+      // already had a slot), keep the dialog open so the coach actually
+      // sees which dates were skipped — losing that info silently is
+      // worse than the extra click.
+      if (r.conflicts.length === 0) {
+        onClose();
+        return;
+      }
+      setResult({ created: r.created, conflicts: r.conflicts });
     });
   });
 

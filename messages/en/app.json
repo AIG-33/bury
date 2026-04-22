@@ -731,33 +731,113 @@
   },
   "coachPlayers": {
     "title": "My players",
-    "subtitle": "Club players: those who accepted your invitation or booked a session at least once.",
+    "subtitle": "Club, leaderboard and invitations — all in one place.",
     "help": {
-      "why": "Real user accounts linked to you as a coach: people who accepted your invitation and people who booked at least one of your slots. This is your client base — track activity here and invite more.",
+      "why": "One page for everything about your players: real club accounts (invited or booked), Elo leaderboard with deltas, and sending new invitations. Used to live across two tabs — now it's just sections here.",
       "what": {
-        "1": "See your club players: name, source (invitation / booking), session count, last activity date.",
-        "2": "Send an email invitation — the player gets a one-time link valid for 14 days.",
-        "3": "Check the status of recent invitations (pending / accepted / expired)."
+        "1": "Club players — clickable list of accounts with location, Elo and bookings count. Click a row for the player card.",
+        "2": "Leaderboard — Elo of all players with 7-day / 30-day deltas, filter Mine / All.",
+        "3": "Invite a player — one-time link valid for 14 days + log of recent invitations."
       },
       "result": {
-        "1": "A player joins this list after accepting an invitation OR booking any of your slots.",
-        "2": "The list refreshes automatically — no separate action needed."
+        "1": "A player joins the club once they accept an invitation OR book one of your slots.",
+        "2": "The old `/coach/leaderboard` URL redirects here — old bookmarks keep working."
       }
     },
     "club": {
       "title": "Club players",
-      "subtitle": "Accounts that accepted an invitation or booked your slots.",
+      "subtitle": "Accounts that accepted an invitation or booked your slots. Click a row to open the player card.",
       "count": "{n, plural, =0 {0 players} one {# player} other {# players}}",
       "empty_title": "No players yet",
       "empty_description": "Players show up here once they accept an invitation or book one of your slots.",
       "col_player": "Player",
+      "col_elo": "Elo",
+      "col_matches": "Matches",
       "col_source": "Source",
       "col_sessions": "Bookings",
       "col_last": "Activity",
       "source_invited": "Invitation",
       "source_booked": "Booking",
       "sessions_value": "{active}/{total}",
+      "elo_provisional": "prov.",
       "unknown_name": "No name"
+    },
+    "detail": {
+      "back": "Back to players",
+      "unknown_name": "No name",
+      "elo_provisional": "Provisional rating — stabilises after ~10 matches.",
+      "badge_invited": "Accepted invitation",
+      "badge_booked": "Has bookings",
+      "badge_not_in_club": "Not in your club",
+      "stat_elo": "Elo",
+      "stat_matches": "Matches",
+      "stat_bookings": "Bookings (active/total)",
+      "help": {
+        "why": "A coach-only player card: see how their Elo changed, which matches they played and when, and how often they booked your sessions. Players never see this page.",
+        "what": {
+          "1": "Track Elo dynamics: current value, 30-day delta, last 20 rating events (matches, manual adjustments, seasonal decays).",
+          "2": "Browse the player's matches you can access (your tournaments and matches you participated in).",
+          "3": "See every booking this player made on your slots: date, status (confirmed / attended / cancelled), payment."
+        },
+        "result": {
+          "1": "Walk into a session knowing the player's form, strengths and weak spots from recent matches.",
+          "2": "If the player cancels often you'll spot it instantly and can reach out."
+        }
+      },
+      "rating": {
+        "title": "Rating dynamics",
+        "subtitle_30d": "last 30 days",
+        "current": "Current Elo",
+        "delta_30d": "Δ 30 days",
+        "empty": "No rating history for this player yet.",
+        "reason": {
+          "match": "match",
+          "manual_adjustment": "manual adjustment",
+          "onboarding": "onboarding quiz",
+          "seasonal_decay": "seasonal decay"
+        }
+      },
+      "matches": {
+        "title": "Matches",
+        "in_tournament": "Tournament match",
+        "friendly": "Friendly",
+        "doubles": "Doubles",
+        "no_date": "No date",
+        "win": "Win",
+        "loss": "Loss",
+        "empty_title": "No accessible matches",
+        "empty_description": "You only see matches you have access to: matches in your tournaments or matches you participated in. Friendly matches between other players don't appear here.",
+        "outcome": {
+          "pending": "pending",
+          "proposed": "proposed",
+          "scheduled": "scheduled",
+          "completed": "completed",
+          "walkover_p1": "walkover (P1)",
+          "walkover_p2": "walkover (P2)",
+          "retired_p1": "P1 retired",
+          "retired_p2": "P2 retired",
+          "dsq_p1": "P1 DSQ",
+          "dsq_p2": "P2 DSQ",
+          "cancelled": "cancelled"
+        }
+      },
+      "bookings": {
+        "title": "Session bookings",
+        "empty_title": "No bookings yet",
+        "empty_description": "When this player books one of your slots, it shows up here.",
+        "status": {
+          "pending": "pending",
+          "confirmed": "confirmed",
+          "cancelled": "cancelled",
+          "attended": "attended",
+          "no_show": "no-show"
+        },
+        "paid": {
+          "unpaid": "unpaid",
+          "paid": "paid",
+          "comped": "comped"
+        }
+      }
     },
     "invite": {
       "title": "Invite a player",
@@ -1910,18 +1990,18 @@
   },
   "coachProfile": {
     "title": "Public coach profile",
-    "subtitle": "Tune what players see when they open your profile or the map.",
+    "subtitle": "Tune what players see when they open your card.",
     "rating_summary": "Rating: {avg} ({count} reviews)",
     "help": {
-      "why": "Your public profile is the first thing a player sees in the coach catalogue and on the map. Without a bio, hourly rate and a map pin, your card looks empty and players go to other coaches. This screen collects everything a player sees before booking.",
+      "why": "Your public profile is the first thing a player sees in the coach catalogue. Without a bio and an hourly rate, your card looks empty and players go to other coaches. This screen collects everything a player sees before booking.",
       "what": {
         "1": "Write a bio — 2–3 sentences: experience, style, audience (adults/kids, beginners/tournament players).",
-        "2": "Set your hourly rate in PLN (leave empty if it varies) and toggle whether you appear on the public map.",
-        "3": "Drop a pin on the map by searching an address or clicking — this is the point players use to find nearby coaches."
+        "2": "Set your hourly rate in PLN — leave empty if it varies.",
+        "3": "No location needed: players discover you through published slots, and every slot already carries the venue and the court's address."
       },
       "result": {
-        "1": "Your card appears in the public catalogue `/coaches` and on the map `/coaches/map`.",
-        "2": "Players see your bio, rate and distance to your pin — booking and message rates go up."
+        "1": "Your card appears in the public catalogue `/coaches` with bio and rate.",
+        "2": "Players reach you via `/slots` and `/venues` through your schedule — bookings and messages go up."
       }
     },
     "section": {
@@ -1940,7 +2020,8 @@
     "hint": {
       "rate": "Optional. Players see this on your card; leave empty if it varies.",
       "map": "Search a place or click the map to drop a pin. You can drag the pin to fine-tune.",
-      "show_on_map": "Turn off if you'd rather not appear on the public map (your profile remains accessible)."
+      "show_on_map": "Turn off if you'd rather not appear on the public map (your profile remains accessible).",
+      "location_via_slots": "No location to set — players find you via published slots in `/slots`, and every slot already carries the venue and court address."
     },
     "map": {
       "search_placeholder": "Search city, club or address…",

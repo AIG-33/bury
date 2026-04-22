@@ -97,9 +97,6 @@ export async function saveMyCoachProfile(
     .update({
       coach_bio: v.coach_bio,
       coach_hourly_rate_pln: v.coach_hourly_rate_pln,
-      coach_lat: v.coach_lat,
-      coach_lng: v.coach_lng,
-      coach_show_on_map: v.coach_show_on_map,
     } as never)
     .eq("id", user.id);
 
@@ -108,6 +105,5 @@ export async function saveMyCoachProfile(
   revalidatePath("/coach/profile");
   revalidatePath("/coaches");
   revalidatePath(`/coaches/${user.id}`);
-  revalidatePath("/coaches/map");
   return { ok: true };
 }
