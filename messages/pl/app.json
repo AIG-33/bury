@@ -75,11 +75,70 @@
   },
   "adminNav": {
     "overview": "Przegląd",
+    "database": "Baza danych",
     "quiz": "Quiz",
     "rating": "Silnik rankingu",
     "reviews": "Opinie",
     "forbidden_title": "Tylko dla administratorów",
     "forbidden_body": "Nie masz uprawnień do panelu administracyjnego."
+  },
+  "adminDb": {
+    "title": "Baza danych",
+    "subtitle": "Bezpośredni dostęp CRUD do każdej kluczowej tabeli. Używaj ostrożnie — nie ma soft delete.",
+    "help": {
+      "why": "Czasem trzeba poprawić wiersz, uzupełnić brakującą wartość lub posprzątać dane testowe bez pisania SQL. Ten ekran udostępnia wszystkie główne tabele w jednolitym widoku: filtruj, sortuj, edytuj, usuwaj.",
+      "what": {
+        "1": "Wybierz tabelę, aby otworzyć listę z wyszukiwaniem, sortowaniem i filtrami kolumnowymi.",
+        "2": "Kliknij wiersz, aby edytować pola; przycisk + dodaje nowy wiersz.",
+        "3": "Do quizu i silnika rankingu używaj dedykowanych edytorów — ten widok jest awaryjnym fallbackiem."
+      },
+      "result": {
+        "1": "Możesz naprawić każdy problem z danymi bez angażowania programisty.",
+        "2": "Wszystkie zmiany podlegają tym samym RLS co reszta aplikacji, więc integralność danych jest zachowana."
+      }
+    },
+    "groups": {
+      "people": "Ludzie",
+      "venues": "Obiekty i lokalizacje",
+      "play": "Rozgrywka",
+      "config": "Konfiguracja",
+      "ops": "Operacje"
+    },
+    "back_to_tables": "Wszystkie tabele",
+    "back_to_table": "Powrót do {table}",
+    "new_row": "Nowy wiersz",
+    "new_row_title": "Nowy: {table}",
+    "new_row_subtitle": "Pola wymagane oznaczone gwiazdką. Puste pola zostaną zapisane jako NULL.",
+    "edit_row_title": "Edycja: {table}",
+    "edit_row_subtitle": "Zmień dowolne pole edytowalne i zapisz.",
+    "edit_row_subtitle_id": "ID wiersza: {id}",
+    "search": "Szukaj",
+    "search_placeholder": "Szukaj w {fields}…",
+    "page_size": "Na stronie",
+    "apply": "Zastosuj",
+    "apply_filters": "Zastosuj filtry",
+    "clear": "Wyczyść",
+    "actions": "Akcje",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "save_changes": "Zapisz zmiany",
+    "create_row": "Utwórz wiersz",
+    "confirm_delete": "Trwale usunąć ten wiersz tabeli {table}? Tej operacji nie można cofnąć.",
+    "empty_rows": "Żaden wiersz nie pasuje do bieżących filtrów.",
+    "range_label": "Pokazano {start}–{end} z {total}",
+    "error_load": "Nie udało się załadować",
+    "table_help": {
+      "why": "Surowy edytor tabeli „{table}”. Każda zmiana jest natychmiast zapisywana do Postgresa.",
+      "what": {
+        "1": "Pole wyszukiwania szuka częściowych dopasowań; filtry kolumnowe — dokładnych.",
+        "2": "Kliknij nagłówek kolumny, aby sortować. Drugi klik zmienia kierunek.",
+        "3": "Ołówek otwiera formularz edycji; kosz usuwa wiersz po potwierdzeniu."
+      },
+      "result": {
+        "1": "Gracze, trenerzy i inni odbiorcy danych z {table} zobaczą zmianę przy kolejnym załadowaniu strony.",
+        "2": "Klucze obce nadal działają — usunięcia naruszające relacje zostaną odrzucone."
+      }
+    }
   },
   "adminOverview": {
     "title": "Administracja",
@@ -819,6 +878,18 @@
       "late": "Późno"
     },
     "whatsapp_prefill": "Cześć, {name}! Jestem z Bury Tennis — masz może czas na mecz?",
+    "my_availability": {
+      "title": "Mój grafik",
+      "hint": "Twoje stałe okna „kiedy w ogóle mogę grać”. Zapisuje się w profilu i jest używane, by inni mogli Cię znaleźć.",
+      "empty_hint": "Jeszcze nic nie ustawione. Zaznacz okna, w których zwykle jesteś wolny — bez tego prawie nikt Cię nie znajdzie.",
+      "save": "Zapisz grafik",
+      "saving": "Zapisuję…",
+      "saved": "Zapisano",
+      "error": "Nie udało się zapisać. Spróbuj ponownie.",
+      "reset": "Wyczyść",
+      "use_in_filter": "Wstaw do filtra",
+      "profile_link": "Otwórz w profilu →"
+    },
     "proposals": {
       "title": "Moje propozycje",
       "subtitle": "Przychodzące, wysłane i historia.",

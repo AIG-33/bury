@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -14,9 +15,23 @@ import {
   Filter,
   Star,
   X,
+  CalendarClock,
+  Save,
+  Eraser,
+  ArrowDown,
 } from "lucide-react";
-import { searchOpponents, proposeMatch, type DistrictOption } from "./actions";
-import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
+import {
+  searchOpponents,
+  proposeMatch,
+  updateMyAvailability,
+  type DistrictOption,
+} from "./actions";
+import {
+  EMPTY_AVAILABILITY,
+  WEEKDAYS,
+  TIME_SLOTS,
+  type Availability,
+} from "@/lib/profile/schema";
 import type {
   ScoredCandidate,
   Weekday,
@@ -64,16 +79,30 @@ export type FindCopy = {
   };
   /** Template with `{name}` placeholder; replaced on the client. */
   whatsapp_prefill: string;
+  my_availability: {
+    title: string;
+    hint: string;
+    empty_hint: string;
+    save: string;
+    saving: string;
+    saved: string;
+    error: string;
+    reset: string;
+    use_in_filter: string;
+    profile_link: string;
+  };
 };
 
 export function FindClient({
   locale,
   districts,
   copy,
+  myAvailability,
 }: {
   locale: Locale;
   districts: DistrictOption[];
   copy: FindCopy;
+  myAvailability: Availability;
 }) {
   const t = useTranslations("find");
   const [districtIds, setDistrictIds] = useState<string[]>([]);
@@ -81,6 +110,8 @@ export function FindClient({
   const [hand, setHand] = useState<"both" | "R" | "L">("both");
   const [query, setQuery] = useState("");
   const [desiredSlots, setDesiredSlots] = useState<Set<string>>(new Set());
+  const [savedAvailability, setSavedAvailability] =
+    useState<Availability>(myAvailability);
 
   const [isSearching, startSearch] = useTransition();
   const [results, setResults] = useState<ScoredCandidate[] | null>(null);
@@ -96,6 +127,16 @@ export function FindClient({
       return next;
     });
   };
+
+  function adoptMyScheduleAsFilter() {
+    const next = new Set<string>();
+    for (const w of WEEKDAYS) {
+      for (const d of savedAvailability[w] ?? []) {
+        next.add(slotKey(w, d));
+      }
+    }
+    setDesiredSlots(next);
+  }
 
   function runSearch() {
     setSearchError(null);
@@ -130,7 +171,15 @@ export function FindClient({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+    <div className="space-y-6">
+      <MyAvailabilityCard
+        locale={locale}
+        copy={copy}
+        initial={savedAvailability}
+        onSaved={(next) => setSavedAvailability(next)}
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
       {/* ─── Filters ─── */}
       <aside className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card lg:sticky lg:top-20 lg:self-start">
         <div className="mb-4 flex items-center gap-2">
@@ -199,6 +248,14 @@ export function FindClient({
 
         {/* Availability grid */}
         <FieldBlock label={copy.availability} hint={copy.availability_hint}>
+          <button
+            type="button"
+            onClick={adoptMyScheduleAsFilter}
+            className="mb-2 inline-flex h-7 items-center gap-1 rounded-md border border-grass-300 bg-grass-50 px-2 text-[11px] font-medium text-grass-800 transition hover:bg-grass-100"
+          >
+            <ArrowDown className="h-3 w-3" />
+            {copy.my_availability.use_in_filter}
+          </button>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-[10px]">
               <thead>
@@ -307,6 +364,7 @@ export function FindClient({
           </>
         )}
       </section>
+      </div>
     </div>
   );
 }
@@ -641,6 +699,179 @@ function ScoreBadge({ label, value }: { label: string; value: number }) {
     >
       <Star className="h-2.5 w-2.5" /> {label} {value}
     </span>
+  );
+}
+
+function MyAvailabilityCard({
+  locale,
+  copy,
+  initial,
+  onSaved,
+}: {
+  locale: Locale;
+  copy: FindCopy;
+  initial: Availability;
+  onSaved: (next: Availability) => void;
+}) {
+  const [draft, setDraft] = useState<Availability>(initial);
+  const [savedSnapshot, setSavedSnapshot] = useState<Availability>(initial);
+  const [isSaving, startSaving] = useTransition();
+  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  const dirty = useMemo(() => {
+    for (const w of WEEKDAYS) {
+      const a = new Set(draft[w] ?? []);
+      const b = new Set(savedSnapshot[w] ?? []);
+      if (a.size !== b.size) return true;
+      for (const v of a) if (!b.has(v)) return true;
+    }
+    return false;
+  }, [draft, savedSnapshot]);
+
+  const totalSelected = useMemo(
+    () => WEEKDAYS.reduce((sum, w) => sum + (draft[w]?.length ?? 0), 0),
+    [draft],
+  );
+
+  function toggle(w: Weekday, d: DayPart) {
+    setStatus("idle");
+    setDraft((prev) => {
+      const cur = new Set(prev[w] ?? []);
+      if (cur.has(d)) cur.delete(d);
+      else cur.add(d);
+      return { ...prev, [w]: Array.from(cur) };
+    });
+  }
+
+  function clearAll() {
+    setStatus("idle");
+    setDraft({ ...EMPTY_AVAILABILITY });
+  }
+
+  function save() {
+    setStatus("idle");
+    startSaving(async () => {
+      const r = await updateMyAvailability(draft);
+      if (r.ok) {
+        setSavedSnapshot(r.availability);
+        onSaved(r.availability);
+        setStatus("saved");
+      } else {
+        setStatus("error");
+      }
+    });
+  }
+
+  return (
+    <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-start gap-2">
+          <CalendarClock className="mt-0.5 h-5 w-5 text-grass-700" />
+          <div>
+            <h2 className="font-display text-base font-semibold text-ink-900">
+              {copy.my_availability.title}
+            </h2>
+            <p className="mt-0.5 max-w-xl text-xs text-ink-500">
+              {totalSelected === 0
+                ? copy.my_availability.empty_hint
+                : copy.my_availability.hint}
+            </p>
+          </div>
+        </div>
+        <Link
+          href={`/${locale}/me/profile`}
+          className="text-[11px] font-medium text-grass-700 underline-offset-2 hover:underline"
+        >
+          {copy.my_availability.profile_link}
+        </Link>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-[11px]">
+          <thead>
+            <tr>
+              <th className="p-1"></th>
+              {WEEKDAYS.map((w) => (
+                <th
+                  key={w}
+                  className="p-1 text-center font-medium text-ink-500"
+                >
+                  {copy.weekday_short[w]}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {TIME_SLOTS.map((d) => (
+              <tr key={d}>
+                <td className="pr-2 text-right text-ink-500">
+                  {copy.daypart[d]}
+                </td>
+                {WEEKDAYS.map((w) => {
+                  const on = (draft[w] ?? []).includes(d);
+                  return (
+                    <td key={w} className="p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => toggle(w, d)}
+                        className={
+                          "h-8 w-full rounded transition " +
+                          (on
+                            ? "bg-grass-500 text-white"
+                            : "bg-ink-50 text-transparent hover:bg-grass-100")
+                        }
+                        aria-label={`${copy.weekday[w]} · ${copy.daypart[d]}`}
+                      >
+                        ·
+                      </button>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={clearAll}
+          disabled={isSaving || totalSelected === 0}
+          className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-3 text-xs font-medium text-ink-600 transition hover:bg-ink-50 disabled:opacity-40"
+        >
+          <Eraser className="h-3 w-3" />
+          {copy.my_availability.reset}
+        </button>
+        <div className="flex items-center gap-3">
+          {status === "saved" && !dirty && (
+            <span className="inline-flex items-center gap-1 text-xs text-grass-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {copy.my_availability.saved}
+            </span>
+          )}
+          {status === "error" && (
+            <span className="inline-flex items-center gap-1 text-xs text-clay-700">
+              <AlertCircle className="h-3.5 w-3.5" />
+              {copy.my_availability.error}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={save}
+            disabled={isSaving || !dirty}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-4 text-xs font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+          >
+            {isSaving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
+            {isSaving ? copy.my_availability.saving : copy.my_availability.save}
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import React, { useRef, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -80,30 +80,41 @@ export function ProfileForm({ profile, districts, copy }: Props) {
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(ProfileFormSchema),
+    // Nullable text fields are coerced to "" so the underlying <input>s stay
+    // controlled-by-RHF (uncontrolled DOM via register) and accept typing.
+    // Zod transforms "" back to null on save.
     defaultValues: {
-      first_name: profile.first_name,
-      last_name: profile.last_name,
-      date_of_birth: profile.date_of_birth,
-      gender: profile.gender,
-      motto: profile.motto,
-      favorite_player: profile.favorite_player,
-      phone: profile.phone,
-      whatsapp: profile.whatsapp,
-      telegram_username: profile.telegram_username,
-      social_links: profile.social_links,
-      city: profile.city,
-      district_id: profile.district_id,
-      dominant_hand: profile.dominant_hand,
-      backhand_style: profile.backhand_style,
-      favorite_surface: profile.favorite_surface,
+      first_name: profile.first_name ?? "",
+      last_name: profile.last_name ?? "",
+      date_of_birth: profile.date_of_birth ?? "",
+      gender: profile.gender ?? null,
+      motto: profile.motto ?? "",
+      favorite_player: profile.favorite_player ?? "",
+      phone: profile.phone ?? "",
+      whatsapp: profile.whatsapp ?? "",
+      telegram_username: profile.telegram_username ?? "",
+      social_links: {
+        instagram: profile.social_links?.instagram ?? "",
+        facebook: profile.social_links?.facebook ?? "",
+        x: profile.social_links?.x ?? "",
+        tiktok: profile.social_links?.tiktok ?? "",
+        youtube: profile.social_links?.youtube ?? "",
+        website: profile.social_links?.website ?? "",
+      } as ProfileForm["social_links"],
+      city: profile.city ?? "",
+      district_id: profile.district_id ?? null,
+      dominant_hand: profile.dominant_hand ?? null,
+      backhand_style: profile.backhand_style ?? null,
+      favorite_surface: profile.favorite_surface ?? null,
       availability: profile.availability,
       visible_in_find_player: profile.visible_in_find_player,
       visible_in_leaderboard: profile.visible_in_leaderboard,
       notification_email: profile.notification_email,
+      notification_whatsapp: profile.notification_whatsapp,
       notification_telegram: profile.notification_telegram,
       locale: profile.locale,
-      health_notes: profile.health_notes,
-      emergency_contact: profile.emergency_contact,
+      health_notes: profile.health_notes ?? "",
+      emergency_contact: profile.emergency_contact ?? "",
     },
   });
 
@@ -517,18 +528,20 @@ function Field({
   );
 }
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+const Input = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(function Input({ className, ...rest }, ref) {
   return (
     <input
-      {...props}
-      value={(props.value as string | number | undefined) ?? ""}
-      onChange={(e) => props.onChange?.(e)}
+      ref={ref}
+      {...rest}
       className={`h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 ${
-        props.className ?? ""
+        className ?? ""
       }`}
     />
   );
-}
+});
 
 function Select({
   value,

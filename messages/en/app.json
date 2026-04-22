@@ -75,11 +75,70 @@
   },
   "adminNav": {
     "overview": "Overview",
+    "database": "Database",
     "quiz": "Quiz",
     "rating": "Rating engine",
     "reviews": "Reviews",
     "forbidden_title": "Admin only",
     "forbidden_body": "You do not have permission to view the admin area."
+  },
+  "adminDb": {
+    "title": "Database",
+    "subtitle": "Direct CRUD access to every core table. Use with care — there is no soft delete.",
+    "help": {
+      "why": "Sometimes you need to fix a row, backfill a value or clean up test data without writing SQL. This screen exposes every main table with the same controls: filter, sort, edit, delete.",
+      "what": {
+        "1": "Pick a table to open its list view with search, sort and per-column filters.",
+        "2": "Click a row to edit any non-system field; click + to insert a new row.",
+        "3": "Use the dedicated editors (Quiz, Rating engine) for guided flows — this screen is the raw fallback."
+      },
+      "result": {
+        "1": "You can recover from any data hiccup without bothering an engineer.",
+        "2": "All changes are subject to the same RLS as the rest of the app, so referential integrity stays intact."
+      }
+    },
+    "groups": {
+      "people": "People",
+      "venues": "Venues & locations",
+      "play": "Play",
+      "config": "Configuration",
+      "ops": "Operations"
+    },
+    "back_to_tables": "All tables",
+    "back_to_table": "Back to {table}",
+    "new_row": "New row",
+    "new_row_title": "New {table}",
+    "new_row_subtitle": "Required fields are marked with an asterisk. Empty fields become NULL.",
+    "edit_row_title": "Edit {table}",
+    "edit_row_subtitle": "Modify any editable field and save.",
+    "edit_row_subtitle_id": "Row ID: {id}",
+    "search": "Search",
+    "search_placeholder": "Search in {fields}…",
+    "page_size": "Per page",
+    "apply": "Apply",
+    "apply_filters": "Apply filters",
+    "clear": "Reset",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save_changes": "Save changes",
+    "create_row": "Create row",
+    "confirm_delete": "Permanently delete this {table} row? This cannot be undone.",
+    "empty_rows": "No rows match the current filters.",
+    "range_label": "Showing {start}–{end} of {total}",
+    "error_load": "Could not load",
+    "table_help": {
+      "why": "Raw editor for the “{table}” table. Anything you change here is committed immediately to Postgres.",
+      "what": {
+        "1": "Use the search box for partial matches and the per-column filters for exact matches.",
+        "2": "Click any column header to sort. Click again to flip direction.",
+        "3": "The pencil opens an edit form; the trash deletes the row after confirmation."
+      },
+      "result": {
+        "1": "Players, coaches and other consumers of {table} will see the change on their next page load.",
+        "2": "Foreign-key relations are still enforced — deletes that would break references will be rejected."
+      }
+    }
   },
   "adminOverview": {
     "title": "Admin",
@@ -819,6 +878,18 @@
       "late": "Late"
     },
     "whatsapp_prefill": "Hi {name}! From Bury Tennis — got time for a match?",
+    "my_availability": {
+      "title": "My schedule",
+      "hint": "Your standing “when I'm generally free to play” slots. Saved on your profile and used to surface you to others.",
+      "empty_hint": "Nothing set yet. Mark the windows you're usually free — without this almost no one will find you.",
+      "save": "Save schedule",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Couldn't save. Please try again.",
+      "reset": "Clear",
+      "use_in_filter": "Copy to filter",
+      "profile_link": "Open in profile →"
+    },
     "proposals": {
       "title": "My proposals",
       "subtitle": "Incoming, sent, and history.",

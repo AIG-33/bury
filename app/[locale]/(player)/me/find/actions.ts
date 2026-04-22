@@ -12,6 +12,7 @@ import {
   type ScoredCandidate,
 } from "@/lib/matching/find-player";
 import {
+  AvailabilitySchema,
   EMPTY_AVAILABILITY,
   EMPTY_SOCIAL_LINKS,
   TIME_SLOTS,
@@ -60,6 +61,71 @@ export async function loadDistrictOptions(): Promise<DistrictOption[]> {
     data: Array<{ id: string; name: string; city: string }> | null;
   };
   return (data ?? []).map((d) => ({ id: d.id, name: `${d.city} · ${d.name}` }));
+}
+
+// =============================================================================
+// My availability (own schedule, persisted on profiles.availability)
+// =============================================================================
+
+export type LoadMyAvailabilityResult =
+  | { ok: true; availability: Availability }
+  | { ok: false; error: "not_authenticated" | "no_profile" };
+
+export async function loadMyAvailability(): Promise<LoadMyAvailabilityResult> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "not_authenticated" };
+
+  const { data: row } = (await supabase
+    .from("profiles")
+    .select("availability")
+    .eq("id", user.id)
+    .single()) as {
+    data: { availability: Partial<Availability> | null } | null;
+  };
+  if (!row) return { ok: false, error: "no_profile" };
+
+  return {
+    ok: true,
+    availability: {
+      ...EMPTY_AVAILABILITY,
+      ...(row.availability ?? {}),
+    } as Availability,
+  };
+}
+
+export type UpdateAvailabilityResult =
+  | { ok: true; availability: Availability }
+  | {
+      ok: false;
+      error: "not_authenticated" | "invalid_payload" | "db_error";
+      message?: string;
+    };
+
+export async function updateMyAvailability(
+  input: unknown,
+): Promise<UpdateAvailabilityResult> {
+  const parsed = AvailabilitySchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid_payload" };
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "not_authenticated" };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ availability: parsed.data } as never)
+    .eq("id", user.id);
+
+  if (error) return { ok: false, error: "db_error", message: error.message };
+
+  revalidatePath("/me/find");
+  revalidatePath("/me/profile");
+  return { ok: true, availability: parsed.data as Availability };
 }
 
 // =============================================================================

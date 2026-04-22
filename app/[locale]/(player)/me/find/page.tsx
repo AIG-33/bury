@@ -4,8 +4,13 @@ import Link from "next/link";
 import { Inbox } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadDistrictOptions } from "./actions";
-import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
+import { loadDistrictOptions, loadMyAvailability } from "./actions";
+import {
+  EMPTY_AVAILABILITY,
+  WEEKDAYS,
+  TIME_SLOTS,
+  type Availability,
+} from "@/lib/profile/schema";
 import type { Weekday, DayPart } from "@/lib/matching/find-player";
 import { FindClient, type FindCopy } from "./find-client";
 
@@ -23,6 +28,10 @@ export default async function FindPlayerPage({ params }: Props) {
   if (!user) redirect(`/${locale}/login?next=/me/find`);
 
   const districts = await loadDistrictOptions();
+  const availabilityRes = await loadMyAvailability();
+  const myAvailability: Availability = availabilityRes.ok
+    ? availabilityRes.availability
+    : EMPTY_AVAILABILITY;
 
   const copy: FindCopy = {
     filters_title: t("filters.title"),
@@ -71,6 +80,18 @@ export default async function FindPlayerPage({ params }: Props) {
       confirm: t("card.confirm"),
     },
     whatsapp_prefill: t("whatsapp_prefill", { name: "{name}" }),
+    my_availability: {
+      title: t("my_availability.title"),
+      hint: t("my_availability.hint"),
+      empty_hint: t("my_availability.empty_hint"),
+      save: t("my_availability.save"),
+      saving: t("my_availability.saving"),
+      saved: t("my_availability.saved"),
+      error: t("my_availability.error"),
+      reset: t("my_availability.reset"),
+      use_in_filter: t("my_availability.use_in_filter"),
+      profile_link: t("my_availability.profile_link"),
+    },
   };
 
   return (
@@ -103,6 +124,7 @@ export default async function FindPlayerPage({ params }: Props) {
         locale={locale as "pl" | "en" | "ru"}
         districts={districts}
         copy={copy}
+        myAvailability={myAvailability}
       />
     </div>
   );

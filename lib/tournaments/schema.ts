@@ -104,20 +104,41 @@ export const DEFAULT_MATCH_RULES: MatchRules = {
 
 // ─── Tournament form ─────────────────────────────────────────────────────────
 
-const optionalText = z
-  .string()
-  .trim()
-  .max(2000)
-  .optional()
-  .or(z.literal(""))
-  .transform((v) => (v && v.length > 0 ? v : null));
+// Accept string | "" | null | undefined and normalise to a trimmed string or null.
+// Using preprocess avoids the "Invalid input" error you get from a chained
+// `.optional().or(z.literal(""))` when react-hook-form sends `null` for an
+// untouched optional field.
+const optionalText = z.preprocess(
+  (v) => {
+    if (v == null) return null;
+    if (typeof v !== "string") return v;
+    const trimmed = v.trim();
+    return trimmed.length === 0 ? null : trimmed;
+  },
+  z.string().max(2000).nullable(),
+);
 
-const optionalDateString = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD")
-  .optional()
-  .or(z.literal(""))
-  .transform((v) => (v && v.length > 0 ? v : null));
+const optionalDateString = z.preprocess(
+  (v) => {
+    if (v == null) return null;
+    if (typeof v === "string" && v.trim().length === 0) return null;
+    return v;
+  },
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD")
+    .nullable(),
+);
+
+const optionalIntInRange = (min: number, max: number) =>
+  z.preprocess(
+    (v) => {
+      if (v == null) return null;
+      if (typeof v === "string" && v.trim().length === 0) return null;
+      return v;
+    },
+    z.coerce.number().int().min(min).max(max).nullable(),
+  );
 
 export const TournamentFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -127,13 +148,7 @@ export const TournamentFormSchema = z.object({
   starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD"),
   ends_on: optionalDateString,
   registration_deadline: optionalDateString,
-  max_participants: z.coerce
-    .number()
-    .int()
-    .min(2)
-    .max(128)
-    .optional()
-    .nullable(),
+  max_participants: optionalIntInRange(2, 128),
   privacy: z.enum(PRIVACY_OPTIONS).default("club"),
   draw_method: z.enum(SEEDING_METHODS).default("rating"),
   prizes_description: optionalText,

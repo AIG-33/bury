@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Sliders,
   Star,
+  Database,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +29,7 @@ const ICONS: Record<string, LucideIcon> = {
   help: HelpCircle,
   sliders: Sliders,
   star: Star,
+  database: Database,
 };
 
 export type SectionNavIconName = keyof typeof ICONS;
