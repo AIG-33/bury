@@ -23,13 +23,21 @@ const optionalNullableInt = z.preprocess(
   z.number().int().min(0).max(100000).nullable(),
 );
 
-const optionalText = z
-  .string()
-  .trim()
-  .max(2000)
-  .optional()
-  .or(z.literal(""))
-  .transform((v) => (v && v.length > 0 ? v : null));
+// Accepts null / undefined / "" / "  " / a real string. Always returns
+// either a trimmed non-empty string or `null` so the DB column stays clean.
+// IMPORTANT: react-hook-form keeps a default of `null` for unfilled fields,
+// so we MUST tolerate null at parse time (otherwise the server returns
+// invalid_payload while the client passes the same schema thanks to RHF
+// reading the empty DOM input as "").
+const optionalText = z.preprocess(
+  (v) => {
+    if (v === null || v === undefined) return null;
+    if (typeof v !== "string") return null;
+    const t = v.trim();
+    return t.length === 0 ? null : t;
+  },
+  z.string().max(2000).nullable(),
+);
 
 // Mon=1 ... Sun=7 (ISO weekday).
 export const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
