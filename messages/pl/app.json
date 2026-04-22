@@ -657,6 +657,50 @@
       "cta": "Zaproś gracza"
     }
   },
+  "coachJourney": {
+    "title": "Ścieżka trenera: od czego zacząć",
+    "subtitle": "6 kroków, aby uruchomić klub. Idź po kolei — następny krok podświetli się automatycznie.",
+    "subtitle_done": "Konfiguracja podstawowa gotowa. Pulpit pokazuje teraz Twój klub w czasie rzeczywistym.",
+    "progress_label": "Postęp konfiguracji",
+    "completed_badge": "Gotowe do startu",
+    "cta": {
+      "do_now": "Zrób teraz",
+      "open": "Otwórz",
+      "review": "Sprawdź"
+    },
+    "steps": {
+      "profile": {
+        "title": "Opublikuj swój profil",
+        "description": "Bez bio, stawki i pinezki na mapie gracze nie znajdą Cię w katalogu. To pierwsze, co widzą.",
+        "unit": ""
+      },
+      "venue": {
+        "title": "Dodaj obiekt",
+        "description": "Obiekt to klub lub korty, gdzie prowadzisz treningi. Adres i udogodnienia trafiają na Twoją kartę publiczną.",
+        "unit": "obiektów"
+      },
+      "court": {
+        "title": "Opisz korty na obiekcie",
+        "description": "Każdy kort ma swój numer i nawierzchnię. Sloty są przypisane do konkretnego kortu, żeby nie było podwójnych rezerwacji.",
+        "unit": "kortów"
+      },
+      "slot": {
+        "title": "Utwórz pierwszy slot",
+        "description": "Slot to okno na korcie, które gracze mogą zarezerwować. Dodaj pojedyncze zajęcia lub szablon cykliczny (RRULE: co Wt/Czw o 18:00).",
+        "unit": "slotów"
+      },
+      "player": {
+        "title": "Zaproś pierwszych graczy",
+        "description": "Bez graczy nie ma rezerwacji ani meczów. Wyślij zaproszenie e-mailem — gracz zarejestruje się przez link i dołączy do klubu.",
+        "unit": "zaproszeń"
+      },
+      "tournament": {
+        "title": "Uruchom turniej",
+        "description": "Gdy masz 4+ graczy, zorganizuj pierwszy turniej. Drabinka (single-elim, round-robin, swiss) rysowana jest automatycznie z listy uczestników.",
+        "unit": "turniejów"
+      }
+    }
+  },
   "quiz": {
     "title": "Twój startowy ranking",
     "subtitle": "Krótki quiz (2 minuty), aby poznać Twój poziom. Pierwsze 10 meczów dopracuje go z większą wagą.",
@@ -748,9 +792,15 @@
       }
     },
     "error": {
-      "invalid": { "title": "Zaproszenie nieważne", "body": "Link jest nieprawidłowy lub został już użyty." },
+      "invalid": {
+        "title": "Zaproszenie nieważne",
+        "body": "Link jest nieprawidłowy lub został już użyty."
+      },
       "expired": { "title": "Zaproszenie wygasło", "body": "Poproś trenera o ponowne wysłanie." },
-      "already": { "title": "Zaproszenie już zaakceptowane", "body": "Zaloguj się normalnie ze strony logowania." }
+      "already": {
+        "title": "Zaproszenie już zaakceptowane",
+        "body": "Zaloguj się normalnie ze strony logowania."
+      }
     }
   },
   "rating": {
@@ -871,11 +921,22 @@
       "confirm": "Wyślij propozycję"
     },
     "weekday": {
-      "mon": "Poniedziałek", "tue": "Wtorek", "wed": "Środa", "thu": "Czwartek",
-      "fri": "Piątek", "sat": "Sobota", "sun": "Niedziela"
+      "mon": "Poniedziałek",
+      "tue": "Wtorek",
+      "wed": "Środa",
+      "thu": "Czwartek",
+      "fri": "Piątek",
+      "sat": "Sobota",
+      "sun": "Niedziela"
     },
     "weekday_short": {
-      "mon": "Pon", "tue": "Wt", "wed": "Śr", "thu": "Czw", "fri": "Pt", "sat": "Sob", "sun": "Nd"
+      "mon": "Pon",
+      "tue": "Wt",
+      "wed": "Śr",
+      "thu": "Czw",
+      "fri": "Pt",
+      "sat": "Sob",
+      "sun": "Nd"
     },
     "daypart": {
       "morning": "Rano",
@@ -1034,7 +1095,13 @@
         "surface": { "hard": "Hard", "clay": "Mączka", "grass": "Trawa", "carpet": "Dywan" },
         "locale": { "pl": "Polski", "en": "English", "ru": "Русский" },
         "weekday": {
-          "mon": "Pon", "tue": "Wt", "wed": "Śr", "thu": "Czw", "fri": "Pt", "sat": "Sob", "sun": "Nd"
+          "mon": "Pon",
+          "tue": "Wt",
+          "wed": "Śr",
+          "thu": "Czw",
+          "fri": "Pt",
+          "sat": "Sob",
+          "sun": "Nd"
         },
         "daypart": {
           "morning": "Rano (6–10)",
@@ -1804,30 +1871,90 @@
     },
     "glossary_title": "Słowniczek",
     "glossary": {
-      "elo": { "term": "Rating Elo", "def": "Liczba szacująca twój poziom. Rośnie po wygranej z lepszym, spada po porażce z gorszym." },
-      "k_factor": { "term": "K-czynnik", "def": "Ile maks. ruszy się Elo po meczu. Wyższy dla nowych (większa niepewność), niższy dla weteranów." },
-      "provisional": { "term": "Elo wstępne", "def": "Pierwsze 10 meczów. K jest podwójny — system szybciej trafia w twój prawdziwy poziom." },
-      "starting_elo": { "term": "Elo startowe", "def": "Twój początkowy rating, obliczony z 60-sekundowego quizu przy rejestracji." },
-      "race": { "term": "Wyścig sezonu", "def": "Ranking w obrębie jednego sezonu. Top N graczy dostaje nagrody — szczegóły w zakładce Rating." },
-      "tournament_seed": { "term": "Rozstawienie", "def": "Twoje miejsce w drabince według ratingu. Wyższe rozstawienia unikają się w pierwszych rundach." },
-      "bye": { "term": "Wolny los", "def": "Automatyczny awans, gdy liczba graczy nie dzieli się równo." },
-      "no_ad": { "term": "No-ad", "def": "Po równowadze gra się jedną piłkę — odbierający wybiera stronę. Oszczędność czasu." },
-      "super_tiebreak": { "term": "Super tie-break", "def": "Do 10 punktów z przewagą 2 — zamiast pełnego trzeciego seta." },
+      "elo": {
+        "term": "Rating Elo",
+        "def": "Liczba szacująca twój poziom. Rośnie po wygranej z lepszym, spada po porażce z gorszym."
+      },
+      "k_factor": {
+        "term": "K-czynnik",
+        "def": "Ile maks. ruszy się Elo po meczu. Wyższy dla nowych (większa niepewność), niższy dla weteranów."
+      },
+      "provisional": {
+        "term": "Elo wstępne",
+        "def": "Pierwsze 10 meczów. K jest podwójny — system szybciej trafia w twój prawdziwy poziom."
+      },
+      "starting_elo": {
+        "term": "Elo startowe",
+        "def": "Twój początkowy rating, obliczony z 60-sekundowego quizu przy rejestracji."
+      },
+      "race": {
+        "term": "Wyścig sezonu",
+        "def": "Ranking w obrębie jednego sezonu. Top N graczy dostaje nagrody — szczegóły w zakładce Rating."
+      },
+      "tournament_seed": {
+        "term": "Rozstawienie",
+        "def": "Twoje miejsce w drabince według ratingu. Wyższe rozstawienia unikają się w pierwszych rundach."
+      },
+      "bye": {
+        "term": "Wolny los",
+        "def": "Automatyczny awans, gdy liczba graczy nie dzieli się równo."
+      },
+      "no_ad": {
+        "term": "No-ad",
+        "def": "Po równowadze gra się jedną piłkę — odbierający wybiera stronę. Oszczędność czasu."
+      },
+      "super_tiebreak": {
+        "term": "Super tie-break",
+        "def": "Do 10 punktów z przewagą 2 — zamiast pełnego trzeciego seta."
+      },
       "wo": { "term": "Walkower", "def": "Wygrana bez gry. Liczy się do drabinki, nie do Elo." },
-      "match_proposal": { "term": "Propozycja meczu", "def": "Zaproszenie do meczu towarzyskiego. Obie strony muszą potwierdzić wynik." },
-      "verified_coach": { "term": "Trener zweryfikowany", "def": "Trener z co najmniej 5 opublikowanymi opiniami — dostaje zieloną odznakę." },
-      "trust_weighted": { "term": "Wynik trust-weighted", "def": "Ranking trenerów ściągający wysokie średnie z małą liczbą opinii w stronę średniej globalnej." },
-      "outbox": { "term": "Skrzynka powiadomień", "def": "Wewnętrzna kolejka maili. Cron opróżnia ją co kilka minut." }
+      "match_proposal": {
+        "term": "Propozycja meczu",
+        "def": "Zaproszenie do meczu towarzyskiego. Obie strony muszą potwierdzić wynik."
+      },
+      "verified_coach": {
+        "term": "Trener zweryfikowany",
+        "def": "Trener z co najmniej 5 opublikowanymi opiniami — dostaje zieloną odznakę."
+      },
+      "trust_weighted": {
+        "term": "Wynik trust-weighted",
+        "def": "Ranking trenerów ściągający wysokie średnie z małą liczbą opinii w stronę średniej globalnej."
+      },
+      "outbox": {
+        "term": "Skrzynka powiadomień",
+        "def": "Wewnętrzna kolejka maili. Cron opróżnia ją co kilka minut."
+      }
     },
     "faq_title": "Najczęstsze pytania",
     "faq": {
-      "q_register": { "q": "Jak się zarejestrować?", "a": "Albo zaakceptuj e-mail z zaproszeniem od trenera, albo zarejestruj się magic-linkiem / Google." },
-      "q_no_invite": { "q": "Nie mam zaproszenia — mogę dołączyć?", "a": "Tak. Zarejestruj się, zrób quiz startowy i napisz do trenera na WhatsApp z jego profilu." },
-      "q_dispute": { "q": "Spór o wynik — co teraz?", "a": "Każda ze stron może oznaczyć wynik jako sporny. Trener weryfikuje i decyduje; Elo aktualizuje się dopiero potem." },
-      "q_payment": { "q": "Jak działa płatność?", "a": "MVP: ręcznie. Trener oznacza rezerwacje jako opłacone / nieopłacone / gratis. Płatności online — Faza 2." },
-      "q_cancel": { "q": "Jak odwołać rezerwację?", "a": "Moje rezerwacje → Nadchodzące → Odwołaj. Domyślnie do 12 h przed treningiem." },
-      "q_telegram": { "q": "Czemu WhatsApp, a nie Telegram?", "a": "W Polsce dominuje WhatsApp. Telegram to kanał dodatkowy — włączasz w profilu." },
-      "q_data": { "q": "Co z moimi danymi?", "a": "Trzymane na serwerach Supabase w UE. Eksport i usunięcie na żądanie. Nie sprzedajemy danych." }
+      "q_register": {
+        "q": "Jak się zarejestrować?",
+        "a": "Albo zaakceptuj e-mail z zaproszeniem od trenera, albo zarejestruj się magic-linkiem / Google."
+      },
+      "q_no_invite": {
+        "q": "Nie mam zaproszenia — mogę dołączyć?",
+        "a": "Tak. Zarejestruj się, zrób quiz startowy i napisz do trenera na WhatsApp z jego profilu."
+      },
+      "q_dispute": {
+        "q": "Spór o wynik — co teraz?",
+        "a": "Każda ze stron może oznaczyć wynik jako sporny. Trener weryfikuje i decyduje; Elo aktualizuje się dopiero potem."
+      },
+      "q_payment": {
+        "q": "Jak działa płatność?",
+        "a": "MVP: ręcznie. Trener oznacza rezerwacje jako opłacone / nieopłacone / gratis. Płatności online — Faza 2."
+      },
+      "q_cancel": {
+        "q": "Jak odwołać rezerwację?",
+        "a": "Moje rezerwacje → Nadchodzące → Odwołaj. Domyślnie do 12 h przed treningiem."
+      },
+      "q_telegram": {
+        "q": "Czemu WhatsApp, a nie Telegram?",
+        "a": "W Polsce dominuje WhatsApp. Telegram to kanał dodatkowy — włączasz w profilu."
+      },
+      "q_data": {
+        "q": "Co z moimi danymi?",
+        "a": "Trzymane na serwerach Supabase w UE. Eksport i usunięcie na żądanie. Nie sprzedajemy danych."
+      }
     },
     "contact_title": "Coś jeszcze niejasne?",
     "contact_body": "Napisz na hello@bury.tennis lub na WhatsApp do trenera bezpośrednio z jego profilu."

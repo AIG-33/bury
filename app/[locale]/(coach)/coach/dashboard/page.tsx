@@ -4,7 +4,9 @@ import Link from "next/link";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { OnboardingTour, type TourStep } from "@/components/help/onboarding-tour";
+import { SetupChecklist, type SetupChecklistStep } from "@/components/help/setup-checklist";
 import { loadCoachDashboard } from "./actions";
+import { loadCoachJourney, type JourneyStepId } from "@/lib/coach/journey";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -19,7 +21,7 @@ export default async function CoachDashboardPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("coachDashboard");
 
-  const result = await loadCoachDashboard();
+  const [result, journeyResult] = await Promise.all([loadCoachDashboard(), loadCoachJourney()]);
   if (!result.ok && result.error === "not_authenticated") {
     redirect(`/${locale}/login?next=/coach/dashboard`);
   }
@@ -33,6 +35,25 @@ export default async function CoachDashboardPage({ params }: Props) {
   }
 
   const { data } = result;
+  const tJourney = await getTranslations("coachJourney");
+  const journey = journeyResult.ok ? journeyResult.data : null;
+
+  const checklistSteps: SetupChecklistStep[] = (journey?.steps ?? []).map((s) => {
+    const id = s.id as JourneyStepId;
+    const ctaKey: "do_now" | "open" | "review" =
+      s.state === "current" ? "do_now" : s.state === "future" ? "open" : "review";
+    return {
+      id: s.id,
+      title: tJourney(`steps.${id}.title`),
+      description: tJourney(`steps.${id}.description`),
+      href: `/${locale}${s.href}`,
+      state: s.state,
+      count: s.count,
+      countLabel:
+        typeof s.count === "number" && s.count > 0 ? tJourney(`steps.${id}.unit`) : undefined,
+      ctaLabel: tJourney(`cta.${ctaKey}`),
+    };
+  });
   const dayLabels = WEEK_LABELS_BY_LOCALE[locale] ?? WEEK_LABELS_BY_LOCALE.en;
   const fmtTime = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
@@ -92,6 +113,19 @@ export default async function CoachDashboardPage({ params }: Props) {
         result={[t("help.result.1"), t("help.result.2")]}
       />
 
+      {journey && (
+        <SetupChecklist
+          title={tJourney("title")}
+          subtitle={journey.isFullySetUp ? tJourney("subtitle_done") : tJourney("subtitle")}
+          steps={checklistSteps}
+          completed={journey.completed}
+          total={journey.total}
+          progressLabel={tJourney("progress_label")}
+          doneLabel={tJourney("cta.review")}
+          completedBadge={tJourney("completed_badge")}
+        />
+      )}
+
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {(
@@ -105,12 +139,12 @@ export default async function CoachDashboardPage({ params }: Props) {
           <Link
             key={k}
             href={`/${locale}${href}`}
-            className="group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:border-leaf-300 hover:shadow-md"
+            className="hover:border-leaf-300 group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-md"
           >
             <p className="text-xs font-medium uppercase tracking-wider text-ink-500">
               {t(`kpi.${k}.label`)}
             </p>
-            <p className="mt-1 font-mono text-3xl tabular-nums text-ink-900 group-hover:text-leaf-700">
+            <p className="group-hover:text-leaf-700 mt-1 font-mono text-3xl tabular-nums text-ink-900">
               {v}
             </p>
             <p className="mt-1 text-xs text-ink-500">{t(`kpi.${k}.hint`)}</p>
@@ -120,10 +154,10 @@ export default async function CoachDashboardPage({ params }: Props) {
 
       <div className="grid gap-4 md:grid-cols-3">
         {/* Today's sessions */}
-        <section className="md:col-span-2 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+        <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card md:col-span-2">
           <header className="mb-3 flex items-baseline justify-between">
             <h2 className="font-display text-lg font-semibold text-ink-900">{t("today.title")}</h2>
-            <Link href={`/${locale}/coach/slots`} className="text-sm text-leaf-700 hover:underline">
+            <Link href={`/${locale}/coach/slots`} className="text-leaf-700 text-sm hover:underline">
               {t("today.see_all")}
             </Link>
           </header>
@@ -162,7 +196,7 @@ export default async function CoachDashboardPage({ params }: Props) {
                 <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
                   <div className="flex h-20 w-full items-end">
                     <div
-                      className="w-full rounded-md bg-leaf-200"
+                      className="bg-leaf-200 w-full rounded-md"
                       style={{ height: `${heightPct}%` }}
                       title={`${d.bookings} ${t("week.bookings_label")}`}
                     />
@@ -191,10 +225,7 @@ export default async function CoachDashboardPage({ params }: Props) {
           ) : (
             <ul className="space-y-2">
               {data.pending_matches.map((m) => (
-                <li
-                  key={m.id}
-                  className="rounded-md border border-ink-100 px-3 py-2 text-sm"
-                >
+                <li key={m.id} className="rounded-md border border-ink-100 px-3 py-2 text-sm">
                   <div className="font-medium text-ink-900">
                     {m.opponent_a_name ?? "?"} vs {m.opponent_b_name ?? "?"}
                   </div>
@@ -219,7 +250,7 @@ export default async function CoachDashboardPage({ params }: Props) {
                   <span className="text-ink-700">
                     <span
                       aria-hidden
-                      className="mr-2 inline-block w-12 rounded-full bg-leaf-100 px-2 py-0.5 text-center text-[10px] font-medium uppercase text-leaf-700"
+                      className="bg-leaf-100 text-leaf-700 mr-2 inline-block w-12 rounded-full px-2 py-0.5 text-center text-[10px] font-medium uppercase"
                     >
                       {a.kind}
                     </span>

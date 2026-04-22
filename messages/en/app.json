@@ -657,6 +657,50 @@
       "cta": "Invite a player"
     }
   },
+  "coachJourney": {
+    "title": "Coach setup: where to start",
+    "subtitle": "6 steps to launch your club. Follow them in order — the next step lights up automatically.",
+    "subtitle_done": "Base setup is complete. The dashboard now reflects your club in real time.",
+    "progress_label": "Setup progress",
+    "completed_badge": "Ready to roll",
+    "cta": {
+      "do_now": "Do it now",
+      "open": "Open",
+      "review": "Review"
+    },
+    "steps": {
+      "profile": {
+        "title": "Publish your profile",
+        "description": "Without a bio, hourly rate and map pin, players won't find you in the directory. This is the first thing they see.",
+        "unit": ""
+      },
+      "venue": {
+        "title": "Add a venue",
+        "description": "A venue is the club or facility where you coach. Address and amenities show up on your public card.",
+        "unit": "venues"
+      },
+      "court": {
+        "title": "Describe the courts",
+        "description": "Each court has its own number and surface. Slots are tied to a specific court so you never double-book.",
+        "unit": "courts"
+      },
+      "slot": {
+        "title": "Create your first slot",
+        "description": "A slot is a bookable window on a court. You can post a one-off session or a recurring template (RRULE: every Tue/Thu at 18:00).",
+        "unit": "slots"
+      },
+      "player": {
+        "title": "Invite your first players",
+        "description": "No players, no bookings, no matches. Send an email invite — the player registers via the link and joins your club.",
+        "unit": "invites"
+      },
+      "tournament": {
+        "title": "Launch a tournament",
+        "description": "Once you have 4+ players, run your first tournament. The bracket (single-elim, round-robin, swiss) is drawn automatically from the entry list.",
+        "unit": "tournaments"
+      }
+    }
+  },
   "quiz": {
     "title": "Your starting rating",
     "subtitle": "A quick quiz (2 minutes) to estimate your level. Your first 10 matches will fine-tune it with extra weight.",
@@ -748,9 +792,15 @@
       }
     },
     "error": {
-      "invalid": { "title": "Invalid invitation", "body": "The link is invalid or has already been used." },
+      "invalid": {
+        "title": "Invalid invitation",
+        "body": "The link is invalid or has already been used."
+      },
       "expired": { "title": "Invitation expired", "body": "Ask your coach to send a new one." },
-      "already": { "title": "Invitation already accepted", "body": "Sign in normally from the login page." }
+      "already": {
+        "title": "Invitation already accepted",
+        "body": "Sign in normally from the login page."
+      }
     }
   },
   "rating": {
@@ -871,11 +921,22 @@
       "confirm": "Send proposal"
     },
     "weekday": {
-      "mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", "thu": "Thursday",
-      "fri": "Friday", "sat": "Saturday", "sun": "Sunday"
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
     },
     "weekday_short": {
-      "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
     },
     "daypart": {
       "morning": "Morning",
@@ -1034,7 +1095,13 @@
         "surface": { "hard": "Hard", "clay": "Clay", "grass": "Grass", "carpet": "Carpet" },
         "locale": { "pl": "Polski", "en": "English", "ru": "Русский" },
         "weekday": {
-          "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
         },
         "daypart": {
           "morning": "Morning (6–10)",
@@ -1804,30 +1871,93 @@
     },
     "glossary_title": "Glossary",
     "glossary": {
-      "elo": { "term": "Elo rating", "def": "A number that estimates your level. Goes up when you beat better players, down when you lose to worse ones." },
-      "k_factor": { "term": "K-factor", "def": "How much your Elo can move per match. Higher for new players (more uncertainty), lower for veterans." },
-      "provisional": { "term": "Provisional Elo", "def": "Your first 10 matches. K is double, so the system zeroes-in on your real level fast." },
-      "starting_elo": { "term": "Starting Elo", "def": "Your initial rating, computed from a 60-second quiz when you sign up." },
-      "race": { "term": "Season race", "def": "A leaderboard counted within a season window. Top N players win prizes; details on the Rating tab." },
-      "tournament_seed": { "term": "Seed", "def": "Your slot in the bracket based on rating. Higher seeds avoid each other in early rounds." },
-      "bye": { "term": "Bye", "def": "An automatic free pass to the next round when the bracket size doesn't divide evenly." },
-      "no_ad": { "term": "No-ad", "def": "Deuce point becomes sudden-death: receiver chooses side, winner takes the game. Saves time." },
-      "super_tiebreak": { "term": "Super tiebreak", "def": "First to 10, win by 2 — instead of a full third set." },
-      "wo": { "term": "Walkover (W/O)", "def": "Win awarded when an opponent doesn't show up. Counts for advancement, not for Elo." },
-      "match_proposal": { "term": "Match proposal", "def": "A friendly-match request between two players. Both sides confirm before Elo updates." },
-      "verified_coach": { "term": "Verified coach", "def": "Coach with at least 5 published reviews — earns a green Verified badge." },
-      "trust_weighted": { "term": "Trust-weighted score", "def": "Coach ranking that shrinks high averages with few reviews back toward the global mean." },
-      "outbox": { "term": "Notifications outbox", "def": "Internal queue of all emails. The cron worker drains it every few minutes." }
+      "elo": {
+        "term": "Elo rating",
+        "def": "A number that estimates your level. Goes up when you beat better players, down when you lose to worse ones."
+      },
+      "k_factor": {
+        "term": "K-factor",
+        "def": "How much your Elo can move per match. Higher for new players (more uncertainty), lower for veterans."
+      },
+      "provisional": {
+        "term": "Provisional Elo",
+        "def": "Your first 10 matches. K is double, so the system zeroes-in on your real level fast."
+      },
+      "starting_elo": {
+        "term": "Starting Elo",
+        "def": "Your initial rating, computed from a 60-second quiz when you sign up."
+      },
+      "race": {
+        "term": "Season race",
+        "def": "A leaderboard counted within a season window. Top N players win prizes; details on the Rating tab."
+      },
+      "tournament_seed": {
+        "term": "Seed",
+        "def": "Your slot in the bracket based on rating. Higher seeds avoid each other in early rounds."
+      },
+      "bye": {
+        "term": "Bye",
+        "def": "An automatic free pass to the next round when the bracket size doesn't divide evenly."
+      },
+      "no_ad": {
+        "term": "No-ad",
+        "def": "Deuce point becomes sudden-death: receiver chooses side, winner takes the game. Saves time."
+      },
+      "super_tiebreak": {
+        "term": "Super tiebreak",
+        "def": "First to 10, win by 2 — instead of a full third set."
+      },
+      "wo": {
+        "term": "Walkover (W/O)",
+        "def": "Win awarded when an opponent doesn't show up. Counts for advancement, not for Elo."
+      },
+      "match_proposal": {
+        "term": "Match proposal",
+        "def": "A friendly-match request between two players. Both sides confirm before Elo updates."
+      },
+      "verified_coach": {
+        "term": "Verified coach",
+        "def": "Coach with at least 5 published reviews — earns a green Verified badge."
+      },
+      "trust_weighted": {
+        "term": "Trust-weighted score",
+        "def": "Coach ranking that shrinks high averages with few reviews back toward the global mean."
+      },
+      "outbox": {
+        "term": "Notifications outbox",
+        "def": "Internal queue of all emails. The cron worker drains it every few minutes."
+      }
     },
     "faq_title": "Frequently asked",
     "faq": {
-      "q_register": { "q": "How do I sign up?", "a": "Either accept your coach's invitation email, or sign up directly with magic-link / Google." },
-      "q_no_invite": { "q": "I don't have an invitation — can I still join?", "a": "Yes. Sign up directly, take the starting quiz, and contact a coach via WhatsApp from their public profile." },
-      "q_dispute": { "q": "We disagree on the score — what now?", "a": "Either side can mark the score as disputed. The coach reviews and decides; Elo only updates after that." },
-      "q_payment": { "q": "How are payments handled?", "a": "MVP: manual tracking. The coach marks bookings as paid / unpaid / comped. Online payments are coming in Phase 2." },
-      "q_cancel": { "q": "How do I cancel a booking?", "a": "Open My Bookings → Upcoming → Cancel. You can cancel up to 12 h before the session by default." },
-      "q_telegram": { "q": "Why WhatsApp and not Telegram?", "a": "Poland skews heavily toward WhatsApp. Telegram is a secondary channel — toggle it on in your profile." },
-      "q_data": { "q": "What about my data?", "a": "Stored on Supabase EU servers. Export & delete on request. We never sell data." }
+      "q_register": {
+        "q": "How do I sign up?",
+        "a": "Either accept your coach's invitation email, or sign up directly with magic-link / Google."
+      },
+      "q_no_invite": {
+        "q": "I don't have an invitation — can I still join?",
+        "a": "Yes. Sign up directly, take the starting quiz, and contact a coach via WhatsApp from their public profile."
+      },
+      "q_dispute": {
+        "q": "We disagree on the score — what now?",
+        "a": "Either side can mark the score as disputed. The coach reviews and decides; Elo only updates after that."
+      },
+      "q_payment": {
+        "q": "How are payments handled?",
+        "a": "MVP: manual tracking. The coach marks bookings as paid / unpaid / comped. Online payments are coming in Phase 2."
+      },
+      "q_cancel": {
+        "q": "How do I cancel a booking?",
+        "a": "Open My Bookings → Upcoming → Cancel. You can cancel up to 12 h before the session by default."
+      },
+      "q_telegram": {
+        "q": "Why WhatsApp and not Telegram?",
+        "a": "Poland skews heavily toward WhatsApp. Telegram is a secondary channel — toggle it on in your profile."
+      },
+      "q_data": {
+        "q": "What about my data?",
+        "a": "Stored on Supabase EU servers. Export & delete on request. We never sell data."
+      }
     },
     "contact_title": "Still stuck?",
     "contact_body": "Email hello@bury.tennis or WhatsApp the coach directly from their profile."

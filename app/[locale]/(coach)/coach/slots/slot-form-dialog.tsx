@@ -21,6 +21,7 @@ import {
   type IsoWeekday,
 } from "@/lib/slots/schema";
 import { createSlots, type CourtOption } from "./actions";
+import { HelpTooltip } from "@/components/help/help-tooltip";
 
 const ISO_DAYS: IsoWeekday[] = [1, 2, 3, 4, 5, 6, 7];
 
@@ -138,13 +139,11 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4 backdrop-blur-sm">
-      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-pop">
+      <div className="shadow-pop relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-ink-100 bg-white/95 px-6 py-4 backdrop-blur">
           <div className="flex items-center gap-2">
             <CalendarPlus className="h-5 w-5 text-grass-700" />
-            <h2 className="font-display text-lg font-semibold text-ink-900">
-              {copy.title}
-            </h2>
+            <h2 className="font-display text-lg font-semibold text-ink-900">{copy.title}</h2>
           </div>
           <button
             type="button"
@@ -208,16 +207,18 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
                 );
               })}
             </div>
+            {recurrenceKind === "weekly" && (
+              <p className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-ink-500">
+                <span>RRULE</span>
+                <HelpTooltip term="rrule" />
+              </p>
+            )}
           </div>
 
           {/* Recurrence-specific fields */}
           {recurrenceKind === "single" ? (
             <Field label={copy.fields.date}>
-              <input
-                type="date"
-                {...form.register("recurrence.date")}
-                className={inputCls}
-              />
+              <input type="date" {...form.register("recurrence.date")} className={inputCls} />
             </Field>
           ) : (
             <div className="space-y-3 rounded-xl bg-grass-50/50 p-4 ring-1 ring-grass-100">
@@ -244,9 +245,7 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
                   control={form.control}
                   name="recurrence.weekdays"
                   render={({ field }) => {
-                    const set = new Set<IsoWeekday>(
-                      (field.value as IsoWeekday[]) ?? [],
-                    );
+                    const set = new Set<IsoWeekday>((field.value as IsoWeekday[]) ?? []);
                     return (
                       <div className="flex flex-wrap gap-1.5">
                         {ISO_DAYS.map((d) => {
@@ -306,10 +305,7 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field
-              label={copy.fields.max_participants}
-              hint={copy.hints.max_participants}
-            >
+            <Field label={copy.fields.max_participants} hint={copy.hints.max_participants}>
               <input
                 type="number"
                 min={1}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Trophy, ArrowUp, ArrowDown, Minus, MapPin } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { HelpTooltip } from "@/components/help/help-tooltip";
 import { loadCoachLeaderboard } from "./actions";
 import { LeaderboardTabs } from "./leaderboard-tabs";
 
@@ -57,16 +58,8 @@ export default async function CoachLeaderboardPage({ params, searchParams }: Pro
 
       {result.rows.length === 0 ? (
         <EmptyState
-          title={
-            scope === "mine"
-              ? t("empty_mine_title")
-              : t("empty_all_title")
-          }
-          description={
-            scope === "mine"
-              ? t("empty_mine_description")
-              : t("empty_all_description")
-          }
+          title={scope === "mine" ? t("empty_mine_title") : t("empty_all_title")}
+          description={scope === "mine" ? t("empty_mine_description") : t("empty_all_description")}
         />
       ) : (
         <div className="overflow-x-auto rounded-xl2 border border-ink-100 bg-white shadow-card">
@@ -75,13 +68,14 @@ export default async function CoachLeaderboardPage({ params, searchParams }: Pro
               <tr>
                 <th className="w-10 py-3 pl-4 text-left">{t("col_rank")}</th>
                 <th className="py-3 text-left">{t("col_player")}</th>
-                <th className="py-3 text-right">{t("col_elo")}</th>
-                <th className="hidden py-3 text-right md:table-cell">
-                  {t("col_matches")}
+                <th className="py-3 text-right">
+                  <span className="inline-flex items-center gap-1">
+                    {t("col_elo")}
+                    <HelpTooltip term="k_factor" />
+                  </span>
                 </th>
-                <th className="hidden py-3 text-right sm:table-cell">
-                  {t("col_delta_7d")}
-                </th>
+                <th className="hidden py-3 text-right md:table-cell">{t("col_matches")}</th>
+                <th className="hidden py-3 text-right sm:table-cell">{t("col_delta_7d")}</th>
                 <th className="py-3 pr-4 text-right">{t("col_delta_30d")}</th>
               </tr>
             </thead>
@@ -173,20 +167,20 @@ function RankBadge({ rank }: { rank: number }) {
 function DeltaPill({ value }: { value: number }) {
   if (value === 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded-md bg-ink-50 px-1.5 py-0.5 text-[11px] font-mono text-ink-500">
+      <span className="inline-flex items-center gap-0.5 rounded-md bg-ink-50 px-1.5 py-0.5 font-mono text-[11px] text-ink-500">
         <Minus className="h-3 w-3" /> 0
       </span>
     );
   }
   if (value > 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded-md bg-grass-50 px-1.5 py-0.5 text-[11px] font-mono font-semibold text-grass-800">
+      <span className="inline-flex items-center gap-0.5 rounded-md bg-grass-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-grass-800">
         <ArrowUp className="h-3 w-3" /> +{value}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-0.5 rounded-md bg-clay-50 px-1.5 py-0.5 text-[11px] font-mono font-semibold text-clay-800">
+    <span className="inline-flex items-center gap-0.5 rounded-md bg-clay-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-clay-800">
       <ArrowDown className="h-3 w-3" /> {value}
     </span>
   );

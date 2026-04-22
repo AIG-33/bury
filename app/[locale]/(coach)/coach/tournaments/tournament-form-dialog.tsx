@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, X } from "lucide-react";
+import { HelpTooltip } from "@/components/help/help-tooltip";
 import {
   TournamentFormSchema,
   type TournamentForm,
@@ -124,7 +125,7 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 px-4 py-8">
-      <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-pop">
+      <div className="shadow-pop max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-xl font-semibold text-ink-900">
             {initial ? copy.edit_title : copy.create_title}
@@ -148,9 +149,7 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
               className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
             {form.formState.errors.name && (
-              <p className="mt-1 text-xs text-clay-700">
-                {form.formState.errors.name.message}
-              </p>
+              <p className="mt-1 text-xs text-clay-700">{form.formState.errors.name.message}</p>
             )}
           </div>
 
@@ -180,15 +179,9 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
                     className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     {TOURNAMENT_FORMATS.map((f) => (
-                      <option
-                        key={f}
-                        value={f}
-                        disabled={!SUPPORTED_FORMATS_MVP.includes(f)}
-                      >
+                      <option key={f} value={f} disabled={!SUPPORTED_FORMATS_MVP.includes(f)}>
                         {copy.format_labels[f]}
-                        {!SUPPORTED_FORMATS_MVP.includes(f)
-                          ? ` — ${copy.hints.coming_soon}`
-                          : ""}
+                        {!SUPPORTED_FORMATS_MVP.includes(f) ? ` — ${copy.hints.coming_soon}` : ""}
                       </option>
                     ))}
                   </select>
@@ -446,7 +439,10 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   {...form.register("match_rules.no_ad" as any)}
                 />
-                {copy.fields.no_ad}
+                <span className="inline-flex items-center gap-1">
+                  {copy.fields.no_ad}
+                  <HelpTooltip term="no_ad" />
+                </span>
               </label>
 
               {matchRulesKind === "best_of_3" && (
@@ -456,7 +452,10 @@ export function TournamentFormDialog({ open, onClose, initial, copy, onSaved }: 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     {...form.register("match_rules.super_tiebreak_decider" as any)}
                   />
-                  {copy.fields.super_tiebreak}
+                  <span className="inline-flex items-center gap-1">
+                    {copy.fields.super_tiebreak}
+                    <HelpTooltip term="super_tiebreak" />
+                  </span>
                 </label>
               )}
             </div>
