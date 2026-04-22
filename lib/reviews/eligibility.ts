@@ -24,7 +24,7 @@ export type InteractionRow = {
 };
 
 export type ExistingReviewRow = {
-  source_type: "booking" | "tournament" | "manual";
+  source_type: "booking" | "tournament" | "manual" | "open";
   source_id: string | null;
   coach_id: string;
   status: "published" | "hidden" | "flagged" | "removed";
@@ -33,9 +33,14 @@ export type ExistingReviewRow = {
 export type ReviewEligibility = {
   /** Coach the entry is about. */
   coach_id: string;
-  /** First eligible interaction (used as proof when the review is submitted). */
-  source_type: "booking" | "tournament";
-  source_id: string;
+  /**
+   * What proves (or grants) the right to review:
+   *   - `booking`/`tournament` — the player has a confirmed past interaction
+   *   - `open` — any signed-in viewer (no proof required, source_id is null)
+   */
+  source_type: "booking" | "tournament" | "open";
+  /** UUID of the proving interaction; null when `source_type === 'open'`. */
+  source_id: string | null;
   /** True when a non-removed review already exists for that source. */
   has_existing_review: boolean;
   /** Existing review status if any (so the UI can hint at moderation). */

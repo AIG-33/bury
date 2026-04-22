@@ -1949,7 +1949,8 @@
       "source": {
         "booking": "after a lesson",
         "tournament": "tournament participant",
-        "manual": "verified by admin"
+        "manual": "verified by admin",
+        "open": "open review"
       },
       "help": {
         "why": "Reviews must be honest. Players can post one review per real interaction (lesson or tournament).",
@@ -1996,7 +1997,8 @@
         "heading_update": "Update your review",
         "source_hint": {
           "booking": "Eligible because of your confirmed booking.",
-          "tournament": "Eligible because of your tournament participation."
+          "tournament": "Eligible because of your tournament participation.",
+          "open": "Open review — anyone with an account can leave one, even without a shared session."
         },
         "stars_label": "Overall rating",
         "stars_aria": "{n} stars",
@@ -2054,7 +2056,8 @@
     "browse_coaches": "Browse all coaches",
     "source": {
       "booking": "After a lesson",
-      "tournament": "Tournament you played in"
+      "tournament": "Tournament you played in",
+      "open": "Open review"
     },
     "status": {
       "published": "Published",
@@ -2099,7 +2102,8 @@
     "source": {
       "booking": "After a lesson",
       "tournament": "Tournament participant",
-      "manual": "Manual entry"
+      "manual": "Manual entry",
+      "open": "Open review"
     },
     "actions": {
       "publish": "Publish",

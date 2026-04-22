@@ -56,7 +56,8 @@ export function ReviewFormCard({ coachId, eligibility }: Props) {
       const res = await submitReview({
         coach_id: coachId,
         source_type: eligibility.source_type,
-        source_id: eligibility.source_id,
+        // 'open' reviews carry no source row.
+        source_id: eligibility.source_type === "open" ? null : eligibility.source_id,
         stars,
         text: text.trim() || null,
         categories: Object.keys(cats).length > 0 ? cats : null,

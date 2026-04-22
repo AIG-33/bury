@@ -1949,7 +1949,8 @@
       "source": {
         "booking": "po lekcji",
         "tournament": "uczestnik turnieju",
-        "manual": "zweryfikowane przez admina"
+        "manual": "zweryfikowane przez admina",
+        "open": "opinia otwarta"
       },
       "help": {
         "why": "Opinie muszą być uczciwe. Można dodać jedną opinię na realną interakcję (lekcja lub turniej).",
@@ -1996,7 +1997,8 @@
         "heading_update": "Zaktualizuj opinię",
         "source_hint": {
           "booking": "Możesz oceniać dzięki potwierdzonej rezerwacji.",
-          "tournament": "Możesz oceniać dzięki udziałowi w turnieju."
+          "tournament": "Możesz oceniać dzięki udziałowi w turnieju.",
+          "open": "Opinia otwarta — może ją wystawić każdy zarejestrowany użytkownik, nawet bez wspólnej lekcji."
         },
         "stars_label": "Ocena ogólna",
         "stars_aria": "{n} gwiazdek",
@@ -2054,7 +2056,8 @@
     "browse_coaches": "Zobacz wszystkich trenerów",
     "source": {
       "booking": "Po lekcji",
-      "tournament": "Turniej, w którym grałeś"
+      "tournament": "Turniej, w którym grałeś",
+      "open": "Opinia otwarta"
     },
     "status": {
       "published": "Opublikowana",
@@ -2099,7 +2102,8 @@
     "source": {
       "booking": "Po lekcji",
       "tournament": "Uczestnik turnieju",
-      "manual": "Wpis ręczny"
+      "manual": "Wpis ręczny",
+      "open": "Opinia otwarta"
     },
     "actions": {
       "publish": "Opublikuj",

@@ -335,11 +335,34 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
   } = await supabase.auth.getUser();
   const viewer_is_self = user?.id === coachId;
 
+  // Eligibility model: any signed-in non-self viewer can leave an `open`
+  // review. If they additionally have a confirmed booking/tournament with
+  // the coach, we prefer that as the proof source so the review carries the
+  // higher-trust badge ("verified by booking" vs "open"). On top of that we
+  // need to detect an existing review of any kind so the form switches to
+  // edit mode.
   let my_eligibility: ReviewEligibility | null = null;
   if (user && !viewer_is_self) {
     const ms = await loadMyInteractionsWithCoach(supabase, user.id, coachId);
     const allEligibility = computeReviewEligibility(ms.interactions, ms.reviews);
-    my_eligibility = allEligibility.find((e) => e.coach_id === coachId) ?? null;
+    const interactionEligibility =
+      allEligibility.find((e) => e.coach_id === coachId) ?? null;
+
+    if (interactionEligibility) {
+      my_eligibility = interactionEligibility;
+    } else {
+      // Any prior `open` review by this viewer for this coach?
+      const openExisting = ms.reviews.find(
+        (r) => r.coach_id === coachId && r.source_type === "open",
+      );
+      my_eligibility = {
+        coach_id: coachId,
+        source_type: "open",
+        source_id: null,
+        has_existing_review: Boolean(openExisting),
+        existing_status: openExisting?.status ?? null,
+      };
+    }
   }
 
   return {
@@ -643,17 +666,24 @@ async function loadMyInteractionsWithCoach(
 // Submit / update / delete a review.
 // =============================================================================
 
-const SubmitSchema = z.object({
-  coach_id: z.string().uuid(),
-  source_type: z.enum(["booking", "tournament"]),
-  source_id: z.string().uuid(),
-  stars: z.coerce.number().int().min(1).max(5),
-  text: z.string().trim().max(1000).optional().nullable(),
-  categories: z
-    .record(z.string().min(1), z.coerce.number().int().min(1).max(5))
-    .optional()
-    .nullable(),
-});
+const SubmitSchema = z
+  .object({
+    coach_id: z.string().uuid(),
+    // 'open' = any signed-in user, no source_id required.
+    // 'booking' / 'tournament' = proof-backed, source_id is the row id.
+    source_type: z.enum(["booking", "tournament", "open"]),
+    source_id: z.string().uuid().nullable().optional(),
+    stars: z.coerce.number().int().min(1).max(5),
+    text: z.string().trim().max(1000).optional().nullable(),
+    categories: z
+      .record(z.string().min(1), z.coerce.number().int().min(1).max(5))
+      .optional()
+      .nullable(),
+  })
+  .refine(
+    (v) => v.source_type === "open" || (v.source_id != null && v.source_id.length > 0),
+    { message: "source_id required for booking/tournament", path: ["source_id"] },
+  );
 
 export type SubmitReviewResult =
   | { ok: true; id: string }
@@ -681,40 +711,112 @@ export async function submitReview(input: unknown): Promise<SubmitReviewResult> 
   const v = parsed.data;
   if (v.coach_id === user.id) return { ok: false, error: "self_review" };
 
-  // Re-verify eligibility on the server. Trusting the client-passed source is
-  // not an option — anyone could craft any UUID.
-  const { interactions, reviews } = await loadMyInteractionsWithCoach(
-    supabase,
-    user.id,
-    v.coach_id,
-  );
-  const eligible = interactions.some(
-    (i) =>
-      i.coach_id === v.coach_id &&
-      i.source_type === v.source_type &&
-      i.source_id === v.source_id,
-  );
-  if (!eligible) return { ok: false, error: "not_eligible" };
+  // Source-specific verification:
+  //   * 'open'  – any signed-in user; no source row required.
+  //   * 'booking' / 'tournament' – the client-passed source_id must match a
+  //     real interaction this player had with this coach. Trusting the
+  //     client to set source_type='booking' on a random UUID would let an
+  //     attacker forge "verified by booking" badges.
+  if (v.source_type !== "open") {
+    const { interactions } = await loadMyInteractionsWithCoach(
+      supabase,
+      user.id,
+      v.coach_id,
+    );
+    const eligible = interactions.some(
+      (i) =>
+        i.coach_id === v.coach_id &&
+        i.source_type === v.source_type &&
+        i.source_id === v.source_id,
+    );
+    if (!eligible) return { ok: false, error: "not_eligible" };
+  }
 
   const service = createSupabaseServiceClient();
-  // Upsert by unique (reviewer_id, target_coach_id, source_type, source_id).
-  const { data: inserted, error } = (await service
-    .from("coach_reviews")
-    .upsert(
-      {
-        reviewer_id: user.id,
-        target_coach_id: v.coach_id,
-        source_type: v.source_type,
-        source_id: v.source_id,
-        stars: v.stars,
-        text: v.text ?? null,
-        categories: v.categories ?? {},
-        status: "published",
-      } as never,
-      { onConflict: "reviewer_id,target_coach_id,source_type,source_id" },
-    )
-    .select("id")
-    .single()) as { data: { id: string } | null; error: { message: string } | null };
+
+  // Two upsert paths:
+  //   * For 'open' rows source_id is NULL, and Postgres treats NULLs as
+  //     distinct under the table-level UNIQUE. We rely on the partial
+  //     unique index `coach_reviews_one_open_per_pair` to enforce one
+  //     'open' row per (reviewer, coach), and we manually look up the
+  //     existing row id to perform an UPDATE-or-INSERT instead of upsert
+  //     (which can't see the partial index conflict target).
+  //   * For booking/tournament rows the (reviewer, coach, source_type,
+  //     source_id) UNIQUE works fine and we use the original onConflict.
+  let inserted: { id: string } | null = null;
+  let error: { message: string } | null = null;
+
+  if (v.source_type === "open") {
+    const { data: existing } = (await service
+      .from("coach_reviews")
+      .select("id")
+      .eq("reviewer_id", user.id)
+      .eq("target_coach_id", v.coach_id)
+      .eq("source_type", "open")
+      .maybeSingle()) as { data: { id: string } | null };
+
+    if (existing) {
+      const { data, error: e } = (await service
+        .from("coach_reviews")
+        .update({
+          stars: v.stars,
+          text: v.text ?? null,
+          categories: v.categories ?? {},
+          status: "published",
+        } as never)
+        .eq("id", existing.id)
+        .select("id")
+        .single()) as {
+        data: { id: string } | null;
+        error: { message: string } | null;
+      };
+      inserted = data;
+      error = e;
+    } else {
+      const { data, error: e } = (await service
+        .from("coach_reviews")
+        .insert({
+          reviewer_id: user.id,
+          target_coach_id: v.coach_id,
+          source_type: "open",
+          source_id: null,
+          stars: v.stars,
+          text: v.text ?? null,
+          categories: v.categories ?? {},
+          status: "published",
+        } as never)
+        .select("id")
+        .single()) as {
+        data: { id: string } | null;
+        error: { message: string } | null;
+      };
+      inserted = data;
+      error = e;
+    }
+  } else {
+    const { data, error: e } = (await service
+      .from("coach_reviews")
+      .upsert(
+        {
+          reviewer_id: user.id,
+          target_coach_id: v.coach_id,
+          source_type: v.source_type,
+          source_id: v.source_id,
+          stars: v.stars,
+          text: v.text ?? null,
+          categories: v.categories ?? {},
+          status: "published",
+        } as never,
+        { onConflict: "reviewer_id,target_coach_id,source_type,source_id" },
+      )
+      .select("id")
+      .single()) as {
+      data: { id: string } | null;
+      error: { message: string } | null;
+    };
+    inserted = data;
+    error = e;
+  }
 
   if (error || !inserted) return { ok: false, error: "db_error", message: error?.message };
 

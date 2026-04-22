@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Search,
@@ -218,19 +219,25 @@ export function BookingsClient({
         )}
       </section>
 
-      {/* Past */}
-      {past.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {copy.past_title}
-          </h2>
+      {/* Past — show every past or cancelled booking so the player has the
+           full history at hand. Card list scales fine into the hundreds; if
+           it ever stops doing so we'll add a paginator. */}
+      <section className="space-y-3">
+        <h2 className="font-display text-lg font-semibold text-ink-900">
+          {copy.past_title}
+        </h2>
+        {past.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
+            {copy.no_past}
+          </p>
+        ) : (
           <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {past.slice(0, 8).map((b) => (
+            {past.map((b) => (
               <BookingCard key={b.id} booking={b} copy={copy} archived />
             ))}
           </ul>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }
@@ -442,10 +449,21 @@ function SlotMeta({ slot, copy }: { slot: AvailableSlot; copy: BookingsCopy }) {
     return `${fmt.format(new Date(slot.starts_at))}–${fmt.format(new Date(slot.ends_at))}`;
   }, [slot.starts_at, slot.ends_at, copy.locale]);
 
+  const coachLabel = slot.coach_name ?? t("unknown_coach");
+
   return (
     <div className="space-y-1">
       <p className="font-display text-base font-semibold text-ink-900">
-        {slot.coach_name ?? t("unknown_coach")}
+        {slot.coach_id ? (
+          <Link
+            href={`/${copy.locale}/coaches/${slot.coach_id}`}
+            className="inline-flex items-center gap-1 text-grass-800 underline-offset-2 transition hover:underline"
+          >
+            {coachLabel}
+          </Link>
+        ) : (
+          coachLabel
+        )}
       </p>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
         <span className="inline-flex items-center gap-1">
