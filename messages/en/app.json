@@ -1297,7 +1297,7 @@
     },
     "dialog": {
       "title": "Add slots",
-      "intro": "Pick a court, choose one-off or weekly recurrence, and we'll create everything in one go.",
+      "intro": "Pick a court and a date, range or weekly pattern — we'll create every slot in one go.",
       "fields": {
         "court": "Court",
         "kind": "Recurrence",
@@ -1310,18 +1310,30 @@
         "slot_type": "Type",
         "max_participants": "Max participants",
         "price_pln": "Price (PLN)",
-        "notes": "Notes (optional)"
+        "notes": "Notes (optional)",
+        "range_from": "From",
+        "range_to": "To",
+        "selected_dates": "Selected dates"
       },
       "hints": {
         "weekly": "We'll create a slot for each picked weekday across the chosen weeks.",
         "duration": "15–480 minutes.",
         "price": "Optional. Leave empty for free / per-club pricing.",
-        "max_participants": "1 for individual, 2 for pair, more for group."
+        "max_participants": "1 for individual, 2 for pair, more for group.",
+        "dates": "We'll create one slot per date with the time and duration above. Up to 90 dates per batch."
       },
       "kinds": {
         "single": "One-off",
-        "weekly": "Weekly"
+        "weekly": "Weekly",
+        "dates": "Custom dates"
       },
+      "add_range": "Add range",
+      "add_date": "Add date",
+      "clear_all": "Clear",
+      "selected_count": "{n} selected",
+      "no_dates_yet": "No dates yet. Add a range or a single date above.",
+      "weekday_filter_label": "Weekday filter for the range",
+      "weekday_filter_all": "Any day",
       "save": "Create",
       "saving": "Creating…",
       "cancel": "Cancel",

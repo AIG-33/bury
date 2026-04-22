@@ -90,6 +90,17 @@ export const SlotFormSchema = z.object({
         .min(1)
         .max(7),
     }),
+    z.object({
+      kind: z.literal("dates"),
+      // Explicit list of local dates (Europe/Warsaw). The UI lets a coach
+      // pick a date range, optionally filter by weekday, and add/remove
+      // individual days. Capped at 90 to keep the batch insert sane.
+      dates: z
+        .array(dateString)
+        .min(1)
+        .max(90)
+        .transform((arr) => Array.from(new Set(arr)).sort()),
+    }),
   ]),
 });
 

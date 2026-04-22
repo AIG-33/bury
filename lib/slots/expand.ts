@@ -38,6 +38,15 @@ export function expandRecurrence(form: SlotForm): SlotOccurrence[] {
     ];
   }
 
+  // Custom multi-date list. Schema already deduped + sorted the input.
+  if (recurrence.kind === "dates") {
+    return recurrence.dates.map((d) => ({
+      local_date: d,
+      local_start_time: start_time,
+      duration_minutes,
+    }));
+  }
+
   // Weekly: walk N weeks starting from start_date and emit one occurrence
   // per chosen weekday whose date is >= start_date.
   const out: SlotOccurrence[] = [];

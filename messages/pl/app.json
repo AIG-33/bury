@@ -1297,7 +1297,7 @@
     },
     "dialog": {
       "title": "Dodaj sloty",
-      "intro": "Wybierz kort, datę jednorazową lub cotygodniową — utworzymy wszystko za jednym razem.",
+      "intro": "Wybierz kort i datę, zakres dat lub powtarzalność — utworzymy wszystko za jednym razem.",
       "fields": {
         "court": "Kort",
         "kind": "Powtarzalność",
@@ -1310,18 +1310,30 @@
         "slot_type": "Typ",
         "max_participants": "Maks. uczestników",
         "price_pln": "Cena (PLN)",
-        "notes": "Notatka (opcjonalna)"
+        "notes": "Notatka (opcjonalna)",
+        "range_from": "Od",
+        "range_to": "Do",
+        "selected_dates": "Wybrane daty"
       },
       "hints": {
         "weekly": "Utworzymy slot dla każdego wybranego dnia tygodnia w danym oknie tygodni.",
         "duration": "15–480 minut.",
         "price": "Opcjonalna. Zostaw puste dla bezpłatnych / wg cennika klubu.",
-        "max_participants": "1 dla indywidualnego, 2 dla pary, więcej dla grupy."
+        "max_participants": "1 dla indywidualnego, 2 dla pary, więcej dla grupy.",
+        "dates": "Utworzymy jeden slot dla każdej daty z podanym czasem i długością. Maks. 90 dat naraz."
       },
       "kinds": {
         "single": "Jednorazowo",
-        "weekly": "Cotygodniowo"
+        "weekly": "Cotygodniowo",
+        "dates": "Wybrane dni"
       },
+      "add_range": "Dodaj zakres",
+      "add_date": "Dodaj datę",
+      "clear_all": "Wyczyść",
+      "selected_count": "Wybrano: {n}",
+      "no_dates_yet": "Brak dat. Dodaj zakres lub pojedynczą datę powyżej.",
+      "weekday_filter_label": "Filtr dni tygodnia dla zakresu",
+      "weekday_filter_all": "Dowolny dzień",
       "save": "Utwórz",
       "saving": "Tworzę…",
       "cancel": "Anuluj",
