@@ -127,6 +127,13 @@
     "empty_rows": "Żaden wiersz nie pasuje do bieżących filtrów.",
     "range_label": "Pokazano {start}–{end} z {total}",
     "error_load": "Nie udało się załadować",
+    "delete_warnings": {
+      "profiles_delete": "Usunięty zostanie również wpis w auth.users. Użytkownik straci możliwość logowania. Wszystkie rezerwacje, mecze, oceny i opinie z tym użytkownikiem zostaną skasowane kaskadowo."
+    },
+    "errors": {
+      "cannot_delete_self": "Nie możesz usunąć własnego profilu, dopóki jesteś zalogowany.",
+      "insert_disabled": "Dodawanie wierszy do tej tabeli z poziomu edytora jest wyłączone."
+    },
     "table_help": {
       "why": "Surowy edytor tabeli „{table}”. Każda zmiana jest natychmiast zapisywana do Postgresa.",
       "what": {

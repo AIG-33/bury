@@ -127,6 +127,13 @@
     "empty_rows": "No rows match the current filters.",
     "range_label": "Showing {start}–{end} of {total}",
     "error_load": "Could not load",
+    "delete_warnings": {
+      "profiles_delete": "This will also delete the auth.users record. The user will lose all sign-in access. All bookings, matches, ratings and reviews tied to this user will cascade-delete."
+    },
+    "errors": {
+      "cannot_delete_self": "You cannot delete your own profile while signed in.",
+      "insert_disabled": "Inserting rows into this table from the editor is disabled."
+    },
     "table_help": {
       "why": "Raw editor for the “{table}” table. Anything you change here is committed immediately to Postgres.",
       "what": {

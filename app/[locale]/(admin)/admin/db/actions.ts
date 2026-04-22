@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { getTable, listColumnsForForm, type ColumnDef, type TableDef } from "@/lib/admin/tables";
 
 // =============================================================================
@@ -200,6 +201,7 @@ export async function createRow(
   if (!auth.ok) return { ok: false, error: auth.error };
   const t = requireValidTable(table);
   if (!t) return { ok: false, error: "unknown_table" };
+  if (t.disableInsert) return { ok: false, error: "insert_disabled" };
 
   let payload: FormValues;
   try {
@@ -257,6 +259,27 @@ export async function deleteRow(
   if (!auth.ok) return { ok: false, error: auth.error };
   const t = requireValidTable(table);
   if (!t) return { ok: false, error: "unknown_table" };
+
+  // Safety: don't let an admin delete their own profile (would lock them out).
+  if (t.name === "profiles" && id === auth.userId) {
+    return { ok: false, error: "cannot_delete_self" };
+  }
+
+  // Special case: deleting from `profiles` should also remove the matching
+  // auth.users row (FK is profiles.id → auth.users.id ON DELETE CASCADE,
+  // so removing the user wipes the profile too). Otherwise the user would
+  // remain able to sign in but with no profile, which breaks the app.
+  if (t.deleteAlsoAuthUser) {
+    try {
+      const service = createSupabaseServiceClient();
+      const { error } = await service.auth.admin.deleteUser(id);
+      if (error) return { ok: false, error: error.message };
+      revalidatePath(`/admin/db/${t.name}`);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+  }
 
   const { error } = await auth.supabase.from(t.name).delete().eq(t.pk, id);
   if (error) return { ok: false, error: error.message };

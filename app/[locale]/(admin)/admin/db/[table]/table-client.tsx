@@ -115,11 +115,20 @@ export function TableClient({
   }
 
   async function onDelete(id: string) {
-    if (!confirm(t("confirm_delete", { table: table.label }))) return;
+    const baseConfirm = t("confirm_delete", { table: table.label });
+    const extra =
+      table.destructiveHint === "profiles_delete"
+        ? "\n\n" + t("delete_warnings.profiles_delete")
+        : "";
+    if (!confirm(baseConfirm + extra)) return;
     setError(null);
     const res = await deleteRow(table.name, id);
     if (!res.ok) {
-      setError(res.error);
+      const known: Record<string, string> = {
+        cannot_delete_self: t("errors.cannot_delete_self"),
+        insert_disabled: t("errors.insert_disabled"),
+      };
+      setError(known[res.error] ?? res.error);
       return;
     }
     startTransition(() => router.refresh());

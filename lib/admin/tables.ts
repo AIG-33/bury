@@ -64,6 +64,16 @@ export type TableDef = {
   /** Short description for the index card. */
   description: string;
   columns: readonly ColumnDef[];
+  /** Disable the "New row" button (rows are created elsewhere, e.g. by a trigger). */
+  disableInsert?: boolean;
+  /**
+   * For `profiles`: deleting the row also removes the corresponding
+   * `auth.users` record (which then CASCADEs back to profiles). Other
+   * tables ignore this flag.
+   */
+  deleteAlsoAuthUser?: boolean;
+  /** Extra confirmation message shown before deletion (i18n key under adminDb.delete_warnings). */
+  destructiveHint?: string;
 };
 
 const META_COLUMNS: readonly ColumnDef[] = [
@@ -85,6 +95,11 @@ export const TABLES: readonly TableDef[] = [
     searchColumns: ["display_name", "email_local", "first_name", "last_name", "city", "coach_slug"],
     filterColumns: ["is_admin", "is_coach", "is_player", "country", "locale"],
     description: "Players, coaches and admins. Edit roles, contacts, ratings and visibility.",
+    // New profiles are auto-created by the auth.users insert trigger.
+    disableInsert: true,
+    // Deletion also removes the auth.users row (CASCADEs back to profiles).
+    deleteAlsoAuthUser: true,
+    destructiveHint: "profiles_delete",
     columns: [
       { key: "id", label: "ID", type: "uuid", readonly: true },
       { key: "display_name", label: "Display name", type: "text", readonly: true, hint: "Generated from first/last/email" },

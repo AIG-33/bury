@@ -102,11 +102,20 @@ export function RowForm({ table, initial }: Props) {
 
   async function onDelete() {
     if (!isEdit) return;
-    if (!confirm(t("confirm_delete", { table: table.label }))) return;
+    const baseConfirm = t("confirm_delete", { table: table.label });
+    const extra =
+      table.destructiveHint === "profiles_delete"
+        ? "\n\n" + t("delete_warnings.profiles_delete")
+        : "";
+    if (!confirm(baseConfirm + extra)) return;
     const id = String(initial?.[table.pk] ?? "");
     const res = await deleteRow(table.name, id);
     if (!res.ok) {
-      setError(res.error);
+      const known: Record<string, string> = {
+        cannot_delete_self: t("errors.cannot_delete_self"),
+        insert_disabled: t("errors.insert_disabled"),
+      };
+      setError(known[res.error] ?? res.error);
       return;
     }
     startTransition(() => router.push(`/${locale}/admin/db/${table.name}` as never));

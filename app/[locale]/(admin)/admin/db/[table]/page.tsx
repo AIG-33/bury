@@ -66,14 +66,16 @@ export default async function AdminDbTablePage({ params, searchParams }: Props) 
           <ChevronLeft className="h-3.5 w-3.5" />
           {t("back_to_tables")}
         </Link>
-        <Link
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          href={`/admin/db/${tbl.name}/new` as any}
-          className="inline-flex items-center gap-1.5 rounded-full bg-grass-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-grass-800"
-        >
-          <Plus className="h-4 w-4" />
-          {t("new_row")}
-        </Link>
+        {!tbl.disableInsert && (
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={`/admin/db/${tbl.name}/new` as any}
+            className="inline-flex items-center gap-1.5 rounded-full bg-grass-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-grass-800"
+          >
+            <Plus className="h-4 w-4" />
+            {t("new_row")}
+          </Link>
+        )}
       </div>
 
       <PageHeader

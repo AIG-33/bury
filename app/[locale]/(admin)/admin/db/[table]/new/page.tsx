@@ -14,6 +14,7 @@ export default async function AdminDbNewRowPage({ params }: Props) {
   const t = await getTranslations("adminDb");
   const tbl = getTable(table);
   if (!tbl) notFound();
+  if (tbl.disableInsert) notFound();
 
   return (
     <div className="page-shell space-y-6">
