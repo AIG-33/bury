@@ -597,7 +597,9 @@
     "coach": "Coach panel",
     "admin": "Admin",
     "menu_open": "Open menu",
-    "menu_close": "Close menu"
+    "menu_close": "Close menu",
+    "group_personal": "Your zone",
+    "group_public": "Club"
   },
   "coachNav": {
     "dashboard": "Dashboard",

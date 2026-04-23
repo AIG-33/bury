@@ -98,9 +98,9 @@ export function ProfileMenu({ label, items }: Props) {
           right: coords.right,
           zIndex: 1000,
         }}
-        className="min-w-[200px] overflow-hidden rounded-xl border border-ink-200/70 bg-white shadow-[0_18px_40px_-18px_rgba(15,27,20,0.35)]"
+        className="min-w-[220px] overflow-hidden rounded-2xl border border-ink-200/70 bg-white shadow-[0_22px_48px_-20px_rgba(15,27,20,0.35)]"
       >
-        <ul className="py-1">
+        <ul className="py-1.5">
           {items.map((it) => {
             const isActive =
               pathname === it.href || pathname.startsWith(`${it.href}/`);
@@ -113,13 +113,18 @@ export function ProfileMenu({ label, items }: Props) {
                   role="menuitem"
                   onClick={() => setOpen(false)}
                   className={[
-                    "flex items-center gap-2 px-3 py-2 text-[13px] transition-colors",
+                    "flex items-center gap-2.5 px-3.5 py-2.5 font-display text-[13.5px] tracking-tight transition-colors",
                     isActive
-                      ? "bg-grass-50 text-grass-800"
-                      : "text-ink-800 hover:bg-ink-50",
+                      ? "bg-grass-50 font-bold text-grass-900"
+                      : "font-semibold text-ink-800 hover:bg-grass-50/60 hover:text-grass-900",
                   ].join(" ")}
                 >
-                  <Icon className="h-4 w-4 text-ink-500" />
+                  <Icon
+                    className={[
+                      "h-4 w-4",
+                      isActive ? "text-grass-700" : "text-ink-500",
+                    ].join(" ")}
+                  />
                   {it.label}
                 </Link>
               </li>
@@ -138,30 +143,24 @@ export function ProfileMenu({ label, items }: Props) {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={[
-          "group relative inline-flex h-8 items-center gap-1 rounded-full px-3 text-[12.5px] font-medium tracking-tight transition-colors duration-300 ease-followthrough",
-          active ? "text-grass-800" : "text-ink-700 hover:text-grass-800",
+          "group relative inline-flex h-9 items-center gap-1.5 rounded-full px-3",
+          "font-display text-[13px] tracking-tight transition-all duration-300 ease-followthrough",
+          active
+            ? "bg-white font-bold text-grass-900 shadow-[0_8px_20px_-12px_rgba(31,138,76,0.5)] ring-1 ring-grass-300/60"
+            : "font-semibold text-ink-800 hover:-translate-y-0.5 hover:bg-white/70 hover:text-grass-900",
         ].join(" ")}
       >
         {active && (
           <span
             aria-hidden
-            className="mr-1.5 inline-block h-1 w-1 rounded-full bg-grass-500 shadow-[0_0_6px_rgba(31,138,76,0.6)]"
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-grass-500 shadow-[0_0_8px_rgba(31,138,76,0.85)]"
           />
         )}
-        <span className="relative">
-          {label}
-          <span
-            aria-hidden
-            className={[
-              "pointer-events-none absolute -bottom-1 left-0 right-0 h-px origin-left bg-grass-700 transition-transform duration-500 ease-followthrough",
-              active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
-            ].join(" ")}
-          />
-        </span>
+        {label}
         <ChevronDown
           className={[
-            "h-3 w-3 text-ink-500 transition-transform duration-200",
-            open ? "rotate-180" : "",
+            "h-3.5 w-3.5 text-ink-500 transition-transform duration-200",
+            open ? "rotate-180 text-grass-700" : "",
           ].join(" ")}
         />
       </button>

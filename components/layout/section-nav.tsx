@@ -77,7 +77,7 @@ export function SectionNav({ items, accent = "grass" }: Props) {
         };
 
   return (
-    <div className="sticky top-14 z-30 border-b border-ink-200/50 bg-white/55 backdrop-blur-xl">
+    <div className="sticky top-16 z-30 border-b border-ink-200/50 bg-white/55 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1440px] items-center px-5 py-2.5 md:px-10">
         <nav
           aria-label="Section"

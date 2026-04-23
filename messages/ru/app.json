@@ -597,7 +597,9 @@
     "coach": "Кабинет тренера",
     "admin": "Админ",
     "menu_open": "Открыть меню",
-    "menu_close": "Закрыть меню"
+    "menu_close": "Закрыть меню",
+    "group_personal": "Личное",
+    "group_public": "Клуб"
   },
   "coachNav": {
     "dashboard": "Кабинет",

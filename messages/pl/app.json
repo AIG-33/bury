@@ -597,7 +597,9 @@
     "coach": "Panel trenera",
     "admin": "Admin",
     "menu_open": "Otwórz menu",
-    "menu_close": "Zamknij menu"
+    "menu_close": "Zamknij menu",
+    "group_personal": "Twoja strefa",
+    "group_public": "Klub"
   },
   "coachNav": {
     "dashboard": "Pulpit",
