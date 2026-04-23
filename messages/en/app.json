@@ -88,6 +88,10 @@
     "awaiting_their_confirmation": "Awaiting opponent",
     "scheduled": "Scheduled",
     "recent": "Recent",
+    "history_link": {
+      "title": "Match history & Elo changes",
+      "subtitle": "Every completed match and the Elo +/- you got from it now lives on the \"My rating\" page."
+    },
     "empty": {
       "awaiting_my_title": "Nothing to confirm",
       "awaiting_my_body": "When an opponent reports a score for a match with you, it appears here.",
@@ -1103,7 +1107,7 @@
       "what": {
         "1": "Check current Elo and the 30-day delta.",
         "2": "See how Elo grew / dropped on the chart (last 20 matches).",
-        "3": "Track the seasonal race and the top coaches leaderboard."
+        "3": "Browse your recent matches: opponent, score, and the Elo +/- you got from each."
       },
       "result": {
         "1": "After each confirmed match Elo updates automatically.",
@@ -1141,11 +1145,17 @@
       "coming_soon": "Full race standings coming soon.",
       "no_season": "No active season right now."
     },
-    "coaches": {
-      "title": "Top coaches",
-      "subtitle": "by player ratings",
-      "empty_title": "No ratings yet",
-      "empty_description": "The top-20 coaches will show up here once players start leaving reviews."
+    "matches": {
+      "title": "My matches",
+      "subtitle": "{n, plural, =0 {no matches yet} =1 {last # match} other {last # matches}}",
+      "empty_title": "No completed matches yet",
+      "empty_description": "Once your first match is confirmed by both players it will show up here with the score and the Elo change.",
+      "won": "Won",
+      "lost": "Lost",
+      "cancelled": "Cancelled",
+      "no_change": "no Elo",
+      "new_elo_label": "Elo",
+      "tournament_generic": "Tournament"
     },
     "quiz_cta": {
       "eyebrow": "Action required",

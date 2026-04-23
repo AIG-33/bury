@@ -2,11 +2,13 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import {
   AlertTriangle,
+  ArrowRight,
   Calendar,
   CheckCircle2,
   Clock,
   History,
 } from "lucide-react";
+import Link from "next/link";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadMyMatches } from "./actions";
@@ -126,28 +128,28 @@ export default async function MyMatchesPage({ params }: Props) {
         )}
       </Section>
 
-      {data.recent.length > 0 && (
-        <Section
-          icon={<History className="h-4 w-4 text-ink-500" />}
-          title={t("recent")}
-          count={data.recent.length}
-        >
-          <ul className="space-y-3">
-            {data.recent.slice(0, 30).map((m) => (
-              <MatchCard
-                key={m.id}
-                m={m}
-                variant="recent"
-                locale={locale}
-                whatsappPrefill={whatsappPrefill}
-              />
-            ))}
-          </ul>
-        </Section>
-      )}
+      {/* History link — full match history with Elo deltas now lives on /me/rating */}
+      <Link
+        href={`/${locale}/me/rating#matches`}
+        className="group flex items-center justify-between gap-3 rounded-xl border border-ink-100 bg-white p-4 shadow-sm transition hover:border-grass-200 hover:bg-grass-50/40"
+      >
+        <span className="inline-flex items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-700">
+            <History className="h-4 w-4" />
+          </span>
+          <span className="min-w-0">
+            <p className="font-display text-sm font-semibold text-ink-900">
+              {t("history_link.title")}
+            </p>
+            <p className="text-xs text-ink-600">
+              {t("history_link.subtitle")}
+            </p>
+          </span>
+        </span>
+        <ArrowRight className="h-4 w-4 shrink-0 text-grass-700 transition group-hover:translate-x-0.5" />
+      </Link>
 
-      {data.recent.length === 0 &&
-        data.scheduled.length === 0 &&
+      {data.scheduled.length === 0 &&
         data.awaitingMyConfirmation.length === 0 &&
         data.awaitingTheirConfirmation.length === 0 && (
           <div className="rounded-xl2 border border-dashed border-ink-200 bg-white p-8 text-center">

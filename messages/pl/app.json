@@ -88,6 +88,10 @@
     "awaiting_their_confirmation": "Oczekuje przeciwnika",
     "scheduled": "Zaplanowane",
     "recent": "Ostatnie",
+    "history_link": {
+      "title": "Historia meczów i zmiany Elo",
+      "subtitle": "Wszystkie rozegrane mecze i +/- Elo z każdego z nich znajdziesz teraz na stronie „Mój ranking”."
+    },
     "empty": {
       "awaiting_my_title": "Nic do potwierdzenia",
       "awaiting_my_body": "Gdy przeciwnik wpisze wynik waszego meczu, pojawi się tutaj.",
@@ -1103,7 +1107,7 @@
       "what": {
         "1": "Sprawdzić aktualne Elo i zmianę z ostatnich 30 dni.",
         "2": "Zobaczyć, jak rosło / spadało Elo na wykresie (ostatnie 20 meczów).",
-        "3": "Śledzić sezonowy wyścig i ranking topowych trenerów."
+        "3": "Przejrzeć ostatnie mecze: rywal, wynik i +/- Elo z każdego z nich."
       },
       "result": {
         "1": "Po każdym potwierdzonym meczu Elo aktualizuje się automatycznie.",
@@ -1141,11 +1145,17 @@
       "coming_soon": "Pełne tabele wyścigu pojawią się wkrótce.",
       "no_season": "Aktualnie brak aktywnego sezonu."
     },
-    "coaches": {
-      "title": "Top trenerzy",
-      "subtitle": "wg ocen graczy",
-      "empty_title": "Jeszcze nie ma ocen",
-      "empty_description": "Top-20 trenerów pojawi się tutaj, gdy gracze zaczną zostawiać oceny."
+    "matches": {
+      "title": "Moje mecze",
+      "subtitle": "{n, plural, =0 {brak meczów} =1 {ostatni # mecz} few {ostatnie # mecze} many {ostatnich # meczów} other {ostatnich # meczów}}",
+      "empty_title": "Brak rozegranych meczów",
+      "empty_description": "Gdy pierwszy mecz zostanie potwierdzony przez obu graczy, pojawi się tutaj wraz z wynikiem i zmianą Elo.",
+      "won": "Wygrana",
+      "lost": "Porażka",
+      "cancelled": "Odwołany",
+      "no_change": "bez Elo",
+      "new_elo_label": "Elo",
+      "tournament_generic": "Turniej"
     },
     "quiz_cta": {
       "eyebrow": "Akcja wymagana",

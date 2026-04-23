@@ -5,14 +5,15 @@ import {
   ArrowDown,
   ArrowUp,
   Calendar,
-  Trophy,
-  Star,
+  Clock,
+  Minus,
   Sparkles,
+  Trophy,
   ArrowRight,
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
-import { loadMyRatingTab } from "@/lib/rating/history";
+import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
 import { PageHeader } from "@/components/layout/page-header";
 import { EloChart } from "./elo-chart";
 
@@ -26,8 +27,10 @@ export default async function MyRatingPage({ params }: Props) {
   const data = await loadMyRatingTab();
   if (!data) redirect(`/${locale}/login`);
 
-  const { hero, history, season, topCoaches, needs_onboarding_quiz } = data;
+  const { hero, history, season, recentMatches, needs_onboarding_quiz } = data;
   const deltaPositive = hero.delta_30d >= 0;
+
+  const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   return (
     <div className="page-shell space-y-8">
@@ -204,53 +207,49 @@ export default async function MyRatingPage({ params }: Props) {
         </section>
       </div>
 
-      {/* Top coaches placeholder */}
+      {/* My recent matches with Elo deltas */}
       <section className="surface-card">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-display text-lg font-semibold text-ink-900">
-            {t("coaches.title")}
+            {t("matches.title")}
           </h2>
-          <span className="text-xs text-ink-500">{t("coaches.subtitle")}</span>
+          <p className="text-xs text-ink-500">
+            {t("matches.subtitle", { n: recentMatches.length })}
+          </p>
         </div>
-        {topCoaches.length === 0 ? (
+
+        {recentMatches.length === 0 ? (
           <EmptyState
-            title={t("coaches.empty_title")}
-            description={t("coaches.empty_description")}
+            title={t("matches.empty_title")}
+            description={t("matches.empty_description")}
           />
         ) : (
-          <ol className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {topCoaches.map((c, i) => (
-              <li
-                key={c.id}
-                className="flex items-center gap-3 rounded-lg border border-ink-100 px-3 py-2"
-              >
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-ink-100 text-xs font-semibold text-ink-700">
-                  {i + 1}
-                </span>
-                <CoachAvatar url={c.avatar_url} name={c.display_name ?? "?"} />
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-medium text-ink-900">
-                    {c.display_name ?? "—"}
-                  </p>
-                  <p className="truncate text-xs text-ink-500">
-                    {c.city ?? "—"}
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-1 rounded-md bg-ball-50 px-2 py-0.5 text-xs font-semibold text-ball-800">
-                  <Star className="h-3 w-3 fill-ball-500 text-ball-500" />
-                  {c.coach_avg_rating?.toFixed(2) ?? "—"}
-                  <span className="text-ink-500">
-                    ({c.coach_reviews_count})
-                  </span>
-                </div>
-              </li>
+          <ul className="space-y-2">
+            {recentMatches.map((m) => (
+              <MatchListRow
+                key={m.id}
+                m={m}
+                copy={{
+                  won: t("matches.won"),
+                  lost: t("matches.lost"),
+                  cancelled: t("matches.cancelled"),
+                  no_change: t("matches.no_change"),
+                  new_elo_label: t("matches.new_elo_label"),
+                  tournament_generic: t("matches.tournament_generic"),
+                }}
+                dateFmt={dateFmt}
+              />
             ))}
-          </ol>
+          </ul>
         )}
       </section>
     </div>
   );
 }
+
+// =============================================================================
+// Internal components
+// =============================================================================
 
 function Stat({
   label,
@@ -284,13 +283,173 @@ function Stat({
   );
 }
 
-function CoachAvatar({ url, name }: { url: string | null; name: string }) {
+function MatchListRow({
+  m,
+  copy,
+  dateFmt,
+}: {
+  m: RatingMatchRow;
+  copy: {
+    won: string;
+    lost: string;
+    cancelled: string;
+    no_change: string;
+    new_elo_label: string;
+    tournament_generic: string;
+  };
+  dateFmt: Intl.DateTimeFormat;
+}) {
+  const won = m.i_am_winner === true;
+  const lost = m.i_am_winner === false;
+  const isCancelled = m.outcome === "cancelled";
+
+  // Per-set scores from the viewer's perspective (you – them).
+  const setStrings = (m.sets ?? []).map((s) => {
+    const my = m.is_p1 ? s.p1_games : s.p2_games;
+    const their = m.is_p1 ? s.p2_games : s.p1_games;
+    const myTb = m.is_p1 ? s.tiebreak_p1 : s.tiebreak_p2;
+    const theirTb = m.is_p1 ? s.tiebreak_p2 : s.tiebreak_p1;
+    const wonSet = my > their;
+    return { my, their, myTb, theirTb, wonSet };
+  });
+
+  return (
+    <li className="relative overflow-hidden rounded-xl border border-ink-100 bg-white p-3 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Avatar */}
+        <Avatar url={m.opponent.avatar_url} name={m.opponent.display_name ?? "?"} />
+
+        {/* Opponent + meta */}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-display text-base font-semibold text-ink-900">
+              {m.opponent.display_name ?? "—"}
+            </p>
+            <span className="font-mono text-xs tabular-nums text-ink-500">
+              {m.opponent.current_elo}
+            </span>
+
+            {isCancelled ? (
+              <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium text-ink-700">
+                {copy.cancelled}
+              </span>
+            ) : won ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[11px] font-semibold text-grass-800">
+                <Trophy className="h-3 w-3" />
+                {copy.won}
+              </span>
+            ) : lost ? (
+              <span className="rounded-full bg-clay-50 px-2 py-0.5 text-[11px] font-semibold text-clay-700">
+                {copy.lost}
+              </span>
+            ) : null}
+
+            {m.tournament_id && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-ball-50 px-2 py-0.5 text-[11px] font-medium text-ball-800 ring-1 ring-ball-200">
+                <Trophy className="h-3 w-3" />
+                {m.tournament_name ?? copy.tournament_generic}
+              </span>
+            )}
+          </div>
+
+          <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-500">
+            <Clock className="h-3 w-3" />
+            {dateFmt.format(new Date(m.played_at))}
+          </p>
+
+          {setStrings.length > 0 && (
+            <p className="mt-1 inline-flex flex-wrap items-center gap-1.5 font-mono text-sm tabular-nums text-ink-800">
+              {setStrings.map((s, i) => (
+                <span
+                  key={i}
+                  className={
+                    s.wonSet
+                      ? won
+                        ? "font-semibold text-grass-700"
+                        : "font-semibold text-ink-800"
+                      : "text-ink-500"
+                  }
+                >
+                  {s.my}–{s.their}
+                  {s.myTb != null && s.theirTb != null
+                    ? `(${s.myTb}\u2013${s.theirTb})`
+                    : ""}
+                </span>
+              ))}
+            </p>
+          )}
+        </div>
+
+        {/* Elo change block */}
+        <EloChange
+          delta={m.delta}
+          newElo={m.new_elo}
+          noChangeLabel={copy.no_change}
+          newEloLabel={copy.new_elo_label}
+        />
+      </div>
+    </li>
+  );
+}
+
+function EloChange({
+  delta,
+  newElo,
+  noChangeLabel,
+  newEloLabel,
+}: {
+  delta: number | null;
+  newElo: number | null;
+  noChangeLabel: string;
+  newEloLabel: string;
+}) {
+  if (delta == null || newElo == null) {
+    return (
+      <div className="flex shrink-0 flex-col items-end">
+        <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-1 font-mono text-xs text-ink-500">
+          <Minus className="h-3 w-3" />
+          {noChangeLabel}
+        </span>
+      </div>
+    );
+  }
+
+  const positive = delta > 0;
+  const zero = delta === 0;
+  const cls = zero
+    ? "bg-ink-50 text-ink-700 ring-ink-200"
+    : positive
+      ? "bg-grass-50 text-grass-800 ring-grass-200"
+      : "bg-clay-50 text-clay-800 ring-clay-200";
+
+  return (
+    <div className="flex shrink-0 flex-col items-end gap-0.5">
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-sm font-bold tabular-nums ring-1 ${cls}`}
+      >
+        {zero ? (
+          <Minus className="h-3.5 w-3.5" />
+        ) : positive ? (
+          <ArrowUp className="h-3.5 w-3.5" />
+        ) : (
+          <ArrowDown className="h-3.5 w-3.5" />
+        )}
+        {positive ? `+${delta}` : delta}
+      </span>
+      <span className="font-mono text-[11px] tabular-nums text-ink-500">
+        {newEloLabel} {newElo}
+      </span>
+    </div>
+  );
+}
+
+function Avatar({ url, name }: { url: string | null; name: string }) {
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="h-8 w-8 rounded-full object-cover" />;
+    return <img src={url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink-100" />;
   }
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-grass-100 text-xs font-bold text-grass-700">
+    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 font-display text-sm font-bold text-grass-700 ring-1 ring-grass-200">
       {name.trim().slice(0, 1).toUpperCase()}
     </span>
   );
