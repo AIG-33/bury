@@ -74,18 +74,20 @@ export default async function BecomeCoachPage({ params }: Props) {
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-grass-700">
           {t("eyebrow")}
         </p>
-        <h1 className="font-display text-3xl font-bold text-ink-900">
-          {t("title")}
-        </h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h1 className="font-display text-3xl font-bold text-ink-900">
+            {t("title")}
+          </h1>
+          <HelpPanel
+            pageId="me-become-coach"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        </div>
         <p className="text-ink-600">{t("subtitle")}</p>
       </header>
-
-      <HelpPanel
-        pageId="me-become-coach"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       {is_already_coach ? (
         <div className="rounded-xl2 border border-grass-200 bg-grass-50 p-5">

@@ -29,25 +29,27 @@ export default async function MyMatchesPage({ params }: Props) {
     <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="font-display text-3xl font-bold text-ink-900">
+              {t("title")}
+            </h1>
+            <HelpPanel
+              pageId="me-matches"
+              variant="inline"
+              why={t("help.why")}
+              what={[
+                t("help.what.1"),
+                t("help.what.2"),
+                t("help.what.3"),
+                t("help.what.4"),
+              ]}
+              result={[t("help.result.1"), t("help.result.2")]}
+            />
+          </div>
           <p className="mt-1 text-ink-600">{t("subtitle")}</p>
         </div>
         <QuickRegisterButton />
       </header>
-
-      <HelpPanel
-        pageId="me-matches"
-        why={t("help.why")}
-        what={[
-          t("help.what.1"),
-          t("help.what.2"),
-          t("help.what.3"),
-          t("help.what.4"),
-        ]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       <Section
         icon={<AlertTriangle className="h-4 w-4 text-ball-700" />}

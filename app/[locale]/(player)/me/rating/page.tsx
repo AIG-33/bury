@@ -35,13 +35,15 @@ export default async function MyRatingPage({ params }: Props) {
         eyebrow="Player · Rating"
         title={t("title")}
         subtitle={t("subtitle")}
-      />
-
-      <HelpPanel
-        pageId="me-rating"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
+        help={
+          <HelpPanel
+            pageId="me-rating"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
       />
 
       {needs_onboarding_quiz && (

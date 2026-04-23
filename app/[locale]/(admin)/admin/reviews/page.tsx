@@ -23,18 +23,20 @@ export default async function AdminReviewsPage({ params, searchParams }: Props) 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
       <header>
-        <h1 className="font-display text-2xl font-bold text-ink-900">
-          {t("title")}
-        </h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h1 className="font-display text-2xl font-bold text-ink-900">
+            {t("title")}
+          </h1>
+          <HelpPanel
+            pageId="admin-reviews"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        </div>
         <p className="mt-1 text-ink-600">{t("subtitle")}</p>
       </header>
-
-      <HelpPanel
-        pageId="admin-reviews"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       {rows!.length === 0 ? (
         <EmptyState

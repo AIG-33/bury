@@ -75,7 +75,16 @@ export default async function InvitePage({ params }: Props) {
         <div className="mb-4 flex items-center gap-3">
           <TennisBall className="h-10 w-10 text-ball-500" />
           <div>
-            <h1 className="font-display text-2xl font-bold text-ink-900">{t("title", { coach: coachName })}</h1>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h1 className="font-display text-2xl font-bold text-ink-900">{t("title", { coach: coachName })}</h1>
+              <HelpPanel
+                pageId="invite-page"
+                variant="inline"
+                why={t("help.why")}
+                what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+                result={[t("help.result.1"), t("help.result.2")]}
+              />
+            </div>
             <p className="text-sm text-ink-600">{t("for", { email: inv.email })}</p>
           </div>
         </div>
@@ -90,12 +99,6 @@ export default async function InvitePage({ params }: Props) {
         </Link>
       </div>
 
-      <HelpPanel
-        pageId="invite-page"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
     </div>
   );
 }

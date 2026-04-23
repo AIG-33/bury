@@ -27,13 +27,15 @@ export default async function AdminDbIndexPage({ params }: Props) {
         eyebrow="Admin · Database"
         title={t("title")}
         subtitle={t("subtitle")}
-      />
-
-      <HelpPanel
-        pageId="admin-db"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
+        help={
+          <HelpPanel
+            pageId="admin-db"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
       />
 
       <div className="space-y-8">

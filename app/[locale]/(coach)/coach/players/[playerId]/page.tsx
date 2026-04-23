@@ -158,9 +158,18 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
       <header className="flex flex-wrap items-center gap-4 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
         <Avatar src={player.avatar_url} name={player.display_name ?? "?"} size={64} />
         <div className="min-w-0 flex-1 space-y-1">
-          <h1 className="font-display text-2xl font-bold text-ink-900">
-            {player.display_name ?? t("unknown_name")}
-          </h1>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="font-display text-2xl font-bold text-ink-900">
+              {player.display_name ?? t("unknown_name")}
+            </h1>
+            <HelpPanel
+              pageId="coach-player-detail"
+              variant="inline"
+              why={t("help.why")}
+              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+              result={[t("help.result.1"), t("help.result.2")]}
+            />
+          </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-ink-600">
             {(player.city || player.district_name) && (
               <span className="inline-flex items-center gap-1">
@@ -206,13 +215,6 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
           />
         </div>
       </header>
-
-      <HelpPanel
-        pageId="coach-player-detail"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

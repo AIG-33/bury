@@ -37,6 +37,18 @@ export default async function AdminQuizVersionPage({ params }: Props) {
           <h1 className="font-display text-3xl font-bold text-ink-900">
             v{version.version}
           </h1>
+          <HelpPanel
+            pageId="admin-quiz-version"
+            variant="inline"
+            why={t("detail.help.why")}
+            what={[
+              t("detail.help.what.1"),
+              t("detail.help.what.2"),
+              t("detail.help.what.3"),
+              t("detail.help.what.4"),
+            ]}
+            result={[t("detail.help.result.1"), t("detail.help.result.2")]}
+          />
           {version.is_active ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-800">
               <CheckCircle2 className="h-3 w-3" /> {t("status_active")}
@@ -54,18 +66,6 @@ export default async function AdminQuizVersionPage({ params }: Props) {
           </p>
         )}
       </header>
-
-      <HelpPanel
-        pageId="admin-quiz-version"
-        why={t("detail.help.why")}
-        what={[
-          t("detail.help.what.1"),
-          t("detail.help.what.2"),
-          t("detail.help.what.3"),
-          t("detail.help.what.4"),
-        ]}
-        result={[t("detail.help.result.1"), t("detail.help.result.2")]}
-      />
 
       <QuestionsClient
         locale={locale as "pl" | "en" | "ru"}

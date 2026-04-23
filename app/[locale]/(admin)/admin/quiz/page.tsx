@@ -20,16 +20,18 @@ export default async function AdminQuizPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
       <header className="space-y-1">
-        <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+          <HelpPanel
+            pageId="admin-quiz"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        </div>
         <p className="text-ink-600">{t("subtitle")}</p>
       </header>
-
-      <HelpPanel
-        pageId="admin-quiz"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       <QuizVersionsClient initialVersions={result.versions} />
     </div>

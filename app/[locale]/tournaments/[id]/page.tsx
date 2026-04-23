@@ -51,7 +51,16 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
       </Link>
 
       <header className="space-y-2">
-        <h1 className="font-display text-3xl font-bold text-ink-900">{tournament.name}</h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h1 className="font-display text-3xl font-bold text-ink-900">{tournament.name}</h1>
+          <HelpPanel
+            pageId="public-tournament-detail"
+            variant="inline"
+            why={t("detail.help.why")}
+            what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
+            result={[t("detail.help.result.1")]}
+          />
+        </div>
         {tournament.description && <p className="text-ink-600">{tournament.description}</p>}
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-leaf-50 px-2 py-0.5 font-medium uppercase text-leaf-700">
@@ -67,13 +76,6 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           </span>
         </div>
       </header>
-
-      <HelpPanel
-        pageId="public-tournament-detail"
-        why={t("detail.help.why")}
-        what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
-        result={[t("detail.help.result.1")]}
-      />
 
       {/* Meta strip */}
       <dl className="grid gap-4 sm:grid-cols-3">

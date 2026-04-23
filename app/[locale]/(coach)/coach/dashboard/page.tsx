@@ -92,7 +92,16 @@ export default async function CoachDashboardPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
       <header className="space-y-1">
-        <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+          <HelpPanel
+            pageId="coach-dashboard"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        </div>
         <p className="text-ink-600">{t("subtitle")}</p>
       </header>
 
@@ -104,13 +113,6 @@ export default async function CoachDashboardPage({ params }: Props) {
         backLabel={t("tour.back")}
         doneLabel={t("tour.done")}
         stepLabel={t("tour.step")}
-      />
-
-      <HelpPanel
-        pageId="coach-dashboard"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
       />
 
       {journey && (

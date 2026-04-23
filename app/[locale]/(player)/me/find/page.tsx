@@ -98,9 +98,18 @@ export default async function FindPlayerPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="font-display text-3xl font-bold text-ink-900">
+              {t("title")}
+            </h1>
+            <HelpPanel
+              pageId="me-find"
+              variant="inline"
+              why={t("help.why")}
+              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+              result={[t("help.result.1"), t("help.result.2")]}
+            />
+          </div>
           <p className="text-ink-600">{t("subtitle")}</p>
         </div>
         <Link
@@ -112,13 +121,6 @@ export default async function FindPlayerPage({ params }: Props) {
           {t("proposals_link")}
         </Link>
       </header>
-
-      <HelpPanel
-        pageId="me-find"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       <FindClient
         locale={locale as "pl" | "en" | "ru"}

@@ -82,21 +82,22 @@ export default async function AdminDbTablePage({ params, searchParams }: Props) 
         eyebrow={`Admin · DB · ${tbl.name}`}
         title={tbl.label}
         subtitle={tbl.description}
-      />
-
-      <HelpPanel
-        pageId={`admin-db-${tbl.name}`}
-        why={t("table_help.why", { table: tbl.label })}
-        what={[
-          t("table_help.what.1"),
-          t("table_help.what.2"),
-          t("table_help.what.3"),
-        ]}
-        result={[
-          t("table_help.result.1", { table: tbl.label }),
-          t("table_help.result.2"),
-        ]}
-        defaultCollapsed
+        help={
+          <HelpPanel
+            pageId={`admin-db-${tbl.name}`}
+            variant="inline"
+            why={t("table_help.why", { table: tbl.label })}
+            what={[
+              t("table_help.what.1"),
+              t("table_help.what.2"),
+              t("table_help.what.3"),
+            ]}
+            result={[
+              t("table_help.result.1", { table: tbl.label }),
+              t("table_help.result.2"),
+            ]}
+          />
+        }
       />
 
       {!result.ok ? (

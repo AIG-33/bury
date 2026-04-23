@@ -99,6 +99,13 @@ export default async function VenueDetailPage({ params }: Props) {
       <header className="space-y-2">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h1 className="font-display text-3xl font-bold text-ink-900">{venue.name}</h1>
+          <HelpPanel
+            pageId="admin-venue-detail"
+            variant="inline"
+            why={t("detail.help.why")}
+            what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
+            result={[t("detail.help.result.1"), t("detail.help.result.2")]}
+          />
           <span
             className={
               "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
@@ -116,13 +123,6 @@ export default async function VenueDetailPage({ params }: Props) {
         </p>
         {venue.address && <p className="text-sm text-ink-500">{venue.address}</p>}
       </header>
-
-      <HelpPanel
-        pageId="admin-venue-detail"
-        why={t("detail.help.why")}
-        what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
-        result={[t("detail.help.result.1"), t("detail.help.result.2")]}
-      />
 
       {venue.amenities.length > 0 && (
         <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">

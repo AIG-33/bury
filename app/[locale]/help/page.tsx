@@ -44,16 +44,18 @@ export default async function HelpPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
       <header className="space-y-1">
-        <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+          <HelpPanel
+            pageId="help"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1")]}
+          />
+        </div>
         <p className="text-ink-600">{t("subtitle")}</p>
       </header>
-
-      <HelpPanel
-        pageId="help"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1")]}
-      />
 
       <section className="space-y-3">
         <h2 className="font-display text-2xl font-semibold text-ink-900">{t("glossary_title")}</h2>

@@ -45,13 +45,15 @@ export default async function AdminOverviewPage({ params }: Props) {
         eyebrow="Admin · Overview"
         title={t("title")}
         subtitle={t("subtitle")}
-      />
-
-      <HelpPanel
-        pageId="admin-overview"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
+        help={
+          <HelpPanel
+            pageId="admin-overview"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">

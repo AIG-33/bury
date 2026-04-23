@@ -38,19 +38,21 @@ export default async function CoachProfilePage({ params }: Props) {
           <Award className="h-6 w-6" />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="font-display text-2xl font-bold text-ink-900">
+              {t("title")}
+            </h1>
+            <HelpPanel
+              pageId="coach-profile"
+              variant="inline"
+              why={t("help.why")}
+              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+              result={[t("help.result.1"), t("help.result.2")]}
+            />
+          </div>
           <p className="text-sm text-ink-600">{t("subtitle")}</p>
         </div>
       </header>
-
-      <HelpPanel
-        pageId="coach-profile"
-        why={t("help.why")}
-        what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-        result={[t("help.result.1"), t("help.result.2")]}
-      />
 
       <CoachProfileForm initial={profile} />
 

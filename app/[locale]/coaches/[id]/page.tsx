@@ -36,9 +36,22 @@ export default async function CoachProfilePage({ params }: Props) {
           )}
         </div>
         <div className="flex-1">
-          <h1 className="font-display text-2xl font-bold text-ink-900">
-            {coach.display_name ?? "—"}
-          </h1>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="font-display text-2xl font-bold text-ink-900">
+              {coach.display_name ?? "—"}
+            </h1>
+            <HelpPanel
+              pageId={`coach-detail-${coach.id}`}
+              variant="inline"
+              why={t("detail.help.why")}
+              what={[
+                t("detail.help.what.1"),
+                t("detail.help.what.2"),
+                t("detail.help.what.3"),
+              ]}
+              result={[t("detail.help.result.1"), t("detail.help.result.2")]}
+            />
+          </div>
           <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-ink-600">
             {coach.city && (
               <span className="inline-flex items-center gap-1">
@@ -67,17 +80,6 @@ export default async function CoachProfilePage({ params }: Props) {
           </div>
         </div>
       </header>
-
-      <HelpPanel
-        pageId={`coach-detail-${coach.id}`}
-        why={t("detail.help.why")}
-        what={[
-          t("detail.help.what.1"),
-          t("detail.help.what.2"),
-          t("detail.help.what.3"),
-        ]}
-        result={[t("detail.help.result.1"), t("detail.help.result.2")]}
-      />
 
       {coach.coach_bio && (
         <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
