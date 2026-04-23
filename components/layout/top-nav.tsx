@@ -35,16 +35,12 @@ export async function TopNav() {
     ? [
         { group: "personal", href: "/me/rating", label: t("rating") },
         { group: "personal", href: "/me/bookings", label: t("bookings") },
-        {
-          group: "personal",
-          href: "/me/tournaments",
-          label: t("tournaments"),
-        },
         { group: "personal", href: "/me/find", label: t("find") },
-        { group: "personal", href: "/me/coaches", label: t("coaches") },
         { group: "personal", href: "/me/profile", label: t("profile") },
         { group: "personal", href: "/me/matches", label: t("my_matches") },
+        { group: "public", href: "/tournaments", label: t("tournaments") },
         { group: "public", href: "/matches", label: t("matches") },
+        { group: "public", href: "/coaches", label: t("coaches") },
         { group: "public", href: "/venues", label: t("venues") },
         { group: "public", href: "/help", label: t("help") },
         ...(isCoach
@@ -144,14 +140,8 @@ export async function TopNav() {
                 <NavLink href="/me/bookings" tone="personal">
                   {t("bookings")}
                 </NavLink>
-                <NavLink href="/me/tournaments" tone="personal">
-                  {t("tournaments")}
-                </NavLink>
                 <NavLink href="/me/find" tone="personal">
                   {t("find")}
-                </NavLink>
-                <NavLink href="/me/coaches" tone="personal">
-                  {t("coaches")}
                 </NavLink>
                 <ProfileMenu
                   label={t("profile")}
@@ -183,8 +173,14 @@ export async function TopNav() {
                 >
                   <Globe2 className="h-3.5 w-3.5" />
                 </span>
+                <NavLink href="/tournaments" tone="public">
+                  {t("tournaments")}
+                </NavLink>
                 <NavLink href="/matches" tone="public">
                   {t("matches")}
+                </NavLink>
+                <NavLink href="/coaches" tone="public">
+                  {t("coaches")}
                 </NavLink>
                 <NavLink href="/venues" tone="public">
                   {t("venues")}
