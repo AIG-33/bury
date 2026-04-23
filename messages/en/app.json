@@ -17,11 +17,18 @@
     "filter": {
       "tournament": "Tournament",
       "all_tournaments": "All tournaments and friendlies",
+      "venue": "Venue",
+      "all_venues": "All venues",
+      "player": "Player",
+      "player_placeholder": "Name or surname…",
       "apply": "Apply",
-      "reset": "Reset"
+      "reset": "Reset",
+      "active": "Filters active"
     },
     "count_summary": "Found: {count}",
     "vs": "vs",
+    "winner": "Win",
+    "set_short": "Set",
     "no_score": "Score not recorded",
     "no_date": "No date",
     "badge": {
@@ -32,6 +39,8 @@
     "empty": {
       "title": "No public matches yet",
       "description": "Finished matches will appear here: confirmed friendlies and tournament games whose tournament is set to public visibility. Below are the three ways they end up in this feed.",
+      "filtered_title": "No matches under these filters",
+      "filtered_description": "Try clearing one of the filters — search matches name and surname, while tournament/venue filters are exact matches.",
       "guide": {
         "friendly": {
           "title": "1. You played a friendly",

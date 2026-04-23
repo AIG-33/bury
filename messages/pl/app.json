@@ -17,11 +17,18 @@
     "filter": {
       "tournament": "Turniej",
       "all_tournaments": "Wszystkie turnieje i mecze towarzyskie",
+      "venue": "Obiekt",
+      "all_venues": "Wszystkie obiekty",
+      "player": "Gracz",
+      "player_placeholder": "Imię lub nazwisko…",
       "apply": "Zastosuj",
-      "reset": "Wyczyść"
+      "reset": "Wyczyść",
+      "active": "Filtry aktywne"
     },
     "count_summary": "Znaleziono: {count}",
     "vs": "vs",
+    "winner": "Wygrał",
+    "set_short": "Set",
     "no_score": "Wynik nie zapisany",
     "no_date": "Brak daty",
     "badge": {
@@ -32,6 +39,8 @@
     "empty": {
       "title": "Brak publicznych meczów",
       "description": "Tu pojawią się zakończone mecze: potwierdzone mecze towarzyskie i mecze turniejowe oznaczone jako publiczne. Poniżej trzy sposoby, jak trafiają tu mecze.",
+      "filtered_title": "Brak meczów dla tych filtrów",
+      "filtered_description": "Spróbuj wyczyścić jeden z filtrów — wyszukiwanie sprawdza imię i nazwisko, a filtry turnieju/obiektu są dokładnym dopasowaniem.",
       "guide": {
         "friendly": {
           "title": "1. Rozegrałeś mecz towarzyski",
