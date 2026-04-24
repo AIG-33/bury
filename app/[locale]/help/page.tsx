@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { HelpPanel } from "@/components/help/help-panel";
 
@@ -21,6 +22,7 @@ export default async function HelpPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("helpPage");
+  const tg = await getTranslations("guidePage");
 
   const glossary = [
     "elo",
@@ -56,6 +58,26 @@ export default async function HelpPage({ params }: Props) {
         </div>
         <p className="text-ink-600">{t("subtitle")}</p>
       </header>
+
+      <Link
+        href={`/${locale}/help/guide`}
+        className="block rounded-xl2 border border-leaf-200 bg-leaf-50 p-5 transition hover:border-leaf-400 hover:bg-leaf-100"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-leaf-900">
+              {tg("card_cta_title")}
+            </h2>
+            <p className="mt-1 text-sm text-leaf-800">{tg("card_cta_body")}</p>
+          </div>
+          <span
+            aria-hidden
+            className="mt-1 shrink-0 rounded-full bg-leaf-600 px-3 py-1 text-xs font-semibold text-white"
+          >
+            {tg("card_cta_button")}
+          </span>
+        </div>
+      </Link>
 
       <section className="space-y-3">
         <h2 className="font-display text-2xl font-semibold text-ink-900">{t("glossary_title")}</h2>

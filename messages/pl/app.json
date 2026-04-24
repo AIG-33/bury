@@ -2387,6 +2387,341 @@
     "contact_title": "Coś jeszcze niejasne?",
     "contact_body": "Napisz na hello@bury.tennis lub na WhatsApp do trenera bezpośrednio z jego profilu."
   },
+  "guidePage": {
+    "title": "Krótki przewodnik po aplikacji",
+    "subtitle": "Co aplikacja potrafi i jakie kroki trzeba zrobić, żeby uzyskać efekt. Bez żargonu.",
+    "back_to_help": "← Wróć do Pomocy i FAQ",
+    "section_index_title": "Spis treści",
+    "card_cta_title": "Krótki przewodnik po aplikacji",
+    "card_cta_body": "Co aplikacja potrafi i kroki działania — dla gości, graczy, trenerów i administratorów.",
+    "card_cta_button": "Otwórz",
+    "intro_title": "Po co to wszystko",
+    "intro_bullets": [
+      "Prowadzi jeden ranking Elo, który podróżuje z tobą po wszystkich meczach i turniejach.",
+      "Pomaga znaleźć rywala twojego poziomu, w twojej dzielnicy, na twoją porę.",
+      "Trzyma kalendarz kortów i trenerów, przyjmuje rezerwacje online.",
+      "Prowadzi turnieje od początku do końca: zapisy, drabinka, tabela, wyniki — automatycznie.",
+      "Zbiera uczciwe opinie o trenerach (z zabezpieczeniem przed naciąganiem).",
+      "Wysyła potrzebne powiadomienia i podpowiada kontakt na WhatsApp."
+    ],
+    "sections": [
+      {
+        "id": "guest",
+        "title": "Nie jestem jeszcze zarejestrowany",
+        "flows": [
+          {
+            "id": "coaches",
+            "title": "Przeglądać trenerów",
+            "auto": "Wybierz trenera bez korespondencji w dziesięciu czatach.",
+            "steps": [
+              "Otwórz sekcję „Trenerzy”.",
+              "Włącz filtry: dzielnica, obiekt, specjalizacja.",
+              "Otwórz kartę — bio, obiekty, najbliższe wolne sloty i opinie są na miejscu.",
+              "Przełącz na „Mapa”, żeby zobaczyć trenerów jako pinezki na mapie miasta."
+            ]
+          },
+          {
+            "id": "tournaments",
+            "title": "Przeglądać turnieje i mecze",
+            "auto": "Zobacz „kto, z kim i z jakim wynikiem” bez czatów grupowych i screenów.",
+            "steps": [
+              "„Turnieje” — lista otwartych wydarzeń z datami i formatem.",
+              "Otwórz turniej — widać drabinkę/tabelę i listę uczestników.",
+              "„Mecze” — publiczna oś czasu potwierdzonych meczów klubu."
+            ]
+          },
+          {
+            "id": "venues",
+            "title": "Przeglądać obiekty",
+            "auto": "Wszystkie korty z adresami i dzielnicami w jednym katalogu.",
+            "steps": [
+              "Otwórz sekcję „Obiekty”.",
+              "Wybierz klub/kort po adresie lub dzielnicy."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "onboarding",
+        "title": "Rejestracja i pierwsze logowanie",
+        "intro": "Zalogować się można z zaproszenia trenera (e-mail) albo samodzielnie — magic link na stronie logowania lub Google.",
+        "flows": [
+          {
+            "id": "invite",
+            "title": "Przyjąć zaproszenie trenera",
+            "auto": "Profil i powiązanie z trenerem — w jednym kliknięciu.",
+            "steps": [
+              "Odbierz e-mail i kliknij „Przyjmij zaproszenie”.",
+              "Zaloguj się przez magic link lub Google.",
+              "Aplikacja sama tworzy profil, łączy cię z trenerem i otwiera quiz."
+            ]
+          },
+          {
+            "id": "quiz",
+            "title": "Wypełnić quiz nowego gracza",
+            "auto": "Ranking startowy ustawia się automatycznie — nic nie trzeba „zgadywać”.",
+            "steps": [
+              "Odpowiedz na 10 krótkich pytań o swoje doświadczenie.",
+              "Dostajesz ranking startowy (od 800 do 2200).",
+              "Pierwsze 10 meczów jest „próbnych” — ranking szybciej się dostraja."
+            ]
+          },
+          {
+            "id": "become_coach",
+            "title": "Zostać trenerem",
+            "auto": "Wszystkie potrzebne dokumenty i potwierdzenia w jednym wniosku.",
+            "steps": [
+              "W kabinecie gracza otwórz „Zostań trenerem”.",
+              "Uzupełnij doświadczenie, specjalizację, obiekty, ceny.",
+              "Załącz dokumenty.",
+              "Poczekaj na decyzję admina. Po akceptacji pojawi się sekcja trenera."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "player",
+        "title": "Jestem graczem",
+        "flows": [
+          {
+            "id": "profile",
+            "title": "Wypełnić profil",
+            "auto": "Trener i rywale od razu widzą twoją dzielnicę i wygodne pory.",
+            "steps": [
+              "„Profil” → formularz z sekcjami: dane osobowe, kontakty, social media, dzielnica, pora gry, awatar.",
+              "Zapisz."
+            ]
+          },
+          {
+            "id": "rating",
+            "title": "Sprawdzić swój ranking",
+            "auto": "Historia zmian liczy się sama.",
+            "steps": [
+              "Otwórz „Ranking”.",
+              "Widać: aktualną liczbę, wykres zmian po meczach, status „próbny” lub „stabilny”."
+            ]
+          },
+          {
+            "id": "find",
+            "title": "Znaleźć rywala",
+            "auto": "Dobór po poziomie i grafiku — bez czatów „kto wolny w czwartek?”.",
+            "steps": [
+              "Sekcja „Znajdź gracza”.",
+              "Ustaw filtry: dzielnica, zakres rankingu (np. ±100 od własnego), wygodne dni.",
+              "Naciśnij „Zaproponuj mecz” obok wybranego gracza.",
+              "Rywal dostaje powiadomienie i akceptuje albo odrzuca."
+            ]
+          },
+          {
+            "id": "match",
+            "title": "Zapisać wynik po meczu",
+            "auto": "Ranking przelicza się automatycznie po potwierdzeniu przez rywala.",
+            "steps": [
+              "Jeden z graczy otwiera mecz i wpisuje wyniki setów.",
+              "Rywal dostaje powiadomienie „potwierdź wynik”.",
+              "Jeśli potwierdzi — rankingi obojga się zmieniają. Jeśli zakwestionuje — mecz trafia do sporu.",
+              "Spontaniczny mecz można „szybko zarejestrować”, a zaplanowany odwołać, jeśli się nie odbył."
+            ]
+          },
+          {
+            "id": "booking",
+            "title": "Zarezerwować kort lub trening",
+            "auto": "Podwójnych rezerwacji nie ma — system pilnuje dostępności.",
+            "steps": [
+              "„Rezerwacje” → „Znajdź slot”.",
+              "Filtry: dzielnica, trener, data.",
+              "Wybierz wolny slot i potwierdź.",
+              "W „Moje rezerwacje” widać wszystko — stamtąd można też anulować."
+            ]
+          },
+          {
+            "id": "my_coaches",
+            "title": "Lista moich trenerów",
+            "auto": "Wszyscy, z którymi jesteś powiązany lub niedawno trenowałeś.",
+            "steps": [
+              "Otwórz sekcję „Moi trenerzy”."
+            ]
+          },
+          {
+            "id": "register_tournament",
+            "title": "Zapisać się do turnieju",
+            "auto": "Resztą zajmuje się organizator: rozstawienie, drabinka, wyniki.",
+            "steps": [
+              "„Turnieje” → „Otwarte”.",
+              "Otwórz kartę i kliknij „Zapisz się”.",
+              "Jeśli plany się zmieniły — „Wycofaj się” przed startem."
+            ]
+          },
+          {
+            "id": "review",
+            "title": "Wystawić opinię trenerowi",
+            "auto": "Opinia możliwa tylko po realnym treningu lub meczu — zabezpieczenie przed naciąganiem.",
+            "steps": [
+              "Otwórz stronę trenera.",
+              "Jeśli był trening/mecz w ciągu ostatnich 90 dni — pojawi się formularz: gwiazdki, kategorie, tekst.",
+              "Wyślij — średnia trenera się zaktualizuje."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "coach",
+        "title": "Jestem trenerem",
+        "flows": [
+          {
+            "id": "dashboard",
+            "title": "Dashboard",
+            "auto": "Najważniejsze rzeczy — jednym spojrzeniem.",
+            "steps": [
+              "Otwórz „Dashboard”.",
+              "Widać: najbliższe zajęcia, niepotwierdzone mecze uczniów, nowych uczniów, świeże opinie."
+            ]
+          },
+          {
+            "id": "profile",
+            "title": "Wypełnić profil trenera",
+            "auto": "To twoja publiczna wizytówka w klubie.",
+            "steps": [
+              "Wypełnij bio, specjalizację, obiekty, ceny, widoczność na mapie.",
+              "Zapisz."
+            ]
+          },
+          {
+            "id": "invite_player",
+            "title": "Zaprosić ucznia",
+            "auto": "Gdy gracz przyjmie zaproszenie, automatycznie pojawia się na twojej liście.",
+            "steps": [
+              "„Gracze” → „Zaproś”.",
+              "Podaj e-mail (lub wgraj CSV dla zaproszeń masowych).",
+              "Aplikacja wysyła e-mail z linkiem."
+            ]
+          },
+          {
+            "id": "slots",
+            "title": "Otworzyć sloty do rezerwacji",
+            "auto": "Definiujesz regułę raz — grafik rozkłada się sam.",
+            "steps": [
+              "„Sloty” → „Utwórz”.",
+              "Podaj dni tygodnia, godzinę, czas trwania, datę końcową powtarzania.",
+              "Zajęcia pojawiają się w kalendarzu. Każdy slot można odwołać oddzielnie."
+            ]
+          },
+          {
+            "id": "venues",
+            "title": "Obiekty trenera",
+            "auto": "Lista obiektów, na których pracujesz (same obiekty dodaje admin).",
+            "steps": [
+              "Otwórz „Obiekty” w sekcji trenera."
+            ]
+          },
+          {
+            "id": "tournament",
+            "title": "Poprowadzić turniej",
+            "auto": "Rozstawienie, drabinka, awans zwycięzców i ranking — bez papierowych protokołów.",
+            "steps": [
+              "„Turnieje” → „Utwórz”.",
+              "Przejdź kreator: podstawy → format → zasady meczu → uczestnicy → potwierdzenie.",
+              "Kliknij „Wygeneruj drabinkę” — system rozstawi uczestników wg rankingu.",
+              "Obsługiwane: Single Elimination i Round Robin.",
+              "Po każdym meczu wpisz wynik: zwycięzca sam awansuje (albo aktualizuje się tabela RR)."
+            ]
+          },
+          {
+            "id": "leaderboard",
+            "title": "Ranking trenerów",
+            "auto": "Widzisz, jak wypadasz na tle innych trenerów klubu.",
+            "steps": [
+              "Otwórz „Leaderboard” — według sezonu, z kilkoma zakładkami."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "admin",
+        "title": "Jestem administratorem",
+        "intro": "Każda strona admina ma blok pomocy: „Po co ta strona / Co możesz zrobić / Co się stanie po”. Działania destrukcyjne wymagają potwierdzenia z opisem konsekwencji.",
+        "flows": [
+          {
+            "id": "quiz",
+            "title": "Zarządzać quizem onboardingu",
+            "auto": "Można edytować pytania bez programistów; stare odpowiedzi zostają w historii.",
+            "steps": [
+              "„Quiz” → widać wszystkie wersje (jedna jest aktywna).",
+              "Utwórz nową wersję → dodaj, edytuj lub przestaw pytania i wagi.",
+              "„Podgląd” — to, co zobaczy gracz.",
+              "„Aktywuj” — stara wersja się wyłącza, nowa idzie w bój."
+            ]
+          },
+          {
+            "id": "rating",
+            "title": "Ustawić formułę rankingu",
+            "auto": "Można edytować formułę bez programistów i testować w symulatorze.",
+            "steps": [
+              "„Algorytm rankingu”.",
+              "Utwórz lub zmień zestaw parametrów: bazowe Elo, K-faktory, mnożniki, zasady sezonu.",
+              "Otwórz „Symulator”, podaj dwa rankingi i wynik — sprawdź, jak formuła zadziała.",
+              "„Aktywuj” wybraną konfigurację."
+            ]
+          },
+          {
+            "id": "applications",
+            "title": "Wnioski o status trenera",
+            "auto": "Po akceptacji gracz dostaje publiczną kartę trenera.",
+            "steps": [
+              "„Wnioski trenerów”.",
+              "Otwórz wniosek, obejrzyj dokumenty pod bezpiecznym linkiem.",
+              "„Zatwierdź” (gracz zostaje trenerem) lub „Odrzuć” z powodem."
+            ]
+          },
+          {
+            "id": "venues",
+            "title": "Obiekty i korty",
+            "auto": "Obiekty stają się dostępne dla trenerów i w publicznym katalogu.",
+            "steps": [
+              "„Obiekty” — lista wszystkich klubów (część Warszawy jest już zasiana).",
+              "Utwórz lub edytuj obiekt: adres, dzielnica, współrzędne mapy.",
+              "Na stronie obiektu — zarządzanie kortami (nawierzchnia, kryty/odkryty itd.)."
+            ]
+          },
+          {
+            "id": "reviews",
+            "title": "Moderacja opinii",
+            "auto": "Skargi rozpatruje się tutaj.",
+            "steps": [
+              "„Opinie” → filtry „wszystkie” lub „oznaczone”.",
+              "Po skardze można ukryć opinię, przywrócić ją lub zamknąć skargę."
+            ]
+          },
+          {
+            "id": "db",
+            "title": "Bezpośredni dostęp do danych",
+            "auto": "Awaryjne narzędzie, gdy dedykowanego ekranu jeszcze nie ma.",
+            "steps": [
+              "„BD” — prosty interfejs tabelaryczny po słownikach.",
+              "Przeglądanie, wyszukiwanie, ręczne tworzenie, edycja i usuwanie wierszy."
+            ]
+          }
+        ]
+      }
+    ],
+    "auto_title": "Co aplikacja robi sama, bez kliknięcia",
+    "auto_bullets": [
+      "Aktualizuje ranking po każdym potwierdzonym meczu.",
+      "Wysyła powiadomienia e-mail: zaproszenia, propozycje meczów, potwierdzenia rezerwacji, zmiany rankingu, zdarzenia turnieju.",
+      "Pokazuje link „napisz na WhatsApp” na kartach graczy i trenerów — bez kopiowania numeru.",
+      "Chroni przed naciąganiem opinii: sprawdza, czy realnie był trening lub mecz z trenerem w ostatnich 90 dniach.",
+      "Pilnuje przed podwójną rezerwacją tego samego slotu.",
+      "Śledzi aktywność gracza — ostatni rozegrany mecz liczy się automatycznie."
+    ],
+    "missing_title": "Czego jeszcze nie ma",
+    "missing_bullets": [
+      "Innych formatów turniejów poza Single Elimination i Round Robin (Double Elimination, Szwajcar, grupy + PO, Compass — później).",
+      "Sezonowego „wyścigu” z automatycznym zamknięciem sezonu i nagrodami — później.",
+      "Bota Telegram i automatycznych wiadomości na WhatsApp — póki co tylko e-mail i linki click-to-chat na WhatsApp."
+    ],
+    "where_title": "Jeśli coś jest niejasne",
+    "where_body": "Każda strona admina i trenera ma blok pomocy: „Po co / Co możesz / Co się stanie”. Obok trudnych terminów (np. K-faktor, rozstawienie wężowe, super tie-break) jest znaczek „?”. Pełny słownik i FAQ są na stronie „Pomoc”."
+  },
   "tournamentsPublic": {
     "title": "Turnieje publiczne",
     "subtitle": "Przeglądaj otwarte turnieje w sieci. Spodobał się format? Zapisz się.",

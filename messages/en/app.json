@@ -2390,6 +2390,341 @@
     "contact_title": "Still stuck?",
     "contact_body": "Email hello@bury.tennis or WhatsApp the coach directly from their profile."
   },
+  "guidePage": {
+    "title": "Quick guide to the app",
+    "subtitle": "What the app can do and the steps to get there. Plain language, no jargon.",
+    "back_to_help": "← Back to Help & FAQ",
+    "section_index_title": "Contents",
+    "card_cta_title": "Quick guide to the app",
+    "card_cta_body": "What the app can do and step-by-step actions — for guests, players, coaches and admins.",
+    "card_cta_button": "Open",
+    "intro_title": "Why this app exists",
+    "intro_bullets": [
+      "Keeps a single Elo rating that travels with you across every match and tournament.",
+      "Helps you find an opponent of your level, in your district, at your preferred time.",
+      "Holds the calendar of courts and coaches and accepts online bookings.",
+      "Runs tournaments end-to-end: registration, draw, standings, scores — automatically.",
+      "Collects honest reviews of coaches (with anti-fraud checks).",
+      "Sends the right notifications and surfaces a one-tap WhatsApp contact."
+    ],
+    "sections": [
+      {
+        "id": "guest",
+        "title": "I'm not registered yet",
+        "flows": [
+          {
+            "id": "coaches",
+            "title": "Browse coaches",
+            "auto": "Pick a coach without a dozen private chats.",
+            "steps": [
+              "Open the “Coaches” section.",
+              "Apply filters: district, venue, specialisation.",
+              "Open a card — bio, venues, nearest free slots and reviews are right there.",
+              "Switch to “Map” to see coaches as pins on the city map."
+            ]
+          },
+          {
+            "id": "tournaments",
+            "title": "Browse tournaments and matches",
+            "auto": "See “who, vs whom, what score” without group chats and screenshots.",
+            "steps": [
+              "“Tournaments” lists open events with dates and format.",
+              "Open a tournament — the bracket/standings and participants are visible.",
+              "“Matches” is the public feed of confirmed club matches."
+            ]
+          },
+          {
+            "id": "venues",
+            "title": "Browse venues",
+            "auto": "All courts with addresses and districts in one catalogue.",
+            "steps": [
+              "Open the “Venues” section.",
+              "Pick a club/court by address or district."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "onboarding",
+        "title": "Sign-up and first login",
+        "intro": "You can sign in via a coach's email invitation or on your own — magic link on the login page or Google.",
+        "flows": [
+          {
+            "id": "invite",
+            "title": "Accept a coach invitation",
+            "auto": "Profile and link to the coach in a single click.",
+            "steps": [
+              "Open the email and tap “Accept invitation”.",
+              "Sign in with magic link or Google.",
+              "The app creates your profile, links you to the coach and opens the quiz."
+            ]
+          },
+          {
+            "id": "quiz",
+            "title": "Take the new-player quiz",
+            "auto": "Your starting rating is set automatically — no need to guess.",
+            "steps": [
+              "Answer 10 short questions about your background.",
+              "Receive a starting rating (between 800 and 2200).",
+              "Your first 10 matches are “provisional” so the rating settles faster."
+            ]
+          },
+          {
+            "id": "become_coach",
+            "title": "Apply to become a coach",
+            "auto": "All required documents and credentials in one application.",
+            "steps": [
+              "In the player area open “Become a coach”.",
+              "Fill in experience, specialisation, venues, prices.",
+              "Attach documents.",
+              "Wait for the admin's decision. Once approved, the coach area appears."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "player",
+        "title": "I'm a player",
+        "flows": [
+          {
+            "id": "profile",
+            "title": "Fill in your profile",
+            "auto": "Coach and opponents instantly see your district and preferred time.",
+            "steps": [
+              "“Profile” → form with sections: personal data, contacts, socials, district, play time, avatar.",
+              "Save."
+            ]
+          },
+          {
+            "id": "rating",
+            "title": "Check your rating",
+            "auto": "Rating history is computed for you.",
+            "steps": [
+              "Open “Rating”.",
+              "You'll see: current number, per-match chart, “provisional” or “stable” status."
+            ]
+          },
+          {
+            "id": "find",
+            "title": "Find an opponent",
+            "auto": "Matchmaking by level and schedule — no “who is free Thursday?” chats.",
+            "steps": [
+              "Open “Find a player”.",
+              "Set filters: district, rating range (e.g. ±100 from yours), preferred days.",
+              "Tap “Propose match” next to a candidate.",
+              "The opponent gets a notification and accepts or declines."
+            ]
+          },
+          {
+            "id": "match",
+            "title": "Record the score after a match",
+            "auto": "Rating recalculates automatically once the opponent confirms.",
+            "steps": [
+              "One player opens the match and enters the set scores.",
+              "The opponent gets a “please confirm the score” notification.",
+              "If they confirm — both ratings update. If they dispute — the match is flagged for review.",
+              "A spontaneous match can be “quick-registered”; a scheduled one can be cancelled if it didn't happen."
+            ]
+          },
+          {
+            "id": "booking",
+            "title": "Book a court or training",
+            "auto": "No double bookings — the system checks availability.",
+            "steps": [
+              "“Bookings” → “Find a slot”.",
+              "Filters: district, coach, date.",
+              "Pick a free slot and confirm.",
+              "“My bookings” shows everything — cancel from there if needed."
+            ]
+          },
+          {
+            "id": "my_coaches",
+            "title": "List of my coaches",
+            "auto": "Everyone you're linked to or trained with recently.",
+            "steps": [
+              "Open the “My coaches” section."
+            ]
+          },
+          {
+            "id": "register_tournament",
+            "title": "Register for a tournament",
+            "auto": "From here the organiser handles seeding, draw and scores.",
+            "steps": [
+              "“Tournaments” → “Open”.",
+              "Open a card and tap “Register”.",
+              "If plans change — “Withdraw” before the start."
+            ]
+          },
+          {
+            "id": "review",
+            "title": "Leave a coach review",
+            "auto": "Reviews are allowed only after a real session or match — anti-fraud built in.",
+            "steps": [
+              "Open the coach's page.",
+              "If you trained or played in the last 90 days — a form appears: stars, categories, text.",
+              "Submit — the coach's average rating updates."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "coach",
+        "title": "I'm a coach",
+        "flows": [
+          {
+            "id": "dashboard",
+            "title": "Dashboard",
+            "auto": "What matters today — at a glance.",
+            "steps": [
+              "Open “Dashboard”.",
+              "You'll see: upcoming sessions, unconfirmed student matches, new students, recent reviews."
+            ]
+          },
+          {
+            "id": "profile",
+            "title": "Fill in your coach profile",
+            "auto": "This is your public card across the club.",
+            "steps": [
+              "Fill in bio, specialisation, venues, prices, map visibility.",
+              "Save."
+            ]
+          },
+          {
+            "id": "invite_player",
+            "title": "Invite a student",
+            "auto": "Once the player accepts, they appear in your list automatically.",
+            "steps": [
+              "“Players” → “Invite”.",
+              "Enter an email (or upload a CSV for bulk invitations).",
+              "The app sends the invitation email."
+            ]
+          },
+          {
+            "id": "slots",
+            "title": "Open booking slots",
+            "auto": "Define the rule once — the schedule unrolls itself.",
+            "steps": [
+              "“Slots” → “Create”.",
+              "Specify weekdays, time, duration, the date to repeat until.",
+              "Sessions appear in the calendar. Any single slot can be cancelled separately."
+            ]
+          },
+          {
+            "id": "venues",
+            "title": "Coach venues",
+            "auto": "List of venues you work at (venues themselves are added by the admin).",
+            "steps": [
+              "Open “Venues” inside the coach area."
+            ]
+          },
+          {
+            "id": "tournament",
+            "title": "Run a tournament",
+            "auto": "Seeding, bracket, winner advancement and rating updates — no paper protocols.",
+            "steps": [
+              "“Tournaments” → “Create”.",
+              "Walk the wizard: basics → format → match rules → participants → confirm.",
+              "Tap “Generate draw” — the system seeds participants by rating.",
+              "Supported: Single Elimination and Round Robin.",
+              "Enter the score after each match: the winner advances automatically (or the RR table updates)."
+            ]
+          },
+          {
+            "id": "leaderboard",
+            "title": "Coach leaderboard",
+            "auto": "See where you stand vs other coaches in the club.",
+            "steps": [
+              "Open “Leaderboard” — by season, with several tabs."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "admin",
+        "title": "I'm an admin",
+        "intro": "Every admin page has a help block: “Why this page / What you can do / What will happen”. Destructive actions require an explicit confirmation that names the consequences.",
+        "flows": [
+          {
+            "id": "quiz",
+            "title": "Manage the onboarding quiz",
+            "auto": "Edit questions without involving developers; old answers stay in history.",
+            "steps": [
+              "“Quiz” → all versions are listed (one is active).",
+              "Create a new version → add, edit or reorder questions and weights.",
+              "“Preview” — exactly what the player will see.",
+              "“Activate” — the previous version is deactivated, the new one goes live."
+            ]
+          },
+          {
+            "id": "rating",
+            "title": "Tune the rating formula",
+            "auto": "Edit the formula without developers and test it in the simulator.",
+            "steps": [
+              "“Rating algorithm”.",
+              "Create or edit a parameter set: base Elo, K-factors, multipliers, season rules.",
+              "Open “Simulator”, enter two ratings and a score — see how the formula behaves.",
+              "“Activate” the desired configuration."
+            ]
+          },
+          {
+            "id": "applications",
+            "title": "Coach applications",
+            "auto": "Once approved, the player gets a public coach card.",
+            "steps": [
+              "“Coach applications”.",
+              "Open an application, view documents through a secure link.",
+              "“Approve” (the player becomes a coach) or “Reject” with a reason."
+            ]
+          },
+          {
+            "id": "venues",
+            "title": "Venues and courts",
+            "auto": "Venues become available to coaches and to the public catalogue.",
+            "steps": [
+              "“Venues” — list of all clubs (Warsaw is partly seeded).",
+              "Create or edit a venue: address, district, map coordinates.",
+              "On a venue page — manage courts (surface, indoor/outdoor etc.)."
+            ]
+          },
+          {
+            "id": "reviews",
+            "title": "Review moderation",
+            "auto": "Complaints are resolved here.",
+            "steps": [
+              "“Reviews” → filters “all” or “flagged”.",
+              "On a complaint you can hide a review, restore it or close the complaint."
+            ]
+          },
+          {
+            "id": "db",
+            "title": "Direct data access",
+            "auto": "Emergency tool for cases where a dedicated screen doesn't exist yet.",
+            "steps": [
+              "“DB” — a simple table-like UI over reference data.",
+              "Browse, search, manually create, edit and delete rows."
+            ]
+          }
+        ]
+      }
+    ],
+    "auto_title": "What the app does on its own, without a click",
+    "auto_bullets": [
+      "Updates the rating whenever a match is confirmed.",
+      "Sends email notifications: invitations, match proposals, booking confirmations, rating changes, tournament events.",
+      "Surfaces a “message on WhatsApp” link on player and coach cards — no number copying.",
+      "Protects against fake reviews: checks you actually trained or played with the coach in the last 90 days.",
+      "Prevents double bookings of the same slot.",
+      "Tracks player activity — the last played match is recorded automatically."
+    ],
+    "missing_title": "What's not there yet",
+    "missing_bullets": [
+      "Tournament formats other than Single Elimination and Round Robin (Double Elimination, Swiss, Group + PO, Compass — coming later).",
+      "Seasonal “race” with automatic season closing and prizes — coming later.",
+      "Telegram bot and automated WhatsApp messages — for now only email and WhatsApp click-to-chat links."
+    ],
+    "where_title": "If something is unclear",
+    "where_body": "Every admin and coach page has a help block: “Why / What you can do / What will happen”. Tricky terms (e.g. K-factor, snake seeding, super-tiebreak) have a “?” marker. The full glossary and FAQ live on the “Help” page."
+  },
   "tournamentsPublic": {
     "title": "Public tournaments",
     "subtitle": "Browse open tournaments across the network. Sign up if you like the format.",
