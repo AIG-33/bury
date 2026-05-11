@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { TopNav } from "@/components/layout/top-nav";
 import { Footer } from "@/components/layout/footer";
+import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export function generateStaticParams() {
@@ -33,11 +35,15 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages} locale={locale} timeZone="Europe/Minsk">
-      <div className="flex min-h-screen flex-col">
-        <TopNav />
-        <main className="flex-1">{children}</main>
-        <Footer authed={!!user} />
-      </div>
+      <Suspense fallback={null}>
+        <PostHogProvider>
+          <div className="flex min-h-screen flex-col">
+            <TopNav />
+            <main className="flex-1">{children}</main>
+            <Footer authed={!!user} />
+          </div>
+        </PostHogProvider>
+      </Suspense>
     </NextIntlClientProvider>
   );
 }

@@ -2,24 +2,66 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import {
-  ArrowLeft,
-  Award,
-  CalendarClock,
-  Clock,
-  Hand,
-  LogIn,
-  MapPin,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, Award, CalendarClock, Clock, Hand, MapPin, Trophy, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadPublicPlayerProfile } from "../actions";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 type Props = { params: Promise<{ locale: string; id: string }> };
+
+/**
+ * Build a schema.org `SportsPerson` JSON-LD payload so search engines can
+ * surface player profiles as rich-results candidates and link them to the
+ * OpenCourt.by sports organization. We deliberately surface only public-
+ * safe fields (the same allowlist enforced by `lib/players/public-card.ts`)
+ * and omit everything that could be considered PII.
+ */
+function buildPlayerJsonLd(
+  profile: NonNullable<Awaited<ReturnType<typeof loadPublicPlayerProfile>>>,
+  locale: string,
+) {
+  const url = `${SITE_URL}/${locale}/players/${profile.id}`;
+  const sameAs: string[] = [];
+  if (profile.external_rating?.external_url) {
+    sameAs.push(profile.external_rating.external_url);
+  }
+
+  const homeLocation =
+    profile.city || profile.district_name
+      ? {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: profile.city ?? undefined,
+            addressRegion: profile.district_name ?? undefined,
+            addressCountry: "BY",
+          },
+        }
+      : undefined;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "SportsPerson",
+    "@id": url,
+    name: profile.display_name ?? "—",
+    url,
+    image: profile.avatar_url ?? undefined,
+    sport: "Tennis",
+    knowsLanguage: ["ru", "en"],
+    homeLocation,
+    sameAs: sameAs.length > 0 ? sameAs : undefined,
+    memberOf: {
+      "@type": "SportsOrganization",
+      name: "OpenCourt.by",
+      url: SITE_URL,
+    },
+  };
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
@@ -72,8 +114,17 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
     slotsByWeekday.set(s.weekday, arr);
   }
 
+  const jsonLd = buildPlayerJsonLd(profile, locale);
+
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
+      {/* schema.org SportsPerson — only public-safe fields, no PII */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <Link
         href="/players"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"
@@ -142,13 +193,12 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
         </div>
         <div className="ml-auto">
           {isGuest ? (
-            <Link
-              href={{ pathname: "/login", query: { next: `/me/find?focus=${profile.id}` } }}
+            <GuestProposeLink
+              playerId={profile.id}
+              label={t("card.propose_login")}
+              surface="player_profile"
               className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-700 px-4 text-sm font-semibold text-white transition hover:bg-grass-800"
-            >
-              <LogIn className="h-4 w-4" />
-              {t("card.propose_login")}
-            </Link>
+            />
           ) : (
             <Link
               /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

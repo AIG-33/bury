@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { Award, Clock, Hand, LogIn, MapPin, Sparkles, Trophy } from "lucide-react";
+import { Award, Clock, Hand, MapPin, Sparkles, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
+import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   loadPublicDistrictOptions,
@@ -335,16 +336,12 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
 
               <div className="mt-auto pt-4">
                 {isGuest ? (
-                  <Link
-                    href={{
-                      pathname: "/login",
-                      query: { next: `/me/find?focus=${p.id}` },
-                    }}
+                  <GuestProposeLink
+                    playerId={p.id}
+                    label={t("card.propose_login")}
+                    surface="players_list"
                     className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-grass-700 px-3 text-sm font-semibold text-white transition hover:bg-grass-800"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    {t("card.propose_login")}
-                  </Link>
+                  />
                 ) : (
                   <Link
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
