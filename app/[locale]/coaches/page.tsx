@@ -4,6 +4,8 @@ import { Link } from "@/i18n/routing";
 import { Award, MapPin, Star, Trophy, Map as MapIcon } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadCoaches, loadVenueOptions, loadDistrictOptionsForCoaches } from "./actions";
 import {
   rankCoaches,
@@ -78,14 +80,22 @@ export default async function CoachesPage({ params, searchParams }: Props) {
   const venueId = sp.venue ?? "";
   const districtId = sp.district ?? "";
 
-  const [rawCoaches, venues, districts] = await Promise.all([
+  const [rawCoaches, venues, districts, sessionUser] = await Promise.all([
     loadCoaches({
       venueId: venueId || null,
       districtId: venueId ? null : districtId || null,
     }),
     loadVenueOptions(),
     loadDistrictOptionsForCoaches(),
+    (async () => {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      return user;
+    })(),
   ]);
+  const isGuest = !sessionUser;
   const ranked = rankCoaches(rawCoaches);
   const top3 = podium(ranked, 3);
   const top3Ids = new Set(top3.map((p) => p.id));
@@ -126,6 +136,8 @@ export default async function CoachesPage({ params, searchParams }: Props) {
           {t("view_map")}
         </Link>
       </header>
+
+      <GuestNextStepBanner isGuest={isGuest} current="coaches" />
 
       {top3.length > 0 && (
         <section className="rounded-xl2 border border-ball-200 bg-gradient-to-br from-ball-50 to-white p-5 shadow-card">

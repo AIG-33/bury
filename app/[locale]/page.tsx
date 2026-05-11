@@ -14,14 +14,16 @@ type LandingHrefs = {
 
 // Resolve all landing CTAs in one Supabase round-trip.
 // Signed-in coach/admin → coach dashboard; signed-in player → player area.
-// Anonymous visitors are sent to /login?next=<intended page>, except for the
-// "rating" pillar which links to the public /coaches list (no auth required).
+// Anonymous visitors get sent to PUBLIC catalogues whenever possible — only
+// the homepage's primary CTA pushes them toward /login. Critically, the
+// "find a sparring partner" pillar now points at the public `/players`
+// catalogue so guests can see real opponents before deciding to register.
 async function resolveLandingHrefs(): Promise<LandingHrefs> {
   const fallback: LandingHrefs = {
     primary: "/login",
     rating: "/coaches",
-    find: "/login?next=/me/find",
-    tournaments: "/login?next=/me/tournaments",
+    find: "/players",
+    tournaments: "/tournaments",
   };
   try {
     const supabase = await createSupabaseServerClient();
@@ -56,10 +58,7 @@ export default async function LandingPage({ params }: Props) {
 
   return (
     <>
-      <LandingHero
-        primaryCtaHref={hrefs.primary}
-        primaryCtaLabel={t("hero.cta_primary")}
-      />
+      <LandingHero primaryCtaHref={hrefs.primary} primaryCtaLabel={t("hero.cta_primary")} />
       <PillarsSection
         ratingHref={hrefs.rating}
         findHref={hrefs.find}

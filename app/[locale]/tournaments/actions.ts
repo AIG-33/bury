@@ -9,6 +9,27 @@ import type {
   MatchRules,
 } from "@/lib/tournaments/schema";
 
+/**
+ * Distinct list of cities that have at least one venue. Used to build the
+ * city filter dropdown on `/tournaments`. Belarus-only (`country = 'BY'`).
+ */
+export async function loadVenueCities(): Promise<string[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = (await supabase
+    .from("venues")
+    .select("city")
+    .eq("country", "BY")
+    .not("city", "is", null)
+    .order("city", { ascending: true })) as {
+    data: Array<{ city: string | null }> | null;
+  };
+  const seen = new Set<string>();
+  for (const v of data ?? []) {
+    if (v.city) seen.add(v.city);
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b, "ru"));
+}
+
 export type PublicTournamentVenue = {
   id: string;
   name: string;
@@ -37,6 +58,12 @@ export type PublicTournamentRow = {
 
 export async function loadPublicTournaments(opts: {
   status?: "upcoming" | "in_progress" | "finished";
+  format?: TournamentFormat | null;
+  surface?: Surface | null;
+  /** "free" → entry_fee_byn IS NULL OR 0; "paid" → > 0; null/undefined → any. */
+  fee?: "free" | "paid" | null;
+  /** Post-filter on `venues.city` after the join — string match. */
+  city?: string | null;
 }): Promise<PublicTournamentRow[]> {
   const supabase = await createSupabaseServerClient();
   // Coach name is resolved separately via `public_profile_basic` because
@@ -57,6 +84,15 @@ export async function loadPublicTournaments(opts: {
     query = query.eq("status", "in_progress");
   } else if (opts.status === "finished") {
     query = query.eq("status", "finished");
+  }
+
+  if (opts.format) query = query.eq("format", opts.format);
+  if (opts.surface) query = query.eq("surface", opts.surface);
+  if (opts.fee === "free") {
+    // Postgrest's `or()` chain — entry_fee_byn IS NULL OR equals 0.
+    query = query.or("entry_fee_byn.is.null,entry_fee_byn.eq.0");
+  } else if (opts.fee === "paid") {
+    query = query.gt("entry_fee_byn", 0);
   }
 
   const { data: rows } = (await query) as {
@@ -122,7 +158,7 @@ export async function loadPublicTournaments(opts: {
     venuesByT.set(v.tournament_id, arr);
   }
 
-  return rows.map((r) => ({
+  const built: PublicTournamentRow[] = rows.map((r) => ({
     id: r.id,
     name: r.name,
     description: r.description,
@@ -141,6 +177,15 @@ export async function loadPublicTournaments(opts: {
     match_rules: r.match_rules,
     venues: venuesByT.get(r.id) ?? [],
   }));
+
+  // City filter is applied in-memory because `tournament_venues.venues.city`
+  // can't be used as a filter on a child relation in PostgREST without the
+  // `!inner` join hint that we've not declared here. The page set is small
+  // (typically <100 rows), so the cost is negligible.
+  if (opts.city) {
+    return built.filter((t) => t.venues.some((v) => v.city === opts.city));
+  }
+  return built;
 }
 
 export type PublicTournamentDetail = {

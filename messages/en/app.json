@@ -592,6 +592,7 @@
     "matches": "Matches",
     "tournaments": "Tournaments",
     "find": "Find a Player",
+    "players": "Players",
     "profile": "Profile",
     "my_matches": "My matches",
     "coach": "Coach panel",
@@ -2882,13 +2883,39 @@
       "in_progress": "Live",
       "finished": "Finished"
     },
+    "filters": {
+      "title": "Filters",
+      "city": "City",
+      "any_city": "Any city",
+      "format_label": "Format",
+      "any_format": "Any format",
+      "surface": "Surface",
+      "any_surface": "Any surface",
+      "fee": "Fee",
+      "fee_options": {
+        "any": "Any",
+        "free": "Free",
+        "paid": "Paid"
+      },
+      "apply": "Apply",
+      "reset": "Reset",
+      "results_count": "{count, plural, =0 {No tournaments found} one {# tournament found} other {# tournaments found}}",
+      "empty_filtered_title": "No tournaments match",
+      "empty_filtered_body": "Try a different tab, city, or reset the filter."
+    },
     "format": {
       "single_elimination": "Single elimination",
       "double_elimination": "Double elimination",
       "round_robin": "Round robin",
       "group_playoff": "Groups + playoff",
       "swiss": "Swiss",
-      "compass_draw": "Compass draw"
+      "compass": "Compass draw"
+    },
+    "surfaces": {
+      "hard": "Hard",
+      "clay": "Clay",
+      "grass": "Grass",
+      "carpet": "Carpet"
     },
     "status": {
       "draft": "Draft",
@@ -2979,5 +3006,150 @@
     "mismatch": "Passwords do not match.",
     "min_hint": "Minimum 8 characters. Use a unique combination.",
     "wrong_current": "Current password is incorrect."
+  },
+  "guestNextStep": {
+    "aria_label": "Next step for visitors",
+    "eyebrow": "NEXT STEP",
+    "title": "Sign up takes a minute — then matches are one click away.",
+    "body": "Browsing is public — but to propose a match, sign up for a tournament or book a coach, you need a free account. No spam, leave anytime.",
+    "primary_cta": "Sign up",
+    "or_keep_browsing": "or keep browsing:",
+    "secondary": {
+      "players": "Players",
+      "tournaments": "Tournaments",
+      "coaches": "Coaches"
+    }
+  },
+  "playersPublic": {
+    "title": "Players",
+    "subtitle": "Real people looking for opponents. Find your level — then propose a match.",
+    "guest_banner": {
+      "title": "Sign in to propose a match",
+      "body": "The directory is public — see who plays in your area. To message someone or share WhatsApp you need a free account.",
+      "cta": "Sign in / register"
+    },
+    "controls": {
+      "level_label": "Level",
+      "level": {
+        "any": "Any level",
+        "beginner": "Beginner (Elo ≤ 950)",
+        "intermediate": "Intermediate (951 – 1300)",
+        "advanced": "Advanced (1301 – 1700)",
+        "expert": "Expert (1701+)"
+      },
+      "district": "District",
+      "any_district": "Any district",
+      "hand": "Hand",
+      "hand_options": {
+        "both": "Any",
+        "R": "Right",
+        "L": "Left"
+      },
+      "weekday": "Day",
+      "any_weekday": "Any day",
+      "daypart": "Time",
+      "any_daypart": "Any time",
+      "apply": "Show players",
+      "reset": "Reset"
+    },
+    "weekday": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "weekday_short": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "daypart": {
+      "morning": "Morning",
+      "noon": "Midday",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "late": "Late"
+    },
+    "card": {
+      "elo_provisional": "{elo} Elo · provisional",
+      "elo_established": "{elo} Elo",
+      "rated_matches": "{count, plural, =0 {0 rated matches} one {# rated match} other {# rated matches}}",
+      "last_match_recent": "Active recently",
+      "last_match_days": "{days, plural, one {Last match # day ago} other {Last match # days ago}}",
+      "last_match_never": "No rated matches yet",
+      "hand_R": "Right-handed",
+      "hand_L": "Left-handed",
+      "backhand_one": "One-handed backhand",
+      "backhand_two": "Two-handed backhand",
+      "is_coach": "Coach",
+      "is_coach_hint": "This player is also a coach — open their coach profile.",
+      "available_summary": "{count, plural, =0 {Schedule not set} one {Free in # slot} other {Free in # slots}}",
+      "propose_login": "Propose a match",
+      "open_coach": "Open coach profile"
+    },
+    "results": {
+      "showing": "{count, plural, =0 {No players found} one {# player found} other {# players found}}",
+      "truncated": "Showing the first 60 — narrow your filter to see more."
+    },
+    "empty_title": "No players match your filters",
+    "empty_body": "Reset the filters or pick a different district — other players might be at a different level or live elsewhere.",
+    "no_filter_empty_title": "No players visible yet",
+    "no_filter_empty_body": "When the first players register and opt into matchmaking, they appear here. Be the first — and the platform will start proposing opponents to you automatically.",
+    "help": {
+      "why": "Before registering, people want to see that the opponents are real.",
+      "what": {
+        "1": "Here are all the players who allowed themselves to be shown in the find-opponent directory.",
+        "2": "Filters by level, district, day and time help you narrow down.",
+        "3": "To propose a match you need to sign in. After that the same search gets smarter: it factors in your schedule and active proposals."
+      },
+      "result": {
+        "1": "You can see who you could ask for a friendly match today.",
+        "2": "Once signed in, the platform suggests the best matches automatically."
+      }
+    },
+    "detail": {
+      "back": "All players",
+      "stats": {
+        "elo": "Current Elo",
+        "rated_matches": "Rated matches",
+        "last_match": "Last match",
+        "never": "—"
+      },
+      "schedule": {
+        "title": "When they play",
+        "empty": "No schedule set."
+      },
+      "recent": {
+        "title": "Recent matches",
+        "empty_title": "No rated matches yet",
+        "empty_body": "This player has not played any rated matches yet. Once they do, recent results will appear here.",
+        "tournament_label": "Tournament",
+        "friendly_label": "Friendly",
+        "doubles_label": "Doubles",
+        "result_win": "Win",
+        "result_loss": "Loss",
+        "result_unknown": "In progress",
+        "vs": "vs"
+      },
+      "help": {
+        "why": "An open player profile — so you can decide whether they're a good sparring fit before investing in a conversation.",
+        "what": {
+          "1": "Current Elo and rated matches show the level.",
+          "2": "Schedule hints at when they're available.",
+          "3": "Contacts are deliberately hidden — sign in to propose a match."
+        },
+        "result": {
+          "1": "Fewer awkward proposals.",
+          "2": "Players feel their privacy is respected."
+        }
+      }
+    }
   }
 }

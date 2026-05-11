@@ -38,6 +38,7 @@ export async function TopNav() {
         { group: "personal", href: "/me/find", label: t("find") },
         { group: "personal", href: "/me/profile", label: t("profile") },
         { group: "personal", href: "/me/matches", label: t("my_matches") },
+        { group: "public", href: "/players", label: t("players") },
         { group: "public", href: "/tournaments", label: t("tournaments") },
         { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/coaches", label: t("coaches") },
@@ -65,6 +66,7 @@ export async function TopNav() {
           : []),
       ]
     : [
+        { group: "public", href: "/players", label: t("players") },
         { group: "public", href: "/tournaments", label: t("tournaments") },
         { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/coaches", label: t("coaches") },
@@ -173,6 +175,9 @@ export async function TopNav() {
                 >
                   <Globe2 className="h-3.5 w-3.5" />
                 </span>
+                <NavLink href="/players" tone="public">
+                  {t("players")}
+                </NavLink>
                 <NavLink href="/tournaments" tone="public">
                   {t("tournaments")}
                 </NavLink>
@@ -222,6 +227,9 @@ export async function TopNav() {
               >
                 <Globe2 className="h-3.5 w-3.5" />
               </span>
+              <NavLink href="/players" tone="public">
+                {t("players")}
+              </NavLink>
               <NavLink href="/tournaments" tone="public">
                 {t("tournaments")}
               </NavLink>

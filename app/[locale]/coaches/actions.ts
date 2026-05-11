@@ -195,7 +195,7 @@ export async function loadDistrictOptionsForCoaches(): Promise<DistrictOption[]>
   const { data } = (await supabase
     .from("districts")
     .select("id, name, city")
-    .eq("country", "PL")
+    .eq("country", "BY")
     .order("city", { ascending: true })
     .order("name", { ascending: true })) as {
     data: Array<{ id: string; name: string; city: string }> | null;
