@@ -5,7 +5,9 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import {
+  DEFAULT_FILTERS,
   rankCandidates,
+  scoreCandidate,
   type FindPlayerCandidate,
   type FindPlayerFilters,
   type SeekerContext,
@@ -312,6 +314,145 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
   const ranked = rankCandidates(candidates, seeker, filters, excludeIds).slice(0, 50);
 
   return { ok: true, results: ranked, seeker };
+}
+
+// =============================================================================
+// Focused candidate (deep-link from public /players/[id] → ?focus=<id>)
+// =============================================================================
+//
+// When a guest taps "Propose match" on the public catalogue, they land here
+// with `?focus=<uuid>`. We must show that exact opponent at the top of the
+// list, regardless of Elo radius / district / availability filters — the user
+// already chose them. The candidate is scored against the seeker's defaults
+// for display, but never filtered out.
+//
+// Returns null if the focused profile is missing, the seeker's own id, or
+// hidden from the find-player catalogue (`visible_in_find_player = false`).
+
+const FocusIdSchema = z.string().uuid();
+
+export type FocusedCandidateResult = ScoredCandidate | null;
+
+export async function loadFocusedCandidate(rawFocusId: string): Promise<FocusedCandidateResult> {
+  const parsed = FocusIdSchema.safeParse(rawFocusId);
+  if (!parsed.success) return null;
+  const focusId = parsed.data;
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  if (user.id === focusId) return null;
+
+  const { data: meRow } = (await supabase
+    .from("profiles")
+    .select("id, current_elo, district_id, availability")
+    .eq("id", user.id)
+    .single()) as {
+    data: {
+      id: string;
+      current_elo: number;
+      district_id: string | null;
+      availability: Partial<Availability> | null;
+    } | null;
+  };
+  if (!meRow) return null;
+
+  const seeker: SeekerContext = {
+    id: meRow.id,
+    current_elo: meRow.current_elo,
+    district_id: meRow.district_id,
+    availability: { ...EMPTY_AVAILABILITY, ...(meRow.availability ?? {}) } as Availability,
+  };
+
+  const { data: row } = (await supabase
+    .from("profiles")
+    .select(
+      "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
+        "rated_matches_count, dominant_hand, backhand_style, favorite_surface, " +
+        "whatsapp, telegram_username, social_links, availability, last_match_at, " +
+        "visible_in_find_player",
+    )
+    .eq("id", focusId)
+    .single()) as {
+    data: {
+      id: string;
+      display_name: string | null;
+      avatar_url: string | null;
+      city: string | null;
+      district_id: string | null;
+      current_elo: number;
+      elo_status: "provisional" | "established";
+      rated_matches_count: number;
+      dominant_hand: "R" | "L" | null;
+      backhand_style: "one_handed" | "two_handed" | null;
+      favorite_surface: "hard" | "clay" | "grass" | "carpet" | null;
+      whatsapp: string | null;
+      telegram_username: string | null;
+      social_links: Partial<SocialLinks> | null;
+      availability: Partial<Availability> | null;
+      last_match_at: string | null;
+      visible_in_find_player: boolean;
+    } | null;
+  };
+  if (!row || !row.visible_in_find_player) return null;
+
+  let districtName: string | null = null;
+  if (row.district_id) {
+    const { data: d } = (await supabase
+      .from("districts")
+      .select("name")
+      .eq("id", row.district_id)
+      .single()) as { data: { name: string } | null };
+    districtName = d?.name ?? null;
+  }
+
+  const { data: ext } = (await supabase
+    .from("external_ratings")
+    .select(
+      "external_url, display_tier, external_elo, external_elo_doubles, is_calibrating_singles",
+    )
+    .eq("source", "liga_tennisa")
+    .eq("player_id", row.id)
+    .maybeSingle()) as {
+    data: {
+      external_url: string;
+      display_tier: string;
+      external_elo: number;
+      external_elo_doubles: number | null;
+      is_calibrating_singles: boolean;
+    } | null;
+  };
+
+  const now = Date.now();
+  const candidate: FindPlayerCandidate = {
+    id: row.id,
+    display_name: row.display_name,
+    avatar_url: row.avatar_url,
+    city: row.city,
+    district_id: row.district_id,
+    district_name: districtName,
+    current_elo: row.current_elo,
+    elo_status: row.elo_status,
+    rated_matches_count: row.rated_matches_count,
+    dominant_hand: row.dominant_hand,
+    backhand_style: row.backhand_style,
+    favorite_surface: row.favorite_surface,
+    whatsapp: row.whatsapp,
+    telegram_username: row.telegram_username,
+    social_links: { ...EMPTY_SOCIAL_LINKS, ...(row.social_links ?? {}) },
+    availability: { ...EMPTY_AVAILABILITY, ...(row.availability ?? {}) } as Availability,
+    days_since_last_match:
+      row.last_match_at != null
+        ? Math.floor((now - Date.parse(row.last_match_at)) / (24 * 60 * 60 * 1000))
+        : null,
+    external_rating: ext ? { source: "liga_tennisa", ...ext } : null,
+  };
+
+  // Score against defaults — never filter. Even if Elo distance > radius the
+  // proximity term will simply be 0; the rest of the score still informs UX.
+  return scoreCandidate(candidate, seeker, DEFAULT_FILTERS);
 }
 
 // =============================================================================

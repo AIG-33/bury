@@ -1399,6 +1399,13 @@
       "late": "Late"
     },
     "whatsapp_prefill": "Hi {name}! From OpenCourt.by — got time for a match?",
+    "focus": {
+      "banner_title": "Opponent from the public catalogue",
+      "banner_description": "This is the player you picked from the directory. Send a proposal or close to fall back to the filters.",
+      "dismiss": "Close",
+      "not_found_title": "Player not found",
+      "not_found_description": "They may have hidden themselves from search, or the link is stale — pick a partner with the filters below."
+    },
     "my_availability": {
       "title": "My schedule",
       "hint": "Your standing “when I'm generally free to play” slots. Saved on your profile and used to surface you to others.",

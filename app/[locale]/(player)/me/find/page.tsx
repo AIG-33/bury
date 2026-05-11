@@ -4,15 +4,18 @@ import Link from "next/link";
 import { Inbox } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadDistrictOptions, loadMyAvailability } from "./actions";
+import { loadDistrictOptions, loadFocusedCandidate, loadMyAvailability } from "./actions";
 import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
-import type { Weekday, DayPart } from "@/lib/matching/find-player";
+import type { Weekday, DayPart, ScoredCandidate } from "@/lib/matching/find-player";
 import { FindClient, type FindCopy } from "./find-client";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ focus?: string | string[] }>;
+};
 
-export default async function FindPlayerPage({ params }: Props) {
-  const { locale } = await params;
+export default async function FindPlayerPage({ params, searchParams }: Props) {
+  const [{ locale }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
   const t = await getTranslations("find");
 
@@ -20,13 +23,21 @@ export default async function FindPlayerPage({ params }: Props) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/${locale}/login?next=/me/find`);
+  if (!user) {
+    const nextHref = sp.focus
+      ? `/me/find?focus=${encodeURIComponent(Array.isArray(sp.focus) ? sp.focus[0] : sp.focus)}`
+      : "/me/find";
+    redirect(`/${locale}/login?next=${encodeURIComponent(nextHref)}`);
+  }
 
   const districts = await loadDistrictOptions();
   const availabilityRes = await loadMyAvailability();
   const myAvailability: Availability = availabilityRes.ok
     ? availabilityRes.availability
     : EMPTY_AVAILABILITY;
+
+  const focusId = Array.isArray(sp.focus) ? sp.focus[0] : sp.focus;
+  const initialFocus: ScoredCandidate | null = focusId ? await loadFocusedCandidate(focusId) : null;
 
   const copy: FindCopy = {
     filters_title: t("filters.title"),
@@ -84,6 +95,13 @@ export default async function FindPlayerPage({ params }: Props) {
       confirm: t("card.confirm"),
     },
     whatsapp_prefill: t("whatsapp_prefill", { name: "{name}" }),
+    focus: {
+      banner_title: t("focus.banner_title"),
+      banner_description: t("focus.banner_description"),
+      dismiss: t("focus.dismiss"),
+      not_found_title: t("focus.not_found_title"),
+      not_found_description: t("focus.not_found_description"),
+    },
     my_availability: {
       title: t("my_availability.title"),
       hint: t("my_availability.hint"),
@@ -129,6 +147,8 @@ export default async function FindPlayerPage({ params }: Props) {
         districts={districts}
         copy={copy}
         myAvailability={myAvailability}
+        initialFocus={initialFocus}
+        focusRequested={Boolean(focusId)}
       />
     </div>
   );

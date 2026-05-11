@@ -125,6 +125,22 @@ describe("scoreCandidate", () => {
     );
     expect(fresh.score - stale.score).toBeGreaterThanOrEqual(10);
   });
+
+  // The /me/find?focus=<id> deep link runs `scoreCandidate` against the
+  // seeker's defaults without ever filtering by Elo radius — the user
+  // already chose this opponent in the public catalogue. This invariant
+  // guards against accidental regressions that would silently drop a
+  // far-Elo focused player from the page.
+  it("returns a valid 0..100 score even when Elo distance is far beyond radius", () => {
+    const farUp = scoreCandidate(makeCandidate({ current_elo: 2400 }), baseSeeker, noFilters);
+    const farDown = scoreCandidate(makeCandidate({ current_elo: 600 }), baseSeeker, noFilters);
+    for (const s of [farUp, farDown]) {
+      expect(Number.isFinite(s.score)).toBe(true);
+      expect(s.score).toBeGreaterThanOrEqual(0);
+      expect(s.score).toBeLessThanOrEqual(100);
+      expect(s.id).toBe("c1");
+    }
+  });
 });
 
 describe("rankCandidates", () => {

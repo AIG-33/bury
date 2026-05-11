@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Search,
@@ -20,6 +21,7 @@ import {
   Eraser,
   ArrowDown,
   Trophy,
+  Sparkles,
 } from "lucide-react";
 import {
   searchOpponents,
@@ -76,6 +78,13 @@ export type FindCopy = {
     cancel: string;
     confirm: string;
   };
+  focus: {
+    banner_title: string;
+    banner_description: string;
+    dismiss: string;
+    not_found_title: string;
+    not_found_description: string;
+  };
   /** Template with `{name}` placeholder; replaced on the client. */
   whatsapp_prefill: string;
   my_availability: {
@@ -97,13 +106,20 @@ export function FindClient({
   districts,
   copy,
   myAvailability,
+  initialFocus = null,
+  focusRequested = false,
 }: {
   locale: Locale;
   districts: DistrictOption[];
   copy: FindCopy;
   myAvailability: Availability;
+  initialFocus?: ScoredCandidate | null;
+  focusRequested?: boolean;
 }) {
   const t = useTranslations("find");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [eloRadius, setEloRadius] = useState(150);
   const [hand, setHand] = useState<"both" | "R" | "L">("both");
@@ -115,8 +131,32 @@ export function FindClient({
   const [ltEloMax, setLtEloMax] = useState<string>("");
 
   const [isSearching, startSearch] = useTransition();
-  const [results, setResults] = useState<ScoredCandidate[] | null>(null);
+  const [results, setResults] = useState<ScoredCandidate[] | null>(
+    initialFocus ? [initialFocus] : null,
+  );
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(initialFocus?.id ?? null);
+  const focusCardRef = useRef<HTMLLIElement | null>(null);
+
+  useEffect(() => {
+    if (focusedId && focusCardRef.current) {
+      focusCardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [focusedId]);
+
+  function clearFocusFromUrl() {
+    if (!searchParams.has("focus")) return;
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("focus");
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
+  function dismissFocus() {
+    setFocusedId(null);
+    setResults(null);
+    clearFocusFromUrl();
+  }
 
   const slotKey = (w: Weekday, d: DayPart) => `${w}/${d}`;
   const toggleSlot = (w: Weekday, d: DayPart) => {
@@ -141,6 +181,8 @@ export function FindClient({
 
   function runSearch() {
     setSearchError(null);
+    setFocusedId(null);
+    clearFocusFromUrl();
     startSearch(async () => {
       const desired = Array.from(desiredSlots).map((k) => {
         const [weekday, daypart] = k.split("/") as [Weekday, DayPart];
@@ -389,6 +431,34 @@ export function FindClient({
 
         {/* ─── Results ─── */}
         <section className="space-y-3">
+          {focusedId && (
+            <div className="flex flex-wrap items-start gap-3 rounded-xl2 border border-grass-200 bg-grass-50/70 p-4 text-sm shadow-card">
+              <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-grass-700" />
+              <div className="flex-1 space-y-1">
+                <p className="font-medium text-grass-900">{copy.focus.banner_title}</p>
+                <p className="text-grass-800/90">{copy.focus.banner_description}</p>
+              </div>
+              <button
+                type="button"
+                onClick={dismissFocus}
+                className="inline-flex h-8 items-center gap-1 rounded-md border border-grass-300 bg-white px-3 text-xs font-medium text-grass-800 transition hover:bg-grass-50"
+              >
+                <X className="h-3 w-3" />
+                {copy.focus.dismiss}
+              </button>
+            </div>
+          )}
+
+          {focusRequested && !initialFocus && !focusedId && (
+            <div className="flex items-start gap-2 rounded-md bg-clay-50 px-3 py-2 text-sm text-clay-800">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div>
+                <p className="font-medium">{copy.focus.not_found_title}</p>
+                <p className="text-xs text-clay-700">{copy.focus.not_found_description}</p>
+              </div>
+            </div>
+          )}
+
           {results === null && !isSearching && (
             <EmptyHero title={copy.empty_title} description={copy.empty_description} />
           )}
@@ -408,7 +478,14 @@ export function FindClient({
               ) : (
                 <ul className="space-y-3">
                   {results.map((c) => (
-                    <CandidateCard key={c.id} candidate={c} locale={locale} copy={copy} />
+                    <CandidateCard
+                      key={c.id}
+                      candidate={c}
+                      locale={locale}
+                      copy={copy}
+                      autoOpenPropose={c.id === focusedId}
+                      cardRef={c.id === focusedId ? focusCardRef : undefined}
+                    />
                   ))}
                 </ul>
               )}
@@ -426,13 +503,17 @@ function CandidateCard({
   candidate,
   locale,
   copy,
+  autoOpenPropose = false,
+  cardRef,
 }: {
   candidate: ScoredCandidate;
   locale: Locale;
   copy: FindCopy;
+  autoOpenPropose?: boolean;
+  cardRef?: React.RefObject<HTMLLIElement | null>;
 }) {
   const t = useTranslations("find");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpenPropose);
   const [message, setMessage] = useState("");
   const [isSending, startSend] = useTransition();
   const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -469,7 +550,13 @@ function CandidateCard({
     .toUpperCase();
 
   return (
-    <li className="hover:shadow-pop rounded-xl2 border border-ink-100 bg-white shadow-card transition">
+    <li
+      ref={cardRef}
+      className={
+        "hover:shadow-pop rounded-xl2 border bg-white shadow-card transition " +
+        (autoOpenPropose ? "border-grass-300 ring-2 ring-grass-200" : "border-ink-100")
+      }
+    >
       <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
         {/* Avatar */}
         <div className="flex-shrink-0">
