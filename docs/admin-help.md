@@ -1,261 +1,170 @@
-# Admin help — HelpPanel content for every admin/coach page
+# Admin help — структура HelpPanel для каждой админской / тренерской страницы
 
-> ⚠️ **Outdated draft**: эти примеры были написаны на польском до миграции на RU/EN.
-> Действующие копирайты лежат в `messages/{ru,en}/help.json` под `pages.<key>` и являются single source of truth.
-> Этот файл оставлен как справочный pattern (структура секций) и подлежит переписыванию при следующем апдейте help-копирайтов.
+> **Один источник правды — `messages/{ru,en}/help.json`.**
+> Этот документ описывает _контракт_ и _паттерн_ help-копирайтов: как они устроены, по какому ключу лежат, что обязано присутствовать на каждой странице. Сами тексты редактируются в `help.json` — не дублируйте их сюда.
 
-Each section below is a ready-to-use payload for `<HelpPanel why what result />`. Strings live in `messages/{locale}/help.json` under `pages.<key>`.
-
----
-
-## `/coach/dashboard`
-
-**Why**
-Tutaj widzisz to, co dzieje się w klubie tu i teraz: nadchodzące treningi, świeże rezerwacje, aktywne turnieje, średnią ocenę.
-
-**What you can do**
-
-- Przejść do najbliższego treningu w jednym kliknięciu.
-- Zaakceptować nowe rezerwacje (jeśli włączone ręczne potwierdzenie).
-- Zobaczyć, ile osób się dziś zalogowało po raz pierwszy.
-
-**What happens next**
-
-- Akcja "Potwierdź rezerwację" wyśle graczowi e-mail; w karcie rezerwacji jest też przycisk "Napisz na WhatsApp" do bezpośredniego kontaktu.
-- Tworzenie nowego turnieju otworzy 5-krokowego kreatora.
+См. также: [AGENTS.md §3.4 / §8](../AGENTS.md), `components/help/help-panel.tsx`, `.cursor/skills/help-demo/SKILL.md`.
 
 ---
 
-## `/coach/players`
+## 1. Контракт `<HelpPanel />`
 
-**Why**
-Lista Twoich graczy. Stąd zapraszasz nowych i zarządzasz klubem.
+Каждая админская и тренерская страница **обязана** иметь `<HelpPanel />` с тремя блоками:
 
-**What you can do**
+| Блок     | Что в нём                                                                | Формат                |
+| -------- | ------------------------------------------------------------------------ | --------------------- |
+| `why`    | Зачем эта страница вообще существует. Без жаргона, человеческий язык.    | Один абзац.           |
+| `what`   | Что здесь конкретно можно сделать.                                       | 3–5 пунктов, глаголы. |
+| `result` | Что произойдёт после действия — и для тренера, и для игрока, и для базы. | Маркированный список. |
 
-- Wysłać zaproszenie na e-mail (jeden gracz lub CSV).
-- Zaimportować listę graczy z pliku CSV (kolumny: email, first_name, last_name).
-- Zobaczyć profil gracza, jego Elo i historię rezerwacji.
+Минимальный пример вызова:
 
-**What happens next**
+```tsx
+<HelpPanel
+  pageId="coach-dashboard"
+  why={t("pages.coach_dashboard.why")}
+  what={[t("pages.coach_dashboard.what.1"), t("pages.coach_dashboard.what.2")]}
+  result={[t("pages.coach_dashboard.result.1"), t("pages.coach_dashboard.result.2")]}
+/>
+```
 
-- Zaproszenie tworzy jednorazowy link ważny 14 dni i wysyła e-mail przez Resend.
-- Gracz akceptuje link → automatycznie trafia na quiz startowego Elo, a potem do Twojego klubu.
+Дополнительные обязательные элементы UX:
 
----
+- **Glossary tooltips.** Каждый специальный термин (K-фактор, snake-seeding, super-tiebreak, RRULE, walkover, DSQ, comped, no-ad, …) оборачивается в `<HelpTooltip term="k_factor" />`. Тексты — `messages/{ru,en}/help.json` → `glossary.<term>`.
+- **Empty states.** Никаких пустых таблиц. Используйте `<EmptyState title description cta />`. Тексты — рядом с другими копирайтами страницы.
+- **FlowDiagram.** Если на странице многошаговый процесс (создание турнира, импорт LT, генерация сетки), добавляйте `<FlowDiagram steps={[...]} currentStep={n} />`.
+- **Деструктивные действия.** Конфирм-диалог называет последствия: `«Будут удалены 12 матчей. История Эло сохранится.»`.
 
-## `/coach/venues`
-
-**Why**
-Miejsca, w których prowadzisz treningi. Najpierw lokalizacja (np. "Hala Wola"), potem korty wewnątrz niej.
-
-**What you can do**
-
-- Dodać lokalizację (adres, mapka, udogodnienia, zdjęcia).
-- W ramach lokalizacji utworzyć dowolną liczbę kortów (numer, nawierzchnia, status).
-- Zaznaczyć kort jako "konserwacja" — zniknie z dostępnych slotów.
-
-**What happens next**
-
-- Dopiero po utworzeniu choć jednego kortu można dodawać sloty.
-- Lokalizacje są publiczne — gracze widzą je na liście miejsc.
+Полная демонстрация всех элементов живёт на `/help-demo` (`app/[locale]/(public)/help-demo/page.tsx`). Любой PR, меняющий `components/help/*`, должен поддерживать эту страницу актуальной (см. `.cursor/skills/help-demo/SKILL.md`).
 
 ---
 
-## `/coach/schedule`
+## 2. Соглашения по ключам в `messages/{locale}/help.json`
 
-**Why**
-Sloty treningowe — to, co gracze rezerwują w swoim panelu.
+```jsonc
+{
+  "panel": {
+    "title": "...",
+    "why": "Зачем",
+    "what": "Что можно сделать",
+    "result": "Что произойдёт",
+  },
+  "glossary": {
+    "k_factor": { "title": "K-фактор", "body": "..." },
+    "super_tiebreak": { "title": "Супер-тай-брейк", "body": "..." },
+    // ...каждый термин — отдельный ключ
+  },
+  "pages": {
+    "<page_key>": {
+      "why": "...",
+      "what": { "1": "...", "2": "...", "3": "..." },
+      "result": { "1": "...", "2": "..." },
+    },
+  },
+}
+```
 
-**What you can do**
+Правила:
 
-- Stworzyć pojedynczy slot (data, godzina, kort).
-- Stworzyć szablon powtarzający się (np. "wt/cz 18:00 przez 8 tygodni").
-- Zablokować datę (urlop, choroba, deszcz).
-- Po treningu zaznaczyć status płatności: opłacone / nieopłacone / gratis.
-
-**What happens next**
-
-- Sloty pojawiają się u graczy natychmiast.
-- 24h i 2h przed treningiem gracz dostanie przypomnienie e-mail (i Telegram, jeśli włączył tę opcję).
-- Anulowanie po terminie zostanie zapisane w dzienniku odwołań.
-
----
-
-## `/coach/tournaments`
-
-**Why**
-Twoje turnieje: lokalne ligi, otwarte turnieje, sparingi grupowe.
-
-**What you can do**
-
-- Utworzyć turniej w 5 krokach (kreator z paskiem postępu).
-- Wybrać format (Single Elimination, Round Robin, Group + Playoff, Swiss, Double Elimination, Compass).
-- Ustawić zasady meczu (best-of-3/5, single set, pro-set 8/10, super-tiebreak, mecz na czas, do X gemów).
-- Wybrać sposób losowania (po rankingu, losowo, ręcznie, hybryda).
-- Zarejestrować graczy lub otworzyć rejestrację publiczną.
-
-**What happens next**
-
-- Po wygenerowaniu drabinki gracze widzą siatkę i swoje pierwsze mecze.
-- Każdy zatwierdzony wynik aktualizuje Elo wszystkich uczestników.
+1. Ключи `pages.<page_key>` именуются в `snake_case` и ровно соответствуют `pageId`-ам в коде (см. таблицу ниже).
+2. Все три ключа `why`, `what`, `result` обязаны существовать в обоих локалях `ru` и `en`. Незаполненный английский — повод для PR-ревьюера ставить `request changes`.
+3. Любая ссылка на термин в тексте автоматически становится тултипом, если обернута через `<HelpTooltip term="..." />` в JSX, не в JSON.
 
 ---
 
-## `/coach/finance`
+## 3. Карта страниц с `<HelpPanel />`
 
-**Why**
-Lekka kontrola płatności — bez integracji bramek (na razie).
+Ниже — фактический список страниц в `app/[locale]/...`, у которых уже подключён `<HelpPanel />`. Перед коммитом новой страницы в этих директориях — добавляйте запись сюда и заводите соответствующий ключ в `help.json`.
 
-**What you can do**
+### 3.1 Тренерский дашборд `/coach/...`
 
-- Oznaczyć rezerwację jako opłacona / nieopłacona / gratis.
-- Wyfiltrować po okresie i wyeksportować do CSV.
+| `pageId`                  | Маршрут                     | О чём страница                                                  |
+| ------------------------- | --------------------------- | --------------------------------------------------------------- |
+| `coach-dashboard`         | `/coach/dashboard`          | Сводка: ближайшие тренировки, свежие брони, активные турниры.   |
+| `coach-profile`           | `/coach/profile`            | Публичный профиль тренера: bio, ставки, удобства, локации.      |
+| `coach-players`           | `/coach/players`            | Список учеников клуба: приглашения, импорт CSV, профили.        |
+| `coach-player-detail`     | `/coach/players/[playerId]` | Карточка ученика: Эло, история матчей, бронирования, оплата.    |
+| `coach-venues`            | `/coach/venues`             | Локации (арены) и корты внутри: тип покрытия, статус, удобства. |
+| `coach-slots`             | `/coach/slots`              | Слоты для брони: одиночные, повторяющиеся (RRULE), блокировки.  |
+| `coach-tournaments`       | `/coach/tournaments`        | Турниры тренера: создание, формат, регистрация участников.      |
+| `coach-tournament-detail` | `/coach/tournaments/[id]`   | Конкретный турнир: участники, сетка, результаты, отзывы.        |
+| `coach-leaderboard`       | `/coach/leaderboard`        | Лидерборд клуба тренера (Эло-таблица учеников).                 |
 
-**What happens next**
+### 3.2 Админская консоль `/admin/...`
 
-- Zmiana statusu trafia do dziennika audytu.
-- Statystyka "przychód za miesiąc" w dashboardzie aktualizuje się automatycznie.
+| `pageId`                   | Маршрут                     | О чём страница                                                            |
+| -------------------------- | --------------------------- | ------------------------------------------------------------------------- |
+| `admin-overview`           | `/admin`                    | Глобальная сводка: число игроков, активные турниры, очередь модерации.    |
+| `admin-quiz`               | `/admin/quiz`               | Версии стартового квиза. Публикация = новая версия (старые архивируются). |
+| `admin-quiz-version`       | `/admin/quiz/[id]`          | Конкретная версия: вопросы, веса, превью «как видит игрок».               |
+| `admin-rating`             | `/admin/rating`             | Конфигурация Эло: стартовое значение, K-факторы, мультипликаторы.         |
+| `admin-rating-detail`      | `/admin/rating/[id]`        | Версия конфигурации Эло — diff и rollback.                                |
+| `admin-venues`             | `/admin/venues`             | Глобальный реестр локаций (всех тренеров + публичные арены).              |
+| `admin-venue-detail`       | `/admin/venues/[id]`        | Детали локации: корты, мап-точка, координаты, удобства.                   |
+| `admin-coach-applications` | `/admin/coach-applications` | Очередь заявок на роль тренера: одобрить / отклонить / попросить доп.     |
+| `admin-reviews`            | `/admin/reviews`            | Модерация отзывов: жалобы, скрытие, восстановление.                       |
+| `admin-db`                 | `/admin/db`                 | Список таблиц для прямого редактирования (под supabase RLS).              |
+| `admin-db-<table>`         | `/admin/db/[table]`         | Конкретная таблица: list/edit/insert.                                     |
 
----
+### 3.3 Игроцкие и публичные страницы (тоже под HelpPanel)
 
-## `/coach/reviews`
-
-**Why**
-Co o Tobie piszą — i jak na to odpowiedzieć.
-
-**What you can do**
-
-- Przeczytać każdą opinię, odpowiedzieć publicznie.
-- Zgłosić nieuczciwą opinię — trafi do moderacji administratora.
-
-**What happens next**
-
-- Średnia ocen wyświetla się na Twoim profilu publicznym.
-- Po zgłoszeniu opinia zostaje ukryta do decyzji administratora.
-
----
-
-## `/coach/settings`
-
-**Why**
-Ustawienia klubu i preferencje powiadomień.
-
-**What you can do**
-
-- Zmienić nazwę klubu, logo, opis, slug (URL).
-- Ustawić politykę odwołań (ile godzin wcześniej można odwołać bezpłatnie).
-- Wybrać kanały powiadomień, które do Ciebie docierają.
-
-**What happens next**
-
-- Zmiana sluga wpłynie na publiczny URL Twojego klubu.
-- Polityka odwołań blokuje akcje gracza po terminie.
-
----
-
-## `/admin/onboarding-quiz`
-
-**Why**
-Edytor quizu, który widzą nowi gracze. Każde zapisanie tworzy nową wersję — istniejące odpowiedzi są przypisane do swojej wersji.
-
-**What you can do**
-
-- Dodawać/usuwać/zmieniać kolejność pytań.
-- Wybrać typ pytania: jedna odpowiedź / wiele / skala 1–10 / liczba.
-- Ustawić wagę każdej odpowiedzi w punktach Elo.
-- Zobaczyć podgląd quizu tak, jak go widzi gracz.
-- Opublikować nową wersję (poprzednia zostaje archiwum).
-
-**What happens next**
-
-- Nowi gracze przechodzą najnowszą aktywną wersję.
-- Stare odpowiedzi nie zmienią się — historia jest zachowana.
+| `pageId`                   | Маршрут                 | Заметка                                                      |
+| -------------------------- | ----------------------- | ------------------------------------------------------------ |
+| `me-find`                  | `/me/find`              | Поиск соперника + расписание. Ловит deep-link `?focus=<id>`. |
+| `me-find-proposals`        | `/me/find/proposals`    | Предложения матчей (входящие / исходящие / история).         |
+| `me-rating`                | `/me/rating`            | Личный Эло: динамика, последние матчи, ачивки.               |
+| `me-matches`               | `/me/matches`           | История моих матчей с фильтрами.                             |
+| `me-tournaments`           | `/me/tournaments`       | Мои турниры (зарегистрирован / играл).                       |
+| `me-bookings`              | `/me/bookings`          | Мои брони у тренеров.                                        |
+| `me-coaches`               | `/me/coaches`           | Мои тренеры (история занятий).                               |
+| `me-profile`               | `/me/profile`           | Профиль игрока: контакты, район, видимость в каталоге.       |
+| `me-become-coach`          | `/me/become-coach`      | Заявка на роль тренера.                                      |
+| `onboarding-home`          | `/onboarding`           | Выбор: квиз vs импорт LT.                                    |
+| `onboarding-import-lt`     | `/onboarding/import-lt` | Привязка профиля Liga Tennisa.                               |
+| `players-public`           | `/players`              | Публичный каталог игроков.                                   |
+| `coaches-public`           | `/coaches`              | Публичный каталог тренеров.                                  |
+| `coaches-map`              | `/coaches/map`          | Карта тренеров (MapLibre + OSM).                             |
+| `coach-detail-<id>`        | `/coaches/[id]`         | Профиль тренера (publuc).                                    |
+| `public-tournaments`       | `/tournaments`          | Публичный список турниров (с фильтрами).                     |
+| `public-tournament-detail` | `/tournaments/[id]`     | Публичная страница турнира.                                  |
+| `public-matches`           | `/matches`              | Публичный фид матчей.                                        |
+| `venues-catalog`           | `/venues`               | Публичный каталог арен и кортов.                             |
+| `help`                     | `/help`                 | Главная страница помощи (FAQ + глоссарий).                   |
+| `invite-page`              | `/invite/[token]`       | Принятие тренерского приглашения.                            |
 
 ---
 
-## `/admin/algorithm`
+## 4. Чек-лист перед PR
 
-**Why**
-Konfiguracja algorytmu rankingowego: startowe Elo, K-faktory, mnożniki.
-
-**What you can do**
-
-- Ustawić bazowe Elo (np. 1000) i zakres clamp (np. 800–2200).
-- Dostosować K-faktor dla nowicjuszy/średniaków/weteranów.
-- Zmienić mnożniki: sparing ×0.5, turniej ×1.0, finał ×1.25.
-- Włączyć opcjonalnie "margin of victory" (różnica w gemach wpływa na Elo).
-- Skonfigurować punktację sezonowej rasy (Race).
-
-**What happens next**
-
-- Zmiany dotyczą **przyszłych** meczów. Historia nie jest przeliczana wstecz.
-- Tworzona jest nowa wersja konfiguracji — można wrócić do poprzedniej w jednym kliknięciu.
+- [ ] У новой страницы есть `pageId`, и он добавлен в таблицу выше.
+- [ ] В `messages/ru/help.json` и `messages/en/help.json` есть полный набор `pages.<page_key>.{why, what, result}`.
+- [ ] Все спец-термины обёрнуты в `<HelpTooltip term="..." />`, и каждый `term` существует в `glossary`.
+- [ ] Пустые состояния используют `<EmptyState />`, а не `null` / «Ничего нет».
+- [ ] Деструктивные действия проходят через диалог, который называет последствия в человеческих терминах.
+- [ ] `/help-demo` собирается (если меняли `components/help/*`).
+- [ ] `npm run lint`, `npm run typecheck`, `npm run test` — зелёные.
 
 ---
 
-## `/admin/seasons`
+## 5. Шаблон новой записи в `help.json`
 
-**Why**
-Sezony Race — okresy zbierania punktów, które kończą się nagrodami.
+```jsonc
+{
+  "pages": {
+    "coach_my_new_page": {
+      "why": "Объясни одной фразой, почему страница вообще нужна — без жаргона.",
+      "what": {
+        "1": "Глагол + объект — что делает первое действие.",
+        "2": "Глагол + объект — что делает второе действие.",
+        "3": "Глагол + объект — что делает третье действие.",
+      },
+      "result": {
+        "1": "Что увидит тренер после действия (письмо ушло, карточка появилась…).",
+        "2": "Что увидит игрок (или база) после действия — отдельной строкой.",
+      },
+    },
+  },
+}
+```
 
-**What you can do**
-
-- Utworzyć nowy sezon (start/koniec/punktacja/top-N).
-- Zobaczyć aktualne stojaki bieżącego sezonu.
-- Zamknąć sezon ręcznie i ogłosić zwycięzców.
-
-**What happens next**
-
-- Po zamknięciu sezonu zwycięzcy dostają e-mail (i opcjonalnie Telegram), a ich profile zyskują odznakę.
-
----
-
-## `/admin/templates`
-
-**Why**
-Szablony e-maili (główny kanał) na trzech językach. Opcjonalnie — szablony Telegram, jeśli bot jest włączony. WhatsApp Business API zostanie podpięte w fazie 2.
-
-**What you can do**
-
-- Edytować temat i treść szablonu (zmienne w `{{nawiasach}}`).
-- Wysłać testowy podgląd na własny adres.
-
-**What happens next**
-
-- Zmiany od razu trafiają do kolejki wysyłek.
-
----
-
-## `/admin/moderation`
-
-**Why**
-Wszystko, co wymaga rąk moderatora: zgłoszone opinie, sporne wyniki, prośby o usunięcie konta.
-
-**What you can do**
-
-- Ukryć/usunąć opinię.
-- Anulować spornie zatwierdzony mecz (Elo zostanie cofnięte).
-- Usunąć konto gracza zgodnie z RODO.
-
-**What happens next**
-
-- Każda akcja trafia do `audit_log` z autorem i diff-em.
-
----
-
-## `/admin/users`
-
-**Why**
-Globalne wyszukiwanie i nadawanie ról.
-
-**What you can do**
-
-- Znaleźć użytkownika po e-mailu/imieniu/Elo/dystrykcie.
-- Nadać rolę `coach` lub `admin`.
-- Zablokować konto.
-
-**What happens next**
-
-- Nadanie roli `coach` aktywuje sekcję trenerską w nawigacji użytkownika.
-- Blokada wylogowuje sesje natychmiast.
+После добавления — продублируй структуру в `messages/en/help.json` (черновой перевод допустим, но ключи обязаны совпадать).
