@@ -574,7 +574,7 @@ async function loadMyInteractionsWithCoach(
     }> | null;
   };
 
-  let tournamentsQ = supabase
+  const tournamentsQ = supabase
     .from("tournament_participants")
     .select("tournament_id, withdrawn, " + "tournaments(owner_coach_id, starts_on, ends_on)")
     .eq("player_id", playerId)

@@ -20,7 +20,6 @@ import {
   Save,
   Eraser,
   ArrowDown,
-  Trophy,
   Sparkles,
 } from "lucide-react";
 import {
@@ -501,7 +500,7 @@ export function FindClient({
 
 function CandidateCard({
   candidate,
-  locale,
+  locale: _locale,
   copy,
   autoOpenPropose = false,
   cardRef,
