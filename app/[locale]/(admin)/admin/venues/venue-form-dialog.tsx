@@ -147,12 +147,12 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
           )}
 
           <Field label={copy.fields.name} required>
-            <Input {...form.register("name")} placeholder="Bury Tennis Centre — Mokotów" />
+            <Input {...form.register("name")} placeholder="Tennis Centre — Центр" />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={copy.fields.city}>
-              <Input {...form.register("city")} placeholder="Warszawa" />
+              <Input {...form.register("city")} placeholder="Минск" />
             </Field>
             <Field label={copy.fields.district} hint={copy.hints.address}>
               <Controller
@@ -177,7 +177,10 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
           </div>
 
           <Field label={copy.fields.address} hint={copy.hints.address}>
-            <Input {...form.register("address")} placeholder="ul. Puławska 100, 02-595 Warszawa" />
+            <Input
+              {...form.register("address")}
+              placeholder="пр. Независимости 100, 220012 Минск"
+            />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -187,7 +190,7 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
                 step="0.000001"
                 min={-90}
                 max={90}
-                placeholder="52.193"
+                placeholder="53.902"
                 {...form.register("lat")}
               />
             </Field>
@@ -197,7 +200,7 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
                 step="0.000001"
                 min={-180}
                 max={180}
-                placeholder="21.022"
+                placeholder="27.561"
                 {...form.register("lng")}
               />
             </Field>

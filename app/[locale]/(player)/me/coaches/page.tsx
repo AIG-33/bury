@@ -1,14 +1,7 @@
 import { redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import {
-  Star,
-  Award,
-  MapPin,
-  ArrowRight,
-  CalendarPlus,
-  MessageSquarePlus,
-} from "lucide-react";
+import { Star, Award, MapPin, ArrowRight, CalendarPlus, MessageSquarePlus } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import {
@@ -52,17 +45,13 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
   ]);
   const myEntries = reviewable ?? [];
   const reviewedCoachIds = new Set(myEntries.map((e) => e.coach.id));
-  const otherCoaches = allCoaches.filter(
-    (c) => !reviewedCoachIds.has(c.id) && c.id !== user.id,
-  );
+  const otherCoaches = allCoaches.filter((c) => !reviewedCoachIds.has(c.id) && c.id !== user.id);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
       <header>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
           <HelpPanel
             pageId="me-coaches"
             variant="inline"
@@ -76,9 +65,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
 
       {myEntries.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {t("section_my")}
-          </h2>
+          <h2 className="font-display text-lg font-semibold text-ink-900">{t("section_my")}</h2>
           <p className="text-sm text-ink-600">{t("section_my_hint")}</p>
           <ul className="space-y-3">
             {myEntries.map((entry) => {
@@ -93,11 +80,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
                     <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
                       {c.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.avatar_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={c.avatar_url} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <Award className="h-5 w-5" />
                       )}
@@ -135,9 +118,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
                           </span>
                         </div>
                       ) : (
-                        <p className="mt-2 text-xs text-ball-700">
-                          {t("not_reviewed_yet")}
-                        </p>
+                        <p className="mt-2 text-xs text-ball-700">{t("not_reviewed_yet")}</p>
                       )}
                     </div>
                     <Link
@@ -158,13 +139,8 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {t("section_all")}
-          </h2>
-          <Link
-            href="/coaches"
-            className="text-xs font-medium text-grass-700 hover:text-grass-800"
-          >
+          <h2 className="font-display text-lg font-semibold text-ink-900">{t("section_all")}</h2>
+          <Link href="/coaches" className="text-xs font-medium text-grass-700 hover:text-grass-800">
             {t("open_full_catalog")} →
           </Link>
         </div>
@@ -257,11 +233,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
                     <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
                       {c.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.avatar_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={c.avatar_url} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <Award className="h-5 w-5" />
                       )}
@@ -293,22 +265,18 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs text-ink-500">
-                        {t("no_reviews_yet")}
-                      </span>
+                      <span className="text-xs text-ink-500">{t("no_reviews_yet")}</span>
                     )}
                   </div>
 
                   {c.coach_bio && (
-                    <p className="mt-2 line-clamp-3 text-sm text-ink-600">
-                      {c.coach_bio}
-                    </p>
+                    <p className="mt-2 line-clamp-3 text-sm text-ink-600">{c.coach_bio}</p>
                   )}
 
-                  {c.coach_hourly_rate_pln != null && (
-                    <p className="mt-2 text-xs text-ink-500 tabular-nums">
+                  {c.coach_hourly_rate_byn != null && (
+                    <p className="mt-2 text-xs tabular-nums text-ink-500">
                       {t("hourly_rate", {
-                        amount: c.coach_hourly_rate_pln,
+                        amount: c.coach_hourly_rate_byn,
                       })}
                     </p>
                   )}

@@ -7,15 +7,13 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/";
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/pl/login?error=missing_code`);
+    return NextResponse.redirect(`${origin}/ru/login?error=missing_code`);
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(
-      `${origin}/pl/login?error=${encodeURIComponent(error.message)}`,
-    );
+    return NextResponse.redirect(`${origin}/ru/login?error=${encodeURIComponent(error.message)}`);
   }
 
   // Decide post-login destination: if onboarding not done → quiz; else profile/dashboard.
@@ -32,11 +30,11 @@ export async function GET(request: NextRequest) {
       data: {
         onboarding_completed_at: string | null;
         is_coach: boolean;
-        locale: "pl" | "en" | "ru";
+        locale: "ru" | "en";
       } | null;
     };
 
-    const locale = profile?.locale ?? "pl";
+    const locale = profile?.locale ?? "ru";
 
     // Explicit "next" target wins (e.g. /invite/<token> after acceptance flow).
     if (next && next !== "/") {
@@ -45,7 +43,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!profile?.onboarding_completed_at) {
-      return NextResponse.redirect(`${origin}/${locale}/onboarding/quiz`);
+      return NextResponse.redirect(`${origin}/${locale}/onboarding`);
     }
     if (profile.is_coach) {
       return NextResponse.redirect(`${origin}/${locale}/coach/dashboard`);

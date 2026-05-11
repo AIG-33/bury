@@ -40,10 +40,10 @@ export async function Footer({ authed }: Props) {
               </span>
               <span className="flex flex-col leading-none">
                 <span className="font-display text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-500">
-                  Alex Bury
+                  Amateur tennis · BY
                 </span>
                 <span className="mt-0.5 font-display text-[14px] font-bold tracking-tight text-grass-900">
-                  Tennis Club
+                  OpenCourt.by
                 </span>
               </span>
             </Link>
@@ -81,7 +81,7 @@ export async function Footer({ authed }: Props) {
         </div>
 
         <div className="flex flex-col items-start justify-between gap-2 border-t border-ink-100 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
-          <span>© {year} Alex Bury Tennis Club · Warszawa</span>
+          <span>© {year} OpenCourt.by · Минск</span>
           <span>v1.0 · MVP</span>
         </div>
       </div>
@@ -89,13 +89,7 @@ export async function Footer({ authed }: Props) {
   );
 }
 
-function FooterLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

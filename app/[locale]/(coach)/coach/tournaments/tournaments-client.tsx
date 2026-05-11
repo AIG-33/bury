@@ -19,10 +19,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
 import { deleteTournament, type TournamentRow, type VenueOption } from "./actions";
-import {
-  TournamentFormDialog,
-  type TournamentDialogCopy,
-} from "./tournament-form-dialog";
+import { TournamentFormDialog, type TournamentDialogCopy } from "./tournament-form-dialog";
 import type {
   TournamentFormat,
   TournamentStatus,
@@ -42,7 +39,7 @@ export type TournamentsListCopy = {
   open: string;
   no_surface: string;
   entry_fee_free: string;
-  entry_fee_pln: string;
+  entry_fee_byn: string;
   format_labels: Record<TournamentFormat, string>;
   status_labels: Record<TournamentStatus, string>;
   surface_labels: Record<Surface, string>;
@@ -95,15 +92,13 @@ export function TournamentsClient({
           format: editing.format,
           surface: editing.surface,
           starts_on: editing.starts_on,
-          start_time: editing.start_time
-            ? editing.start_time.slice(0, 5)
-            : null,
+          start_time: editing.start_time ? editing.start_time.slice(0, 5) : null,
           ends_on: editing.ends_on,
           registration_deadline: editing.registration_deadline
             ? editing.registration_deadline.slice(0, 10)
             : null,
           max_participants: editing.max_participants,
-          entry_fee_pln: editing.entry_fee_pln,
+          entry_fee_byn: editing.entry_fee_byn,
           privacy: editing.privacy,
           draw_method: editing.draw_method ?? "rating",
           prizes_description: editing.prizes_description,
@@ -144,13 +139,11 @@ export function TournamentsClient({
           {tournaments.map((tour) => (
             <li
               key={tour.id}
-              className="flex flex-col rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-pop"
+              className="hover:shadow-pop flex flex-col rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-display text-lg font-semibold text-ink-900">
-                    {tour.name}
-                  </h3>
+                  <h3 className="font-display text-lg font-semibold text-ink-900">{tour.name}</h3>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-600">
                     <Trophy className="h-3 w-3" />
                     {copy.format_labels[tour.format]}
@@ -163,9 +156,7 @@ export function TournamentsClient({
                 <span className="inline-flex items-center gap-1">
                   <CalendarDays className="h-3 w-3" />
                   {tour.starts_on}
-                  {tour.ends_on && tour.ends_on !== tour.starts_on
-                    ? ` → ${tour.ends_on}`
-                    : ""}
+                  {tour.ends_on && tour.ends_on !== tour.starts_on ? ` → ${tour.ends_on}` : ""}
                 </span>
                 {tour.start_time && (
                   <span className="inline-flex items-center gap-1 tabular-nums">
@@ -188,11 +179,11 @@ export function TournamentsClient({
                     {copy.surface_labels[tour.surface]}
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1 rounded-md bg-ink-50 px-2 py-1 text-xs font-medium text-ink-700 tabular-nums">
+                <span className="inline-flex items-center gap-1 rounded-md bg-ink-50 px-2 py-1 text-xs font-medium tabular-nums text-ink-700">
                   <Coins className="h-3.5 w-3.5" />
-                  {tour.entry_fee_pln == null || tour.entry_fee_pln === 0
+                  {tour.entry_fee_byn == null || tour.entry_fee_byn === 0
                     ? copy.entry_fee_free
-                    : copy.entry_fee_pln.replace("{n}", String(tour.entry_fee_pln))}
+                    : copy.entry_fee_byn.replace("{n}", String(tour.entry_fee_byn))}
                 </span>
               </div>
 
@@ -231,9 +222,7 @@ export function TournamentsClient({
                     ) : (
                       <Trash2 className="h-3 w-3" />
                     )}
-                    {pending && deletingId === tour.id
-                      ? copy.deleting
-                      : copy.delete}
+                    {pending && deletingId === tour.id ? copy.deleting : copy.delete}
                   </button>
                 </div>
                 <Link

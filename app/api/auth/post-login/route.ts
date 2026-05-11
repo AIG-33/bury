@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 // Post-login redirector — resolves where to send the user after a successful
 // sign-in (password or fresh session). Mirrors the logic in
 // /api/auth/callback so both flows end up in the same "first run" experience:
-//   - no onboarding quiz yet      → /onboarding/quiz
+//   - no onboarding completed     → /onboarding (chooser: quiz vs. LT import)
 //   - explicit "next" target      → honour it
 //   - coach                       → /coach/dashboard
 //   - player (onboarded)          → /me/rating
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   if (!user) {
     const q = next ? `?next=${encodeURIComponent(next)}` : "";
-    return NextResponse.redirect(`${origin}/pl/login${q}`);
+    return NextResponse.redirect(`${origin}/ru/login${q}`);
   }
 
   const { data: profile } = (await supabase
@@ -30,16 +30,17 @@ export async function GET(request: NextRequest) {
     data: {
       onboarding_completed_at: string | null;
       is_coach: boolean;
-      locale: "pl" | "en" | "ru";
+      locale: "ru" | "en";
     } | null;
   };
 
-  const locale = profile?.locale ?? "pl";
+  const locale = profile?.locale ?? "ru";
 
-  // First login: force the onboarding quiz regardless of `next`, unless the
-  // user is explicitly heading into the quiz already.
+  // First login: force the onboarding chooser regardless of `next`. The
+  // chooser lets the player pick between the self-eval quiz and importing
+  // their existing rating from Liga Tennisa.
   if (!profile?.onboarding_completed_at) {
-    return NextResponse.redirect(`${origin}/${locale}/onboarding/quiz`);
+    return NextResponse.redirect(`${origin}/${locale}/onboarding`);
   }
 
   if (next && next !== "/") {

@@ -15,6 +15,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages: { ...app, help },
-    timeZone: "Europe/Warsaw",
+    timeZone: "Europe/Minsk",
   };
 });

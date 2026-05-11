@@ -26,36 +26,41 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Aliaksandr Bury Tennis Platform",
-    template: "%s · Bury Tennis",
+    default: "OpenCourt.by — Платформа любительского тенниса в Беларуси",
+    template: "%s · OpenCourt.by",
   },
   description:
-    "Universal Elo rating, find-a-player, tournaments and a tennis club run by a pro.",
+    "Открытая платформа для всех любителей тенниса в Беларуси: единый Эло на все матчи, поиск соперника, турниры и тренеры — в одном месте.",
   keywords: [
     "tennis",
-    "tennis club",
+    "amateur tennis",
+    "open court",
     "Elo rating",
     "find a player",
     "tournaments",
-    "Warsaw tennis",
-    "Poland tennis",
-    "Aliaksandr Bury",
+    "Minsk tennis",
+    "Belarus tennis",
+    "теннис",
+    "любительский теннис",
+    "теннис Минск",
+    "теннис Беларусь",
+    "OpenCourt.by",
   ],
-  authors: [{ name: "Aliaksandr Bury Tennis Club" }],
+  authors: [{ name: "OpenCourt.by" }],
   openGraph: {
     type: "website",
-    title: "Bury Tennis — Universal Elo + Tennis Platform",
+    title: "OpenCourt.by — единый Эло, соперники, турниры",
     description:
-      "Single Elo across all your matches, find a player nearby, run friendly and serious tournaments.",
-    siteName: "Bury Tennis",
-    locale: "pl_PL",
-    alternateLocale: ["en_US", "ru_RU"],
+      "Один Эло-рейтинг на все матчи, поиск соперника по уровню и району, турниры в любых форматах. Открытая платформа для любителей тенниса в Беларуси.",
+    siteName: "OpenCourt.by",
+    locale: "ru_BY",
+    alternateLocale: ["en_US"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bury Tennis — Universal Elo + Tennis Platform",
+    title: "OpenCourt.by — единый Эло, соперники, турниры",
     description:
-      "Single Elo across all your matches, find a player nearby, run friendly and serious tournaments.",
+      "Один Эло-рейтинг на все матчи, поиск соперника по уровню и району, турниры в любых форматах. Открытая платформа для любителей тенниса в Беларуси.",
   },
   robots: {
     index: true,
@@ -65,16 +70,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Bury Tennis",
+    title: "OpenCourt.by",
   },
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [
-      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: ["/icons/icon-192.png"],
   },
 };
@@ -86,9 +89,7 @@ export const viewport = {
   viewportFit: "cover" as const,
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       suppressHydrationWarning

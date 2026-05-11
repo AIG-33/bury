@@ -32,7 +32,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   } = await supabase.auth.getUser();
 
   return (
-    <NextIntlClientProvider messages={messages} locale={locale} timeZone="Europe/Warsaw">
+    <NextIntlClientProvider messages={messages} locale={locale} timeZone="Europe/Minsk">
       <div className="flex min-h-screen flex-col">
         <TopNav />
         <main className="flex-1">{children}</main>

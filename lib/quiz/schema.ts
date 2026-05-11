@@ -9,24 +9,22 @@ import { z } from "zod";
 // shape strictly so a malformed admin payload never lands in the DB.
 // =============================================================================
 
-export const QUIZ_QUESTION_TYPES = [
-  "single_choice",
-  "multi_choice",
-  "scale",
-  "number",
-] as const;
+export const QUIZ_QUESTION_TYPES = ["single_choice", "multi_choice", "scale", "number"] as const;
 export type QuizQuestionType = (typeof QUIZ_QUESTION_TYPES)[number];
 
-const Locale3 = z.object({
-  pl: z.string().trim().min(1).max(500),
+// Quiz question text is stored as JSONB with one key per supported locale.
+// We removed the PL locale (Belarusian audience speaks RU); any legacy PL keys
+// in production JSONB are silently ignored on save (Zod's default `strip` mode)
+// — they don't break reads but new payloads only carry `ru` + `en`.
+const LocaleText2 = z.object({
   en: z.string().trim().min(1).max(500),
   ru: z.string().trim().min(1).max(500),
 });
-export type LocaleText = z.infer<typeof Locale3>;
+export type LocaleText = z.infer<typeof LocaleText2>;
 
 const ChoiceOption = z.object({
   value: z.string().trim().min(1).max(60),
-  label: Locale3,
+  label: LocaleText2,
   weight: z.coerce.number().int().min(-2000).max(2000),
 });
 
@@ -60,7 +58,7 @@ export const QuestionFormSchema = z
       .max(60),
     position: z.coerce.number().int().min(1).max(99),
     required: z.boolean().default(true),
-    question: Locale3,
+    question: LocaleText2,
     type: z.enum(QUIZ_QUESTION_TYPES),
     options_choices: z.array(ChoiceOption).optional(),
     options_scale: z

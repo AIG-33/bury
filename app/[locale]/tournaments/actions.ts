@@ -26,7 +26,7 @@ export type PublicTournamentRow = {
   ends_on: string | null;
   registration_deadline: string | null;
   max_participants: number | null;
-  entry_fee_pln: number | null;
+  entry_fee_byn: number | null;
   participants_count: number;
   privacy: Privacy;
   status: TournamentStatus;
@@ -46,7 +46,7 @@ export async function loadPublicTournaments(opts: {
     .from("tournaments")
     .select(
       "id, owner_coach_id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_pln, privacy, status, match_rules",
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
     )
     .eq("privacy", "public")
     .order("starts_on", { ascending: true });
@@ -72,7 +72,7 @@ export async function loadPublicTournaments(opts: {
       ends_on: string | null;
       registration_deadline: string | null;
       max_participants: number | null;
-      entry_fee_pln: number | null;
+      entry_fee_byn: number | null;
       privacy: Privacy;
       status: TournamentStatus;
       match_rules: MatchRules;
@@ -89,9 +89,7 @@ export async function loadPublicTournaments(opts: {
     .in("id", ownerIds)) as {
     data: Array<{ id: string; display_name: string | null }> | null;
   };
-  const ownerNameById = new Map(
-    (ownerRows ?? []).map((o) => [o.id, o.display_name] as const),
-  );
+  const ownerNameById = new Map((ownerRows ?? []).map((o) => [o.id, o.display_name] as const));
   const [{ data: counts }, { data: tvs }] = await Promise.all([
     supabase
       .from("tournament_participants")
@@ -135,7 +133,7 @@ export async function loadPublicTournaments(opts: {
     ends_on: r.ends_on,
     registration_deadline: r.registration_deadline,
     max_participants: r.max_participants,
-    entry_fee_pln: r.entry_fee_pln,
+    entry_fee_byn: r.entry_fee_byn,
     participants_count: cnt.get(r.id) ?? 0,
     privacy: r.privacy,
     status: r.status,
@@ -181,29 +179,27 @@ export async function loadPublicTournamentDetail(
     .from("tournaments")
     .select(
       "id, owner_coach_id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_pln, privacy, status, match_rules",
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
     )
     .eq("id", tournamentId)
     .maybeSingle()) as {
-    data:
-      | {
-          id: string;
-          owner_coach_id: string;
-          name: string;
-          description: string | null;
-          format: TournamentFormat;
-          surface: Surface | null;
-          starts_on: string;
-          start_time: string | null;
-          ends_on: string | null;
-          registration_deadline: string | null;
-          max_participants: number | null;
-          entry_fee_pln: number | null;
-          privacy: Privacy;
-          status: TournamentStatus;
-          match_rules: MatchRules;
-        }
-      | null;
+    data: {
+      id: string;
+      owner_coach_id: string;
+      name: string;
+      description: string | null;
+      format: TournamentFormat;
+      surface: Surface | null;
+      starts_on: string;
+      start_time: string | null;
+      ends_on: string | null;
+      registration_deadline: string | null;
+      max_participants: number | null;
+      entry_fee_byn: number | null;
+      privacy: Privacy;
+      status: TournamentStatus;
+      match_rules: MatchRules;
+    } | null;
   };
 
   if (!row) return null;
@@ -248,9 +244,7 @@ export async function loadPublicTournamentDetail(
     }>,
     supabase
       .from("matches")
-      .select(
-        "id, round, bracket_slot, p1_id, p2_id, winner_side, sets, outcome, scheduled_at",
-      )
+      .select("id, round, bracket_slot, p1_id, p2_id, winner_side, sets, outcome, scheduled_at")
       .eq("tournament_id", tournamentId)
       .order("round", { ascending: true })
       .order("bracket_slot", { ascending: true }) as unknown as Promise<{
@@ -261,18 +255,16 @@ export async function loadPublicTournamentDetail(
         p1_id: string | null;
         p2_id: string | null;
         winner_side: "p1" | "p2" | null;
-        sets:
-          | Array<{
-              p1?: number;
-              p2?: number;
-              p1_games?: number;
-              p2_games?: number;
-              tb_p1?: number | null;
-              tb_p2?: number | null;
-              tiebreak_p1?: number | null;
-              tiebreak_p2?: number | null;
-            }>
-          | null;
+        sets: Array<{
+          p1?: number;
+          p2?: number;
+          p1_games?: number;
+          p2_games?: number;
+          tb_p1?: number | null;
+          tb_p2?: number | null;
+          tiebreak_p1?: number | null;
+          tiebreak_p2?: number | null;
+        }> | null;
         outcome: string;
         scheduled_at: string | null;
       }> | null;
@@ -314,8 +306,7 @@ export async function loadPublicTournamentDetail(
   });
 
   const matchesOut = (matches ?? []).map((m) => {
-    const winner_id =
-      m.winner_side === "p1" ? m.p1_id : m.winner_side === "p2" ? m.p2_id : null;
+    const winner_id = m.winner_side === "p1" ? m.p1_id : m.winner_side === "p2" ? m.p2_id : null;
     // Normalise sets to the `{p1, p2, tb_p1, tb_p2}` shape the UI uses.
     const sets =
       m.sets == null
@@ -332,8 +323,8 @@ export async function loadPublicTournamentDetail(
       bracket_position: m.bracket_slot,
       p1_id: m.p1_id,
       p2_id: m.p2_id,
-      p1_name: m.p1_id ? basicById.get(m.p1_id)?.display_name ?? null : null,
-      p2_name: m.p2_id ? basicById.get(m.p2_id)?.display_name ?? null : null,
+      p1_name: m.p1_id ? (basicById.get(m.p1_id)?.display_name ?? null) : null,
+      p2_name: m.p2_id ? (basicById.get(m.p2_id)?.display_name ?? null) : null,
       winner_id,
       sets,
       outcome: m.outcome,
@@ -355,7 +346,7 @@ export async function loadPublicTournamentDetail(
       ends_on: row.ends_on,
       registration_deadline: row.registration_deadline,
       max_participants: row.max_participants,
-      entry_fee_pln: row.entry_fee_pln,
+      entry_fee_byn: row.entry_fee_byn,
       participants_count,
       privacy: row.privacy,
       status: row.status,

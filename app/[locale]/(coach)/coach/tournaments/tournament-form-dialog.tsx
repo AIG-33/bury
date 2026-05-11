@@ -108,7 +108,7 @@ export function TournamentFormDialog({
       ends_on: null,
       registration_deadline: null,
       max_participants: null,
-      entry_fee_pln: null,
+      entry_fee_byn: null,
       privacy: "club",
       draw_method: "rating",
       prizes_description: null,
@@ -306,9 +306,7 @@ export function TournamentFormDialog({
                     type="time"
                     step={300}
                     value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(e.target.value === "" ? null : e.target.value)
-                    }
+                    onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
                     className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   />
                 )}
@@ -361,7 +359,7 @@ export function TournamentFormDialog({
                   min={0}
                   max={100000}
                   step={10}
-                  {...form.register("entry_fee_pln")}
+                  {...form.register("entry_fee_byn")}
                   className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                 />
                 <span className="text-xs text-ink-500">{copy.fields.entry_fee_currency}</span>
@@ -386,9 +384,7 @@ export function TournamentFormDialog({
                 const selected = new Set<string>(field.value ?? []);
                 if (venueOptions.length === 0) {
                   return (
-                    <p className="text-xs text-ink-500">
-                      {copy.hints.venues_empty_catalogue}
-                    </p>
+                    <p className="text-xs text-ink-500">{copy.hints.venues_empty_catalogue}</p>
                   );
                 }
                 return (
@@ -414,9 +410,7 @@ export function TournamentFormDialog({
                           }
                         >
                           <span>{v.name}</span>
-                          {v.city && (
-                            <span className="text-[10px] text-ink-500">· {v.city}</span>
-                          )}
+                          {v.city && <span className="text-[10px] text-ink-500">· {v.city}</span>}
                         </button>
                       );
                     })}

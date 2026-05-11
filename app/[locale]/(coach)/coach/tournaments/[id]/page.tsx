@@ -4,10 +4,7 @@ import { Link } from "@/i18n/routing";
 import { ArrowLeft, CalendarDays, Clock, Coins, MapPin, Trophy, Eye } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { loadRoundRobinStandings, loadTournamentDetail } from "../actions";
-import {
-  ParticipantsSection,
-  type ParticipantsCopy,
-} from "./participants-section";
+import { ParticipantsSection, type ParticipantsCopy } from "./participants-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
 import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
@@ -49,9 +46,10 @@ export default async function TournamentDetailPage({ params }: Props) {
   const statusLabels = Object.fromEntries(
     TOURNAMENT_STATUSES.map((s) => [s, t(`statuses.${s}`)]),
   ) as Record<TournamentStatus, string>;
-  const surfaceLabels = Object.fromEntries(
-    SURFACES.map((s) => [s, t(`surfaces.${s}`)]),
-  ) as Record<Surface, string>;
+  const surfaceLabels = Object.fromEntries(SURFACES.map((s) => [s, t(`surfaces.${s}`)])) as Record<
+    Surface,
+    string
+  >;
   const drawMethodLabels = Object.fromEntries(
     SEEDING_METHODS.map((m) => [m, t(`draw_methods.${m}`)]),
   ) as Record<SeedingMethod, string>;
@@ -98,8 +96,7 @@ export default async function TournamentDetailPage({ params }: Props) {
     insufficient_players: t("bracket.insufficient_players"),
   };
 
-  const locked =
-    tournament.status === "in_progress" || tournament.status === "finished";
+  const locked = tournament.status === "in_progress" || tournament.status === "finished";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
@@ -117,18 +114,12 @@ export default async function TournamentDetailPage({ params }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="font-display text-2xl font-bold text-ink-900">
-                {tournament.name}
-              </h1>
+              <h1 className="font-display text-2xl font-bold text-ink-900">{tournament.name}</h1>
               <HelpPanel
                 pageId="coach-tournament-detail"
                 variant="inline"
                 why={t("detail.help.why")}
-                what={[
-                  t("detail.help.what.1"),
-                  t("detail.help.what.2"),
-                  t("detail.help.what.3"),
-                ]}
+                what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
                 result={[t("detail.help.result.1"), t("detail.help.result.2")]}
               />
             </div>
@@ -172,9 +163,9 @@ export default async function TournamentDetailPage({ params }: Props) {
           )}
           <span className="inline-flex items-center gap-1 tabular-nums">
             <Coins className="h-3 w-3" />
-            {tournament.entry_fee_pln == null || tournament.entry_fee_pln === 0
+            {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
               ? t("detail.entry_fee_free")
-              : t("detail.entry_fee_pln", { n: tournament.entry_fee_pln })}
+              : t("detail.entry_fee_byn", { n: tournament.entry_fee_byn })}
           </span>
           <span className="inline-flex items-center gap-1">
             <Eye className="h-3 w-3" />

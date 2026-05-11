@@ -66,11 +66,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
     return { personal, public: publicItems };
   }, [items]);
 
-  const renderGroup = (
-    rows: MobileMenuItem[],
-    eyebrow: string,
-    icon: "personal" | "public",
-  ) => {
+  const renderGroup = (rows: MobileMenuItem[], eyebrow: string, icon: "personal" | "public") => {
     if (rows.length === 0) return null;
     const Icon = icon === "personal" ? UserRound : Globe2;
     const tint =
@@ -93,8 +89,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
         </div>
         <ul className="flex flex-col gap-1">
           {rows.map((it) => {
-            const active =
-              pathname === it.href || pathname.startsWith(`${it.href}/`);
+            const active = pathname === it.href || pathname.startsWith(`${it.href}/`);
             return (
               <li key={it.href}>
                 <Link
@@ -121,11 +116,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
   };
 
   const overlay = (
-    <div
-      className="fixed inset-0 z-[100] md:hidden"
-      role="dialog"
-      aria-modal="true"
-    >
+    <div className="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true">
       {/* Backdrop */}
       <button
         type="button"
@@ -137,7 +128,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
       <div className="absolute right-0 top-0 flex h-full w-[88%] max-w-sm flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
           <span className="font-display text-base font-extrabold tracking-tight text-grass-900">
-            Bury Tennis
+            OpenCourt.by
           </span>
           <button
             type="button"

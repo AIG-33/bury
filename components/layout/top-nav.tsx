@@ -79,25 +79,25 @@ export async function TopNav() {
         <Link
           href="/"
           className="group inline-flex items-center gap-2.5"
-          aria-label="Alex Bury Tennis Club"
+          aria-label="OpenCourt.by — платформа любительского тенниса"
         >
           <span className="relative inline-flex h-7 w-7 items-center justify-center">
             <span
               aria-hidden
               className="absolute inset-0 rounded-full bg-grass-100/0 blur-md transition-colors duration-500 group-hover:bg-grass-200/60"
             />
-            <TennisBall className="relative h-6 w-6 text-ball-500 drop-shadow-[0_2px_6px_rgba(31,138,76,0.25)] transition-transform duration-700 ease-followthrough group-hover:rotate-[360deg]" />
+            <TennisBall className="ease-followthrough relative h-6 w-6 text-ball-500 drop-shadow-[0_2px_6px_rgba(31,138,76,0.25)] transition-transform duration-700 group-hover:rotate-[360deg]" />
           </span>
           <span className="hidden flex-col leading-none sm:flex">
             <span className="font-display text-[10.5px] font-bold uppercase tracking-[0.2em] text-ink-500">
-              Alex Bury
+              Amateur tennis · BY
             </span>
             <span className="mt-0.5 font-display text-[14px] font-extrabold tracking-tight text-grass-900">
-              Tennis Club
+              OpenCourt.by
             </span>
           </span>
           <span className="font-display text-[15px] font-extrabold tracking-tight text-grass-900 sm:hidden">
-            ABTC
+            OpenCourt.by
           </span>
         </Link>
 
@@ -257,15 +257,11 @@ export async function TopNav() {
             }}
           />
           {user ? (
-            <form
-              action="/api/auth/signout"
-              method="post"
-              className="hidden md:block"
-            >
+            <form action="/api/auth/signout" method="post" className="hidden md:block">
               <button
                 type="submit"
                 aria-label={t("logout")}
-                className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-200/70 bg-white/70 text-ink-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md transition-all duration-300 ease-followthrough hover:-translate-y-0.5 hover:border-clay-300 hover:bg-white hover:text-clay-700 hover:shadow-[0_10px_24px_-12px_rgba(176,55,55,0.45)]"
+                className="ease-followthrough group inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-200/70 bg-white/70 text-ink-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-clay-300 hover:bg-white hover:text-clay-700 hover:shadow-[0_10px_24px_-12px_rgba(176,55,55,0.45)]"
               >
                 <LogOut className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-0.5" />
               </button>
@@ -273,10 +269,10 @@ export async function TopNav() {
           ) : (
             <Link
               href="/login"
-              className="group hidden h-10 items-center gap-2 rounded-full bg-grass-700 pl-4 pr-2 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_10px_28px_-10px_rgba(21,94,54,0.65)] transition-all duration-400 ease-followthrough hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_18px_38px_-10px_rgba(21,94,54,0.75)] md:inline-flex"
+              className="duration-400 ease-followthrough group hidden h-10 items-center gap-2 rounded-full bg-grass-700 pl-4 pr-2 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_10px_28px_-10px_rgba(21,94,54,0.65)] transition-all hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_18px_38px_-10px_rgba(21,94,54,0.75)] md:inline-flex"
             >
               {t("login")}
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-followthrough group-hover:translate-x-0.5">
+              <span className="ease-followthrough inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 group-hover:translate-x-0.5">
                 <svg
                   viewBox="0 0 16 16"
                   className="h-3 w-3"

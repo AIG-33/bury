@@ -63,7 +63,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         </div>
         {tournament.description && <p className="text-ink-600">{tournament.description}</p>}
         <div className="flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-leaf-50 px-2 py-0.5 font-medium uppercase text-leaf-700">
+          <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 font-medium uppercase">
             {t(`format.${tournament.format}`)}
           </span>
           {tournament.surface && (
@@ -85,12 +85,12 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           </dt>
           <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
             <span className="inline-flex items-center gap-1">
-              <Calendar className="h-4 w-4 text-leaf-700" />
+              <Calendar className="text-leaf-700 h-4 w-4" />
               {fmtDate.format(new Date(tournament.starts_on))}
             </span>
             {tournament.start_time && (
-              <span className="inline-flex items-center gap-1 text-sm text-ink-700 tabular-nums">
-                <Clock className="h-3.5 w-3.5 text-leaf-700" />
+              <span className="inline-flex items-center gap-1 text-sm tabular-nums text-ink-700">
+                <Clock className="text-leaf-700 h-3.5 w-3.5" />
                 {tournament.start_time.slice(0, 5)}
               </span>
             )}
@@ -101,7 +101,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             {t("detail.participants")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Users className="h-4 w-4 text-leaf-700" />
+            <Users className="text-leaf-700 h-4 w-4" />
             {tournament.participants_count}
             {tournament.max_participants ? ` / ${tournament.max_participants}` : ""}
           </dd>
@@ -110,11 +110,11 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.entry_fee")}
           </dt>
-          <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900 tabular-nums">
-            <Coins className="h-4 w-4 text-leaf-700" />
-            {tournament.entry_fee_pln == null || tournament.entry_fee_pln === 0
+          <dd className="mt-1 inline-flex items-center gap-1 font-medium tabular-nums text-ink-900">
+            <Coins className="text-leaf-700 h-4 w-4" />
+            {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
               ? t("entry_fee_free")
-              : t("entry_fee_pln", { n: tournament.entry_fee_pln })}
+              : t("entry_fee_byn", { n: tournament.entry_fee_byn })}
           </dd>
         </div>
         <div className="rounded-lg border border-ink-100 bg-white p-3">
@@ -122,7 +122,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             {t("detail.coach")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Trophy className="h-4 w-4 text-leaf-700" />
+            <Trophy className="text-leaf-700 h-4 w-4" />
             {tournament.coach_name ?? "—"}
           </dd>
         </div>
@@ -135,7 +135,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               {tournament.venues.map((v) => (
                 <span
                   key={v.id}
-                  className="inline-flex items-center gap-1 rounded-full bg-leaf-50 px-2 py-0.5 text-xs text-leaf-700"
+                  className="bg-leaf-50 text-leaf-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
                 >
                   <MapPin className="h-3 w-3" />
                   {v.name}
@@ -169,9 +169,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                     </span>
                     {p.name ?? "?"}
                   </span>
-                  <span className="font-mono text-xs tabular-nums text-ink-500">
-                    Elo {p.elo}
-                  </span>
+                  <span className="font-mono text-xs tabular-nums text-ink-500">Elo {p.elo}</span>
                 </li>
               ))}
           </ol>
@@ -201,7 +199,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                   key={m.id}
                   className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md border border-ink-100 px-3 py-2 text-sm"
                 >
-                  <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-[10px] font-medium uppercase text-leaf-700">
+                  <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase">
                     R{m.round ?? "?"}
                   </span>
                   <div className="min-w-0">

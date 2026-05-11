@@ -1,5 +1,5 @@
 -- ============================================================
--- Aliaksandr Bury Tennis Platform — initial schema
+-- OpenCourt.by — initial schema for the Belarus amateur-tennis platform
 -- 20 base tables + RLS + helper functions
 -- See docs/diagrams/data-model.md for full description
 -- ============================================================

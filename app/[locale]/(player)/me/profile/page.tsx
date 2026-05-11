@@ -4,9 +4,11 @@ import { Link } from "@/i18n/routing";
 import { Award, ArrowRight } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
+import { ExternalRatingCard } from "@/components/profile/external-rating-card";
 import { ProfileForm } from "./profile-form";
 import { loadMyProfile } from "./actions";
 import { loadMyCoachApplications } from "../become-coach/actions";
+import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
 import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -17,11 +19,13 @@ export default async function ProfilePage({ params }: Props) {
   const t = await getTranslations("profile");
   const tSec = await getTranslations("accountSecurity");
   const tBecome = await getTranslations("becomeCoach");
+  const tExt = await getTranslations("externalRating");
 
   const result = await loadMyProfile();
   if (!result.ok) redirect(`/${locale}/login`);
 
   const { profile, districts } = result;
+  const externalRating = await loadMyExternalRating();
 
   // Surface the "become a coach" entry point right inside the player profile.
   // We piggyback on the same loader so we know whether the player is already
@@ -130,13 +134,13 @@ export default async function ProfilePage({ params }: Props) {
         carpet: t("form.enums.surface.carpet"),
       },
       locale: {
-        pl: t("form.enums.locale.pl"),
-        en: t("form.enums.locale.en"),
         ru: t("form.enums.locale.ru"),
+        en: t("form.enums.locale.en"),
       },
-      weekday: Object.fromEntries(
-        WEEKDAYS.map((d) => [d, t(`form.enums.weekday.${d}`)]),
-      ) as Record<(typeof WEEKDAYS)[number], string>,
+      weekday: Object.fromEntries(WEEKDAYS.map((d) => [d, t(`form.enums.weekday.${d}`)])) as Record<
+        (typeof WEEKDAYS)[number],
+        string
+      >,
       daypart: Object.fromEntries(
         TIME_SLOTS.map((s) => [s, t(`form.enums.daypart.${s}`)]),
       ) as Record<(typeof TIME_SLOTS)[number], string>,
@@ -155,9 +159,7 @@ export default async function ProfilePage({ params }: Props) {
     <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
       <header className="space-y-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
           <HelpPanel
             pageId="me-profile"
             variant="inline"
@@ -196,8 +198,41 @@ export default async function ProfilePage({ params }: Props) {
         </Link>
       )}
 
+      <ExternalRatingCard
+        locale={locale as "ru" | "en"}
+        initial={externalRating}
+        copy={{
+          title: tExt("card.title"),
+          subtitle: tExt("card.subtitle"),
+          source_label: tExt("source_label"),
+          not_connected_title: tExt("not_connected.title"),
+          not_connected_body: tExt("not_connected.body"),
+          not_connected_cta: tExt("not_connected.cta"),
+          refresh: tExt("refresh"),
+          refreshing: tExt("refreshing"),
+          refreshed_now: tExt("refreshed_now"),
+          refreshed_ago: tExt("refreshed_ago"),
+          disconnect: tExt("disconnect"),
+          disconnecting: tExt("disconnecting"),
+          confirm_disconnect: tExt("confirm_disconnect"),
+          imported_at_label: tExt("imported_at_label"),
+          last_refreshed_label: tExt("last_refreshed_label"),
+          last_refresh_error_label: tExt("last_refresh_error_label"),
+          open_on_lt: tExt("open_on_lt"),
+          errors: {
+            not_authenticated: tExt("errors.not_authenticated"),
+            no_external_rating: tExt("errors.no_external_rating"),
+            upstream_unreachable: tExt("errors.upstream_unreachable"),
+            upstream_error: tExt("errors.upstream_error"),
+            player_not_found: tExt("errors.player_not_found"),
+            db_error: tExt("errors.db_error"),
+            unknown: tExt("errors.unknown"),
+          },
+        }}
+      />
+
       <ProfileForm
-        locale={locale as "pl" | "en" | "ru"}
+        locale={locale as "ru" | "en"}
         profile={profile}
         districts={districts}
         copy={copy}

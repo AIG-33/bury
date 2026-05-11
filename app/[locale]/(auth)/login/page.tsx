@@ -29,10 +29,7 @@ export default async function LoginPage({ params }: Props) {
         {/* Wordmark */}
         <div className="mt-4 flex flex-col items-center">
           <span className="relative inline-flex h-14 w-14 items-center justify-center">
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full bg-grass-200/40 blur-xl"
-            />
+            <span aria-hidden className="absolute inset-0 rounded-full bg-grass-200/40 blur-xl" />
             <TennisBall className="relative h-12 w-12 text-ball-500 drop-shadow-[0_4px_18px_rgba(31,138,76,0.35)]" />
           </span>
           <h1 className="mt-5 font-display text-3xl font-bold tracking-tight text-grass-900 md:text-4xl">
@@ -41,7 +38,7 @@ export default async function LoginPage({ params }: Props) {
         </div>
 
         {/* Card */}
-        <div className="mt-8 surface-card">
+        <div className="surface-card mt-8">
           <Suspense fallback={null}>
             <LoginForm
               locale={locale}
@@ -70,7 +67,7 @@ export default async function LoginPage({ params }: Props) {
         </div>
 
         <p className="mt-6 text-center font-mono text-[11.5px] uppercase tracking-[0.18em] text-ink-500">
-          Alex Bury · Tennis Club · Warszawa
+          OpenCourt.by · Беларусь · Любительский теннис
         </p>
       </div>
     </section>

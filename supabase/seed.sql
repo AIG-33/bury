@@ -1,24 +1,41 @@
 -- ============================================================
--- Seed: districts (Warsaw), default rating algorithm, default quiz
+-- Seed: districts (Belarus), default rating algorithm, default quiz
 -- ============================================================
 
--- ---- Warsaw districts ----
+-- ---- Belarus districts (mirrors 20260510000000_belarus_relocation.sql) ----
 insert into districts (country, city, name, slug, lat, lng) values
- ('PL','Warszawa','Śródmieście',     'warszawa-srodmiescie',     52.2298, 21.0118),
- ('PL','Warszawa','Mokotów',         'warszawa-mokotow',         52.1894, 21.0250),
- ('PL','Warszawa','Wola',            'warszawa-wola',            52.2347, 20.9844),
- ('PL','Warszawa','Ochota',          'warszawa-ochota',          52.2128, 20.9785),
- ('PL','Warszawa','Praga-Południe',  'warszawa-praga-poludnie',  52.2447, 21.0844),
- ('PL','Warszawa','Praga-Północ',    'warszawa-praga-polnoc',    52.2570, 21.0381),
- ('PL','Warszawa','Bemowo',          'warszawa-bemowo',          52.2522, 20.9119),
- ('PL','Warszawa','Bielany',         'warszawa-bielany',         52.2920, 20.9519),
- ('PL','Warszawa','Targówek',        'warszawa-targowek',        52.2917, 21.0431),
- ('PL','Warszawa','Ursynów',         'warszawa-ursynow',         52.1456, 21.0530),
- ('PL','Warszawa','Wilanów',         'warszawa-wilanow',         52.1655, 21.0892),
- ('PL','Warszawa','Włochy',          'warszawa-wlochy',          52.1914, 20.9319),
- ('PL','Warszawa','Białołęka',       'warszawa-bialoleka',       52.3219, 20.9919),
- ('PL','Warszawa','Wesoła',          'warszawa-wesola',          52.2389, 21.2256),
- ('PL','Warszawa','Wawer',           'warszawa-wawer',           52.1942, 21.1672)
+ -- Минск (9 районов)
+ ('BY', 'Минск', 'Центральный',     'minsk-tsentralnyi',         53.9023, 27.5615),
+ ('BY', 'Минск', 'Советский',        'minsk-sovetskiy',           53.9333, 27.6000),
+ ('BY', 'Минск', 'Первомайский',     'minsk-pervomayskiy',        53.9090, 27.6320),
+ ('BY', 'Минск', 'Партизанский',     'minsk-partizanskiy',        53.8810, 27.6480),
+ ('BY', 'Минск', 'Заводской',        'minsk-zavodskoy',           53.8700, 27.6200),
+ ('BY', 'Минск', 'Ленинский',        'minsk-leninskiy',           53.8650, 27.5900),
+ ('BY', 'Минск', 'Октябрьский',      'minsk-oktyabrskiy',         53.8550, 27.5500),
+ ('BY', 'Минск', 'Московский',       'minsk-moskovskiy',          53.8650, 27.5050),
+ ('BY', 'Минск', 'Фрунзенский',      'minsk-frunzenskiy',         53.9050, 27.4800),
+ -- Областные центры
+ ('BY', 'Брест',   'Ленинский',      'brest-leninskiy',           52.0976, 23.7341),
+ ('BY', 'Брест',   'Московский',     'brest-moskovskiy',          52.0850, 23.7100),
+ ('BY', 'Гродно',  'Ленинский',      'grodno-leninskiy',          53.6778, 23.8295),
+ ('BY', 'Гродно',  'Октябрьский',    'grodno-oktyabrskiy',        53.6890, 23.8400),
+ ('BY', 'Гомель',  'Центральный',    'gomel-tsentralnyi',         52.4345, 30.9754),
+ ('BY', 'Гомель',  'Советский',      'gomel-sovetskiy',           52.4500, 31.0100),
+ ('BY', 'Гомель',  'Новобелицкий',   'gomel-novobelitskiy',       52.3900, 30.9900),
+ ('BY', 'Гомель',  'Железнодорожный','gomel-zheleznodorozhnyi',   52.4250, 30.9550),
+ ('BY', 'Витебск', 'Железнодорожный','vitebsk-zheleznodorozhnyi', 55.1904, 30.2049),
+ ('BY', 'Витебск', 'Октябрьский',    'vitebsk-oktyabrskiy',       55.1750, 30.2300),
+ ('BY', 'Витебск', 'Первомайский',   'vitebsk-pervomayskiy',      55.2050, 30.1900),
+ ('BY', 'Могилёв', 'Ленинский',      'mogilev-leninskiy',         53.9006, 30.3322),
+ ('BY', 'Могилёв', 'Октябрьский',    'mogilev-oktyabrskiy',       53.9100, 30.3550),
+ ('BY', 'Могилёв', 'Центральный',    'mogilev-tsentralnyi',       53.8950, 30.3500),
+ -- Районные центры
+ ('BY', 'Барановичи', 'Город',       'baranovichi-gorod',         53.1327, 26.0139),
+ ('BY', 'Бобруйск',   'Город',       'bobruisk-gorod',            53.1384, 29.2214),
+ ('BY', 'Лида',       'Город',       'lida-gorod',                53.8884, 25.2989),
+ ('BY', 'Пинск',      'Город',       'pinsk-gorod',               52.1229, 26.0951),
+ ('BY', 'Солигорск',  'Город',       'soligorsk-gorod',           52.7878, 27.5366),
+ ('BY', 'Молодечно',  'Город',       'molodechno-gorod',          54.3167, 26.8467)
 on conflict (slug) do nothing;
 
 -- ---- Rating algorithm: default v1 (active) ----
@@ -115,6 +132,6 @@ select
   (date_trunc('month', current_date) + interval '6 months' - interval '1 day')::date,
   jsonb_build_object('match_win',10,'match_loss',1,'tournament_win',50,'tournament_final',30,'tournament_semifinal',15),
   3,
-  'Top-3 receive a coaching session with Aliaksandr Bury and a custom Bury Tennis racket cover.',
+  'Top-3 receive a complimentary coaching session with one of the platform coaches and an OpenCourt.by branded racket cover.',
   'active'
 where not exists (select 1 from seasons where status = 'active');

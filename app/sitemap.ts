@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const LOCALES = ["pl", "en", "ru"] as const;
+const LOCALES = ["ru", "en"] as const;
 
 const PUBLIC_PATHS = [
   "",

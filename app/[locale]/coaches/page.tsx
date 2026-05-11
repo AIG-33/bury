@@ -4,11 +4,7 @@ import { Link } from "@/i18n/routing";
 import { Award, MapPin, Star, Trophy, Map as MapIcon } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
-import {
-  loadCoaches,
-  loadVenueOptions,
-  loadDistrictOptionsForCoaches,
-} from "./actions";
+import { loadCoaches, loadVenueOptions, loadDistrictOptionsForCoaches } from "./actions";
 import {
   rankCoaches,
   sortCoaches,
@@ -46,8 +42,7 @@ function buildHref(
   const sp = new URLSearchParams();
   const sort = next.sort ?? current.sort;
   if (sort && sort !== "weighted") sp.set("sort", sort);
-  const verifiedNext =
-    next.verified !== undefined ? next.verified === "1" : current.verified;
+  const verifiedNext = next.verified !== undefined ? next.verified === "1" : current.verified;
   if (verifiedNext) sp.set("verified", "1");
   const venue = next.venue !== undefined ? next.venue : current.venueId;
   if (venue) sp.set("venue", venue);
@@ -65,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("subtitle"),
     alternates: {
       canonical: `/${locale}/coaches`,
-      languages: { pl: "/pl/coaches", en: "/en/coaches", ru: "/ru/coaches" },
+      languages: { ru: "/ru/coaches", en: "/en/coaches" },
     },
   };
 }
@@ -112,9 +107,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">
-              {t("title")}
-            </h1>
+            <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
             <HelpPanel
               pageId="coaches-public"
               variant="inline"
@@ -152,9 +145,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
                   key={p.id}
                   className={
                     "rounded-xl border bg-white p-3 " +
-                    (idx === 0
-                      ? "border-ball-400 ring-2 ring-ball-200"
-                      : "border-ink-100")
+                    (idx === 0 ? "border-ball-400 ring-2 ring-ball-200" : "border-ink-100")
                   }
                 >
                   <Link
@@ -176,9 +167,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1 text-sm font-semibold text-ink-900">
-                        <span className="font-mono text-xs text-ball-700">
-                          #{idx + 1}
-                        </span>
+                        <span className="font-mono text-xs text-ball-700">#{idx + 1}</span>
                         <span className="truncate">{c.display_name ?? "—"}</span>
                       </p>
                       <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-600">
@@ -222,17 +211,10 @@ export default async function CoachesPage({ params, searchParams }: Props) {
               {t(`controls.sort.${k}`)}
             </Link>
           ))}
-          <span className="ml-auto text-xs text-ink-500">
-            {t("controls.verified_only")}
-          </span>
+          <span className="ml-auto text-xs text-ink-500">{t("controls.verified_only")}</span>
           <Link
             /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-            href={
-              buildHref(
-                { verified: verifiedOnly ? "0" : "1" },
-                filterState,
-              ) as any
-            }
+            href={buildHref({ verified: verifiedOnly ? "0" : "1" }, filterState) as any}
             className={
               "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition " +
               (verifiedOnly ? "bg-grass-500" : "bg-ink-200")
@@ -290,9 +272,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
             </select>
           </label>
           <input type="hidden" name="sort" value={sortKey} />
-          {verifiedOnly && (
-            <input type="hidden" name="verified" value="1" />
-          )}
+          {verifiedOnly && <input type="hidden" name="verified" value="1" />}
           <div className="flex items-end gap-2">
             <button
               type="submit"
@@ -347,11 +327,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
                     <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
                       {c.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.avatar_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={c.avatar_url} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <Award className="h-5 w-5" />
                       )}
@@ -390,22 +366,18 @@ export default async function CoachesPage({ params, searchParams }: Props) {
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs text-ink-500">
-                        {t("no_reviews_yet")}
-                      </span>
+                      <span className="text-xs text-ink-500">{t("no_reviews_yet")}</span>
                     )}
                   </div>
 
                   {c.coach_bio && (
-                    <p className="mt-2 line-clamp-3 text-sm text-ink-600">
-                      {c.coach_bio}
-                    </p>
+                    <p className="mt-2 line-clamp-3 text-sm text-ink-600">{c.coach_bio}</p>
                   )}
 
-                  {c.coach_hourly_rate_pln != null && (
+                  {c.coach_hourly_rate_byn != null && (
                     <p className="mt-2 text-xs text-ink-500">
                       {t("hourly_rate", {
-                        amount: c.coach_hourly_rate_pln,
+                        amount: c.coach_hourly_rate_byn,
                       })}
                     </p>
                   )}

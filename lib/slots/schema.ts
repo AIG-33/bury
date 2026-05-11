@@ -29,27 +29,20 @@ const optionalNullableInt = z.preprocess(
 // so we MUST tolerate null at parse time (otherwise the server returns
 // invalid_payload while the client passes the same schema thanks to RHF
 // reading the empty DOM input as "").
-const optionalText = z.preprocess(
-  (v) => {
-    if (v === null || v === undefined) return null;
-    if (typeof v !== "string") return null;
-    const t = v.trim();
-    return t.length === 0 ? null : t;
-  },
-  z.string().max(2000).nullable(),
-);
+const optionalText = z.preprocess((v) => {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== "string") return null;
+  const t = v.trim();
+  return t.length === 0 ? null : t;
+}, z.string().max(2000).nullable());
 
 // Mon=1 ... Sun=7 (ISO weekday).
 export const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 export type IsoWeekday = (typeof ISO_WEEKDAYS)[number];
 
-const dateString = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD");
+const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD");
 
-const timeString = z
-  .string()
-  .regex(/^\d{2}:\d{2}$/, "expected HH:MM");
+const timeString = z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM");
 
 /**
  * Common form payload for creating slots. We accept two shapes:
@@ -66,7 +59,7 @@ export const SlotFormSchema = z.object({
   duration_minutes: z.coerce.number().int().min(15).max(480),
   slot_type: z.enum(SLOT_TYPES).default("individual"),
   max_participants: z.coerce.number().int().min(1).max(20),
-  price_pln: optionalNullableInt,
+  price_byn: optionalNullableInt,
   notes: optionalText,
   recurrence: z.discriminatedUnion("kind", [
     z.object({
@@ -92,7 +85,7 @@ export const SlotFormSchema = z.object({
     }),
     z.object({
       kind: z.literal("dates"),
-      // Explicit list of local dates (Europe/Warsaw). The UI lets a coach
+      // Explicit list of local dates (Europe/Minsk). The UI lets a coach
       // pick a date range, optionally filter by weekday, and add/remove
       // individual days. Capped at 90 to keep the batch insert sane.
       dates: z

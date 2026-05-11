@@ -81,9 +81,7 @@ export function BookingsClient({
   past: MyBookingRow[];
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const in14days = new Date(Date.now() + 14 * 86400_000)
-    .toISOString()
-    .slice(0, 10);
+  const in14days = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
 
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(in14days);
@@ -111,9 +109,7 @@ export function BookingsClient({
     <div className="space-y-8">
       {/* My bookings */}
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
-          {copy.upcoming_title}
-        </h2>
+        <h2 className="font-display text-lg font-semibold text-ink-900">{copy.upcoming_title}</h2>
         {upcoming.length === 0 ? (
           <p className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
             {copy.no_upcoming}
@@ -150,9 +146,7 @@ export function BookingsClient({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-700">
-              {copy.search.to}
-            </label>
+            <label className="mb-1 block text-xs font-medium text-ink-700">{copy.search.to}</label>
             <input
               type="date"
               value={to}
@@ -223,9 +217,7 @@ export function BookingsClient({
            full history at hand. Card list scales fine into the hundreds; if
            it ever stops doing so we'll add a paginator. */}
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
-          {copy.past_title}
-        </h2>
+        <h2 className="font-display text-lg font-semibold text-ink-900">{copy.past_title}</h2>
         {past.length === 0 ? (
           <p className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
             {copy.no_past}
@@ -279,7 +271,7 @@ function SlotCard({
   }
 
   return (
-    <li className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition hover:shadow-pop">
+    <li className="hover:shadow-pop rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition">
       <SlotMeta slot={slot} copy={copy} />
       <div className="mt-3 flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-grass-800">
@@ -436,14 +428,14 @@ function SlotMeta({ slot, copy }: { slot: AvailableSlot; copy: BookingsCopy }) {
       weekday: "short",
       day: "numeric",
       month: "long",
-      timeZone: "Europe/Warsaw",
+      timeZone: "Europe/Minsk",
     });
   }, [slot.starts_at, copy.locale]);
   const timeLabel = useMemo(() => {
     const fmt = new Intl.DateTimeFormat(copy.locale, {
       hour: "2-digit",
       minute: "2-digit",
-      timeZone: "Europe/Warsaw",
+      timeZone: "Europe/Minsk",
       hour12: false,
     });
     return `${fmt.format(new Date(slot.starts_at))}–${fmt.format(new Date(slot.ends_at))}`;
@@ -483,10 +475,10 @@ function SlotMeta({ slot, copy }: { slot: AvailableSlot; copy: BookingsCopy }) {
         <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] uppercase tracking-wider text-ink-700">
           {copy.slot_type_options[slot.slot_type]}
         </span>
-        {slot.price_pln != null && (
+        {slot.price_byn != null && (
           <span className="inline-flex items-center gap-1 text-grass-800">
             <Banknote className="h-3 w-3" />
-            {slot.price_pln} PLN
+            {slot.price_byn} BYN
           </span>
         )}
       </div>

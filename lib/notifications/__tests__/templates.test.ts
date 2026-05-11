@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { renderTemplate } from "../templates";
 
 describe("renderTemplate", () => {
-  it("renders invitation_created in PL with coach name and accept URL", () => {
-    const r = renderTemplate("invitation_created", "pl", {
-      coach_name: "Aliaksandr",
+  it("renders invitation_created in RU with coach name and accept URL", () => {
+    const r = renderTemplate("invitation_created", "ru", {
+      coach_name: "Maksim",
       accept_url: "https://example.com/invite/abc",
     });
-    expect(r.subject).toContain("Bury Tennis");
-    expect(r.html).toContain("Aliaksandr");
+    expect(r.subject).toContain("OpenCourt.by");
+    expect(r.html).toContain("Maksim");
     expect(r.html).toContain("https://example.com/invite/abc");
   });
 
@@ -52,21 +52,20 @@ describe("renderTemplate", () => {
     expect(r.html).toContain("&lt;script&gt;");
   });
 
-  it("falls back to PL copy for unknown locale (defensive)", () => {
-    // TS won't allow it but runtime guards do
-    const r = renderTemplate("season_summary", "pl", {});
+  it("falls back to RU copy for unknown locale (defensive)", () => {
+    const r = renderTemplate("season_summary", "ru", {});
     expect(r.subject.length).toBeGreaterThan(0);
   });
 
   it("tournament_registered includes the format string", () => {
-    const r = renderTemplate("tournament_registered", "pl", {
+    const r = renderTemplate("tournament_registered", "ru", {
       tournament_id: "t1",
-      tournament_name: "Bury Open",
+      tournament_name: "Minsk Spring Open",
       starts_at: "2026-06-01T08:00:00Z",
       format: "single_elimination",
       rules: "best of 3 sets",
     });
-    expect(r.html).toContain("Bury Open");
+    expect(r.html).toContain("Minsk Spring Open");
     expect(r.html).toContain("best of 3 sets");
   });
 });

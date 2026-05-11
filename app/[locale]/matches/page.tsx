@@ -91,18 +91,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `/${locale}/matches`,
       languages: {
-        pl: "/pl/matches",
-        en: "/en/matches",
         ru: "/ru/matches",
+        en: "/en/matches",
       },
     },
   };
 }
 
-export default async function PublicMatchesPage({
-  params,
-  searchParams,
-}: Props) {
+export default async function PublicMatchesPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
@@ -125,10 +121,7 @@ export default async function PublicMatchesPage({
       .eq("privacy", "public")
       .order("starts_on", { ascending: false })
       .limit(80),
-    supabase
-      .from("venues")
-      .select("id, name, city")
-      .order("name", { ascending: true }),
+    supabase.from("venues").select("id, name, city").order("name", { ascending: true }),
   ]);
   const tournaments = (tournamentRows ?? []) as Array<{
     id: string;
@@ -174,7 +167,7 @@ export default async function PublicMatchesPage({
   const dateFmt = new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: "Europe/Warsaw",
+    timeZone: "Europe/Minsk",
   });
 
   const filtersActive = !!(tournamentFilter || venueFilter || playerSearch);
@@ -271,7 +264,7 @@ export default async function PublicMatchesPage({
             </Link>
           )}
         </div>
-        <div className="sm:col-span-4 flex items-center justify-between text-xs text-ink-500">
+        <div className="flex items-center justify-between text-xs text-ink-500 sm:col-span-4">
           <span>{t("count_summary", { count: totalCount })}</span>
           {filtersActive && (
             <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 font-medium text-ink-600">
@@ -306,10 +299,7 @@ export default async function PublicMatchesPage({
       )}
 
       {totalPages > 1 && (
-        <nav
-          aria-label={t("pagination.aria")}
-          className="flex items-center justify-between gap-3"
-        >
+        <nav aria-label={t("pagination.aria")} className="flex items-center justify-between gap-3">
           <PaginationLink
             disabled={!hasPrev}
             href={buildPageHref(locale, page - 1, {
@@ -410,9 +400,7 @@ function EmptyHowTo({
             {filtersActive ? t("empty.filtered_title") : t("empty.title")}
           </p>
           <p className="text-sm text-ink-600">
-            {filtersActive
-              ? t("empty.filtered_description")
-              : t("empty.description")}
+            {filtersActive ? t("empty.filtered_description") : t("empty.description")}
           </p>
         </div>
       </div>
@@ -426,16 +414,12 @@ function EmptyHowTo({
               <a
                 key={c.title}
                 href={c.href}
-                className={`group flex flex-col gap-2 rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-pop ${tone.wrap}`}
+                className={`hover:shadow-pop group flex flex-col gap-2 rounded-2xl border p-4 transition hover:-translate-y-0.5 ${tone.wrap}`}
               >
-                <span
-                  className={`grid h-8 w-8 place-items-center rounded-full ${tone.icon}`}
-                >
+                <span className={`grid h-8 w-8 place-items-center rounded-full ${tone.icon}`}>
                   <Icon className="h-4 w-4" />
                 </span>
-                <p className="font-display text-sm font-bold text-ink-900">
-                  {c.title}
-                </p>
+                <p className="font-display text-sm font-bold text-ink-900">{c.title}</p>
                 <p className="text-xs leading-snug text-ink-700">{c.body}</p>
                 <span
                   className={`mt-auto inline-flex items-center gap-1 text-[12px] font-bold ${tone.cta}`}
@@ -533,7 +517,7 @@ function MatchRowItem({
   return (
     <li
       className={
-        "group relative overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition hover:shadow-pop " +
+        "hover:shadow-pop group relative overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition " +
         (isTournament ? "hover:border-ball-200" : "hover:border-grass-200")
       }
     >
@@ -541,8 +525,7 @@ function MatchRowItem({
       <span
         aria-hidden
         className={
-          "absolute inset-y-0 left-0 w-1.5 " +
-          (isTournament ? "bg-ball-400" : "bg-grass-400")
+          "absolute inset-y-0 left-0 w-1.5 " + (isTournament ? "bg-ball-400" : "bg-grass-400")
         }
       />
 
@@ -560,7 +543,7 @@ function MatchRowItem({
               className="inline-flex items-center gap-1 rounded-full bg-ball-100 px-2.5 py-1 text-ball-900 ring-1 ring-ball-200 transition hover:bg-ball-200"
             >
               <Trophy className="h-3.5 w-3.5" />
-              <span className="normal-case font-bold tracking-normal">
+              <span className="font-bold normal-case tracking-normal">
                 {m.tournament_name ?? labels.tournament}
               </span>
             </Link>
@@ -578,7 +561,7 @@ function MatchRowItem({
           {m.venue_name && (
             <span className="inline-flex items-center gap-1 text-ink-500">
               <MapPin className="h-3.5 w-3.5" />
-              <span className="normal-case font-medium tracking-normal text-ink-700">
+              <span className="font-medium normal-case tracking-normal text-ink-700">
                 {m.venue_name}
                 {m.venue_city ? ` · ${m.venue_city}` : ""}
               </span>
@@ -644,7 +627,7 @@ function ScoreBlock({
   }
   return (
     <div className="flex items-center justify-center">
-      <div className="inline-grid grid-flow-col auto-cols-fr gap-3 rounded-xl bg-ink-50 px-4 py-3">
+      <div className="inline-grid auto-cols-fr grid-flow-col gap-3 rounded-xl bg-ink-50 px-4 py-3">
         {sets.map((s, i) => {
           const p1Win = s.p1_games > s.p2_games;
           const p2Win = s.p2_games > s.p1_games;
@@ -656,34 +639,22 @@ function ScoreBlock({
               <div className="mt-0.5 grid grid-cols-2 gap-x-2 font-display text-2xl font-extrabold tabular-nums leading-none">
                 <span
                   className={
-                    p1Win
-                      ? "text-grass-700"
-                      : winnerSide === "p1"
-                      ? "text-ink-800"
-                      : "text-ink-400"
+                    p1Win ? "text-grass-700" : winnerSide === "p1" ? "text-ink-800" : "text-ink-400"
                   }
                 >
                   {s.p1_games}
                   {s.tiebreak_p1 != null && (
-                    <sup className="ml-0.5 text-[10px] font-bold">
-                      {s.tiebreak_p1}
-                    </sup>
+                    <sup className="ml-0.5 text-[10px] font-bold">{s.tiebreak_p1}</sup>
                   )}
                 </span>
                 <span
                   className={
-                    p2Win
-                      ? "text-grass-700"
-                      : winnerSide === "p2"
-                      ? "text-ink-800"
-                      : "text-ink-400"
+                    p2Win ? "text-grass-700" : winnerSide === "p2" ? "text-ink-800" : "text-ink-400"
                   }
                 >
                   {s.p2_games}
                   {s.tiebreak_p2 != null && (
-                    <sup className="ml-0.5 text-[10px] font-bold">
-                      {s.tiebreak_p2}
-                    </sup>
+                    <sup className="ml-0.5 text-[10px] font-bold">{s.tiebreak_p2}</sup>
                   )}
                 </span>
               </div>
@@ -761,9 +732,7 @@ function PlayerSide({
         )}
       </span>
       {partnerName && (
-        <span className="block truncate text-xs font-medium text-ink-500">
-          + {partnerName}
-        </span>
+        <span className="block truncate text-xs font-medium text-ink-500">+ {partnerName}</span>
       )}
     </span>
   );
@@ -797,12 +766,7 @@ function PlayerSide({
   // Suppress unused locale (kept for future per-player profile route).
   void locale;
   return (
-    <div
-      className={
-        "min-w-0 " +
-        (align === "right" ? "justify-self-end" : "justify-self-start")
-      }
-    >
+    <div className={"min-w-0 " + (align === "right" ? "justify-self-end" : "justify-self-start")}>
       {inner}
     </div>
   );

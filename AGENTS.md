@@ -9,13 +9,13 @@ Do **not** swap libraries without explicit approval.
 - Next.js 15 App Router, TypeScript `strict: true`, RSC + Server Actions
 - Tailwind CSS + `tailwind-merge` + `clsx` (helpers in `lib/utils.ts`)
 - shadcn/ui (components copied into `components/ui/`, NOT a dep)
-- next-intl for i18n (PL default, EN, RU)
+- next-intl for i18n (RU default, EN)
 - Supabase (`@supabase/ssr` for SSR, `@supabase/supabase-js` for client)
 - Zod + react-hook-form for forms
 - TanStack Query for client cache only (server data flows through RSC/actions)
 - Framer Motion for animations
 - Recharts for graphs
-- date-fns + `date-fns-tz` (default `Europe/Warsaw`)
+- date-fns + `date-fns-tz` (default `Europe/Minsk`)
 - Resend for email, grammY for Telegram
 - MapLibre GL + OSM for maps (no API key)
 - Vitest for unit, Playwright for e2e
@@ -46,7 +46,7 @@ A feature is **NOT done** unless ALL of these are true:
 4. **Every admin page** has a `<HelpPanel>` with three blocks: **Зачем эта страница / Что можно сделать / Что произойдёт после**.
 5. **Every term** (K-фактор, snake-seeding, super-tiebreak, RRULE, walkover, DSQ, comped, no-ad, ...) has an inline `<HelpTooltip>`.
 6. **Empty states** are not blank — they have purpose text + a CTA.
-7. New strings are added to all three locales (`pl`, `en`, `ru`). Use the locale of the source language as draft for others if unsure, but **all three keys must exist**.
+7. New strings are added to both supported locales (`ru`, `en`). Use the locale of the source language as draft for the other if unsure, but **both keys must exist**.
 8. Destructive actions go through a confirmation dialog that names the consequences ("12 matches will be deleted, Elo history will be preserved").
 9. Migrations are forward-only (no destructive edits to existing migration files).
 10. RLS policy exists for every new table — no exceptions.

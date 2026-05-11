@@ -33,7 +33,7 @@ export type ProfileRow = {
   elo_status: "provisional" | "established";
   rated_matches_count: number;
   coach_bio: string | null;
-  coach_hourly_rate_pln: number | null;
+  coach_hourly_rate_byn: number | null;
   coach_avg_rating: number | null;
   coach_reviews_count: number;
   coach_slug: string | null;
@@ -41,7 +41,7 @@ export type ProfileRow = {
   visible_in_leaderboard: boolean;
   notification_email: boolean;
   notification_telegram: boolean;
-  locale: "pl" | "en" | "ru";
+  locale: "ru" | "en";
   timezone: string;
   health_notes: string | null;
   emergency_contact: string | null;
@@ -82,7 +82,10 @@ export type QuizQuestionRow = {
   code: string;
   type: "single_choice" | "multi_choice" | "scale" | "number";
   question: Record<string, string>;
-  options: Array<{ value: string; label: Record<string, string>; weight: number }> | { min: number; max: number } | null;
+  options:
+    | Array<{ value: string; label: Record<string, string>; weight: number }>
+    | { min: number; max: number }
+    | null;
   weight_formula: Record<string, unknown> | null;
   required: boolean;
 };
@@ -92,8 +95,19 @@ export type RatingAlgorithmConfigRow = {
   version: number;
   is_active: boolean;
   config: {
-    start_elo: { base: number; clamp: [number, number]; experience_per_year: number; tournaments_bonus_per_5: number };
-    k_factors: { provisional: number; intermediate: number; established: number; provisional_until_n_matches: number; intermediate_until_n_matches: number };
+    start_elo: {
+      base: number;
+      clamp: [number, number];
+      experience_per_year: number;
+      tournaments_bonus_per_5: number;
+    };
+    k_factors: {
+      provisional: number;
+      intermediate: number;
+      established: number;
+      provisional_until_n_matches: number;
+      intermediate_until_n_matches: number;
+    };
     multipliers: { friendly: number; tournament: number; tournament_final: number };
     season: {
       default_length_days: number;
@@ -111,18 +125,66 @@ type AnyRow = Record<string, unknown>;
 export type Database = {
   public: {
     Tables: {
-      profiles: { Row: ProfileRow; Insert: Partial<ProfileRow> & { id: string }; Update: Partial<ProfileRow> };
-      invitations: { Row: InvitationRow; Insert: Partial<InvitationRow> & { coach_id: string; email: string; token_hash: string; expires_at: string }; Update: Partial<InvitationRow> };
-      quiz_versions: { Row: QuizVersionRow; Insert: Partial<QuizVersionRow>; Update: Partial<QuizVersionRow> };
-      quiz_questions: { Row: QuizQuestionRow; Insert: Partial<QuizQuestionRow>; Update: Partial<QuizQuestionRow> };
+      profiles: {
+        Row: ProfileRow;
+        Insert: Partial<ProfileRow> & { id: string };
+        Update: Partial<ProfileRow>;
+      };
+      invitations: {
+        Row: InvitationRow;
+        Insert: Partial<InvitationRow> & {
+          coach_id: string;
+          email: string;
+          token_hash: string;
+          expires_at: string;
+        };
+        Update: Partial<InvitationRow>;
+      };
+      quiz_versions: {
+        Row: QuizVersionRow;
+        Insert: Partial<QuizVersionRow>;
+        Update: Partial<QuizVersionRow>;
+      };
+      quiz_questions: {
+        Row: QuizQuestionRow;
+        Insert: Partial<QuizQuestionRow>;
+        Update: Partial<QuizQuestionRow>;
+      };
       quiz_answers: {
-        Row: { id: string; player_id: string; version_id: string; answers: Record<string, unknown>; computed_elo: number; computed_at: string };
-        Insert: { player_id: string; version_id: string; answers: Record<string, unknown>; computed_elo: number };
+        Row: {
+          id: string;
+          player_id: string;
+          version_id: string;
+          answers: Record<string, unknown>;
+          computed_elo: number;
+          computed_at: string;
+        };
+        Insert: {
+          player_id: string;
+          version_id: string;
+          answers: Record<string, unknown>;
+          computed_elo: number;
+        };
         Update: AnyRow;
       };
-      rating_algorithm_config: { Row: RatingAlgorithmConfigRow; Insert: Partial<RatingAlgorithmConfigRow>; Update: Partial<RatingAlgorithmConfigRow> };
+      rating_algorithm_config: {
+        Row: RatingAlgorithmConfigRow;
+        Insert: Partial<RatingAlgorithmConfigRow>;
+        Update: Partial<RatingAlgorithmConfigRow>;
+      };
       rating_history: {
-        Row: { id: string; player_id: string; match_id: string | null; old_elo: number; new_elo: number; delta: number; k_factor: number; multiplier: number; reason: string; created_at: string };
+        Row: {
+          id: string;
+          player_id: string;
+          match_id: string | null;
+          old_elo: number;
+          new_elo: number;
+          delta: number;
+          k_factor: number;
+          multiplier: number;
+          reason: string;
+          created_at: string;
+        };
         Insert: AnyRow;
         Update: AnyRow;
       };
@@ -130,7 +192,10 @@ export type Database = {
     };
     Views: { [view: string]: { Row: AnyRow } };
     Functions: {
-      accept_invitation: { Args: { p_token_hash: string; p_user_id: string }; Returns: { coach_id: string; invitation_id: string }[] };
+      accept_invitation: {
+        Args: { p_token_hash: string; p_user_id: string };
+        Returns: { coach_id: string; invitation_id: string }[];
+      };
       recalc_match_elo: { Args: { p_match_id: string }; Returns: void };
       [fn: string]: { Args: AnyRow; Returns: unknown };
     };

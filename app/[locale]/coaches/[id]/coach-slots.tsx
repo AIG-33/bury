@@ -37,9 +37,7 @@ export function CoachSlotsBookable({
   const t = useTranslations("coachesPublic.detail.slots");
 
   if (slots.length === 0) {
-    return (
-      <EmptyState title={t("empty_title")} description={t("empty_body")} />
-    );
+    return <EmptyState title={t("empty_title")} description={t("empty_body")} />;
   }
 
   return (
@@ -132,32 +130,24 @@ function SlotCard({
               <Users className="h-3.5 w-3.5" />
               {t(`slot_type.${slot.slot_type}`)}
             </span>
-            {slot.price_pln != null && (
+            {slot.price_byn != null && (
               <span className="inline-flex items-center gap-1">
                 <Banknote className="h-3.5 w-3.5" />
-                <span className="tabular-nums">
-                  {t("price", { amount: slot.price_pln })}
-                </span>
+                <span className="tabular-nums">{t("price", { amount: slot.price_byn })}</span>
               </span>
             )}
           </p>
-          {slot.notes && (
-            <p className="mt-1 text-xs text-ink-500">{slot.notes}</p>
-          )}
+          {slot.notes && <p className="mt-1 text-xs text-ink-500">{slot.notes}</p>}
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span
             className={
               "rounded-full px-2 py-0.5 text-[11px] font-semibold " +
-              (isFull
-                ? "bg-clay-50 text-clay-700"
-                : "bg-grass-100 text-grass-800")
+              (isFull ? "bg-clay-50 text-clay-700" : "bg-grass-100 text-grass-800")
             }
           >
-            {isFull
-              ? t("full")
-              : t("seats_left", { count: seatsLeft })}
+            {isFull ? t("full") : t("seats_left", { count: seatsLeft })}
           </span>
         </div>
       </div>

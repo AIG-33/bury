@@ -25,10 +25,7 @@ export default async function CoachTournamentsPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsCoach");
 
-  const [result, venueOptions] = await Promise.all([
-    loadCoachTournaments(),
-    loadVenueOptions(),
-  ]);
+  const [result, venueOptions] = await Promise.all([loadCoachTournaments(), loadVenueOptions()]);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
       redirect(`/${locale}/login?next=/coach/tournaments`);
@@ -43,9 +40,10 @@ export default async function CoachTournamentsPage({ params }: Props) {
   const statusLabels = Object.fromEntries(
     TOURNAMENT_STATUSES.map((s) => [s, t(`statuses.${s}`)]),
   ) as Record<TournamentStatus, string>;
-  const surfaceLabels = Object.fromEntries(
-    SURFACES.map((s) => [s, t(`surfaces.${s}`)]),
-  ) as Record<Surface, string>;
+  const surfaceLabels = Object.fromEntries(SURFACES.map((s) => [s, t(`surfaces.${s}`)])) as Record<
+    Surface,
+    string
+  >;
   const drawMethodLabels = Object.fromEntries(
     SEEDING_METHODS.map((m) => [m, t(`draw_methods.${m}`)]),
   ) as Record<SeedingMethod, string>;
@@ -68,7 +66,7 @@ export default async function CoachTournamentsPage({ params }: Props) {
     open: t("list.open"),
     no_surface: t("list.no_surface"),
     entry_fee_free: t("list.entry_fee_free"),
-    entry_fee_pln: t("list.entry_fee_pln"),
+    entry_fee_byn: t("list.entry_fee_byn"),
     format_labels: formatLabels,
     status_labels: statusLabels,
     surface_labels: surfaceLabels,

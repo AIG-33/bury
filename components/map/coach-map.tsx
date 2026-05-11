@@ -11,7 +11,7 @@ export type CoachPin = {
   city: string | null;
   coach_avg_rating: number | null;
   coach_reviews_count: number;
-  coach_hourly_rate_pln: number | null;
+  coach_hourly_rate_byn: number | null;
   lat: number;
   lng: number;
 };
@@ -23,8 +23,8 @@ type Labels = {
   view_profile: string;
 };
 
-const POLAND_CENTER: [number, number] = [19.4803, 52.0]; // Center of Poland
-const FALLBACK_ZOOM = 5.6;
+const BELARUS_CENTER: [number, number] = [27.953, 53.71]; // Geographic center of Belarus
+const FALLBACK_ZOOM = 6.4;
 
 const OSM_STYLE = {
   version: 8 as const,
@@ -55,7 +55,7 @@ export function CoachMap({ locale, pins, labels }: Props) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: OSM_STYLE,
-      center: POLAND_CENTER,
+      center: BELARUS_CENTER,
       zoom: FALLBACK_ZOOM,
       attributionControl: { compact: true },
     });
@@ -81,8 +81,7 @@ export function CoachMap({ locale, pins, labels }: Props) {
       for (const p of pins) {
         const el = document.createElement("button");
         el.type = "button";
-        el.className =
-          "group relative h-9 w-9 -translate-y-2 cursor-pointer";
+        el.className = "group relative h-9 w-9 -translate-y-2 cursor-pointer";
         el.innerHTML = `
           <span class="absolute inset-0 rounded-full bg-grass-500 ring-4 ring-white shadow-lg"></span>
           ${
@@ -148,12 +147,9 @@ function renderPopup(p: CoachPin, locale: string, labels: Labels): string {
          )}</span>`
       : `<span class="text-xs text-gray-500">${escapeHtml(labels.no_reviews)}</span>`;
   const rate =
-    p.coach_hourly_rate_pln != null
+    p.coach_hourly_rate_byn != null
       ? `<div class="text-xs text-gray-600 mt-1">${escapeHtml(
-          labels.hourly_rate.replace(
-            "{amount}",
-            String(p.coach_hourly_rate_pln),
-          ),
+          labels.hourly_rate.replace("{amount}", String(p.coach_hourly_rate_byn)),
         )}</div>`
       : "";
   const avatar = p.avatar_url

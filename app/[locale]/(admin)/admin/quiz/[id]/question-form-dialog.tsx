@@ -3,16 +3,13 @@
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
-import {
-  QUIZ_QUESTION_TYPES,
-  type QuizQuestionType,
-} from "@/lib/quiz/schema";
+import { QUIZ_QUESTION_TYPES, type QuizQuestionType } from "@/lib/quiz/schema";
 import type { QuizQuestionRow } from "@/lib/supabase/types";
 import { upsertQuestion } from "../actions";
 
 type Choice = {
   value: string;
-  label: { pl: string; en: string; ru: string };
+  label: { en: string; ru: string };
   weight: number;
 };
 
@@ -20,7 +17,7 @@ type FormState = {
   code: string;
   position: number;
   required: boolean;
-  question: { pl: string; en: string; ru: string };
+  question: { en: string; ru: string };
   type: QuizQuestionType;
   options_choices: Choice[];
   options_scale: { min: number; max: number };
@@ -37,11 +34,11 @@ const EMPTY_FORM: FormState = {
   code: "",
   position: 1,
   required: true,
-  question: { pl: "", en: "", ru: "" },
+  question: { en: "", ru: "" },
   type: "single_choice",
   options_choices: [
-    { value: "a", label: { pl: "", en: "", ru: "" }, weight: 0 },
-    { value: "b", label: { pl: "", en: "", ru: "" }, weight: 50 },
+    { value: "a", label: { en: "", ru: "" }, weight: 0 },
+    { value: "b", label: { en: "", ru: "" }, weight: 50 },
   ],
   options_scale: { min: 1, max: 10 },
   formula_scale: { kind: "offset_linear", center: 5, coef: 20 },
@@ -55,7 +52,6 @@ function fromRow(row: QuizQuestionRow): FormState {
     position: row.position,
     required: row.required,
     question: {
-      pl: row.question.pl ?? "",
       en: row.question.en ?? "",
       ru: row.question.ru ?? "",
     },
@@ -64,13 +60,13 @@ function fromRow(row: QuizQuestionRow): FormState {
   if (row.type === "single_choice" || row.type === "multi_choice") {
     const opts = (row.options ?? []) as Array<{
       value: string;
-      label: { pl?: string; en?: string; ru?: string };
+      label: { en?: string; ru?: string };
       weight: number;
     }>;
     if (Array.isArray(opts) && opts.length > 0) {
       base.options_choices = opts.map((o) => ({
         value: o.value,
-        label: { pl: o.label?.pl ?? "", en: o.label?.en ?? "", ru: o.label?.ru ?? "" },
+        label: { en: o.label?.en ?? "", ru: o.label?.ru ?? "" },
         weight: o.weight,
       }));
     }
@@ -88,9 +84,12 @@ function fromRow(row: QuizQuestionRow): FormState {
     }
   }
   if (row.type === "number") {
-    const f = row.weight_formula as
-      | { kind?: "linear" | "step_per"; coef?: number; coef_field?: string; step?: number }
-      | null;
+    const f = row.weight_formula as {
+      kind?: "linear" | "step_per";
+      coef?: number;
+      coef_field?: string;
+      step?: number;
+    } | null;
     if (f) {
       base.formula_number = {
         kind: f.kind === "step_per" ? "step_per" : "linear",
@@ -132,7 +131,7 @@ export function QuestionFormDialog({
 
   if (!open) return null;
 
-  function setQ(lang: "pl" | "en" | "ru", v: string) {
+  function setQ(lang: "ru" | "en", v: string) {
     setForm((s) => ({ ...s, question: { ...s.question, [lang]: v } }));
   }
 
@@ -155,7 +154,7 @@ export function QuestionFormDialog({
         ...s.options_choices,
         {
           value: `o${s.options_choices.length + 1}`,
-          label: { pl: "", en: "", ru: "" },
+          label: { en: "", ru: "" },
           weight: 0,
         },
       ],
@@ -234,16 +233,14 @@ export function QuestionFormDialog({
               value={form.code}
               onChange={(e) => setForm((s) => ({ ...s, code: e.target.value }))}
               placeholder="years_playing"
-              className="h-10 w-full rounded-lg border border-ink-200 px-3 text-sm font-mono"
+              className="h-10 w-full rounded-lg border border-ink-200 px-3 font-mono text-sm"
             />
           </Field>
           <Field label={t("position")}>
             <input
               type="number"
               value={form.position}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, position: Number(e.target.value) || 1 }))
-              }
+              onChange={(e) => setForm((s) => ({ ...s, position: Number(e.target.value) || 1 }))}
               min={1}
               max={99}
               className="h-10 w-full rounded-lg border border-ink-200 px-3 text-sm"
@@ -252,9 +249,7 @@ export function QuestionFormDialog({
           <Field label={t("type")}>
             <select
               value={form.type}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, type: e.target.value as QuizQuestionType }))
-              }
+              onChange={(e) => setForm((s) => ({ ...s, type: e.target.value as QuizQuestionType }))}
               className="h-10 w-full rounded-lg border border-ink-200 px-3 text-sm"
             >
               {QUIZ_QUESTION_TYPES.map((k) => (
@@ -271,9 +266,7 @@ export function QuestionFormDialog({
             <input
               type="checkbox"
               checked={form.required}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, required: e.target.checked }))
-              }
+              onChange={(e) => setForm((s) => ({ ...s, required: e.target.checked }))}
               className="h-4 w-4"
             />
             {t("required")}
@@ -284,7 +277,7 @@ export function QuestionFormDialog({
           <legend className="px-2 text-xs font-semibold uppercase tracking-wider text-grass-800">
             {t("question_text")}
           </legend>
-          {(["pl", "en", "ru"] as const).map((lang) => (
+          {(["ru", "en"] as const).map((lang) => (
             <Field key={lang} label={t(`lang.${lang}`)}>
               <textarea
                 value={form.question[lang]}
@@ -309,10 +302,10 @@ export function QuestionFormDialog({
                       value={c.value}
                       onChange={(e) => setChoice(i, { value: e.target.value })}
                       placeholder="value"
-                      className="h-9 rounded-md border border-ink-200 px-2 text-sm font-mono"
+                      className="h-9 rounded-md border border-ink-200 px-2 font-mono text-sm"
                     />
-                    <div className="grid gap-1.5 sm:grid-cols-3">
-                      {(["pl", "en", "ru"] as const).map((lang) => (
+                    <div className="grid gap-1.5 sm:grid-cols-2">
+                      {(["ru", "en"] as const).map((lang) => (
                         <input
                           key={lang}
                           value={c.label[lang]}
@@ -329,11 +322,9 @@ export function QuestionFormDialog({
                     <input
                       type="number"
                       value={c.weight}
-                      onChange={(e) =>
-                        setChoice(i, { weight: Number(e.target.value) || 0 })
-                      }
+                      onChange={(e) => setChoice(i, { weight: Number(e.target.value) || 0 })}
                       placeholder="weight"
-                      className="h-9 rounded-md border border-ink-200 px-2 text-sm font-mono"
+                      className="h-9 rounded-md border border-ink-200 px-2 font-mono text-sm"
                     />
                     <button
                       onClick={() => removeChoice(i)}
@@ -472,7 +463,7 @@ export function QuestionFormDialog({
                     }))
                   }
                   placeholder="start_elo.experience_per_year"
-                  className="h-10 w-full rounded-lg border border-ink-200 px-3 text-sm font-mono"
+                  className="h-10 w-full rounded-lg border border-ink-200 px-3 font-mono text-sm"
                 />
               </Field>
               {form.formula_number.kind === "step_per" && (

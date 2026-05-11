@@ -5,12 +5,7 @@ import { Inbox } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadDistrictOptions, loadMyAvailability } from "./actions";
-import {
-  EMPTY_AVAILABILITY,
-  WEEKDAYS,
-  TIME_SLOTS,
-  type Availability,
-} from "@/lib/profile/schema";
+import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
 import type { Weekday, DayPart } from "@/lib/matching/find-player";
 import { FindClient, type FindCopy } from "./find-client";
 
@@ -53,15 +48,24 @@ export default async function FindPlayerPage({ params }: Props) {
     reset: t("filters.reset"),
     empty_title: t("results.empty_title"),
     empty_description: t("results.empty_description"),
-    weekday: Object.fromEntries(
-      WEEKDAYS.map((d) => [d, t(`weekday.${d}`)]),
-    ) as Record<Weekday, string>,
-    weekday_short: Object.fromEntries(
-      WEEKDAYS.map((d) => [d, t(`weekday_short.${d}`)]),
-    ) as Record<Weekday, string>,
-    daypart: Object.fromEntries(
-      TIME_SLOTS.map((s) => [s, t(`daypart.${s}`)]),
-    ) as Record<DayPart, string>,
+    lt_section_label: t("filters.lt_section_label"),
+    lt_only_label: t("filters.lt_only_label"),
+    lt_only_hint: t("filters.lt_only_hint"),
+    lt_elo_min_label: t("filters.lt_elo_min_label"),
+    lt_elo_max_label: t("filters.lt_elo_max_label"),
+    lt_source_label: t("filters.lt_source_label"),
+    weekday: Object.fromEntries(WEEKDAYS.map((d) => [d, t(`weekday.${d}`)])) as Record<
+      Weekday,
+      string
+    >,
+    weekday_short: Object.fromEntries(WEEKDAYS.map((d) => [d, t(`weekday_short.${d}`)])) as Record<
+      Weekday,
+      string
+    >,
+    daypart: Object.fromEntries(TIME_SLOTS.map((s) => [s, t(`daypart.${s}`)])) as Record<
+      DayPart,
+      string
+    >,
     card: {
       elo: t("card.elo"),
       score: t("card.score"),
@@ -99,9 +103,7 @@ export default async function FindPlayerPage({ params }: Props) {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">
-              {t("title")}
-            </h1>
+            <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
             <HelpPanel
               pageId="me-find"
               variant="inline"
@@ -123,7 +125,7 @@ export default async function FindPlayerPage({ params }: Props) {
       </header>
 
       <FindClient
-        locale={locale as "pl" | "en" | "ru"}
+        locale={locale as "ru" | "en"}
         districts={districts}
         copy={copy}
         myAvailability={myAvailability}

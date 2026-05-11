@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("subtitle"),
     alternates: {
       canonical: `/${locale}/help`,
-      languages: { pl: "/pl/help", en: "/en/help", ru: "/ru/help" },
+      languages: { ru: "/ru/help", en: "/en/help" },
     },
   };
 }
@@ -41,7 +41,15 @@ export default async function HelpPage({ params }: Props) {
     "outbox",
   ] as const;
 
-  const faqs = ["q_register", "q_no_invite", "q_dispute", "q_payment", "q_cancel", "q_telegram", "q_data"] as const;
+  const faqs = [
+    "q_register",
+    "q_no_invite",
+    "q_dispute",
+    "q_payment",
+    "q_cancel",
+    "q_telegram",
+    "q_data",
+  ] as const;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
@@ -61,18 +69,18 @@ export default async function HelpPage({ params }: Props) {
 
       <Link
         href={`/${locale}/help/guide`}
-        className="block rounded-xl2 border border-leaf-200 bg-leaf-50 p-5 transition hover:border-leaf-400 hover:bg-leaf-100"
+        className="border-leaf-200 bg-leaf-50 hover:border-leaf-400 hover:bg-leaf-100 block rounded-xl2 border p-5 transition"
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-display text-lg font-semibold text-leaf-900">
+            <h2 className="text-leaf-900 font-display text-lg font-semibold">
               {tg("card_cta_title")}
             </h2>
-            <p className="mt-1 text-sm text-leaf-800">{tg("card_cta_body")}</p>
+            <p className="text-leaf-800 mt-1 text-sm">{tg("card_cta_body")}</p>
           </div>
           <span
             aria-hidden
-            className="mt-1 shrink-0 rounded-full bg-leaf-600 px-3 py-1 text-xs font-semibold text-white"
+            className="bg-leaf-600 mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-white"
           >
             {tg("card_cta_button")}
           </span>
@@ -83,10 +91,7 @@ export default async function HelpPage({ params }: Props) {
         <h2 className="font-display text-2xl font-semibold text-ink-900">{t("glossary_title")}</h2>
         <dl className="grid gap-3 sm:grid-cols-2">
           {glossary.map((g) => (
-            <div
-              key={g}
-              className="rounded-lg border border-ink-100 bg-white p-3"
-            >
+            <div key={g} className="rounded-lg border border-ink-100 bg-white p-3">
               <dt className="font-display text-sm font-semibold text-ink-900">
                 {t(`glossary.${g}.term`)}
               </dt>
@@ -100,13 +105,10 @@ export default async function HelpPage({ params }: Props) {
         <h2 className="font-display text-2xl font-semibold text-ink-900">{t("faq_title")}</h2>
         <ul className="space-y-2">
           {faqs.map((q) => (
-            <li
-              key={q}
-              className="rounded-lg border border-ink-100 bg-white p-4"
-            >
+            <li key={q} className="rounded-lg border border-ink-100 bg-white p-4">
               <details className="group">
                 <summary className="cursor-pointer font-medium text-ink-900 [&::-webkit-details-marker]:hidden">
-                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-leaf-500 align-middle" />
+                  <span className="bg-leaf-500 mr-2 inline-block h-1.5 w-1.5 rounded-full align-middle" />
                   {t(`faq.${q}.q`)}
                 </summary>
                 <p className="mt-2 text-sm text-ink-600">{t(`faq.${q}.a`)}</p>
@@ -116,9 +118,9 @@ export default async function HelpPage({ params }: Props) {
         </ul>
       </section>
 
-      <section className="rounded-xl2 border border-ink-100 bg-leaf-50 p-5">
-        <h2 className="font-display text-lg font-semibold text-leaf-900">{t("contact_title")}</h2>
-        <p className="mt-1 text-sm text-leaf-800">{t("contact_body")}</p>
+      <section className="bg-leaf-50 rounded-xl2 border border-ink-100 p-5">
+        <h2 className="text-leaf-900 font-display text-lg font-semibold">{t("contact_title")}</h2>
+        <p className="text-leaf-800 mt-1 text-sm">{t("contact_body")}</p>
       </section>
     </div>
   );

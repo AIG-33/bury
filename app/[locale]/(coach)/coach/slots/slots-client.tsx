@@ -139,10 +139,10 @@ export function SlotsClient({
                         {s.bookings_count >= s.max_participants ? copy.full : copy.free}
                       </span>
                     </span>
-                    {s.price_pln != null && (
+                    {s.price_byn != null && (
                       <span className="inline-flex items-center gap-1 text-xs text-ink-600">
                         <Banknote className="h-3 w-3" />
-                        {s.price_pln} PLN
+                        {s.price_byn} BYN
                       </span>
                     )}
                     {s.notes && <span className="text-xs text-ink-500">«{s.notes}»</span>}
@@ -190,7 +190,7 @@ function groupByDay(slots: CoachSlotRow[], locale: string) {
   const map = new Map<string, CoachSlotRow[]>();
   for (const s of slots) {
     const dateKey = new Date(s.starts_at).toLocaleDateString("en-CA", {
-      timeZone: "Europe/Warsaw",
+      timeZone: "Europe/Minsk",
     });
     if (!map.has(dateKey)) map.set(dateKey, []);
     map.get(dateKey)!.push(s);
@@ -201,7 +201,7 @@ function groupByDay(slots: CoachSlotRow[], locale: string) {
       weekday: "long",
       day: "numeric",
       month: "long",
-      timeZone: "Europe/Warsaw",
+      timeZone: "Europe/Minsk",
     }),
     slots,
   }));
@@ -211,7 +211,7 @@ function formatTimeRange(s: CoachSlotRow, locale: string): string {
   const fmt = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Warsaw",
+    timeZone: "Europe/Minsk",
     hour12: false,
   });
   return `${fmt.format(new Date(s.starts_at))}–${fmt.format(new Date(s.ends_at))}`;

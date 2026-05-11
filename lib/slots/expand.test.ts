@@ -2,16 +2,13 @@ import { describe, expect, it } from "vitest";
 import { expandRecurrence, isoWeekday, parseISODate } from "./expand";
 import { SlotFormSchema, type SlotForm } from "./schema";
 
-const baseForm = (
-  rec: SlotForm["recurrence"],
-  overrides: Partial<SlotForm> = {},
-): SlotForm => ({
+const baseForm = (rec: SlotForm["recurrence"], overrides: Partial<SlotForm> = {}): SlotForm => ({
   court_id: "00000000-0000-0000-0000-000000000000",
   start_time: "18:00",
   duration_minutes: 60,
   slot_type: "individual",
   max_participants: 1,
-  price_pln: null,
+  price_byn: null,
   notes: null,
   recurrence: rec,
   ...overrides,
@@ -19,9 +16,7 @@ const baseForm = (
 
 describe("expandRecurrence", () => {
   it("emits one occurrence for single", () => {
-    const out = expandRecurrence(
-      baseForm({ kind: "single", date: "2026-05-01" }),
-    );
+    const out = expandRecurrence(baseForm({ kind: "single", date: "2026-05-01" }));
     expect(out).toEqual([
       { local_date: "2026-05-01", local_start_time: "18:00", duration_minutes: 60 },
     ]);
@@ -89,11 +84,7 @@ describe("expandRecurrence", () => {
         dates: ["2026-04-22", "2026-04-25", "2026-05-01"],
       }),
     );
-    expect(out.map((o) => o.local_date)).toEqual([
-      "2026-04-22",
-      "2026-04-25",
-      "2026-05-01",
-    ]);
+    expect(out.map((o) => o.local_date)).toEqual(["2026-04-22", "2026-04-25", "2026-05-01"]);
     expect(out.every((o) => o.local_start_time === "18:00")).toBe(true);
   });
 });
@@ -105,7 +96,7 @@ describe("SlotFormSchema (dates kind)", () => {
     duration_minutes: 60,
     slot_type: "individual",
     max_participants: 1,
-    price_pln: null,
+    price_byn: null,
     notes: null,
   } as const;
 
@@ -120,11 +111,7 @@ describe("SlotFormSchema (dates kind)", () => {
     expect(r.success).toBe(true);
     if (!r.success) return;
     if (r.data.recurrence.kind !== "dates") throw new Error("wrong kind");
-    expect(r.data.recurrence.dates).toEqual([
-      "2026-04-22",
-      "2026-04-29",
-      "2026-05-01",
-    ]);
+    expect(r.data.recurrence.dates).toEqual(["2026-04-22", "2026-04-29", "2026-05-01"]);
   });
 
   it("rejects an empty dates list", () => {

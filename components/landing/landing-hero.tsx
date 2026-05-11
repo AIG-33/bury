@@ -17,7 +17,7 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel }: Props) {
   const t = useTranslations("landing.v2");
 
   return (
-    <section className="relative isolate overflow-hidden bg-grass-50 text-ink-900 film-grain">
+    <section className="film-grain relative isolate overflow-hidden bg-grass-50 text-ink-900">
       {/* Abstract tennis backdrop — soft green wash + glowing yellow ball halo */}
       <LightTennisBackdrop className="-z-10" />
 
@@ -40,7 +40,7 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel }: Props) {
           {/* Living ball — pushed off the right edge on mobile so the
                headline stays fully readable; centred-right on desktop. */}
           <div className="col-span-12 md:col-span-6 md:col-start-7">
-            <div className="relative ml-auto -mr-[14vw] aspect-square w-[44vw] max-w-[260px] md:mx-auto md:mr-0 md:w-[26vw] md:max-w-none">
+            <div className="relative -mr-[14vw] ml-auto aspect-square w-[44vw] max-w-[260px] md:mx-auto md:mr-0 md:w-[26vw] md:max-w-none">
               <LivingBall className="absolute inset-0" />
             </div>
           </div>
@@ -55,12 +55,8 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
               >
-                <span className="block font-semibold text-ink-700">
-                  Alex Bury
-                </span>
-                <span className="block font-extrabold text-grass-900">
-                  Tennis Club
-                </span>
+                <span className="block font-semibold text-ink-700">{t("hero.first_name")}</span>
+                <span className="block font-extrabold text-grass-900">{t("hero.last_name")}</span>
               </motion.h1>
               <motion.p
                 className="mt-5 max-w-md font-mono text-[14px] uppercase leading-relaxed tracking-[0.2em] text-ink-700 md:max-w-lg md:text-[15px]"
@@ -107,11 +103,7 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel }: Props) {
                   repeat: Infinity,
                 }}
               >
-                <MagneticCTA
-                  href={primaryCtaHref as Route}
-                  variant="solid"
-                  size="lg"
-                >
+                <MagneticCTA href={primaryCtaHref as Route} variant="solid" size="lg">
                   {primaryCtaLabel}
                 </MagneticCTA>
               </motion.div>

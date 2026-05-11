@@ -70,17 +70,17 @@
 
 ## 1. Гость / публичный сайт
 
-| Флоу | Страница / SA | Что делает | Связи |
-|---|---|---|---|
-| Landing | `app/[locale]/page.tsx` | Hero + features + переключатель языка. | FX-3 |
-| Список тренеров | `app/[locale]/coaches/page.tsx` + `coaches/actions.ts::loadCoaches`, `loadVenueOptions`, `loadDistrictOptionsForCoaches` | Фильтр по району/площадке/спецификации, сортировка по рейтингу/отзывам. | FX-7, → 4.5 |
-| Карта тренеров | `coaches/map/page.tsx` + `coaches/actions.ts::loadCoachMapPins` | MapLibre + OSM, пины с привязкой к площадкам. | — |
-| Профиль тренера | `coaches/[id]/page.tsx` + `loadCoachProfile`, `loadCoachUpcomingSlots` + `coach-slots.tsx` + `review-form-card.tsx` | Био, площадки, отзывы, ближайшие свободные слоты, форма отзыва. | → 4.5, → 3.5 |
-| Список турниров | `app/[locale]/tournaments/page.tsx` + `tournaments/actions.ts::loadPublicTournaments` | Только public-турниры. | → 4.4 |
-| Страница турнира | `tournaments/[id]/page.tsx` + `loadPublicTournamentDetail` | Сетка/таблица, участники. | → 4.4 |
-| Лента матчей | `app/[locale]/matches/page.tsx` (читает `public_matches_feed`) | Последние подтверждённые матчи. | FX-7 |
-| Площадки | `app/[locale]/venues/page.tsx` | Каталог из `venues`. | → 5.4 |
-| Help / glossary | `app/[locale]/help/page.tsx`, `(public)/help-demo/page.tsx` | Глоссарий и демо help-компонентов. | FX-4 |
+| Флоу             | Страница / SA                                                                                                            | Что делает                                                              | Связи        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- | ------------ |
+| Landing          | `app/[locale]/page.tsx`                                                                                                  | Hero + features + переключатель языка.                                  | FX-3         |
+| Список тренеров  | `app/[locale]/coaches/page.tsx` + `coaches/actions.ts::loadCoaches`, `loadVenueOptions`, `loadDistrictOptionsForCoaches` | Фильтр по району/площадке/спецификации, сортировка по рейтингу/отзывам. | FX-7, → 4.5  |
+| Карта тренеров   | `coaches/map/page.tsx` + `coaches/actions.ts::loadCoachMapPins`                                                          | MapLibre + OSM, пины с привязкой к площадкам.                           | —            |
+| Профиль тренера  | `coaches/[id]/page.tsx` + `loadCoachProfile`, `loadCoachUpcomingSlots` + `coach-slots.tsx` + `review-form-card.tsx`      | Био, площадки, отзывы, ближайшие свободные слоты, форма отзыва.         | → 4.5, → 3.5 |
+| Список турниров  | `app/[locale]/tournaments/page.tsx` + `tournaments/actions.ts::loadPublicTournaments`                                    | Только public-турниры.                                                  | → 4.4        |
+| Страница турнира | `tournaments/[id]/page.tsx` + `loadPublicTournamentDetail`                                                               | Сетка/таблица, участники.                                               | → 4.4        |
+| Лента матчей     | `app/[locale]/matches/page.tsx` (читает `public_matches_feed`)                                                           | Последние подтверждённые матчи.                                         | FX-7         |
+| Площадки         | `app/[locale]/venues/page.tsx`                                                                                           | Каталог из `venues`.                                                    | → 5.4        |
+| Help / glossary  | `app/[locale]/help/page.tsx`, `(public)/help-demo/page.tsx`                                                              | Глоссарий и демо help-компонентов.                                      | FX-4         |
 
 ---
 
@@ -100,6 +100,21 @@
 
 Берёт активную `quiz_versions` (см. 5.1), сохраняет `quiz_answers`, считает старт-Elo через `lib/rating/start-elo.ts` (FX-6), пишет `profiles.current_elo`, `elo_status='provisional'`, `elo_provisional_until_match_n=10`, добавляет запись `rating_history(reason='onboarding')`. Редиректит в `/me/rating`.
 
+В шапке страницы — баннер «Уже играешь в Лиге Тенниса?» со ссылкой на 2.2-LT (импорт вместо квиза).
+
+### 2.2-LT Импорт рейтинга из Liga Tennisa
+
+`onboarding/page.tsx` (chooser «квиз vs импорт»), `onboarding/import-lt/page.tsx` + `import-client.tsx` + `onboarding/import-lt/actions.ts` (обёртка над `lib/rating/external/actions-impl.ts`).
+
+Поток:
+
+1. Игрок попадает на `/onboarding` сразу после регистрации (см. изменённый редирект в `app/api/auth/{post-login,callback}/route.ts`) и выбирает один из двух путей.
+2. На `/onboarding/import-lt` ищет себя на ligatennisa.com через `searchLtCandidates` (имя + опционально город) → топ-8 совпадений.
+3. Открывает превью через `previewLtPlayer(externalId)` — карточка с тиром, Elo, фото, ссылкой на профиль и предполагаемым стартовым Elo на OpenCourt.by.
+4. Подтверждает импорт через `confirmImportFromLt(externalId, copyEmptyFields)` — пишет `external_ratings` (см. ниже) + обновляет `profiles.current_elo` (LT.elo, зажатый в 800–2200) + `rating_history(reason='external_import')` + `onboarding_completed_at=now()`. Если выбрана опция «заполнить пустые поля» — копирует имя/аватар/руку/бэкхенд/инстаграм/ДР/город там, где у нас пусто.
+
+DB: новая таблица `external_ratings` (миграция `20260510000100_external_ratings.sql`) — одна строка на (player, source). RLS: public read (для бейджа), писать может только владелец или админ. См. `docs/external-ratings.md` и `lib/rating/external/liga-tennisa.ts` (фетч + Zod + tier-mapping + клэмп Elo + fuzzy match).
+
 ### 2.3 Заявка стать тренером
 
 `me/become-coach/page.tsx` + `form.tsx` + `me/become-coach/actions.ts::loadMyCoachApplications`, `submitCoachApplication`.
@@ -114,6 +129,8 @@
 
 `me/profile/page.tsx` + `profile-form.tsx` + `me/profile/actions.ts::loadMyProfile`, `updateMyProfile`, `uploadMyAvatar`, `removeMyAvatar`. Контролирует поля профиля, район, доступность, приватность, соцсети, аватар (Storage-bucket `avatars`). Используется FX-2 для записи.
 
+Над формой — карточка `ExternalRatingCard` (`components/profile/external-rating-card.tsx`) с привязкой к Liga Tennisa: показывает тир + Elo, кнопки «Обновить» (`refreshExternalRating` SA) и «Отвязать» (`disconnectExternalRating` SA). Если профиль не привязан — CTA на `/onboarding/import-lt`. SA-обёртки в `me/profile/external-rating-actions.ts` поверх `lib/rating/external/actions-impl.ts`.
+
 ### 3.2 Рейтинг
 
 `me/rating/page.tsx` + `elo-chart.tsx`. Читает текущий Elo из `profiles` и историю из `rating_history` (см. `lib/rating/history.ts`). График Recharts.
@@ -121,7 +138,7 @@
 ### 3.3 Find a Player
 
 - `me/find/page.tsx` + `find-client.tsx`.
-- `me/find/actions.ts::loadDistrictOptions`, `loadMyAvailability`, `updateMyAvailability`, `searchOpponents` — фильтр (район, Elo±, доступность) через `lib/matching/find-player.ts`.
+- `me/find/actions.ts::loadDistrictOptions`, `loadMyAvailability`, `updateMyAvailability`, `searchOpponents` — фильтр (район, Elo±, доступность, рука + опционально Liga Tennisa: `ltOnly` / `ltEloMin` / `ltEloMax`) через `lib/matching/find-player.ts`. SA подгружает `external_ratings` для всех кандидатов (одним запросом по `player_id IN (...)`) и кладёт в `external_rating` поле кандидата; UI рисует бейдж `ExternalRatingBadge` рядом с Elo и предоставляет фильтр-блок «Лига Тенниса».
 - `proposeMatch` → строка в `matches(status='proposed')` + строка в `match_proposals` (см. миграцию `..._match_proposals.sql`) + outbox (FX-5, шаблон `match-proposal`).
 - `me/find/proposals/page.tsx` + `proposal-card.tsx` + `respondToProposal` (accept/decline) → `matches.status='scheduled'` или отказ; outbox.
 - `loadMyProposals` — входящие/исходящие.
@@ -132,15 +149,15 @@
 
 `me/matches/page.tsx` + `match-card.tsx` + `quick-register-button.tsx` + `quick-register-dialog.tsx` + `me/matches/actions.ts`:
 
-| SA | Назначение |
-|---|---|
-| `loadMyMatches` | агрегированная лента игрока. |
-| `loadOpponentOptions` | поиск соперника по строке. |
-| `quickRegisterMatch` | разовый офлайн-матч без предварительного proposal — сразу в `proposed` от лица первого игрока. |
-| `reportFriendlyResult` | первый игрок вводит счёт → `matches.sets`, `confirmed_by_p1=true`, outbox второму игроку. |
+| SA                      | Назначение                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `loadMyMatches`         | агрегированная лента игрока.                                                                                                    |
+| `loadOpponentOptions`   | поиск соперника по строке.                                                                                                      |
+| `quickRegisterMatch`    | разовый офлайн-матч без предварительного proposal — сразу в `proposed` от лица первого игрока.                                  |
+| `reportFriendlyResult`  | первый игрок вводит счёт → `matches.sets`, `confirmed_by_p1=true`, outbox второму игроку.                                       |
 | `confirmFriendlyResult` | второй игрок подтверждает → `outcome='completed'`, `confirmed_by_p2=true` → FX-6 пересчитывает Elo обоих, outbox `elo_changed`. |
-| `disputeFriendlyResult` | помечает диспут, обнуляет подтверждение. |
-| `cancelScheduledMatch` | отмена до результата. |
+| `disputeFriendlyResult` | помечает диспут, обнуляет подтверждение.                                                                                        |
+| `cancelScheduledMatch`  | отмена до результата.                                                                                                           |
 
 `lib/matches/score.ts` валидирует наборы сетов; `..._public_matches_feed*.sql` нормализует их в публичную ленту.
 
@@ -200,15 +217,15 @@
 
 `coach/tournaments/actions.ts`:
 
-| SA | Назначение |
-|---|---|
-| `loadCoachTournaments`, `loadVenueOptions`, `loadTournamentDetail` | чтение. |
-| `createTournament`, `updateTournament`, `deleteTournament` | CRUD. |
-| `setTournamentStatus`, `setTournamentPrivacy` | состояние/видимость. |
-| `addParticipant`, `removeParticipant` | состав. |
-| `generateBracket` | `lib/tournaments/draw.ts` — Single Elimination + Round Robin, snake-seeding по Elo. |
-| `setMatchScore` | счёт + автопродвижение победителя в SE; FX-6 пересчитывает Elo (multiplier=1.0). |
-| `loadRoundRobinStandings` | таблица RR. |
+| SA                                                                 | Назначение                                                                          |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `loadCoachTournaments`, `loadVenueOptions`, `loadTournamentDetail` | чтение.                                                                             |
+| `createTournament`, `updateTournament`, `deleteTournament`         | CRUD.                                                                               |
+| `setTournamentStatus`, `setTournamentPrivacy`                      | состояние/видимость.                                                                |
+| `addParticipant`, `removeParticipant`                              | состав.                                                                             |
+| `generateBracket`                                                  | `lib/tournaments/draw.ts` — Single Elimination + Round Robin, snake-seeding по Elo. |
+| `setMatchScore`                                                    | счёт + автопродвижение победителя в SE; FX-6 пересчитывает Elo (multiplier=1.0).    |
+| `loadRoundRobinStandings`                                          | таблица RR.                                                                         |
 
 Миграция `..._tournament_extras.sql` — поля приватности, multiplier-overrides и т.п.
 
@@ -258,12 +275,12 @@
 
 ## 6. Системные / фоновые
 
-| Что | Где | Назначение |
-|---|---|---|
-| Cron напоминаний | `app/api/cron/reminders/route.ts` | FX-5: разбор outbox, рассылка email, retry. |
-| DB-функции | `..._functions.sql` | `is_admin()`, `handle_new_user`, recompute helpers. |
-| WhatsApp click-to-chat | `lib/contact/whatsapp.ts` | формирование `wa.me`-ссылок везде, где показывается контакт; миграция `..._whatsapp_primary.sql`. |
-| Last-match heuristic | `..._last_match_at.sql` | заполнение `profiles.last_match_at` для активности/eligibility отзывов. |
+| Что                    | Где                               | Назначение                                                                                        |
+| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Cron напоминаний       | `app/api/cron/reminders/route.ts` | FX-5: разбор outbox, рассылка email, retry.                                                       |
+| DB-функции             | `..._functions.sql`               | `is_admin()`, `handle_new_user`, recompute helpers.                                               |
+| WhatsApp click-to-chat | `lib/contact/whatsapp.ts`         | формирование `wa.me`-ссылок везде, где показывается контакт; миграция `..._whatsapp_primary.sql`. |
+| Last-match heuristic   | `..._last_match_at.sql`           | заполнение `profiles.last_match_at` для активности/eligibility отзывов.                           |
 
 ---
 

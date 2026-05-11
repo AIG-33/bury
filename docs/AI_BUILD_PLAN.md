@@ -11,6 +11,7 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 **Goal**: `npm run dev` starts. Localized landing (PL/EN/RU). Demo page with `<HelpPanel>`, `<HelpTooltip>`, `<FlowDiagram>` working.
 
 **Files**:
+
 - `package.json`, `tsconfig.json`, `tailwind.config.ts`, `next.config.mjs`, `eslint.config.mjs`, `prettier.config.mjs`
 - `app/[locale]/layout.tsx`, `app/[locale]/page.tsx` (landing)
 - `app/[locale]/(public)/help-demo/page.tsx`
@@ -22,16 +23,18 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 - `.env.example`, `.gitignore`
 
 **Steps**:
+
 1. `npx create-next-app@latest . --ts --tailwind --eslint --app --import-alias "@/*"` (no src dir).
 2. Install deps (see commands below).
 3. `npx shadcn@latest init` (defaults: Slate, CSS variables yes).
 4. Add base shadcn components: `button card dialog input label badge dropdown-menu sonner tabs tooltip popover sheet`.
 5. Configure next-intl: `i18n.ts` + `middleware.ts` + `app/[locale]/layout.tsx`.
 6. Implement Help components (own, not shadcn).
-7. Landing page with hero (Bury silhouette + "Twój tenisowy ranking, bez kompromisów"), features grid, language switcher.
+7. Landing page with hero (OpenCourt.by wordmark + "Один Эло на все матчи. Любительский теннис в Беларуси."), features grid, language switcher.
 8. Demo page `/help-demo` showing all three Help components.
 
 **Acceptance**:
+
 - `npm run dev` → http://localhost:3000 returns landing in PL.
 - `/en` and `/ru` work.
 - `/help-demo` shows working HelpPanel (collapsible), HelpTooltip (`?` opens popover), FlowDiagram (5-step horizontal).
@@ -49,6 +52,7 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 **Goal**: All ~20 tables created with RLS. Magic-link auth works. After login, empty `/coach/dashboard` page with HelpPanel.
 
 **Files**:
+
 - `supabase/config.toml`, `supabase/migrations/0001_init.sql`, `supabase/seed.sql`
 - `lib/supabase/{client,server,service,types.ts}` (full types from Supabase)
 - `app/[locale]/(auth)/login/page.tsx`, `app/[locale]/(auth)/callback/route.ts`
@@ -58,16 +62,18 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 - `middleware.ts` (extend with auth gate for /coach, /admin, /me)
 
 **Steps**:
-1. `supabase init`, configure `config.toml` (Europe/Warsaw, PLN as default in our app, not Supabase).
+
+1. `supabase init`, configure `config.toml` (Europe/Minsk; BYN as default app currency, не уровня Supabase).
 2. Write `0001_init.sql` per [data-model.md](diagrams/data-model.md).
 3. RLS policies for every table.
 4. Trigger: on `auth.users` insert → create `profiles` row, set locale from raw_user_meta.
-5. `seed.sql`: create one admin user (Bury), one default `quiz_version` with 10 questions, one default `rating_algorithm_config`.
+5. `seed.sql`: create one bootstrap admin account (configurable via env vars — see `.env.example`), one default `quiz_version` with 10 questions, one default `rating_algorithm_config`.
 6. Login page with email magic-link form + Google OAuth button.
 7. Callback route: exchange code → set cookie → redirect to `/coach/dashboard` (if coach) or `/me/profile`.
 8. Dashboard page with HelpPanel: "Что это", "Что можно", "Что произойдёт".
 
 **Acceptance**:
+
 - `npx supabase db reset` runs without errors.
 - Logging in via magic-link creates profile row.
 - `/coach/dashboard` shows HelpPanel + greeting; redirects to login if anonymous.
@@ -84,6 +90,7 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 **Goal**: Player goes through quiz → start Elo computed and stored. Coach sends invite → player accepts via link.
 
 **Files**:
+
 - `app/[locale]/onboarding/quiz/page.tsx`, `actions.ts`
 - `app/[locale]/(coach)/coach/players/page.tsx`, `actions.ts`
 - `app/[locale]/invite/[token]/page.tsx`, `actions.ts`
@@ -93,6 +100,7 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 - `messages/{pl,en,ru}/emails.json` (invitation template)
 
 **Steps**:
+
 1. Server Action `startQuiz()` returns active `quiz_version` + questions.
 2. Client form (react-hook-form + Zod) — one question per screen with `<FlowDiagram>` showing progress.
 3. Server Action `submitQuiz(answers)` → `lib/quiz/engine.ts` → `lib/rating/start-elo.ts` → write `quiz_answers` + `profiles.current_elo` + `profiles.elo_status='provisional'`.
@@ -101,12 +109,14 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 6. `/invite/[token]` page: validates token, prompts for magic-link/Google, on success links player to coach + redirects to quiz.
 
 **Acceptance**:
+
 - Quiz completes → profile has Elo (800–2200) + `elo_provisional_until_match_n = 10`.
 - Invitation email is sent (or printed in dev console with full link).
 - Accepting invite logs in user, redirects to quiz, links to coach.
 - HelpPanel on `/coach/players`, `/onboarding/quiz`, `/invite/[token]`.
 
 **Tests**:
+
 - Vitest: `start-elo.ts` with all branches (low/high answers, clamping).
 - Vitest: token hashing, expiration logic.
 
@@ -217,8 +227,9 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 ## Iteration 13 — Notifications: Email outbox + WhatsApp deep-links + Telegram (secondary) + cron reminders
 
 > **Channel priority (Poland-focused):**
+>
 > 1. **WhatsApp** — primary contact channel for player↔player and player↔coach (`wa.me` click-to-chat links, no API). Wired via `lib/contact/whatsapp.ts`.
-> 2. **Email (Resend)** — primary channel for *automated* notifications (invitations, booking confirms, results, season summaries).
+> 2. **Email (Resend)** — primary channel for _automated_ notifications (invitations, booking confirms, results, season summaries).
 > 3. **Telegram (grammY)** — optional secondary channel for users who toggle `notification_telegram = true`.
 > 4. **WhatsApp Business API** (Twilio / Meta Business Cloud) — postponed to Phase 2; will replace email as the primary automated channel once approved.
 
@@ -275,7 +286,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=                  # optional in dev (falls back to console.log)
-RESEND_FROM=Bury Tennis <noreply@example.com>
+RESEND_FROM=OpenCourt.by <noreply@example.com>
 TELEGRAM_BOT_TOKEN=              # optional in dev (bot disabled)
 TELEGRAM_WEBHOOK_SECRET=
 SENTRY_DSN=                      # optional

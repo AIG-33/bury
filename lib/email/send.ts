@@ -25,7 +25,7 @@ function getResend() {
  * RESEND_API_KEY is not configured — this keeps local-dev workflows working.
  */
 export async function sendEmail(message: EmailMessage): Promise<SendResult> {
-  const from = message.from ?? process.env.RESEND_FROM ?? "Bury Tennis <noreply@example.com>";
+  const from = message.from ?? process.env.RESEND_FROM ?? "OpenCourt.by <noreply@example.com>";
   const resend = getResend();
 
   if (!resend) {

@@ -7,7 +7,7 @@ import { FlowDiagram } from "@/components/help/flow-diagram";
 import { submitQuiz } from "./actions";
 import type { QuizQuestionRow } from "@/lib/supabase/types";
 
-type Locale = "pl" | "en" | "ru";
+type Locale = "ru" | "en";
 
 type Copy = {
   next: string;
@@ -80,7 +80,7 @@ export function QuizClient({ locale, versionId, questions, copy }: Props) {
       <div className="rounded-xl2 border border-grass-100 bg-grass-50 p-8 text-center shadow-card">
         <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-grass-600" />
         <h2 className="font-display text-2xl font-bold text-ink-900">{copy.done_title}</h2>
-        <p className="mt-2 inline-flex items-center gap-2 font-mono text-5xl font-bold text-grass-700 tabular-nums">
+        <p className="mt-2 inline-flex items-center gap-2 font-mono text-5xl font-bold tabular-nums text-grass-700">
           <Trophy className="h-9 w-9 text-ball-500" /> {done.elo}
         </p>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink-700">{copy.done_body}</p>
@@ -124,7 +124,7 @@ export function QuizClient({ locale, versionId, questions, copy }: Props) {
         </div>
 
         {errMsg && (
-          <p className="mt-3 rounded-md bg-clay-50 px-3 py-2 text-sm text-clay-700 animate-letCordShake">
+          <p className="mt-3 animate-letCordShake rounded-md bg-clay-50 px-3 py-2 text-sm text-clay-700">
             {errMsg}
           </p>
         )}

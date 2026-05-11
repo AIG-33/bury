@@ -64,9 +64,7 @@ export default async function MyRatingPage({ params }: Props) {
                 <Sparkles className="h-6 w-6" />
               </span>
               <div className="min-w-0">
-                <p className="label-eyebrow text-ball-700">
-                  {t("quiz_cta.eyebrow")}
-                </p>
+                <p className="label-eyebrow text-ball-700">{t("quiz_cta.eyebrow")}</p>
                 <h2 className="mt-1 font-display text-xl font-bold text-ink-900 sm:text-2xl">
                   {t("quiz_cta.title")}
                 </h2>
@@ -122,13 +120,7 @@ export default async function MyRatingPage({ params }: Props) {
             <Stat
               label={t("hero.delta_30d")}
               value={`${deltaPositive ? "+" : ""}${hero.delta_30d}`}
-              accent={
-                hero.delta_30d === 0
-                  ? "neutral"
-                  : deltaPositive
-                    ? "positive"
-                    : "negative"
-              }
+              accent={hero.delta_30d === 0 ? "neutral" : deltaPositive ? "positive" : "negative"}
               icon={
                 hero.delta_30d === 0 ? null : deltaPositive ? (
                   <ArrowUp className="h-3.5 w-3.5" />
@@ -156,7 +148,7 @@ export default async function MyRatingPage({ params }: Props) {
           </div>
           <EloChart
             history={history}
-            locale={locale as "pl" | "en" | "ru"}
+            locale={locale as "ru" | "en"}
             copy={{
               empty: t("history.empty"),
               elo_axis: t("history.axis"),
@@ -172,9 +164,7 @@ export default async function MyRatingPage({ params }: Props) {
         <section className="surface-card overflow-hidden bg-gradient-to-br from-ball-50 via-white to-white">
           <div className="mb-2 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-ball-700" />
-            <h2 className="font-display text-lg font-semibold text-ink-900">
-              {t("race.title")}
-            </h2>
+            <h2 className="font-display text-lg font-semibold text-ink-900">{t("race.title")}</h2>
           </div>
           {season ? (
             <>
@@ -187,9 +177,7 @@ export default async function MyRatingPage({ params }: Props) {
                 <p className="text-xs uppercase tracking-wide text-ink-500">
                   {t("race.days_left")}
                 </p>
-                <p className="font-mono text-3xl font-bold text-ball-700">
-                  {season.days_left}
-                </p>
+                <p className="font-mono text-3xl font-bold text-ball-700">{season.days_left}</p>
               </div>
               {season.prizes_description && (
                 <p className="mt-3 text-xs text-ink-700">
@@ -197,9 +185,7 @@ export default async function MyRatingPage({ params }: Props) {
                   {season.prizes_description}
                 </p>
               )}
-              <p className="mt-3 text-[11px] text-ink-500">
-                {t("race.coming_soon")}
-              </p>
+              <p className="mt-3 text-[11px] text-ink-500">{t("race.coming_soon")}</p>
             </>
           ) : (
             <p className="text-sm text-ink-500">{t("race.no_season")}</p>
@@ -210,9 +196,7 @@ export default async function MyRatingPage({ params }: Props) {
       {/* My recent matches with Elo deltas */}
       <section className="surface-card">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {t("matches.title")}
-          </h2>
+          <h2 className="font-display text-lg font-semibold text-ink-900">{t("matches.title")}</h2>
           <p className="text-xs text-ink-500">
             {t("matches.subtitle", { n: recentMatches.length })}
           </p>
@@ -270,9 +254,7 @@ function Stat({
         : "text-ink-800";
   return (
     <div className="rounded-lg bg-white px-3 py-2 ring-1 ring-grass-100">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-ink-500">
-        {label}
-      </p>
+      <p className="text-[10px] font-medium uppercase tracking-wide text-ink-500">{label}</p>
       <p
         className={`mt-0.5 inline-flex items-center gap-1 font-mono text-xl font-bold tabular-nums ${color}`}
       >
@@ -371,9 +353,7 @@ function MatchListRow({
                   }
                 >
                   {s.my}–{s.their}
-                  {s.myTb != null && s.theirTb != null
-                    ? `(${s.myTb}\u2013${s.theirTb})`
-                    : ""}
+                  {s.myTb != null && s.theirTb != null ? `(${s.myTb}\u2013${s.theirTb})` : ""}
                 </span>
               ))}
             </p>
@@ -446,7 +426,13 @@ function EloChange({
 function Avatar({ url, name }: { url: string | null; name: string }) {
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink-100" />;
+    return (
+      <img
+        src={url}
+        alt=""
+        className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink-100"
+      />
+    );
   }
   return (
     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 font-display text-sm font-bold text-grass-700 ring-1 ring-grass-200">

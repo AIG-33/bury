@@ -2,10 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  CoachProfileFormSchema,
-  type CoachProfileForm,
-} from "@/lib/profile/coach-schema";
+import { CoachProfileFormSchema, type CoachProfileForm } from "@/lib/profile/coach-schema";
 
 export type CoachProfileSnapshot = {
   id: string;
@@ -13,7 +10,7 @@ export type CoachProfileSnapshot = {
   avatar_url: string | null;
   city: string | null;
   coach_bio: string | null;
-  coach_hourly_rate_pln: number | null;
+  coach_hourly_rate_byn: number | null;
   coach_lat: number | null;
   coach_lng: number | null;
   coach_show_on_map: boolean;
@@ -36,7 +33,7 @@ export async function loadMyCoachProfile(): Promise<LoadCoachProfileResult> {
     .from("profiles")
     .select(
       "id, display_name, avatar_url, city, is_coach, " +
-        "coach_bio, coach_hourly_rate_pln, coach_lat, coach_lng, " +
+        "coach_bio, coach_hourly_rate_byn, coach_lat, coach_lng, " +
         "coach_show_on_map, coach_avg_rating, coach_reviews_count",
     )
     .eq("id", user.id)
@@ -55,7 +52,7 @@ export async function loadMyCoachProfile(): Promise<LoadCoachProfileResult> {
       avatar_url: row.avatar_url,
       city: row.city,
       coach_bio: row.coach_bio ?? null,
-      coach_hourly_rate_pln: row.coach_hourly_rate_pln ?? null,
+      coach_hourly_rate_byn: row.coach_hourly_rate_byn ?? null,
       coach_lat: row.coach_lat ?? null,
       coach_lng: row.coach_lng ?? null,
       coach_show_on_map: row.coach_show_on_map ?? true,
@@ -73,9 +70,7 @@ export type SaveCoachProfileResult =
       fieldErrors?: Record<string, string[]>;
     };
 
-export async function saveMyCoachProfile(
-  input: unknown,
-): Promise<SaveCoachProfileResult> {
+export async function saveMyCoachProfile(input: unknown): Promise<SaveCoachProfileResult> {
   const parsed = CoachProfileFormSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -96,7 +91,7 @@ export async function saveMyCoachProfile(
     .from("profiles")
     .update({
       coach_bio: v.coach_bio,
-      coach_hourly_rate_pln: v.coach_hourly_rate_pln,
+      coach_hourly_rate_byn: v.coach_hourly_rate_byn,
     } as never)
     .eq("id", user.id);
 

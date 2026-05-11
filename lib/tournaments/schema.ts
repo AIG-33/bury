@@ -12,10 +12,7 @@ export const TOURNAMENT_FORMATS = [
 ] as const;
 export type TournamentFormat = (typeof TOURNAMENT_FORMATS)[number];
 
-export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = [
-  "single_elimination",
-  "round_robin",
-];
+export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = ["single_elimination", "round_robin"];
 
 export const TOURNAMENT_STATUSES = [
   "draft",
@@ -108,15 +105,12 @@ export const DEFAULT_MATCH_RULES: MatchRules = {
 // Using preprocess avoids the "Invalid input" error you get from a chained
 // `.optional().or(z.literal(""))` when react-hook-form sends `null` for an
 // untouched optional field.
-const optionalText = z.preprocess(
-  (v) => {
-    if (v == null) return null;
-    if (typeof v !== "string") return v;
-    const trimmed = v.trim();
-    return trimmed.length === 0 ? null : trimmed;
-  },
-  z.string().max(2000).nullable(),
-);
+const optionalText = z.preprocess((v) => {
+  if (v == null) return null;
+  if (typeof v !== "string") return v;
+  const trimmed = v.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}, z.string().max(2000).nullable());
 
 const optionalDateString = z.preprocess(
   (v) => {
@@ -131,17 +125,14 @@ const optionalDateString = z.preprocess(
 );
 
 const optionalIntInRange = (min: number, max: number) =>
-  z.preprocess(
-    (v) => {
-      if (v == null) return null;
-      if (typeof v === "string" && v.trim().length === 0) return null;
-      return v;
-    },
-    z.coerce.number().int().min(min).max(max).nullable(),
-  );
+  z.preprocess((v) => {
+    if (v == null) return null;
+    if (typeof v === "string" && v.trim().length === 0) return null;
+    return v;
+  }, z.coerce.number().int().min(min).max(max).nullable());
 
 // HH:MM (24h). Stored in `tournaments.start_time` as `time without time zone`,
-// interpreted in Europe/Warsaw per AGENTS.md §1. Optional.
+// interpreted in Europe/Minsk per AGENTS.md §1. Optional.
 const optionalTimeOfDay = z.preprocess(
   (v) => {
     if (v == null) return null;
@@ -164,7 +155,7 @@ export const TournamentFormSchema = z.object({
   ends_on: optionalDateString,
   registration_deadline: optionalDateString,
   max_participants: optionalIntInRange(2, 128),
-  entry_fee_pln: optionalIntInRange(0, 100000),
+  entry_fee_byn: optionalIntInRange(0, 100000),
   privacy: z.enum(PRIVACY_OPTIONS).default("club"),
   draw_method: z.enum(SEEDING_METHODS).default("rating"),
   prizes_description: optionalText,

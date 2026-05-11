@@ -10,15 +10,24 @@
 // Pure functions here so they're trivially unit-testable.
 // =============================================================================
 
-import {
-  type Availability,
-  type SocialLinks,
-  WEEKDAYS,
-  TIME_SLOTS,
-} from "@/lib/profile/schema";
+import { type Availability, type SocialLinks, WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
 
 export type Weekday = (typeof WEEKDAYS)[number];
 export type DayPart = (typeof TIME_SLOTS)[number];
+
+/**
+ * Liga Tennisa rating attached to a candidate (when present). We surface
+ * this in the find-opponent UI so players can cross-reference our Elo with
+ * the LT rating for opponents who imported their profile.
+ */
+export type CandidateExternalRating = {
+  source: "liga_tennisa";
+  external_url: string;
+  display_tier: string;
+  external_elo: number;
+  external_elo_doubles: number | null;
+  is_calibrating_singles: boolean;
+};
 
 export type FindPlayerCandidate = {
   id: string;
@@ -39,6 +48,8 @@ export type FindPlayerCandidate = {
   availability: Availability | null;
   /** Number of days since last completed match (for recency bonus). */
   days_since_last_match: number | null;
+  /** Optional Liga Tennisa rating, if the player imported one. */
+  external_rating: CandidateExternalRating | null;
 };
 
 export type FindPlayerFilters = {
@@ -52,6 +63,17 @@ export type FindPlayerFilters = {
   hand: "R" | "L" | "both";
   /** Search by name fragment (case-insensitive). */
   query: string;
+  /**
+   * If true, only include candidates that have an imported Liga Tennisa
+   * rating. Default false.
+   */
+  ltOnly: boolean;
+  /**
+   * Optional inclusive LT Elo range. NULL = no bound on that side.
+   * If set, candidates without an LT rating are excluded.
+   */
+  ltEloMin: number | null;
+  ltEloMax: number | null;
 };
 
 export const DEFAULT_FILTERS: FindPlayerFilters = {
@@ -60,6 +82,9 @@ export const DEFAULT_FILTERS: FindPlayerFilters = {
   desiredSlots: [],
   hand: "both",
   query: "",
+  ltOnly: false,
+  ltEloMin: null,
+  ltEloMax: null,
 };
 
 export type ScoredCandidate = FindPlayerCandidate & {
@@ -101,14 +126,11 @@ export function computeOverlap(
       const candidateHasIt = candidateSlots.has(dp);
       if (!candidateHasIt) continue;
 
-      const seekerHasIt =
-        seekerAvailability && (seekerAvailability[wd] ?? []).includes(dp);
+      const seekerHasIt = seekerAvailability && (seekerAvailability[wd] ?? []).includes(dp);
       if (!seekerHasIt) continue;
 
       if (desiredSlots.length > 0) {
-        const isWanted = desiredSlots.some(
-          (s) => s.weekday === wd && s.daypart === dp,
-        );
+        const isWanted = desiredSlots.some((s) => s.weekday === wd && s.daypart === dp);
         if (!isWanted) continue;
       }
 
@@ -136,10 +158,7 @@ export function scoreCandidate(
   filters: FindPlayerFilters,
 ): ScoredCandidate {
   const eloDistance = Math.abs(candidate.current_elo - seeker.current_elo);
-  const eloProximity = Math.max(
-    0,
-    45 * (1 - eloDistance / Math.max(1, filters.eloRadius)),
-  );
+  const eloProximity = Math.max(0, 45 * (1 - eloDistance / Math.max(1, filters.eloRadius)));
 
   const overlapSlots = computeOverlap(
     seeker.availability,
@@ -151,16 +170,12 @@ export function scoreCandidate(
   const overlapPts = Math.min(35, Math.round(35 * (1 - Math.exp(-overlapCount / 1.7))));
 
   const districtPts =
-    seeker.district_id &&
-    candidate.district_id &&
-    seeker.district_id === candidate.district_id
+    seeker.district_id && candidate.district_id && seeker.district_id === candidate.district_id
       ? 10
       : 0;
 
   const recencyPts =
-    candidate.days_since_last_match != null && candidate.days_since_last_match <= 30
-      ? 10
-      : 0;
+    candidate.days_since_last_match != null && candidate.days_since_last_match <= 30 ? 10 : 0;
 
   const total = Math.round(eloProximity + overlapPts + districtPts + recencyPts);
 
@@ -196,6 +211,16 @@ export function rankCandidates(
       if (q.length > 0) {
         const name = (c.display_name ?? "").toLowerCase();
         if (!name.includes(q)) return false;
+      }
+      // Liga Tennisa filters: ltOnly hides candidates without an imported LT
+      // rating; ltElo{Min,Max} narrow that further. NB: a range filter
+      // implies ltOnly because LT-less candidates can't possibly satisfy it.
+      const wantLt = filters.ltOnly || filters.ltEloMin != null || filters.ltEloMax != null;
+      if (wantLt) {
+        if (!c.external_rating) return false;
+        const ltElo = c.external_rating.external_elo;
+        if (filters.ltEloMin != null && ltElo < filters.ltEloMin) return false;
+        if (filters.ltEloMax != null && ltElo > filters.ltEloMax) return false;
       }
       return true;
     })

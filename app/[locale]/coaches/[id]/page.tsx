@@ -44,11 +44,7 @@ export default async function CoachProfilePage({ params }: Props) {
               pageId={`coach-detail-${coach.id}`}
               variant="inline"
               why={t("detail.help.why")}
-              what={[
-                t("detail.help.what.1"),
-                t("detail.help.what.2"),
-                t("detail.help.what.3"),
-              ]}
+              what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
               result={[t("detail.help.result.1"), t("detail.help.result.2")]}
             />
           </div>
@@ -62,9 +58,7 @@ export default async function CoachProfilePage({ params }: Props) {
             {coach.coach_avg_rating != null ? (
               <span className="inline-flex items-center gap-1">
                 <Star className="h-4 w-4 fill-ball-400 text-ball-500" />
-                <span className="font-mono font-semibold">
-                  {coach.coach_avg_rating.toFixed(2)}
-                </span>
+                <span className="font-mono font-semibold">{coach.coach_avg_rating.toFixed(2)}</span>
                 <span className="text-xs">
                   {t("reviews_count", { count: coach.coach_reviews_count })}
                 </span>
@@ -72,9 +66,9 @@ export default async function CoachProfilePage({ params }: Props) {
             ) : (
               <span className="text-xs">{t("no_reviews_yet")}</span>
             )}
-            {coach.coach_hourly_rate_pln != null && (
+            {coach.coach_hourly_rate_byn != null && (
               <span className="text-xs">
-                {t("hourly_rate", { amount: coach.coach_hourly_rate_pln })}
+                {t("hourly_rate", { amount: coach.coach_hourly_rate_byn })}
               </span>
             )}
           </div>
@@ -83,12 +77,8 @@ export default async function CoachProfilePage({ params }: Props) {
 
       {coach.coach_bio && (
         <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-          <h2 className="font-display text-base font-semibold text-ink-900">
-            {t("detail.about")}
-          </h2>
-          <p className="mt-2 whitespace-pre-line text-sm text-ink-700">
-            {coach.coach_bio}
-          </p>
+          <h2 className="font-display text-base font-semibold text-ink-900">{t("detail.about")}</h2>
+          <p className="mt-2 whitespace-pre-line text-sm text-ink-700">{coach.coach_bio}</p>
         </section>
       )}
 
@@ -111,10 +101,7 @@ export default async function CoachProfilePage({ params }: Props) {
 
       {/* Review form (only when viewer is eligible). */}
       {!coach.viewer_is_self && coach.my_eligibility && (
-        <ReviewFormCard
-          coachId={coach.id}
-          eligibility={coach.my_eligibility}
-        />
+        <ReviewFormCard coachId={coach.id} eligibility={coach.my_eligibility} />
       )}
       {coach.viewer_is_self && (
         <p className="rounded-xl2 border border-ink-100 bg-white px-4 py-3 text-sm text-ink-500">
@@ -134,19 +121,12 @@ export default async function CoachProfilePage({ params }: Props) {
         ) : (
           <ul className="space-y-3">
             {coach.reviews.map((r) => (
-              <li
-                key={r.id}
-                className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card"
-              >
+              <li key={r.id} className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
                 <div className="flex items-center gap-3">
                   <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-ink-50 text-ink-600">
                     {r.reviewer_avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={r.reviewer_avatar}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={r.reviewer_avatar} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-xs font-semibold">
                         {(r.reviewer_name ?? "?").slice(0, 1).toUpperCase()}
@@ -177,9 +157,7 @@ export default async function CoachProfilePage({ params }: Props) {
                   </div>
                 </div>
                 {r.text && (
-                  <p className="mt-2 whitespace-pre-line text-sm text-ink-700">
-                    {r.text}
-                  </p>
+                  <p className="mt-2 whitespace-pre-line text-sm text-ink-700">{r.text}</p>
                 )}
                 {r.coach_reply && (
                   <div className="mt-3 rounded-lg border border-grass-100 bg-grass-50/60 p-3">
@@ -187,9 +165,7 @@ export default async function CoachProfilePage({ params }: Props) {
                       <MessageCircle className="h-3 w-3" />
                       {t("detail.coach_reply")}
                     </p>
-                    <p className="whitespace-pre-line text-sm text-ink-700">
-                      {r.coach_reply}
-                    </p>
+                    <p className="whitespace-pre-line text-sm text-ink-700">{r.coach_reply}</p>
                   </div>
                 )}
               </li>

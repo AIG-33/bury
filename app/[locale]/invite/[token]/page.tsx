@@ -60,8 +60,8 @@ export default async function InvitePage({ params }: Props) {
   if (user) {
     const result = await acceptInvitationAction(token);
     if (result.ok) {
-      // Send to onboarding quiz
-      redirect(`/${locale}/onboarding/quiz`);
+      // Send to onboarding chooser (quiz vs. Liga Tennisa import).
+      redirect(`/${locale}/onboarding`);
     }
     return <InviteError title={t("error.invalid.title")} body={t("error.invalid.body")} />;
   }
@@ -76,7 +76,9 @@ export default async function InvitePage({ params }: Props) {
           <TennisBall className="h-10 w-10 text-ball-500" />
           <div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="font-display text-2xl font-bold text-ink-900">{t("title", { coach: coachName })}</h1>
+              <h1 className="font-display text-2xl font-bold text-ink-900">
+                {t("title", { coach: coachName })}
+              </h1>
               <HelpPanel
                 pageId="invite-page"
                 variant="inline"
@@ -98,7 +100,6 @@ export default async function InvitePage({ params }: Props) {
           {t("cta")}
         </Link>
       </div>
-
     </div>
   );
 }

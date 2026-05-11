@@ -7,9 +7,8 @@ import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const LANGS = [
-  { code: "pl", label: "PL", full: "Polski" },
-  { code: "en", label: "EN", full: "English" },
   { code: "ru", label: "RU", full: "Русский" },
+  { code: "en", label: "EN", full: "English" },
 ] as const;
 
 export function LanguageSwitcher() {
@@ -30,7 +29,7 @@ export function LanguageSwitcher() {
 
   function change(next: string) {
     startTransition(() => {
-      router.replace(pathname, { locale: next as "pl" | "en" | "ru" });
+      router.replace(pathname, { locale: next as "ru" | "en" });
       setOpen(false);
     });
   }
@@ -41,7 +40,7 @@ export function LanguageSwitcher() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
-        className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200/70 bg-white/60 px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700 backdrop-blur-md transition-all duration-300 ease-followthrough hover:-translate-y-0.5 hover:bg-white hover:text-grass-800 disabled:opacity-60"
+        className="ease-followthrough inline-flex h-9 items-center gap-1 rounded-full border border-ink-200/70 bg-white/60 px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-grass-800 disabled:opacity-60"
         aria-expanded={open}
         aria-haspopup="listbox"
       >
@@ -63,9 +62,7 @@ export function LanguageSwitcher() {
                 role="option"
                 aria-selected={l.code === locale}
                 className={`flex w-full items-center justify-between px-3.5 py-2.5 text-[13px] transition-colors duration-200 hover:bg-grass-50 ${
-                  l.code === locale
-                    ? "bg-grass-50 font-semibold text-grass-800"
-                    : "text-ink-700"
+                  l.code === locale ? "bg-grass-50 font-semibold text-grass-800" : "text-ink-700"
                 }`}
               >
                 <span>{l.full}</span>

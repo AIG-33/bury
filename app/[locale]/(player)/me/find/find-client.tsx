@@ -19,6 +19,7 @@ import {
   Save,
   Eraser,
   ArrowDown,
+  Trophy,
 } from "lucide-react";
 import {
   searchOpponents,
@@ -26,20 +27,12 @@ import {
   updateMyAvailability,
   type DistrictOption,
 } from "./actions";
-import {
-  EMPTY_AVAILABILITY,
-  WEEKDAYS,
-  TIME_SLOTS,
-  type Availability,
-} from "@/lib/profile/schema";
-import type {
-  ScoredCandidate,
-  Weekday,
-  DayPart,
-} from "@/lib/matching/find-player";
+import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
+import type { ScoredCandidate, Weekday, DayPart } from "@/lib/matching/find-player";
 import { whatsappLink } from "@/lib/contact/whatsapp";
+import { ExternalRatingBadge } from "@/components/profile/external-rating-badge";
 
-type Locale = "pl" | "en" | "ru";
+type Locale = "ru" | "en";
 
 export type FindCopy = {
   filters_title: string;
@@ -57,6 +50,12 @@ export type FindCopy = {
   reset: string;
   empty_title: string;
   empty_description: string;
+  lt_section_label: string;
+  lt_only_label: string;
+  lt_only_hint: string;
+  lt_elo_min_label: string;
+  lt_elo_max_label: string;
+  lt_source_label: string;
   weekday: Record<Weekday, string>;
   weekday_short: Record<Weekday, string>;
   daypart: Record<DayPart, string>;
@@ -110,8 +109,10 @@ export function FindClient({
   const [hand, setHand] = useState<"both" | "R" | "L">("both");
   const [query, setQuery] = useState("");
   const [desiredSlots, setDesiredSlots] = useState<Set<string>>(new Set());
-  const [savedAvailability, setSavedAvailability] =
-    useState<Availability>(myAvailability);
+  const [savedAvailability, setSavedAvailability] = useState<Availability>(myAvailability);
+  const [ltOnly, setLtOnly] = useState(false);
+  const [ltEloMin, setLtEloMin] = useState<string>("");
+  const [ltEloMax, setLtEloMax] = useState<string>("");
 
   const [isSearching, startSearch] = useTransition();
   const [results, setResults] = useState<ScoredCandidate[] | null>(null);
@@ -145,12 +146,17 @@ export function FindClient({
         const [weekday, daypart] = k.split("/") as [Weekday, DayPart];
         return { weekday, daypart };
       });
+      const min = ltEloMin.trim() === "" ? null : Number(ltEloMin);
+      const max = ltEloMax.trim() === "" ? null : Number(ltEloMax);
       const r = await searchOpponents({
         districtIds,
         eloRadius,
         desiredSlots: desired,
         hand,
         query,
+        ltOnly,
+        ltEloMin: min != null && Number.isFinite(min) ? min : null,
+        ltEloMax: max != null && Number.isFinite(max) ? max : null,
       });
       if (!r.ok) {
         setSearchError(r.error);
@@ -167,6 +173,9 @@ export function FindClient({
     setHand("both");
     setQuery("");
     setDesiredSlots(new Set());
+    setLtOnly(false);
+    setLtEloMin("");
+    setLtEloMax("");
     setResults(null);
   }
 
@@ -180,190 +189,232 @@ export function FindClient({
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
-      {/* ─── Filters ─── */}
-      <aside className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card lg:sticky lg:top-20 lg:self-start">
-        <div className="mb-4 flex items-center gap-2">
-          <Filter className="h-4 w-4 text-grass-700" />
-          <h2 className="font-display text-base font-semibold text-ink-900">
-            {copy.filters_title}
-          </h2>
-        </div>
-
-        {/* Query */}
-        <FieldBlock label={copy.query}>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={copy.query_placeholder}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
-            />
+        {/* ─── Filters ─── */}
+        <aside className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card lg:sticky lg:top-20 lg:self-start">
+          <div className="mb-4 flex items-center gap-2">
+            <Filter className="h-4 w-4 text-grass-700" />
+            <h2 className="font-display text-base font-semibold text-ink-900">
+              {copy.filters_title}
+            </h2>
           </div>
-        </FieldBlock>
 
-        {/* Districts */}
-        <FieldBlock label={copy.district}>
-          <DistrictPicker
-            options={districts}
-            selected={districtIds}
-            onChange={setDistrictIds}
-            placeholder={copy.district_placeholder}
-          />
-        </FieldBlock>
-
-        {/* Elo radius */}
-        <FieldBlock label={`${copy.elo_radius}: ±${eloRadius}`} hint={t("filters.elo_radius_hint", { n: eloRadius })}>
-          <input
-            type="range"
-            min={25}
-            max={500}
-            step={25}
-            value={eloRadius}
-            onChange={(e) => setEloRadius(Number(e.target.value))}
-            className="w-full accent-grass-600"
-          />
-        </FieldBlock>
-
-        {/* Hand */}
-        <FieldBlock label={copy.hand}>
-          <div className="flex gap-1 rounded-lg border border-ink-200 p-1">
-            {(["both", "R", "L"] as const).map((h) => (
-              <button
-                key={h}
-                type="button"
-                onClick={() => setHand(h)}
-                className={
-                  "flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition " +
-                  (hand === h
-                    ? "bg-grass-500 text-white shadow-sm"
-                    : "text-ink-600 hover:bg-ink-50")
-                }
-              >
-                {copy.hand_options[h]}
-              </button>
-            ))}
-          </div>
-        </FieldBlock>
-
-        {/* Availability grid */}
-        <FieldBlock label={copy.availability} hint={copy.availability_hint}>
-          <button
-            type="button"
-            onClick={adoptMyScheduleAsFilter}
-            className="mb-2 inline-flex h-7 items-center gap-1 rounded-md border border-grass-300 bg-grass-50 px-2 text-[11px] font-medium text-grass-800 transition hover:bg-grass-100"
-          >
-            <ArrowDown className="h-3 w-3" />
-            {copy.my_availability.use_in_filter}
-          </button>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-[10px]">
-              <thead>
-                <tr>
-                  <th className="p-1"></th>
-                  {WEEKDAYS.map((w) => (
-                    <th key={w} className="p-1 text-center font-medium text-ink-500">
-                      {copy.weekday_short[w]}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {TIME_SLOTS.map((d) => (
-                  <tr key={d}>
-                    <td className="pr-1 text-right text-ink-500">{copy.daypart[d]}</td>
-                    {WEEKDAYS.map((w) => {
-                      const k = slotKey(w, d);
-                      const on = desiredSlots.has(k);
-                      return (
-                        <td key={w} className="p-0.5">
-                          <button
-                            type="button"
-                            onClick={() => toggleSlot(w, d)}
-                            className={
-                              "h-7 w-full rounded transition " +
-                              (on
-                                ? "bg-grass-500 text-white"
-                                : "bg-ink-50 text-transparent hover:bg-grass-100")
-                            }
-                            aria-label={`${copy.weekday[w]} · ${copy.daypart[d]}`}
-                          >
-                            ·
-                          </button>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </FieldBlock>
-
-        <div className="mt-5 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={runSearch}
-            disabled={isSearching}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
-          >
-            {isSearching ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> {copy.searching}
-              </>
-            ) : (
-              <>
-                <Search className="h-4 w-4" /> {copy.search}
-              </>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={reset}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-ink-200 px-4 text-xs font-medium text-ink-600 transition hover:bg-ink-50"
-          >
-            {copy.reset}
-          </button>
-        </div>
-      </aside>
-
-      {/* ─── Results ─── */}
-      <section className="space-y-3">
-        {results === null && !isSearching && (
-          <EmptyHero title={copy.empty_title} description={copy.empty_description} />
-        )}
-
-        {searchError && (
-          <div className="flex items-start gap-2 rounded-md bg-clay-50 px-3 py-2 text-sm text-clay-800">
-            <AlertCircle className="mt-0.5 h-4 w-4" />
-            <span>{searchError}</span>
-          </div>
-        )}
-
-        {results !== null && (
-          <>
-            <p className="text-sm text-ink-500">{t("results.count", { n: results.length })}</p>
-            {results.length === 0 ? (
-              <EmptyHero
-                title={copy.empty_title}
-                description={copy.empty_description}
-                muted
+          {/* Query */}
+          <FieldBlock label={copy.query}>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={copy.query_placeholder}
+                className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
               />
-            ) : (
-              <ul className="space-y-3">
-                {results.map((c) => (
-                  <CandidateCard
-                    key={c.id}
-                    candidate={c}
-                    locale={locale}
-                    copy={copy}
-                  />
-                ))}
-              </ul>
-            )}
-          </>
-        )}
-      </section>
+            </div>
+          </FieldBlock>
+
+          {/* Districts */}
+          <FieldBlock label={copy.district}>
+            <DistrictPicker
+              options={districts}
+              selected={districtIds}
+              onChange={setDistrictIds}
+              placeholder={copy.district_placeholder}
+            />
+          </FieldBlock>
+
+          {/* Elo radius */}
+          <FieldBlock
+            label={`${copy.elo_radius}: ±${eloRadius}`}
+            hint={t("filters.elo_radius_hint", { n: eloRadius })}
+          >
+            <input
+              type="range"
+              min={25}
+              max={500}
+              step={25}
+              value={eloRadius}
+              onChange={(e) => setEloRadius(Number(e.target.value))}
+              className="w-full accent-grass-600"
+            />
+          </FieldBlock>
+
+          {/* Hand */}
+          <FieldBlock label={copy.hand}>
+            <div className="flex gap-1 rounded-lg border border-ink-200 p-1">
+              {(["both", "R", "L"] as const).map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => setHand(h)}
+                  className={
+                    "flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition " +
+                    (hand === h
+                      ? "bg-grass-500 text-white shadow-sm"
+                      : "text-ink-600 hover:bg-ink-50")
+                  }
+                >
+                  {copy.hand_options[h]}
+                </button>
+              ))}
+            </div>
+          </FieldBlock>
+
+          {/* Liga Tennisa filters */}
+          <FieldBlock label={copy.lt_section_label}>
+            <label className="mb-2 flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={ltOnly}
+                onChange={(e) => setLtOnly(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-ink-300 text-grass-600 focus:ring-grass-500"
+              />
+              <span className="text-xs">
+                <span className="font-medium text-ink-900">{copy.lt_only_label}</span>
+                <span className="ml-1 block text-[11px] text-ink-500">{copy.lt_only_hint}</span>
+              </span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-ink-500">
+                  {copy.lt_elo_min_label}
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={3500}
+                  value={ltEloMin}
+                  onChange={(e) => setLtEloMin(e.target.value)}
+                  placeholder="—"
+                  className="h-9 w-full rounded-md border border-ink-200 bg-white px-2 text-xs tabular-nums outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-ink-500">
+                  {copy.lt_elo_max_label}
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={3500}
+                  value={ltEloMax}
+                  onChange={(e) => setLtEloMax(e.target.value)}
+                  placeholder="—"
+                  className="h-9 w-full rounded-md border border-ink-200 bg-white px-2 text-xs tabular-nums outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+                />
+              </div>
+            </div>
+          </FieldBlock>
+
+          {/* Availability grid */}
+          <FieldBlock label={copy.availability} hint={copy.availability_hint}>
+            <button
+              type="button"
+              onClick={adoptMyScheduleAsFilter}
+              className="mb-2 inline-flex h-7 items-center gap-1 rounded-md border border-grass-300 bg-grass-50 px-2 text-[11px] font-medium text-grass-800 transition hover:bg-grass-100"
+            >
+              <ArrowDown className="h-3 w-3" />
+              {copy.my_availability.use_in_filter}
+            </button>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[10px]">
+                <thead>
+                  <tr>
+                    <th className="p-1"></th>
+                    {WEEKDAYS.map((w) => (
+                      <th key={w} className="p-1 text-center font-medium text-ink-500">
+                        {copy.weekday_short[w]}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {TIME_SLOTS.map((d) => (
+                    <tr key={d}>
+                      <td className="pr-1 text-right text-ink-500">{copy.daypart[d]}</td>
+                      {WEEKDAYS.map((w) => {
+                        const k = slotKey(w, d);
+                        const on = desiredSlots.has(k);
+                        return (
+                          <td key={w} className="p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => toggleSlot(w, d)}
+                              className={
+                                "h-7 w-full rounded transition " +
+                                (on
+                                  ? "bg-grass-500 text-white"
+                                  : "bg-ink-50 text-transparent hover:bg-grass-100")
+                              }
+                              aria-label={`${copy.weekday[w]} · ${copy.daypart[d]}`}
+                            >
+                              ·
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </FieldBlock>
+
+          <div className="mt-5 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={runSearch}
+              disabled={isSearching}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+            >
+              {isSearching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> {copy.searching}
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4" /> {copy.search}
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-ink-200 px-4 text-xs font-medium text-ink-600 transition hover:bg-ink-50"
+            >
+              {copy.reset}
+            </button>
+          </div>
+        </aside>
+
+        {/* ─── Results ─── */}
+        <section className="space-y-3">
+          {results === null && !isSearching && (
+            <EmptyHero title={copy.empty_title} description={copy.empty_description} />
+          )}
+
+          {searchError && (
+            <div className="flex items-start gap-2 rounded-md bg-clay-50 px-3 py-2 text-sm text-clay-800">
+              <AlertCircle className="mt-0.5 h-4 w-4" />
+              <span>{searchError}</span>
+            </div>
+          )}
+
+          {results !== null && (
+            <>
+              <p className="text-sm text-ink-500">{t("results.count", { n: results.length })}</p>
+              {results.length === 0 ? (
+                <EmptyHero title={copy.empty_title} description={copy.empty_description} muted />
+              ) : (
+                <ul className="space-y-3">
+                  {results.map((c) => (
+                    <CandidateCard key={c.id} candidate={c} locale={locale} copy={copy} />
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </section>
       </div>
     </div>
   );
@@ -418,7 +469,7 @@ function CandidateCard({
     .toUpperCase();
 
   return (
-    <li className="rounded-xl2 border border-ink-100 bg-white shadow-card transition hover:shadow-pop">
+    <li className="hover:shadow-pop rounded-xl2 border border-ink-100 bg-white shadow-card transition">
       <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -437,7 +488,7 @@ function CandidateCard({
         </div>
 
         {/* Main */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="truncate font-display text-base font-semibold text-ink-900">
               {candidate.display_name ?? "—"}
@@ -454,6 +505,18 @@ function CandidateCard({
               </span>
             )}
             <ScoreBadge label={copy.card.score} value={candidate.score} />
+            {candidate.external_rating && (
+              <ExternalRatingBadge
+                size="sm"
+                source={candidate.external_rating.source}
+                externalUrl={candidate.external_rating.external_url}
+                displayTier={candidate.external_rating.display_tier}
+                externalElo={candidate.external_rating.external_elo}
+                externalEloDoubles={candidate.external_rating.external_elo_doubles}
+                isCalibratingSingles={candidate.external_rating.is_calibrating_singles}
+                sourceLabel={copy.lt_source_label}
+              />
+            )}
           </div>
           {candidate.overlap_count > 0 ? (
             <div className="mt-2 flex flex-wrap gap-1">
@@ -480,9 +543,7 @@ function CandidateCard({
         {/* Elo + actions */}
         <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-end">
           <div className="text-right">
-            <p className="text-[10px] uppercase tracking-wider text-ink-500">
-              {copy.card.elo}
-            </p>
+            <p className="text-[10px] uppercase tracking-wider text-ink-500">{copy.card.elo}</p>
             <p className="font-mono text-2xl font-bold tabular-nums text-grass-700">
               {candidate.current_elo}
             </p>
@@ -634,7 +695,7 @@ function DistrictPicker({
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-1 w-full rounded-lg border border-ink-200 bg-white shadow-pop">
+        <div className="shadow-pop absolute z-20 mt-1 w-full rounded-lg border border-ink-200 bg-white">
           <div className="border-b border-ink-100 p-2">
             <input
               autoFocus
@@ -655,9 +716,7 @@ function DistrictPicker({
                   <button
                     type="button"
                     onClick={() =>
-                      onChange(
-                        on ? selected.filter((id) => id !== o.id) : [...selected, o.id],
-                      )
+                      onChange(on ? selected.filter((id) => id !== o.id) : [...selected, o.id])
                     }
                     className={
                       "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition " +
@@ -667,9 +726,7 @@ function DistrictPicker({
                     <span
                       className={
                         "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border " +
-                        (on
-                          ? "border-grass-500 bg-grass-500 text-white"
-                          : "border-ink-300")
+                        (on ? "border-grass-500 bg-grass-500 text-white" : "border-ink-300")
                       }
                     >
                       {on && <CheckCircle2 className="h-3 w-3" />}
@@ -772,9 +829,7 @@ function MyAvailabilityCard({
               {copy.my_availability.title}
             </h2>
             <p className="mt-0.5 max-w-xl text-xs text-ink-500">
-              {totalSelected === 0
-                ? copy.my_availability.empty_hint
-                : copy.my_availability.hint}
+              {totalSelected === 0 ? copy.my_availability.empty_hint : copy.my_availability.hint}
             </p>
           </div>
         </div>
@@ -792,10 +847,7 @@ function MyAvailabilityCard({
             <tr>
               <th className="p-1"></th>
               {WEEKDAYS.map((w) => (
-                <th
-                  key={w}
-                  className="p-1 text-center font-medium text-ink-500"
-                >
+                <th key={w} className="p-1 text-center font-medium text-ink-500">
                   {copy.weekday_short[w]}
                 </th>
               ))}
@@ -804,9 +856,7 @@ function MyAvailabilityCard({
           <tbody>
             {TIME_SLOTS.map((d) => (
               <tr key={d}>
-                <td className="pr-2 text-right text-ink-500">
-                  {copy.daypart[d]}
-                </td>
+                <td className="pr-2 text-right text-ink-500">{copy.daypart[d]}</td>
                 {WEEKDAYS.map((w) => {
                   const on = (draft[w] ?? []).includes(d);
                   return (

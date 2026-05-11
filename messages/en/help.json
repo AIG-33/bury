@@ -34,6 +34,14 @@
     "rrule": {
       "title": "RRULE",
       "body": "iCal standard for recurring events. Example: \u201Cevery Tue/Thu at 6 PM for 8 weeks\u201D."
+    },
+    "liga_tennisa": {
+      "title": "Liga Tennisa",
+      "body": "Belarusian amateur tennis league at https://www.ligatennisa.com/ — 2700+ ranked players. We can import your rating from there as a starting point and display it as a secondary badge on your card."
+    },
+    "lt_tier": {
+      "title": "Liga Tennisa tier",
+      "body": "Skill bracket on Liga Tennisa: Rookies → Satellite → Futures → Legger → Challenger → Masters → Supreme → Pro. Derived from the Elo bands used on ligatennisa.com."
     }
   }
 }

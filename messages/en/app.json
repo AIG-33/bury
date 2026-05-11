@@ -460,7 +460,7 @@
       "type": "Type",
       "required": "Required",
       "question_text": "Question text",
-      "lang": { "pl": "Polish", "en": "English", "ru": "Russian" },
+      "lang": { "en": "English", "ru": "Russian" },
       "types": {
         "single_choice": "Single choice",
         "multi_choice": "Multi choice",
@@ -644,8 +644,8 @@
   },
   "landing": {
     "hero": {
-      "eyebrow": "A tennis platform from a pro",
-      "title": "Your tennis ranking. No compromises. With a touch of Federer's style.",
+      "eyebrow": "Amateur tennis in Belarus",
+      "title": "Your tennis ranking. No compromises. One Elo across every match.",
       "subtitle": "One Elo rating that follows you everywhere. Find an opponent, play a tournament, check coaches — in one place.",
       "cta_primary": "Let's go!"
     },
@@ -669,19 +669,19 @@
       }
     },
     "quote": {
-      "text": "\u201CFederer's backhand isn't just technique — it's a philosophy. Let's build a ranking we'd be proud to show.\u201D",
-      "author": "— inspired by the one-handed backhand (and a 6'8\" / 203 cm reach)."
+      "text": "\u201CTennis is small choices repeated thousands of times. We just count them honestly.\u201D",
+      "author": "— OpenCourt.by · the open amateur-tennis community of Belarus."
     },
     "v2": {
       "meta": {
-        "city": "WARSAW · POLAND",
-        "est": "EST. 2018",
-        "tagline_top": "AMATEUR · PLAYER · PRO"
+        "city": "MINSK · BELARUS",
+        "est": "AMATEUR LEAGUE",
+        "tagline_top": "AMATEUR · PLAYER · COMMUNITY"
       },
       "hero": {
-        "first_name": "Bury",
-        "last_name": "Tennis",
-        "tagline": "One rating. Every match. Zero compromises.",
+        "first_name": "Open",
+        "last_name": "Court.by",
+        "tagline": "An open court for every amateur. One rating — every match.",
         "scroll": "Scroll"
       },
       "pillars": {
@@ -933,6 +933,148 @@
       "title": "Your start",
       "body": "Your first 10 matches count with extra weight — the system will quickly correct your true level.",
       "cta": "See my rating"
+    },
+    "import_lt_banner": {
+      "title": "Already play in Liga Tennisa?",
+      "body": "Skip the quiz: we'll pull your rating and tier from ligatennisa.com in 30 seconds."
+    }
+  },
+  "onboardingHome": {
+    "title": "Pick how to set your starting rating",
+    "subtitle": "A short self-eval quiz, or import an existing rating from Liga Tennisa. Either path gives you a starting Elo; from then on the platform tracks it for you.",
+    "help": {
+      "why": "Without a starting Elo we can't score matches — every player needs a baseline. We offer two paths: answer 5 quick questions, or import your existing rating from the amateur league at ligatennisa.com.",
+      "what": {
+        "1": "Quiz — for players who never registered with an amateur league; we estimate the rating and refine it during the first 10 matches.",
+        "2": "Liga Tennisa import — for players who already have a profile on ligatennisa.com; we copy Elo, tier and basic profile fields.",
+        "3": "Either path runs only once. After that, your Elo evolves with our matches alone."
+      },
+      "result": {
+        "1": "Your profile starts in 'provisional' mode for 10 matches — Elo moves faster while we calibrate.",
+        "2": "You'll show up in find-opponent immediately and can book coach sessions."
+      }
+    },
+    "quiz": {
+      "title": "Self-eval quiz",
+      "body": "5 short questions about your experience, frequency, tournaments and self-rating. Takes 2 minutes.",
+      "bullet_1": "Best for beginners and players new to amateur leagues",
+      "bullet_2": "Starting Elo in the 800–2200 range based on answers",
+      "bullet_3": "First 10 matches count with extra weight",
+      "cta": "Take the quiz"
+    },
+    "import_lt": {
+      "title": "Import from Liga Tennisa",
+      "body": "If you already have a profile on ligatennisa.com, we'll copy your Elo, tier and starter profile data.",
+      "bullet_1": "Find yourself by name and surname (city optional)",
+      "bullet_2": "Starting Elo = your Liga Tennisa Elo (clamped to 800–2200)",
+      "bullet_3": "Tier and profile link stay visible on your card",
+      "cta": "Import rating"
+    },
+    "source_note": "Rating source:",
+    "coach_note": "Coaches can import their rating too — students see it as a credibility signal."
+  },
+  "onboardingImportLt": {
+    "title": "Import rating from Liga Tennisa",
+    "subtitle": "Find your profile on ligatennisa.com — we'll copy Elo, tier and basic data. Once confirmed, this becomes your starting rating, and from then on the platform updates it for every played match.",
+    "back": "Back to choices",
+    "help": {
+      "why": "Many players in Belarus are already registered on ligatennisa.com and have built up matches and a rating there. No reason to fill the form again — we import it.",
+      "what": {
+        "1": "Type your first/last name (as on ligatennisa.com); add your city to break ties. We'll show 8 closest matches.",
+        "2": "Click 'Pick' on the right profile — you'll see a card with tier, Elo and basic data.",
+        "3": "Confirm the import — the rating copies to us; your OpenCourt.by profile fills in from Liga Tennisa where it's blank."
+      },
+      "result": {
+        "1": "Starting Elo = your Liga Tennisa Elo (clamped to 800–2200 if outside).",
+        "2": "Your card gets a badge with the tier and a link back to your Liga Tennisa profile."
+      }
+    },
+    "search": {
+      "label": "First and last name",
+      "placeholder": "e.g. Maksim Gorbatsevich",
+      "city_label": "City (optional)",
+      "city_placeholder": "Minsk",
+      "cta": "Find me",
+      "cta_busy": "Searching…",
+      "min_chars": "Type at least 2 characters.",
+      "empty_title": "Ready to find your profile",
+      "empty_body": "Type your name as it appears on ligatennisa.com and press 'Find me'. We'll show the closest matches.",
+      "no_results_title": "No matches",
+      "no_results_body": "Try simplifying the query (just first or last name), drop the city, or check whether you actually have a ligatennisa.com profile."
+    },
+    "candidate": {
+      "select": "Pick",
+      "score_hint": "Match score for name and city",
+      "anonymous": "No name",
+      "no_city": "City not set"
+    },
+    "preview": {
+      "title": "Confirm import",
+      "tier": "Tier",
+      "singles_elo": "Singles Elo",
+      "doubles_elo": "Doubles Elo",
+      "calibrating": "This profile is still calibrating in Liga Tennisa — its Elo may move further. We'll still seed your OpenCourt.by Elo from it; our matches will refine it.",
+      "ranking": "Ranking position",
+      "wins": "Singles wins",
+      "seed_hint": "Your starting OpenCourt.by Elo will be {elo} — exactly your Liga Tennisa value.",
+      "seed_clamped_hint": "Your starting OpenCourt.by Elo will be {elo} (our scale is capped to 800–2200, so the value was nudged into range).",
+      "seed_fallback_hint": "We couldn't find a numeric Elo on the profile — we'll use our default starting value {elo} and let matches refine it.",
+      "copy_label": "Fill in my empty profile fields",
+      "copy_hint": "Name, avatar, date of birth, city, dominant hand, backhand and Instagram will be copied from Liga Tennisa. Fields you've already filled stay as-is.",
+      "confirm": "Import and continue",
+      "confirm_busy": "Importing…",
+      "cancel": "Back to search",
+      "view_on_lt": "Open on Liga Tennisa",
+      "disclaimer": "We never store your email, phone or password from ligatennisa.com — only public profile data."
+    },
+    "done": {
+      "title": "Done — rating imported",
+      "body": "Starting Elo: {elo}. You can book a coach, find a sparring partner, or just check out your card.",
+      "cta": "Open my rating"
+    },
+    "errors": {
+      "invalid_query": "Type at least 2 characters.",
+      "invalid_payload": "Something is off with that profile — try searching again.",
+      "not_authenticated": "Please sign in.",
+      "upstream_unreachable": "Can't reach ligatennisa.com right now. Try again in a minute.",
+      "upstream_error": "Liga Tennisa returned an unexpected response. Try later.",
+      "player_not_found": "This profile no longer exists on ligatennisa.com.",
+      "already_claimed_by_other_user": "Another account in our club has already claimed this profile. If that's a mistake, ping the admin.",
+      "already_imported": "You already have a Liga Tennisa profile linked. Open /me/profile to refresh or unlink it.",
+      "db_error": "Save failed — try again.",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "externalRating": {
+    "source_label": "Liga Tennisa",
+    "card": {
+      "title": "Liga Tennisa rating",
+      "subtitle": "Secondary rating from ligatennisa.com — shown on your card as a 'second opinion'. Doesn't influence our Elo; only refreshes when you press 'Refresh'."
+    },
+    "not_connected": {
+      "title": "Not linked",
+      "body": "If you have a profile on ligatennisa.com, link it and show your tier + Elo next to your name.",
+      "cta": "Link profile"
+    },
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "refreshed_now": "Just now",
+    "refreshed_ago": "{min} min ago",
+    "disconnect": "Unlink",
+    "disconnecting": "Unlinking…",
+    "confirm_disconnect": "Unlink your Liga Tennisa profile? The badge will disappear from your card. Our Elo and match history won't change.",
+    "imported_at_label": "Linked",
+    "last_refreshed_label": "Refreshed",
+    "last_refresh_error_label": "Refresh error",
+    "open_on_lt": "Open on Liga Tennisa",
+    "errors": {
+      "not_authenticated": "Please sign in.",
+      "no_external_rating": "Profile not linked.",
+      "upstream_unreachable": "Can't reach ligatennisa.com right now. Try again in a minute.",
+      "upstream_error": "Liga Tennisa returned an unexpected response. Try later.",
+      "player_not_found": "This profile no longer exists on ligatennisa.com.",
+      "db_error": "Save failed — try again.",
+      "unknown": "Something went wrong."
     }
   },
   "coachPlayers": {
@@ -1174,7 +1316,7 @@
     "subtitle": "Sparring partners in your district, at your level, in your free time slots.",
     "proposals_link": "My proposals",
     "help": {
-      "why": "In Poland the hardest part is finding a partner of similar level who is free at the same time. We do that for you.",
+      "why": "In Belarus the hardest part is finding a partner of similar level who is free at the same time. We do that for you.",
       "what": {
         "1": "Filter by district, Elo range, dominant hand, and your preferred time slots.",
         "2": "Results are ranked by match score (Elo + overlapping slots + same district + recent activity).",
@@ -1199,7 +1341,13 @@
       "query_placeholder": "Search by name…",
       "search": "Search",
       "searching": "Searching…",
-      "reset": "Reset filters"
+      "reset": "Reset filters",
+      "lt_section_label": "Liga Tennisa",
+      "lt_only_label": "Only opponents with a Liga Tennisa rating",
+      "lt_only_hint": "Show only opponents who linked their ligatennisa.com profile.",
+      "lt_elo_min_label": "Min Elo",
+      "lt_elo_max_label": "Max Elo",
+      "lt_source_label": "Liga Tennisa"
     },
     "results": {
       "count": "Found: {n}",
@@ -1249,7 +1397,7 @@
       "evening": "Evening",
       "late": "Late"
     },
-    "whatsapp_prefill": "Hi {name}! From Bury Tennis — got time for a match?",
+    "whatsapp_prefill": "Hi {name}! From OpenCourt.by — got time for a match?",
     "my_availability": {
       "title": "My schedule",
       "hint": "Your standing “when I'm generally free to play” slots. Saved on your profile and used to surface you to others.",
@@ -1301,7 +1449,7 @@
         "whatsapp": "WhatsApp",
         "optional_note": "Note (optional)",
         "confirm": "Confirm",
-        "whatsapp_prefill": "Hi {name}! About the Bury Tennis match…"
+        "whatsapp_prefill": "Hi {name}! About the OpenCourt.by match…"
       }
     }
   },
@@ -1380,7 +1528,7 @@
         "date_of_birth": "Used only for age statistics in rankings & tournaments.",
         "motto": "Short motto shown next to your name in \u201CFind a Player\u201D.",
         "phone": "Backup number (call / SMS). Visible to a coach you have an active booking with.",
-        "whatsapp": "The de-facto messenger in Poland. Clicking \u201CMessage\u201D opens a WhatsApp chat with a partner or coach.",
+        "whatsapp": "The de-facto messenger in Belarus. Clicking \u201CMessage\u201D opens a WhatsApp chat with a partner or coach.",
         "telegram_username": "Optional. Without @. Only if you prefer Telegram over WhatsApp.",
         "district": "District is key for finding opponents near you.",
         "backhand_style": "One-handed vs two-handed — helps opponents match style.",
@@ -1397,7 +1545,7 @@
         "hand": { "R": "Right", "L": "Left" },
         "backhand": { "one_handed": "One-handed", "two_handed": "Two-handed" },
         "surface": { "hard": "Hard", "clay": "Clay", "grass": "Grass", "carpet": "Carpet" },
-        "locale": { "pl": "Polski", "en": "English", "ru": "Русский" },
+        "locale": { "en": "English", "ru": "Русский" },
         "weekday": {
           "mon": "Mon",
           "tue": "Tue",
@@ -1629,7 +1777,7 @@
         "duration": "Duration (min)",
         "slot_type": "Type",
         "max_participants": "Max participants",
-        "price_pln": "Price (PLN)",
+        "price_byn": "Price (BYN)",
         "notes": "Notes (optional)",
         "range_from": "From",
         "range_to": "To",
@@ -1709,7 +1857,7 @@
       "no_whatsapp": "Coach has no WhatsApp linked",
       "notes_label": "Note for coach",
       "notes_placeholder": "Anything I should know? (injury, late arrival, …)",
-      "whatsapp_prefill": "Hi {name}! It's about my Bury Tennis booking — quick question:"
+      "whatsapp_prefill": "Hi {name}! It's about my OpenCourt.by booking — quick question:"
     },
     "status_options": {
       "pending": "Pending",
@@ -1759,7 +1907,7 @@
       "no_surface": "Surface n/a",
       "participants_count": "{n}/{max, plural, =0 {∞} other {#}} players",
       "entry_fee_free": "Free",
-      "entry_fee_pln": "{n} PLN"
+      "entry_fee_byn": "{n} BYN"
     },
     "formats": {
       "single_elimination": "Single elimination",
@@ -1826,7 +1974,7 @@
         "registration_deadline": "Registration deadline",
         "max_participants": "Max participants",
         "entry_fee": "Entry fee",
-        "entry_fee_currency": "PLN",
+        "entry_fee_currency": "BYN",
         "venues": "Venues",
         "privacy": "Visibility",
         "draw_method": "Default seeding",
@@ -1845,7 +1993,7 @@
         "draw_method": "How to assign positions in the bracket. You can override per draw.",
         "match_rules": "Defines how a single match is played. Used as a default; you can override per match later.",
         "coming_soon": "coming soon",
-        "start_time": "Local time, Europe/Warsaw. Leave empty if the start time is still TBD.",
+        "start_time": "Local time, Europe/Minsk. Leave empty if the start time is still TBD.",
         "entry_fee": "How much each player pays to enter. Leave empty or 0 to mark the tournament as free.",
         "venues": "Pick one or more venues — e.g. group stage at venue A, finals at venue B. The catalogue is curated by the club admin.",
         "venues_empty_catalogue": "No venues in the catalogue yet. Ask your admin to add at least one."
@@ -1905,7 +2053,7 @@
     "detail": {
       "back": "Back to tournaments",
       "entry_fee_free": "Free",
-      "entry_fee_pln": "{n} PLN",
+      "entry_fee_byn": "{n} BYN",
       "help": {
         "why": "This page is your control room: participants, bracket (or schedule for round-robin), and the visibility switch. Update them and players see changes instantly.",
         "what": {
@@ -2027,7 +2175,7 @@
     },
     "reviews_count": "{count, plural, =0 {no reviews} one {# review} other {# reviews}}",
     "no_reviews_yet": "No reviews yet",
-    "hourly_rate": "{amount} PLN / hour",
+    "hourly_rate": "{amount} BYN / hour",
     "empty_title": "No coaches yet",
     "empty_body": "When coaches join the platform they will appear here.",
     "empty_filter_title": "No coaches match this filter",
@@ -2070,7 +2218,7 @@
         "seats_left": "{count, plural, one {# seat left} other {# seats left}}",
         "self_hint": "This is your own slot — players book it.",
         "login_to_book": "Log in to book",
-        "price": "{amount} PLN",
+        "price": "{amount} BYN",
         "slot_type": {
           "individual": "Individual",
           "pair": "Pair",
@@ -2144,7 +2292,7 @@
     "no_more_coaches": "No more coaches — they are all above.",
     "reviews_count": "{count, plural, =0 {no reviews} one {# review} other {# reviews}}",
     "no_reviews_yet": "No reviews yet",
-    "hourly_rate": "{amount} PLN / hour",
+    "hourly_rate": "{amount} BYN / hour",
     "empty_title": "No coaches yet",
     "empty_body": "When coaches join the platform, they'll appear here.",
     "browse_coaches": "Browse all coaches",
@@ -2212,7 +2360,7 @@
     "view_profile": "Open profile",
     "reviews_count": "{count} reviews",
     "no_reviews": "No reviews yet",
-    "hourly_rate": "{amount} PLN/h",
+    "hourly_rate": "{amount} BYN/h",
     "attribution": "Map © OpenStreetMap contributors",
     "empty_title": "No pinned coaches yet",
     "empty_body": "Coaches who add their location to their profile will appear here.",
@@ -2237,7 +2385,7 @@
       "why": "Your public profile is the first thing a player sees in the coach catalogue. Without a bio and an hourly rate, your card looks empty and players go to other coaches. This screen collects everything a player sees before booking.",
       "what": {
         "1": "Write a bio — 2–3 sentences: experience, style, audience (adults/kids, beginners/tournament players).",
-        "2": "Set your hourly rate in PLN — leave empty if it varies.",
+        "2": "Set your hourly rate in BYN — leave empty if it varies.",
         "3": "No location needed: players discover you through published slots, and every slot already carries the venue and the court's address."
       },
       "result": {
@@ -2252,7 +2400,7 @@
     "field": {
       "bio": "Short bio",
       "rate": "Hourly rate",
-      "rate_currency": "PLN / hour",
+      "rate_currency": "BYN / hour",
       "show_on_map": "Show me on the public coach map"
     },
     "placeholder": {
@@ -2380,7 +2528,7 @@
       },
       "q_telegram": {
         "q": "Why WhatsApp and not Telegram?",
-        "a": "Poland skews heavily toward WhatsApp. Telegram is a secondary channel — toggle it on in your profile."
+        "a": "Belarus skews heavily toward WhatsApp. Telegram is a secondary channel — toggle it on in your profile."
       },
       "q_data": {
         "q": "What about my data?",
@@ -2388,7 +2536,7 @@
       }
     },
     "contact_title": "Still stuck?",
-    "contact_body": "Email hello@bury.tennis or WhatsApp the coach directly from their profile."
+    "contact_body": "Email hello@opencourt.by or WhatsApp the coach directly from their profile."
   },
   "guidePage": {
     "title": "Quick guide to the app",
@@ -2437,10 +2585,7 @@
             "id": "venues",
             "title": "Browse venues",
             "auto": "All courts with addresses and districts in one catalogue.",
-            "steps": [
-              "Open the “Venues” section.",
-              "Pick a club/court by address or district."
-            ]
+            "steps": ["Open the “Venues” section.", "Pick a club/court by address or district."]
           }
         ]
       },
@@ -2541,9 +2686,7 @@
             "id": "my_coaches",
             "title": "List of my coaches",
             "auto": "Everyone you're linked to or trained with recently.",
-            "steps": [
-              "Open the “My coaches” section."
-            ]
+            "steps": ["Open the “My coaches” section."]
           },
           {
             "id": "register_tournament",
@@ -2584,10 +2727,7 @@
             "id": "profile",
             "title": "Fill in your coach profile",
             "auto": "This is your public card across the club.",
-            "steps": [
-              "Fill in bio, specialisation, venues, prices, map visibility.",
-              "Save."
-            ]
+            "steps": ["Fill in bio, specialisation, venues, prices, map visibility.", "Save."]
           },
           {
             "id": "invite_player",
@@ -2613,9 +2753,7 @@
             "id": "venues",
             "title": "Coach venues",
             "auto": "List of venues you work at (venues themselves are added by the admin).",
-            "steps": [
-              "Open “Venues” inside the coach area."
-            ]
+            "steps": ["Open “Venues” inside the coach area."]
           },
           {
             "id": "tournament",
@@ -2633,9 +2771,7 @@
             "id": "leaderboard",
             "title": "Coach leaderboard",
             "auto": "See where you stand vs other coaches in the club.",
-            "steps": [
-              "Open “Leaderboard” — by season, with several tabs."
-            ]
+            "steps": ["Open “Leaderboard” — by season, with several tabs."]
           }
         ]
       },
@@ -2681,7 +2817,7 @@
             "title": "Venues and courts",
             "auto": "Venues become available to coaches and to the public catalogue.",
             "steps": [
-              "“Venues” — list of all clubs (Warsaw is partly seeded).",
+              "“Venues” — list of all clubs (Belarus is partly seeded).",
               "Create or edit a venue: address, district, map coordinates.",
               "On a venue page — manage courts (surface, indoor/outdoor etc.)."
             ]
@@ -2767,7 +2903,7 @@
       "cta": "Open my tournaments"
     },
     "entry_fee_free": "Free",
-    "entry_fee_pln": "{n} PLN",
+    "entry_fee_byn": "{n} BYN",
     "detail": {
       "starts": "Starts",
       "participants": "Participants",

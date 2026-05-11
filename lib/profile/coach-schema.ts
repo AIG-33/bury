@@ -32,10 +32,9 @@ const optionalNumber = z
 
 export const CoachProfileFormSchema = z.object({
   coach_bio: trimmedNullable,
-  coach_hourly_rate_pln: optionalNumber.refine(
-    (v) => v === null || (v >= 0 && v <= 10000),
-    { message: "rate_out_of_range" },
-  ),
+  coach_hourly_rate_byn: optionalNumber.refine((v) => v === null || (v >= 0 && v <= 10000), {
+    message: "rate_out_of_range",
+  }),
 });
 
 export type CoachProfileForm = z.infer<typeof CoachProfileFormSchema>;

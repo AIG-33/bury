@@ -1,4 +1,4 @@
-type Locale = "pl" | "en" | "ru";
+type Locale = "ru" | "en";
 
 const COPY: Record<
   Locale,
@@ -12,17 +12,6 @@ const COPY: Record<
     footer: string;
   }
 > = {
-  pl: {
-    subject: (n) => `${n} proponuje Ci mecz tenisowy`,
-    title: (n) => `${n} chce z Tobą zagrać`,
-    intro: (n, elo) =>
-      `${n} (Elo ${elo}) zobaczył Twój profil w „Znajdź gracza\u201D i proponuje mecz towarzyski. Możesz zaakceptować lub odrzucić — albo od razu napisać na WhatsApp i dogadać szczegóły.`,
-    note_label: "Wiadomość od inicjatora",
-    cta: "Otwórz propozycję",
-    whatsapp_hint:
-      "Wskazówka: w Polsce najszybciej dogadać się przez WhatsApp. Na stronie propozycji znajdziesz przycisk „Napisz na WhatsApp\u201D.",
-    footer: "Bury Tennis Platform — uniwersalny ranking dla amatorów tenisa.",
-  },
   en: {
     subject: (n) => `${n} wants to play a tennis match with you`,
     title: (n) => `${n} proposed a match`,
@@ -31,8 +20,8 @@ const COPY: Record<
     note_label: "Note from the initiator",
     cta: "Open proposal",
     whatsapp_hint:
-      "Tip: in Poland WhatsApp is the fastest way to coordinate. The proposal page has a one-tap “Message on WhatsApp” button.",
-    footer: "Bury Tennis Platform — a universal ranking for amateur tennis.",
+      "Tip: in Belarus WhatsApp is the fastest way to coordinate. The proposal page has a one-tap “Message on WhatsApp” button.",
+    footer: "OpenCourt.by — universal Elo rating for every amateur tennis player in Belarus.",
   },
   ru: {
     subject: (n) => `${n} предлагает сыграть теннисный матч`,
@@ -42,8 +31,8 @@ const COPY: Record<
     note_label: "Сообщение от инициатора",
     cta: "Открыть предложение",
     whatsapp_hint:
-      "Подсказка: в Польше быстрее всего договариваться через WhatsApp. На странице предложения есть кнопка «Написать в WhatsApp».",
-    footer: "Bury Tennis Platform — универсальный рейтинг для любителей тенниса.",
+      "Подсказка: в Беларуси быстрее всего договариваться через WhatsApp. На странице предложения есть кнопка «Написать в WhatsApp».",
+    footer: "OpenCourt.by — единый Эло-рейтинг для всех любителей тенниса в Беларуси.",
   },
 };
 

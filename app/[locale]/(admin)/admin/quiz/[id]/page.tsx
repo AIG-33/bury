@@ -16,8 +16,7 @@ export default async function AdminQuizVersionPage({ params }: Props) {
   const result = await loadQuizVersionDetail(id);
   if (!result.ok) {
     if (result.error === "not_found") notFound();
-    if (result.error === "not_authenticated")
-      redirect(`/${locale}/login?next=/admin/quiz`);
+    if (result.error === "not_authenticated") redirect(`/${locale}/login?next=/admin/quiz`);
     redirect(`/${locale}/admin`);
   }
 
@@ -34,9 +33,7 @@ export default async function AdminQuizVersionPage({ params }: Props) {
 
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            v{version.version}
-          </h1>
+          <h1 className="font-display text-3xl font-bold text-ink-900">v{version.version}</h1>
           <HelpPanel
             pageId="admin-quiz-version"
             variant="inline"
@@ -67,11 +64,7 @@ export default async function AdminQuizVersionPage({ params }: Props) {
         )}
       </header>
 
-      <QuestionsClient
-        locale={locale as "pl" | "en" | "ru"}
-        version={version}
-        questions={questions}
-      />
+      <QuestionsClient locale={locale as "ru" | "en"} version={version} questions={questions} />
     </div>
   );
 }

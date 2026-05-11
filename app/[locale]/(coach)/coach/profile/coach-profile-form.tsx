@@ -4,10 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Loader2, AlertCircle, CheckCircle2, Star } from "lucide-react";
-import {
-  saveMyCoachProfile,
-  type CoachProfileSnapshot,
-} from "./actions";
+import { saveMyCoachProfile, type CoachProfileSnapshot } from "./actions";
 
 type Props = { initial: CoachProfileSnapshot };
 
@@ -17,9 +14,7 @@ export function CoachProfileForm({ initial }: Props) {
 
   const [bio, setBio] = useState<string>(initial.coach_bio ?? "");
   const [rate, setRate] = useState<string>(
-    initial.coach_hourly_rate_pln != null
-      ? String(initial.coach_hourly_rate_pln)
-      : "",
+    initial.coach_hourly_rate_byn != null ? String(initial.coach_hourly_rate_byn) : "",
   );
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -39,12 +34,10 @@ export function CoachProfileForm({ initial }: Props) {
     startTransition(async () => {
       const res = await saveMyCoachProfile({
         coach_bio: bio,
-        coach_hourly_rate_pln: rate === "" ? null : Number(rate),
+        coach_hourly_rate_byn: rate === "" ? null : Number(rate),
       });
       if (!("ok" in res) || !res.ok) {
-        const first = res.fieldErrors
-          ? Object.values(res.fieldErrors)[0]?.[0]
-          : null;
+        const first = res.fieldErrors ? Object.values(res.fieldErrors)[0]?.[0] : null;
         setError(tErr(first ?? res.error));
         return;
       }
@@ -68,9 +61,7 @@ export function CoachProfileForm({ initial }: Props) {
 
         <div className="mt-4 space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-ink-700">
-              {t("field.bio")}
-            </span>
+            <span className="mb-1 block text-sm font-medium text-ink-700">{t("field.bio")}</span>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
@@ -79,15 +70,11 @@ export function CoachProfileForm({ initial }: Props) {
               placeholder={t("placeholder.bio")}
               className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-400 focus:outline-none"
             />
-            <p className="mt-1 text-right text-xs text-ink-400">
-              {bio.length} / 2000
-            </p>
+            <p className="mt-1 text-right text-xs text-ink-400">{bio.length} / 2000</p>
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-ink-700">
-              {t("field.rate")}
-            </span>
+            <span className="mb-1 block text-sm font-medium text-ink-700">{t("field.rate")}</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"

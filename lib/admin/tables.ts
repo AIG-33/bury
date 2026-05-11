@@ -102,7 +102,13 @@ export const TABLES: readonly TableDef[] = [
     destructiveHint: "profiles_delete",
     columns: [
       { key: "id", label: "ID", type: "uuid", readonly: true },
-      { key: "display_name", label: "Display name", type: "text", readonly: true, hint: "Generated from first/last/email" },
+      {
+        key: "display_name",
+        label: "Display name",
+        type: "text",
+        readonly: true,
+        hint: "Generated from first/last/email",
+      },
       { key: "first_name", label: "First name", type: "text" },
       { key: "last_name", label: "Last name", type: "text" },
       { key: "email_local", label: "Email local", type: "text" },
@@ -125,7 +131,7 @@ export const TABLES: readonly TableDef[] = [
       { key: "rated_matches_count", label: "Rated", type: "number", hideInList: true },
       { key: "coach_slug", label: "Coach slug", type: "text", hideInList: true },
       { key: "coach_bio", label: "Coach bio", type: "textarea", hideInList: true },
-      { key: "coach_hourly_rate_pln", label: "Hourly PLN", type: "number", hideInList: true },
+      { key: "coach_hourly_rate_byn", label: "Hourly BYN", type: "number", hideInList: true },
       { key: "visible_in_find_player", label: "In find-player", type: "boolean", hideInList: true },
       { key: "visible_in_leaderboard", label: "In leaderboard", type: "boolean", hideInList: true },
       { key: "notification_email", label: "Notif email", type: "boolean", hideInList: true },
@@ -134,7 +140,7 @@ export const TABLES: readonly TableDef[] = [
         key: "locale",
         label: "Locale",
         type: "select",
-        options: ["pl", "en", "ru"],
+        options: ["ru", "en"],
       },
       { key: "timezone", label: "Timezone", type: "text", hideInList: true },
       { key: "social_links", label: "Social links", type: "json", hideInList: true },
@@ -312,7 +318,7 @@ export const TABLES: readonly TableDef[] = [
         options: ["individual", "pair", "group"],
       },
       { key: "max_participants", label: "Max", type: "number" },
-      { key: "price_pln", label: "Price PLN", type: "number" },
+      { key: "price_byn", label: "Price BYN", type: "number" },
       { key: "notes", label: "Notes", type: "textarea", hideInList: true },
       { key: "exception_dates", label: "Exception dates", type: "json", hideInList: true },
       { key: "active", label: "Active", type: "boolean" },
@@ -342,7 +348,7 @@ export const TABLES: readonly TableDef[] = [
         options: ["individual", "pair", "group"],
       },
       { key: "max_participants", label: "Max", type: "number" },
-      { key: "price_pln", label: "Price PLN", type: "number" },
+      { key: "price_byn", label: "Price BYN", type: "number" },
       {
         key: "status",
         label: "Status",
@@ -430,7 +436,7 @@ export const TABLES: readonly TableDef[] = [
       { key: "ends_on", label: "Ends", type: "date" },
       { key: "registration_deadline", label: "Reg deadline", type: "datetime", hideInList: true },
       { key: "max_participants", label: "Max", type: "number", hideInList: true },
-      { key: "entry_fee_pln", label: "Entry fee (PLN)", type: "number" },
+      { key: "entry_fee_byn", label: "Entry fee (BYN)", type: "number" },
       {
         key: "privacy",
         label: "Privacy",
@@ -599,7 +605,8 @@ export const TABLES: readonly TableDef[] = [
     defaultSort: { column: "version", ascending: false },
     searchColumns: ["notes"],
     filterColumns: ["is_active"],
-    description: "Versions of the onboarding quiz. Use the dedicated /admin/quiz editor for question editing.",
+    description:
+      "Versions of the onboarding quiz. Use the dedicated /admin/quiz editor for question editing.",
     columns: [
       { key: "id", label: "ID", type: "uuid", readonly: true, hideInList: true },
       { key: "version", label: "Version", type: "number", required: true },
@@ -617,7 +624,8 @@ export const TABLES: readonly TableDef[] = [
     defaultSort: { column: "version", ascending: false },
     searchColumns: ["notes"],
     filterColumns: ["is_active"],
-    description: "Versioned Elo / multiplier configuration. Use /admin/rating for the structured editor.",
+    description:
+      "Versioned Elo / multiplier configuration. Use /admin/rating for the structured editor.",
     columns: [
       { key: "id", label: "ID", type: "uuid", readonly: true, hideInList: true },
       { key: "version", label: "Version", type: "number", required: true },
@@ -713,7 +721,7 @@ export const TABLES: readonly TableDef[] = [
         label: "Locale",
         type: "select",
         required: true,
-        options: ["pl", "en", "ru"],
+        options: ["ru", "en"],
       },
       { key: "payload", label: "Payload", type: "json", hideInList: true },
       { key: "scheduled_at", label: "Scheduled", type: "datetime" },
@@ -745,9 +753,7 @@ export function listTablesByGroup(): Array<{ group: TableDef["group"]; tables: T
     byGroup.set(t.group, arr);
   }
   const order: TableDef["group"][] = ["people", "venues", "play", "config", "ops"];
-  return order
-    .filter((g) => byGroup.has(g))
-    .map((g) => ({ group: g, tables: byGroup.get(g)! }));
+  return order.filter((g) => byGroup.has(g)).map((g) => ({ group: g, tables: byGroup.get(g)! }));
 }
 
 export function listColumnsForList(t: TableDef): ColumnDef[] {

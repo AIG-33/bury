@@ -21,7 +21,7 @@ export type CoachListItem = {
   avatar_url: string | null;
   city: string | null;
   coach_bio: string | null;
-  coach_hourly_rate_pln: number | null;
+  coach_hourly_rate_byn: number | null;
   coach_avg_rating: number | null;
   coach_reviews_count: number;
 };
@@ -33,7 +33,7 @@ export type CoachMapPin = {
   city: string | null;
   coach_avg_rating: number | null;
   coach_reviews_count: number;
-  coach_hourly_rate_pln: number | null;
+  coach_hourly_rate_byn: number | null;
   lat: number;
   lng: number;
 };
@@ -46,7 +46,7 @@ export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
     .from("public_coach_directory")
     .select(
       "id, display_name, avatar_url, city, coach_avg_rating, " +
-        "coach_reviews_count, coach_hourly_rate_pln, coach_lat, coach_lng",
+        "coach_reviews_count, coach_hourly_rate_byn, coach_lat, coach_lng",
     )
     .eq("coach_show_on_map", true)
     .not("coach_lat", "is", null)
@@ -59,7 +59,7 @@ export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
       city: string | null;
       coach_avg_rating: number | null;
       coach_reviews_count: number;
-      coach_hourly_rate_pln: number | null;
+      coach_hourly_rate_byn: number | null;
       coach_lat: number;
       coach_lng: number;
     }> | null;
@@ -71,7 +71,7 @@ export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
     city: c.city,
     coach_avg_rating: c.coach_avg_rating,
     coach_reviews_count: c.coach_reviews_count,
-    coach_hourly_rate_pln: c.coach_hourly_rate_pln,
+    coach_hourly_rate_byn: c.coach_hourly_rate_byn,
     lat: Number(c.coach_lat),
     lng: Number(c.coach_lng),
   }));
@@ -84,9 +84,7 @@ export type CoachFilter = {
   districtId?: string | null;
 };
 
-export async function loadCoaches(
-  filter: CoachFilter = {},
-): Promise<CoachListItem[]> {
+export async function loadCoaches(filter: CoachFilter = {}): Promise<CoachListItem[]> {
   const supabase = await createSupabaseServerClient();
 
   // If venue/district filter is set, first resolve the set of coach ids that
@@ -123,9 +121,7 @@ export async function loadCoaches(
       .gte("starts_at", new Date().toISOString())) as {
       data: Array<{ owner_id: string }> | null;
     };
-    restrictToIds = Array.from(
-      new Set((slots ?? []).map((s) => s.owner_id)),
-    );
+    restrictToIds = Array.from(new Set((slots ?? []).map((s) => s.owner_id)));
     if (restrictToIds.length === 0) return [];
   }
 
@@ -134,7 +130,7 @@ export async function loadCoaches(
   let q = supabase
     .from("public_coach_directory")
     .select(
-      "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
+      "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_byn, " +
         "coach_avg_rating, coach_reviews_count",
     );
   if (restrictToIds) q = q.in("id", restrictToIds);
@@ -171,11 +167,7 @@ export async function loadVenueOptions(): Promise<VenueOption[]> {
   };
   const list = venues ?? [];
   const districtIds = Array.from(
-    new Set(
-      list
-        .map((v) => v.district_id)
-        .filter((x): x is string => Boolean(x)),
-    ),
+    new Set(list.map((v) => v.district_id).filter((x): x is string => Boolean(x))),
   );
   const districtMap = new Map<string, string>();
   if (districtIds.length > 0) {
@@ -192,9 +184,7 @@ export async function loadVenueOptions(): Promise<VenueOption[]> {
     name: v.name,
     city: v.city,
     district_id: v.district_id,
-    district_name: v.district_id
-      ? (districtMap.get(v.district_id) ?? null)
-      : null,
+    district_name: v.district_id ? (districtMap.get(v.district_id) ?? null) : null,
   }));
 }
 
@@ -233,7 +223,7 @@ export type CoachProfile = {
   avatar_url: string | null;
   city: string | null;
   coach_bio: string | null;
-  coach_hourly_rate_pln: number | null;
+  coach_hourly_rate_byn: number | null;
   coach_avg_rating: number | null;
   coach_reviews_count: number;
   reviews: CoachReview[];
@@ -252,7 +242,7 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
   const { data: coach } = (await supabase
     .from("public_coach_directory")
     .select(
-      "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
+      "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_byn, " +
         "coach_avg_rating, coach_reviews_count",
     )
     .eq("id", coachId)
@@ -264,8 +254,7 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
   const { data: rawReviews } = (await supabase
     .from("coach_reviews")
     .select(
-      "id, reviewer_id, stars, text, categories, status, source_type, " +
-        "coach_reply, created_at",
+      "id, reviewer_id, stars, text, categories, status, source_type, " + "coach_reply, created_at",
     )
     .eq("target_coach_id", coachId)
     .eq("status", "published")
@@ -284,9 +273,7 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
     }> | null;
   };
 
-  const reviewerIds = Array.from(
-    new Set((rawReviews ?? []).map((r) => r.reviewer_id)),
-  );
+  const reviewerIds = Array.from(new Set((rawReviews ?? []).map((r) => r.reviewer_id)));
   const reviewerById = new Map<
     string,
     { display_name: string | null; avatar_url: string | null }
@@ -345,8 +332,7 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
   if (user && !viewer_is_self) {
     const ms = await loadMyInteractionsWithCoach(supabase, user.id, coachId);
     const allEligibility = computeReviewEligibility(ms.interactions, ms.reviews);
-    const interactionEligibility =
-      allEligibility.find((e) => e.coach_id === coachId) ?? null;
+    const interactionEligibility = allEligibility.find((e) => e.coach_id === coachId) ?? null;
 
     if (interactionEligibility) {
       my_eligibility = interactionEligibility;
@@ -371,7 +357,7 @@ export async function loadCoachProfile(coachId: string): Promise<CoachProfile | 
     avatar_url: coach.avatar_url,
     city: coach.city,
     coach_bio: coach.coach_bio,
-    coach_hourly_rate_pln: coach.coach_hourly_rate_pln,
+    coach_hourly_rate_byn: coach.coach_hourly_rate_byn,
     coach_avg_rating: coach.coach_avg_rating,
     coach_reviews_count: coach.coach_reviews_count,
     reviews,
@@ -391,7 +377,7 @@ export type CoachUpcomingSlot = {
   slot_type: "individual" | "pair" | "group";
   max_participants: number;
   bookings_count: number;
-  price_pln: number | null;
+  price_byn: number | null;
   notes: string | null;
   court_label: string;
   venue_name: string;
@@ -404,34 +390,28 @@ export type CoachUpcomingSlot = {
 
 const UPCOMING_SLOT_LIMIT = 30;
 
-export async function loadCoachUpcomingSlots(
-  coachId: string,
-): Promise<CoachUpcomingSlot[]> {
+export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpcomingSlot[]> {
   const supabase = await createSupabaseServerClient();
   const nowIso = new Date().toISOString();
 
   const { data: rawSlots } = (await supabase
     .from("slots")
-    .select(
-      "id, starts_at, ends_at, slot_type, max_participants, price_pln, notes, court_id",
-    )
+    .select("id, starts_at, ends_at, slot_type, max_participants, price_byn, notes, court_id")
     .eq("owner_id", coachId)
     .eq("status", "open")
     .gte("starts_at", nowIso)
     .order("starts_at", { ascending: true })
     .limit(UPCOMING_SLOT_LIMIT)) as {
-    data:
-      | Array<{
-          id: string;
-          starts_at: string;
-          ends_at: string;
-          slot_type: "individual" | "pair" | "group";
-          max_participants: number;
-          price_pln: number | null;
-          notes: string | null;
-          court_id: string;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      starts_at: string;
+      ends_at: string;
+      slot_type: "individual" | "pair" | "group";
+      max_participants: number;
+      price_byn: number | null;
+      notes: string | null;
+      court_id: string;
+    }> | null;
   };
   if (!rawSlots || rawSlots.length === 0) return [];
 
@@ -442,53 +422,48 @@ export async function loadCoachUpcomingSlots(
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: courtsRaw }, { data: bookingsRaw }, mineRes] =
-    await Promise.all([
-      supabase
-        .from("courts")
-        .select(
-          "id, number, name, venues!inner(id, name, city, district_id)",
-        )
-        .in("id", courtIds) as unknown as Promise<{
-        data:
+  const [{ data: courtsRaw }, { data: bookingsRaw }, mineRes] = await Promise.all([
+    supabase
+      .from("courts")
+      .select("id, number, name, venues!inner(id, name, city, district_id)")
+      .in("id", courtIds) as unknown as Promise<{
+      data: Array<{
+        id: string;
+        number: number;
+        name: string | null;
+        venues:
+          | {
+              id: string;
+              name: string;
+              city: string | null;
+              district_id: string | null;
+            }
           | Array<{
               id: string;
-              number: number;
-              name: string | null;
-              venues:
-                | {
-                    id: string;
-                    name: string;
-                    city: string | null;
-                    district_id: string | null;
-                  }
-                | Array<{
-                    id: string;
-                    name: string;
-                    city: string | null;
-                    district_id: string | null;
-                  }>;
-            }>
-          | null;
-      }>,
-      supabase
-        .from("bookings")
-        .select("slot_id, status")
-        .in("slot_id", slotIds) as unknown as Promise<{
-        data: Array<{ slot_id: string; status: string }> | null;
-      }>,
-      user
-        ? (supabase
-            .from("bookings")
-            .select("slot_id, status")
-            .eq("player_id", user.id)
-            .in("slot_id", slotIds) as unknown as Promise<{
-            data: Array<{ slot_id: string; status: string }> | null;
-          }>)
-        : Promise.resolve({ data: null } as {
-            data: Array<{ slot_id: string; status: string }> | null;
-          }),
-    ]);
+              name: string;
+              city: string | null;
+              district_id: string | null;
+            }>;
+      }> | null;
+    }>,
+    supabase
+      .from("bookings")
+      .select("slot_id, status")
+      .in("slot_id", slotIds) as unknown as Promise<{
+      data: Array<{ slot_id: string; status: string }> | null;
+    }>,
+    user
+      ? (supabase
+          .from("bookings")
+          .select("slot_id, status")
+          .eq("player_id", user.id)
+          .in("slot_id", slotIds) as unknown as Promise<{
+          data: Array<{ slot_id: string; status: string }> | null;
+        }>)
+      : Promise.resolve({ data: null } as {
+          data: Array<{ slot_id: string; status: string }> | null;
+        }),
+  ]);
 
   const districtIds = Array.from(
     new Set(
@@ -556,15 +531,13 @@ export async function loadCoachUpcomingSlots(
       slot_type: s.slot_type,
       max_participants: s.max_participants,
       bookings_count: counts.get(s.id) ?? 0,
-      price_pln: s.price_pln,
+      price_byn: s.price_byn,
       notes: s.notes,
       court_label: c.label,
       venue_name: c.venue_name,
       venue_id: c.venue_id,
       city: c.city,
-      district_name: c.district_id
-        ? (districtMap.get(c.district_id) ?? null)
-        : null,
+      district_name: c.district_id ? (districtMap.get(c.district_id) ?? null) : null,
       i_booked: mineSet.has(s.id),
     });
   }
@@ -603,10 +576,7 @@ async function loadMyInteractionsWithCoach(
 
   let tournamentsQ = supabase
     .from("tournament_participants")
-    .select(
-      "tournament_id, withdrawn, " +
-        "tournaments(owner_coach_id, starts_on, ends_on)",
-    )
+    .select("tournament_id, withdrawn, " + "tournaments(owner_coach_id, starts_on, ends_on)")
     .eq("player_id", playerId)
     .eq("withdrawn", false);
   const { data: tps } = (await tournamentsQ) as {
@@ -628,7 +598,7 @@ async function loadMyInteractionsWithCoach(
       source_id: b.id,
       occurred_at: b.slots?.starts_at ?? null,
     })),
-    ...((tps ?? [])
+    ...(tps ?? [])
       .filter((t) => t.tournaments != null)
       .filter((t) => !coachId || t.tournaments!.owner_coach_id === coachId)
       .map<InteractionRow>((t) => ({
@@ -636,7 +606,7 @@ async function loadMyInteractionsWithCoach(
         source_type: "tournament",
         source_id: t.tournament_id,
         occurred_at: t.tournaments!.starts_on,
-      }))),
+      })),
   ];
 
   let reviewsQ = supabase
@@ -680,21 +650,16 @@ const SubmitSchema = z
       .optional()
       .nullable(),
   })
-  .refine(
-    (v) => v.source_type === "open" || (v.source_id != null && v.source_id.length > 0),
-    { message: "source_id required for booking/tournament", path: ["source_id"] },
-  );
+  .refine((v) => v.source_type === "open" || (v.source_id != null && v.source_id.length > 0), {
+    message: "source_id required for booking/tournament",
+    path: ["source_id"],
+  });
 
 export type SubmitReviewResult =
   | { ok: true; id: string }
   | {
       ok: false;
-      error:
-        | "not_authenticated"
-        | "invalid_payload"
-        | "not_eligible"
-        | "self_review"
-        | "db_error";
+      error: "not_authenticated" | "invalid_payload" | "not_eligible" | "self_review" | "db_error";
       message?: string;
     };
 
@@ -718,16 +683,10 @@ export async function submitReview(input: unknown): Promise<SubmitReviewResult> 
   //     client to set source_type='booking' on a random UUID would let an
   //     attacker forge "verified by booking" badges.
   if (v.source_type !== "open") {
-    const { interactions } = await loadMyInteractionsWithCoach(
-      supabase,
-      user.id,
-      v.coach_id,
-    );
+    const { interactions } = await loadMyInteractionsWithCoach(supabase, user.id, v.coach_id);
     const eligible = interactions.some(
       (i) =>
-        i.coach_id === v.coach_id &&
-        i.source_type === v.source_type &&
-        i.source_id === v.source_id,
+        i.coach_id === v.coach_id && i.source_type === v.source_type && i.source_id === v.source_id,
     );
     if (!eligible) return { ok: false, error: "not_eligible" };
   }
@@ -838,9 +797,7 @@ async function recomputeCoachAggregate(supabase: AnySupabase, coachId: string) {
   const arr = rows ?? [];
   const count = arr.length;
   const avg =
-    count === 0
-      ? null
-      : Math.round((arr.reduce((a, r) => a + r.stars, 0) / count) * 100) / 100;
+    count === 0 ? null : Math.round((arr.reduce((a, r) => a + r.stars, 0) / count) * 100) / 100;
   await supabase
     .from("profiles")
     .update({ coach_avg_rating: avg, coach_reviews_count: count } as never)
@@ -869,10 +826,7 @@ export async function loadMyCoaches(): Promise<MyCoachEntry[] | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { interactions, reviews } = await loadMyInteractionsWithCoach(
-    supabase,
-    user.id,
-  );
+  const { interactions, reviews } = await loadMyInteractionsWithCoach(supabase, user.id);
   const eligibility = computeReviewEligibility(interactions, reviews);
   if (eligibility.length === 0) return [];
 
@@ -880,7 +834,7 @@ export async function loadMyCoaches(): Promise<MyCoachEntry[] | null> {
   const { data: coachRows } = (await supabase
     .from("public_coach_directory")
     .select(
-      "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_pln, " +
+      "id, display_name, avatar_url, city, coach_bio, coach_hourly_rate_byn, " +
         "coach_avg_rating, coach_reviews_count",
     )
     .in("id", coachIds)) as { data: CoachListItem[] | null };
@@ -916,8 +870,7 @@ export async function loadMyCoaches(): Promise<MyCoachEntry[] | null> {
     .map<MyCoachEntry | null>((e) => {
       const coach = coachById.get(e.coach_id);
       if (!coach) return null;
-      const my_review =
-        myReviewByKey.get(`${e.coach_id}|${e.source_type}|${e.source_id}`) ?? null;
+      const my_review = myReviewByKey.get(`${e.coach_id}|${e.source_type}|${e.source_id}`) ?? null;
       return { coach, eligibility: e, my_review };
     })
     .filter((x): x is MyCoachEntry => x !== null);
@@ -933,7 +886,9 @@ export type AdminReviewRow = CoachReview & {
   source_id: string | null;
 };
 
-export async function loadAdminReviews(filter: "all" | "flagged" = "all"): Promise<AdminReviewRow[] | null> {
+export async function loadAdminReviews(
+  filter: "all" | "flagged" = "all",
+): Promise<AdminReviewRow[] | null> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -1008,7 +963,9 @@ const ModerateSchema = z.object({
   reason: z.string().trim().max(300).optional().nullable(),
 });
 
-export async function moderateReview(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function moderateReview(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const parsed = ModerateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid_payload" };
 

@@ -19,7 +19,7 @@ export type AvailableSlot = {
   slot_type: SlotType;
   max_participants: number;
   bookings_count: number;
-  price_pln: number | null;
+  price_byn: number | null;
   notes: string | null;
   court_label: string;
   venue_name: string;
@@ -67,25 +67,23 @@ export async function searchAvailableSlots(opts: {
   const { data: rawSlots } = (await supabase
     .from("slots")
     .select(
-      "id, starts_at, ends_at, slot_type, max_participants, price_pln, notes, court_id, owner_id",
+      "id, starts_at, ends_at, slot_type, max_participants, price_byn, notes, court_id, owner_id",
     )
     .eq("status", "open")
     .gte("starts_at", opts.fromIso)
     .lte("starts_at", opts.toIso)
     .order("starts_at", { ascending: true })) as {
-    data:
-      | Array<{
-          id: string;
-          starts_at: string;
-          ends_at: string;
-          slot_type: SlotType;
-          max_participants: number;
-          price_pln: number | null;
-          notes: string | null;
-          court_id: string;
-          owner_id: string;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      starts_at: string;
+      ends_at: string;
+      slot_type: SlotType;
+      max_participants: number;
+      price_byn: number | null;
+      notes: string | null;
+      court_id: string;
+      owner_id: string;
+    }> | null;
   };
 
   if (!rawSlots || rawSlots.length === 0) return { ok: true, slots: [] };
@@ -94,51 +92,41 @@ export async function searchAvailableSlots(opts: {
   const ownerIds = Array.from(new Set(rawSlots.map((s) => s.owner_id)));
   const slotIds = rawSlots.map((s) => s.id);
 
-  const [
-    { data: courtsRaw },
-    { data: profilesRaw },
-    { data: bookingsRaw },
-  ] = await Promise.all([
+  const [{ data: courtsRaw }, { data: profilesRaw }, { data: bookingsRaw }] = await Promise.all([
     supabase
       .from("courts")
-      .select(
-        "id, number, name, venue_id, venues!inner(id, name, city, district_id)",
-      )
+      .select("id, number, name, venue_id, venues!inner(id, name, city, district_id)")
       .in("id", courtIds) as unknown as Promise<{
-      data:
-        | Array<{
-            id: string;
-            number: number;
-            name: string | null;
-            venue_id: string;
-            venues:
-              | {
-                  id: string;
-                  name: string;
-                  city: string | null;
-                  district_id: string | null;
-                }
-              | Array<{
-                  id: string;
-                  name: string;
-                  city: string | null;
-                  district_id: string | null;
-                }>;
-          }>
-        | null;
+      data: Array<{
+        id: string;
+        number: number;
+        name: string | null;
+        venue_id: string;
+        venues:
+          | {
+              id: string;
+              name: string;
+              city: string | null;
+              district_id: string | null;
+            }
+          | Array<{
+              id: string;
+              name: string;
+              city: string | null;
+              district_id: string | null;
+            }>;
+      }> | null;
     }>,
     supabase
       .from("profiles")
       .select("id, display_name, avatar_url, whatsapp")
       .in("id", ownerIds) as unknown as Promise<{
-      data:
-        | Array<{
-            id: string;
-            display_name: string | null;
-            avatar_url: string | null;
-            whatsapp: string | null;
-          }>
-        | null;
+      data: Array<{
+        id: string;
+        display_name: string | null;
+        avatar_url: string | null;
+        whatsapp: string | null;
+      }> | null;
     }>,
     supabase
       .from("bookings")
@@ -191,9 +179,7 @@ export async function searchAvailableSlots(opts: {
     });
   }
 
-  const profileIndex = new Map(
-    (profilesRaw ?? []).map((p) => [p.id, p] as const),
-  );
+  const profileIndex = new Map((profilesRaw ?? []).map((p) => [p.id, p] as const));
 
   const counts = new Map<string, number>();
   for (const b of bookingsRaw ?? []) {
@@ -217,16 +203,14 @@ export async function searchAvailableSlots(opts: {
       slot_type: s.slot_type,
       max_participants: s.max_participants,
       bookings_count: occupied,
-      price_pln: s.price_pln,
+      price_byn: s.price_byn,
       notes: s.notes,
       court_label: c.label,
       venue_name: c.venue_name,
       venue_id: c.venue_id,
       city: c.city,
       district_id: c.district_id,
-      district_name: c.district_id
-        ? (districtMap.get(c.district_id) ?? null)
-        : null,
+      district_name: c.district_id ? (districtMap.get(c.district_id) ?? null) : null,
       coach_id: s.owner_id,
       coach_name: owner?.display_name ?? null,
       coach_avatar: owner?.avatar_url ?? null,
@@ -269,14 +253,12 @@ export async function bookSlot(input: unknown): Promise<BookResult> {
     .select("id, status, max_participants, owner_id")
     .eq("id", parsed.data.slot_id)
     .single()) as {
-    data:
-      | {
-          id: string;
-          status: "open" | "closed" | "cancelled";
-          max_participants: number;
-          owner_id: string;
-        }
-      | null;
+    data: {
+      id: string;
+      status: "open" | "closed" | "cancelled";
+      max_participants: number;
+      owner_id: string;
+    } | null;
   };
   if (!slot) return { ok: false, error: "slot_not_found" };
   if (slot.status === "cancelled") return { ok: false, error: "slot_cancelled" };
@@ -322,27 +304,23 @@ export async function bookSlot(input: unknown): Promise<BookResult> {
     const [{ data: slotMeta }, { data: profile }] = await Promise.all([
       supabase
         .from("slots")
-        .select(
-          "starts_at, courts!inner(number, name, venues!inner(name))",
-        )
+        .select("starts_at, courts!inner(number, name, venues!inner(name))")
         .eq("id", slot.id)
         .single() as unknown as Promise<{
-        data:
-          | {
-              starts_at: string;
-              courts:
-                | {
-                    number: number;
-                    name: string | null;
-                    venues: { name: string } | Array<{ name: string }>;
-                  }
-                | Array<{
-                    number: number;
-                    name: string | null;
-                    venues: { name: string } | Array<{ name: string }>;
-                  }>;
-            }
-          | null;
+        data: {
+          starts_at: string;
+          courts:
+            | {
+                number: number;
+                name: string | null;
+                venues: { name: string } | Array<{ name: string }>;
+              }
+            | Array<{
+                number: number;
+                name: string | null;
+                venues: { name: string } | Array<{ name: string }>;
+              }>;
+        } | null;
       }>,
       supabase
         .from("profiles")
@@ -399,12 +377,10 @@ export async function cancelMyBooking(
     .eq("id", bookingId)
     .eq("player_id", userId)
     .maybeSingle()) as {
-    data:
-      | {
-          slot_id: string;
-          slots: { starts_at: string } | Array<{ starts_at: string }>;
-        }
-      | null;
+    data: {
+      slot_id: string;
+      slots: { starts_at: string } | Array<{ starts_at: string }>;
+    } | null;
   };
 
   const { error } = await supabase
@@ -453,8 +429,7 @@ export async function cancelMyBooking(
 // =============================================================================
 
 export async function loadMyBookings(): Promise<
-  | { ok: true; upcoming: MyBookingRow[]; past: MyBookingRow[] }
-  | { ok: false; error: string }
+  { ok: true; upcoming: MyBookingRow[]; past: MyBookingRow[] } | { ok: false; error: string }
 > {
   const auth = await requireUser();
   if (!auth.ok) return auth;
@@ -462,22 +437,18 @@ export async function loadMyBookings(): Promise<
 
   const { data: rawBookings } = (await supabase
     .from("bookings")
-    .select(
-      "id, status, paid_status, notes, created_at, slot_id",
-    )
+    .select("id, status, paid_status, notes, created_at, slot_id")
     .eq("player_id", userId)
     .order("created_at", { ascending: false })
     .limit(200)) as {
-    data:
-      | Array<{
-          id: string;
-          status: MyBookingRow["status"];
-          paid_status: MyBookingRow["paid_status"];
-          notes: string | null;
-          created_at: string;
-          slot_id: string;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      status: MyBookingRow["status"];
+      paid_status: MyBookingRow["paid_status"];
+      notes: string | null;
+      created_at: string;
+      slot_id: string;
+    }> | null;
   };
   if (!rawBookings || rawBookings.length === 0) {
     return { ok: true, upcoming: [], past: [] };
@@ -487,22 +458,20 @@ export async function loadMyBookings(): Promise<
   const { data: rawSlots } = (await supabase
     .from("slots")
     .select(
-      "id, starts_at, ends_at, slot_type, max_participants, price_pln, notes, court_id, owner_id",
+      "id, starts_at, ends_at, slot_type, max_participants, price_byn, notes, court_id, owner_id",
     )
     .in("id", slotIds)) as {
-    data:
-      | Array<{
-          id: string;
-          starts_at: string;
-          ends_at: string;
-          slot_type: SlotType;
-          max_participants: number;
-          price_pln: number | null;
-          notes: string | null;
-          court_id: string;
-          owner_id: string;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      starts_at: string;
+      ends_at: string;
+      slot_type: SlotType;
+      max_participants: number;
+      price_byn: number | null;
+      notes: string | null;
+      court_id: string;
+      owner_id: string;
+    }> | null;
   };
 
   const courtIds = Array.from(new Set((rawSlots ?? []).map((s) => s.court_id)));
@@ -510,39 +479,33 @@ export async function loadMyBookings(): Promise<
 
   const { data: courtsRaw } = (await supabase
     .from("courts")
-    .select(
-      "id, number, name, venues!inner(id, name, city, district_id)",
-    )
+    .select("id, number, name, venues!inner(id, name, city, district_id)")
     .in("id", courtIds)) as {
-    data:
-      | Array<{
-          id: string;
-          number: number;
-          name: string | null;
-          venues:
-            | { id: string; name: string; city: string | null; district_id: string | null }
-            | Array<{
-                id: string;
-                name: string;
-                city: string | null;
-                district_id: string | null;
-              }>;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      number: number;
+      name: string | null;
+      venues:
+        | { id: string; name: string; city: string | null; district_id: string | null }
+        | Array<{
+            id: string;
+            name: string;
+            city: string | null;
+            district_id: string | null;
+          }>;
+    }> | null;
   };
 
   const { data: ownersRaw } = (await supabase
     .from("profiles")
     .select("id, display_name, avatar_url, whatsapp")
     .in("id", ownerIds)) as {
-    data:
-      | Array<{
-          id: string;
-          display_name: string | null;
-          avatar_url: string | null;
-          whatsapp: string | null;
-        }>
-      | null;
+    data: Array<{
+      id: string;
+      display_name: string | null;
+      avatar_url: string | null;
+      whatsapp: string | null;
+    }> | null;
   };
 
   const districtIds = Array.from(
@@ -618,16 +581,14 @@ export async function loadMyBookings(): Promise<
       slot_type: s.slot_type,
       max_participants: s.max_participants,
       bookings_count: capacity.get(s.id) ?? 0,
-      price_pln: s.price_pln,
+      price_byn: s.price_byn,
       notes: s.notes,
       court_label: c?.label ?? "—",
       venue_name: c?.venue_name ?? "—",
       venue_id: c?.venue_id ?? "",
       city: c?.city ?? null,
       district_id: c?.district_id ?? null,
-      district_name: c?.district_id
-        ? (districtMap.get(c.district_id) ?? null)
-        : null,
+      district_name: c?.district_id ? (districtMap.get(c.district_id) ?? null) : null,
       coach_id: s.owner_id,
       coach_name: owner?.display_name ?? null,
       coach_avatar: owner?.avatar_url ?? null,
@@ -658,9 +619,7 @@ export async function loadMyBookings(): Promise<
 // Districts list (for the search filter).
 // =============================================================================
 
-export async function loadDistrictsForBooking(): Promise<
-  Array<{ id: string; name: string }>
-> {
+export async function loadDistrictsForBooking(): Promise<Array<{ id: string; name: string }>> {
   const supabase = await createSupabaseServerClient();
   const { data } = (await supabase
     .from("districts")

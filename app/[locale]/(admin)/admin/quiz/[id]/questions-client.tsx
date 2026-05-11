@@ -22,7 +22,7 @@ export function QuestionsClient({
   version,
   questions,
 }: {
-  locale: "pl" | "en" | "ru";
+  locale: "ru" | "en";
   version: QuizVersionRow;
   questions: QuizQuestionRow[];
 }) {
@@ -34,8 +34,7 @@ export function QuestionsClient({
   const [editing, setEditing] = useState<QuizQuestionRow | null>(null);
 
   const locked = version.is_active;
-  const nextPosition =
-    questions.length > 0 ? Math.max(...questions.map((q) => q.position)) + 1 : 1;
+  const nextPosition = questions.length > 0 ? Math.max(...questions.map((q) => q.position)) + 1 : 1;
 
   function handleDelete(q: QuizQuestionRow) {
     if (!confirm(t("question.confirm_delete"))) return;
@@ -90,9 +89,7 @@ export function QuestionsClient({
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-ink-600">
-          {t("question.list_count", { n: questions.length })}
-        </p>
+        <p className="text-sm text-ink-600">{t("question.list_count", { n: questions.length })}</p>
         <div className="flex gap-2">
           {!locked && questions.length > 0 && (
             <button
@@ -125,28 +122,23 @@ export function QuestionsClient({
       {questions.length === 0 ? (
         <div className="rounded-xl2 border border-dashed border-ink-200 bg-white p-8 text-center">
           <ShieldAlert className="mx-auto h-10 w-10 text-clay-400" />
-          <p className="mt-2 font-display text-lg text-ink-900">
-            {t("question.empty_title")}
-          </p>
+          <p className="mt-2 font-display text-lg text-ink-900">{t("question.empty_title")}</p>
           <p className="text-sm text-ink-600">{t("question.empty_body")}</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {questions.map((q, i) => (
-            <li
-              key={q.id}
-              className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card"
-            >
+            <li key={q.id} className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-clay-50 font-mono text-xs font-semibold text-clay-700">
                   {q.position}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-md bg-ink-100 px-1.5 py-0.5 text-[10px] font-mono uppercase text-ink-700">
+                    <span className="rounded-md bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] uppercase text-ink-700">
                       {t(`question.types.${q.type}`)}
                     </span>
-                    <code className="rounded bg-grass-50 px-1.5 py-0.5 text-xs font-mono text-grass-800">
+                    <code className="rounded bg-grass-50 px-1.5 py-0.5 font-mono text-xs text-grass-800">
                       {q.code}
                     </code>
                     {q.required && (
@@ -156,7 +148,7 @@ export function QuestionsClient({
                     )}
                   </div>
                   <p className="mt-1.5 text-sm font-medium text-ink-900">
-                    {q.question[locale] || q.question.en || q.question.pl || "—"}
+                    {q.question[locale] || q.question.en || q.question.ru || "—"}
                   </p>
                   <QuestionPreview q={q} t={t} />
                 </div>
@@ -217,13 +209,7 @@ export function QuestionsClient({
   );
 }
 
-function QuestionPreview({
-  q,
-  t,
-}: {
-  q: QuizQuestionRow;
-  t: ReturnType<typeof useTranslations>;
-}) {
+function QuestionPreview({ q, t }: { q: QuizQuestionRow; t: ReturnType<typeof useTranslations> }) {
   if (q.type === "single_choice" || q.type === "multi_choice") {
     const opts = (q.options ?? []) as Array<{
       value: string;
@@ -238,9 +224,7 @@ function QuestionPreview({
               <code className="text-[10px] text-ink-400">{o.value}</code>{" "}
               {o.label?.en ?? o.label?.pl ?? "—"}
             </span>
-            <span className="font-mono">
-              {o.weight > 0 ? `+${o.weight}` : o.weight}
-            </span>
+            <span className="font-mono">{o.weight > 0 ? `+${o.weight}` : o.weight}</span>
           </li>
         ))}
       </ul>
@@ -261,9 +245,12 @@ function QuestionPreview({
     );
   }
   if (q.type === "number") {
-    const f = q.weight_formula as
-      | { kind?: string; coef?: number; coef_field?: string; step?: number }
-      | null;
+    const f = q.weight_formula as {
+      kind?: string;
+      coef?: number;
+      coef_field?: string;
+      step?: number;
+    } | null;
     return (
       <p className="mt-2 text-xs text-ink-500">
         {t("question.number_summary", {

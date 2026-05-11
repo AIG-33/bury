@@ -20,9 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `/${locale}/tournaments`,
       languages: {
-        pl: "/pl/tournaments",
-        en: "/en/tournaments",
         ru: "/ru/tournaments",
+        en: "/en/tournaments",
       },
     },
   };
@@ -34,11 +33,9 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsPublic");
 
-  const filter = (
-    ["upcoming", "in_progress", "finished"].includes(rawStatus ?? "")
-      ? (rawStatus as "upcoming" | "in_progress" | "finished")
-      : "upcoming"
-  );
+  const filter = ["upcoming", "in_progress", "finished"].includes(rawStatus ?? "")
+    ? (rawStatus as "upcoming" | "in_progress" | "finished")
+    : "upcoming";
 
   const tournaments = await loadPublicTournaments({ status: filter });
   const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
@@ -88,17 +85,14 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
           {tournaments.map((tn) => (
             <li
               key={tn.id}
-              className="group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:border-leaf-300 hover:shadow-md"
+              className="hover:border-leaf-300 group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-md"
             >
-              <Link
-                href={`/${locale}/tournaments/${tn.id}`}
-                className="flex items-start gap-3"
-              >
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-leaf-100 text-leaf-700">
+              <Link href={`/${locale}/tournaments/${tn.id}`} className="flex items-start gap-3">
+                <div className="bg-leaf-100 text-leaf-700 flex h-11 w-11 items-center justify-center rounded-full">
                   <Trophy className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display text-lg font-semibold text-ink-900 group-hover:text-leaf-700">
+                  <h3 className="group-hover:text-leaf-700 font-display text-lg font-semibold text-ink-900">
                     {tn.name}
                   </h3>
                   {tn.description && (
@@ -122,17 +116,17 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
                     )}
                     <div className="flex items-center gap-1 tabular-nums">
                       <Coins className="h-3.5 w-3.5" />
-                      {tn.entry_fee_pln == null || tn.entry_fee_pln === 0
+                      {tn.entry_fee_byn == null || tn.entry_fee_byn === 0
                         ? t("entry_fee_free")
-                        : t("entry_fee_pln", { n: tn.entry_fee_pln })}
+                        : t("entry_fee_byn", { n: tn.entry_fee_byn })}
                     </div>
                     {tn.venues.length > 0 && (
                       <div className="col-span-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-ink-600">
-                        <MapPin className="h-3.5 w-3.5 text-leaf-700" />
+                        <MapPin className="text-leaf-700 h-3.5 w-3.5" />
                         {tn.venues.map((v) => (
                           <span
                             key={v.id}
-                            className="rounded-full bg-leaf-50 px-2 py-0.5 text-leaf-700"
+                            className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5"
                           >
                             {v.name}
                             {v.city && <span className="text-ink-500">· {v.city}</span>}
@@ -141,7 +135,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
                       </div>
                     )}
                     <div className="col-span-2 mt-1 inline-flex items-center gap-2">
-                      <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-[10px] font-medium uppercase text-leaf-700">
+                      <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase">
                         {t(`format.${tn.format}`)}
                       </span>
                       {tn.surface && (

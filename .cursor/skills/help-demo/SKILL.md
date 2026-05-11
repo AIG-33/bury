@@ -1,7 +1,7 @@
 ---
 name: help-demo
 description: >-
-  Maintains the canonical "/help-demo" reference page for the AlexB Tennis Club
+  Maintains the canonical "/help-demo" reference page for the OpenCourt.by
   project and enforces the help-content rules from AGENTS.md (§3.4, §8) on every
   admin or coach page. Use when creating or editing pages under
   app/[locale]/(admin)/ or app/[locale]/(coach)/, when working on any file in
@@ -27,12 +27,12 @@ This skill does two things:
 
 All four live in `components/help/` — never reinvent them, never inline alternatives.
 
-| Primitive | File | When to use |
-|---|---|---|
-| `HelpPanel` | `components/help/help-panel.tsx` | One per admin/coach page, at the top, with `pageId`, `why`, `what[]`, `result[]`. |
+| Primitive     | File                               | When to use                                                                                        |
+| ------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `HelpPanel`   | `components/help/help-panel.tsx`   | One per admin/coach page, at the top, with `pageId`, `why`, `what[]`, `result[]`.                  |
 | `HelpTooltip` | `components/help/help-tooltip.tsx` | Inline next to any domain term. Pulls copy from `messages/{locale}/help.json` → `glossary.<term>`. |
-| `FlowDiagram` | `components/help/flow-diagram.tsx` | Multi-step flows (draw generation, onboarding, registration). |
-| `EmptyState` | `components/help/empty-state.tsx` | Any list/table that can be empty. Must include `title`, `description`, and a CTA. |
+| `FlowDiagram` | `components/help/flow-diagram.tsx` | Multi-step flows (draw generation, onboarding, registration).                                      |
+| `EmptyState`  | `components/help/empty-state.tsx`  | Any list/table that can be empty. Must include `title`, `description`, and a CTA.                  |
 
 ## Acceptance checklist for `/help-demo`
 

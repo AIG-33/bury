@@ -57,12 +57,13 @@ export async function loadMyProfile(): Promise<LoadResult> {
   const { data: districts } = (await supabase
     .from("districts")
     .select("id, name, city")
-    .eq("country", "PL")
+    .eq("country", "BY")
+    .order("city", { ascending: true })
     .order("name", { ascending: true })) as {
     data: Array<{ id: string; name: string; city: string }> | null;
   };
 
-  const locale = (row.locale as "pl" | "en" | "ru") ?? "pl";
+  const locale = (row.locale as "ru" | "en") ?? "ru";
   const districtOptions: DistrictOption[] = (districts ?? []).map((d) => ({
     id: d.id,
     name: `${d.city} · ${d.name}`,
@@ -73,9 +74,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
     display_name: (row.display_name as string | null) ?? null,
     avatar_url: (row.avatar_url as string | null) ?? null,
     current_elo: (row.current_elo as number) ?? 1000,
-    elo_status: ((row.elo_status as string) ?? "provisional") as
-      | "provisional"
-      | "established",
+    elo_status: ((row.elo_status as string) ?? "provisional") as "provisional" | "established",
     rated_matches_count: (row.rated_matches_count as number) ?? 0,
     email: user.email ?? null,
 
@@ -100,8 +99,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
 
     dominant_hand: (row.dominant_hand as ProfileForm["dominant_hand"]) ?? null,
     backhand_style: (row.backhand_style as ProfileForm["backhand_style"]) ?? null,
-    favorite_surface:
-      (row.favorite_surface as ProfileForm["favorite_surface"]) ?? null,
+    favorite_surface: (row.favorite_surface as ProfileForm["favorite_surface"]) ?? null,
 
     availability: {
       ...EMPTY_AVAILABILITY,
@@ -186,9 +184,7 @@ export async function updateMyProfile(input: unknown): Promise<SaveResult> {
 // Stored at avatars/<user_id>/avatar-<timestamp>.<ext>; previous avatar removed.
 // =============================================================================
 
-export type AvatarResult =
-  | { ok: true; avatar_url: string | null }
-  | { ok: false; error: string };
+export type AvatarResult = { ok: true; avatar_url: string | null } | { ok: false; error: string };
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -220,9 +216,7 @@ export async function uploadMyAvatar(formData: FormData): Promise<AvatarResult> 
   } = service.storage.from("avatars").getPublicUrl(path);
 
   // Best-effort cleanup of previous avatar files in the user folder.
-  const { data: oldFiles } = await service.storage
-    .from("avatars")
-    .list(user.id);
+  const { data: oldFiles } = await service.storage.from("avatars").list(user.id);
   if (oldFiles && oldFiles.length > 0) {
     const newest = path.split("/")[1];
     const toRemove = oldFiles
@@ -254,9 +248,7 @@ export async function removeMyAvatar(): Promise<AvatarResult> {
   const service = createSupabaseServiceClient();
   const { data: oldFiles } = await service.storage.from("avatars").list(user.id);
   if (oldFiles && oldFiles.length > 0) {
-    await service.storage
-      .from("avatars")
-      .remove(oldFiles.map((f) => `${user.id}/${f.name}`));
+    await service.storage.from("avatars").remove(oldFiles.map((f) => `${user.id}/${f.name}`));
   }
 
   const { error: profErr } = await service

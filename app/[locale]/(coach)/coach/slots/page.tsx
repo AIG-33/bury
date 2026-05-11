@@ -80,7 +80,7 @@ export default async function CoachSlotsPage({ params, searchParams }: Props) {
         duration: t("dialog.fields.duration"),
         slot_type: t("dialog.fields.slot_type"),
         max_participants: t("dialog.fields.max_participants"),
-        price_pln: t("dialog.fields.price_pln"),
+        price_byn: t("dialog.fields.price_byn"),
         notes: t("dialog.fields.notes"),
         range_from: t("dialog.fields.range_from"),
         range_to: t("dialog.fields.range_to"),

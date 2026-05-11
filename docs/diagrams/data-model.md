@@ -1,4 +1,4 @@
-# Data model — Aliaksandr Bury Tennis Platform
+# Data model — OpenCourt.by platform
 
 20+ tables. All with RLS. UUID PKs (`gen_random_uuid()`). `created_at`/`updated_at` everywhere. JSONB for varying-shape data (socials, availability, match rules, algorithm config).
 
@@ -46,7 +46,7 @@ erDiagram
 
 ```sql
 -- ============================================================
--- Aliaksandr Bury Tennis Platform — initial schema
+-- OpenCourt.by platform — initial schema
 -- ============================================================
 
 create extension if not exists "pgcrypto";
@@ -119,7 +119,7 @@ create table profiles (
   rated_matches_count      integer not null default 0,
   -- coach-specific (nullable)
   coach_bio                text,
-  coach_hourly_rate_pln    integer,
+  coach_hourly_rate_byn    integer,
   coach_certifications     jsonb,                      -- ["PZT level 1", ...]
   coach_avg_rating         numeric(3,2),               -- denormalized; refreshed by trigger
   coach_reviews_count      integer not null default 0,
@@ -130,7 +130,7 @@ create table profiles (
   notification_email       boolean not null default true,
   notification_telegram    boolean not null default false,
   locale                   text not null default 'pl' check (locale in ('pl','en','ru')),
-  timezone                 text not null default 'Europe/Warsaw',
+  timezone                 text not null default 'Europe/Minsk',
   -- private notes (only coach with linked booking can read)
   health_notes             text,
   emergency_contact        text,
@@ -217,7 +217,7 @@ create table slot_templates (
   duration_minutes    integer not null check (duration_minutes between 15 and 480),
   slot_type           text not null default 'individual' check (slot_type in ('individual','pair','group')),
   max_participants    integer not null default 1,
-  price_pln           integer,
+  price_byn           integer,
   notes               text,
   exception_dates     jsonb not null default '[]'::jsonb,            -- ["2026-04-25", ...]
   active              boolean not null default true,
@@ -238,7 +238,7 @@ create table slots (
   ends_at             timestamptz not null,
   slot_type           text not null default 'individual' check (slot_type in ('individual','pair','group')),
   max_participants    integer not null default 1,
-  price_pln           integer,
+  price_byn           integer,
   notes               text,
   status              text not null default 'open' check (status in ('open','closed','cancelled')),
   created_at          timestamptz not null default now(),

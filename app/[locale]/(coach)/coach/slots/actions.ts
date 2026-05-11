@@ -20,7 +20,7 @@ export type CoachSlotRow = {
   slot_type: SlotType;
   max_participants: number;
   bookings_count: number;
-  price_pln: number | null;
+  price_byn: number | null;
   notes: string | null;
   status: "open" | "closed" | "cancelled";
 };
@@ -104,7 +104,7 @@ export async function loadCoachSlots(opts: { fromIso: string; toIso: string }): 
   const { data: slotsRaw } = (await supabase
     .from("slots")
     .select(
-      "id, court_id, starts_at, ends_at, slot_type, max_participants, price_pln, notes, status",
+      "id, court_id, starts_at, ends_at, slot_type, max_participants, price_byn, notes, status",
     )
     .eq("owner_id", userId)
     .gte("starts_at", opts.fromIso)
@@ -117,7 +117,7 @@ export async function loadCoachSlots(opts: { fromIso: string; toIso: string }): 
       ends_at: string;
       slot_type: SlotType;
       max_participants: number;
-      price_pln: number | null;
+      price_byn: number | null;
       notes: string | null;
       status: "open" | "closed" | "cancelled";
     }> | null;
@@ -150,7 +150,7 @@ export async function loadCoachSlots(opts: { fromIso: string; toIso: string }): 
       ends_at: s.ends_at,
       slot_type: s.slot_type,
       max_participants: s.max_participants,
-      price_pln: s.price_pln,
+      price_byn: s.price_byn,
       notes: s.notes,
       status: s.status,
       bookings_count: counts.get(s.id) ?? 0,
@@ -210,10 +210,10 @@ export async function createSlots(input: unknown): Promise<CreateSlotsResult> {
   let created = 0;
   const conflicts: Array<{ local_date: string; local_start_time: string }> = [];
   for (const occ of occurrences) {
-    // Postgres can compute starts_at = '<date>T<time>' AT TIME ZONE 'Europe/Warsaw'
+    // Postgres can compute starts_at = '<date>T<time>' AT TIME ZONE 'Europe/Minsk'
     // — we use a single round-trip with a tiny RPC-less expression: insert and let
     // the DB convert via timestamp + interval. Easiest path: pass an ISO timestamp
-    // built in JS using Europe/Warsaw via Intl.
+    // built in JS using Europe/Minsk via Intl.
     const startsUtc = warsawWallClockToUtcIso(occ.local_date, occ.local_start_time);
     const endsUtc = new Date(
       new Date(startsUtc).getTime() + occ.duration_minutes * 60_000,
@@ -227,7 +227,7 @@ export async function createSlots(input: unknown): Promise<CreateSlotsResult> {
       ends_at: endsUtc,
       slot_type: form.slot_type,
       max_participants: form.max_participants,
-      price_pln: form.price_pln,
+      price_byn: form.price_byn,
       notes: form.notes,
       status: "open",
     } as never);
@@ -281,7 +281,7 @@ export async function cancelSlot(
 }
 
 // =============================================================================
-// Helper: convert a Europe/Warsaw wall-clock (date + time) into a UTC ISO string.
+// Helper: convert a Europe/Minsk wall-clock (date + time) into a UTC ISO string.
 // Uses Intl.DateTimeFormat to learn the offset for that local instant.
 // =============================================================================
 
@@ -292,10 +292,10 @@ function warsawWallClockToUtcIso(date: string, time: string): string {
   // 1. Tentative UTC instant assuming local==UTC.
   let utcGuess = Date.UTC(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0);
 
-  // 2. Find the actual offset Europe/Warsaw has at that instant and adjust.
+  // 2. Find the actual offset Europe/Minsk has at that instant and adjust.
   for (let i = 0; i < 3; i++) {
     const localStr = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Europe/Warsaw",
+      timeZone: "Europe/Minsk",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",

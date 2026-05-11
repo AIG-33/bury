@@ -11,7 +11,6 @@ import { loadCoachJourney, type JourneyStepId } from "@/lib/coach/journey";
 type Props = { params: Promise<{ locale: string }> };
 
 const WEEK_LABELS_BY_LOCALE: Record<string, string[]> = {
-  pl: ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"],
   en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
   ru: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
 };
@@ -58,7 +57,7 @@ export default async function CoachDashboardPage({ params }: Props) {
   const fmtTime = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Warsaw",
+    timeZone: "Europe/Minsk",
   });
 
   const tourSteps: TourStep[] = [

@@ -5,10 +5,7 @@ import { z } from "zod";
 import { addDays } from "date-fns";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import {
-  createInvitationToken,
-  INVITATION_TTL_DAYS,
-} from "@/lib/invitations/token";
+import { createInvitationToken, INVITATION_TTL_DAYS } from "@/lib/invitations/token";
 import { sendEmail } from "@/lib/email/send";
 import { buildInvitationEmail } from "@/lib/email/templates/invitation";
 
@@ -16,7 +13,7 @@ const InviteSchema = z.object({
   email: z.string().email(),
   first_name: z.string().trim().max(80).optional().or(z.literal("")),
   last_name: z.string().trim().max(80).optional().or(z.literal("")),
-  locale: z.enum(["pl", "en", "ru"]).optional(),
+  locale: z.enum(["ru", "en"]).optional(),
 });
 
 export type InviteResult =
@@ -38,7 +35,7 @@ export async function createInvitation(input: unknown): Promise<InviteResult> {
     .select("is_coach, display_name, locale")
     .eq("id", user.id)
     .single()) as {
-    data: { is_coach: boolean; display_name: string | null; locale: "pl" | "en" | "ru" } | null;
+    data: { is_coach: boolean; display_name: string | null; locale: "ru" | "en" } | null;
   };
 
   if (!coach?.is_coach) return { ok: false, error: "not_a_coach" };
@@ -59,7 +56,7 @@ export async function createInvitation(input: unknown): Promise<InviteResult> {
   if (insErr) return { ok: false, error: insErr.message };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const inviteLocale = parsed.data.locale ?? coach.locale ?? "pl";
+  const inviteLocale = parsed.data.locale ?? coach.locale ?? "ru";
   const acceptUrl = `${siteUrl}/${inviteLocale}/invite/${token}`;
 
   const { subject, html } = buildInvitationEmail({

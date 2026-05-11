@@ -3,20 +3,8 @@
 import React, { useRef, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Loader2,
-  CheckCircle2,
-  Camera,
-  Trash2,
-  AlertCircle,
-  ChevronDown,
-} from "lucide-react";
-import {
-  ProfileFormSchema,
-  type ProfileForm,
-  WEEKDAYS,
-  TIME_SLOTS,
-} from "@/lib/profile/schema";
+import { Loader2, CheckCircle2, Camera, Trash2, AlertCircle, ChevronDown } from "lucide-react";
+import { ProfileFormSchema, type ProfileForm, WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
 import { HelpTooltip } from "@/components/help/help-tooltip";
 import {
   updateMyProfile,
@@ -26,7 +14,7 @@ import {
   type DistrictOption,
 } from "./actions";
 
-type Locale = "pl" | "en" | "ru";
+type Locale = "ru" | "en";
 
 type Copy = {
   save: string;
@@ -51,7 +39,7 @@ type Copy = {
     hand: Record<"R" | "L", string>;
     backhand: Record<"one_handed" | "two_handed", string>;
     surface: Record<"hard" | "clay" | "grass" | "carpet", string>;
-    locale: Record<"pl" | "en" | "ru", string>;
+    locale: Record<"ru" | "en", string>;
     weekday: Record<(typeof WEEKDAYS)[number], string>;
     daypart: Record<(typeof TIME_SLOTS)[number], string>;
   };
@@ -189,10 +177,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
           <Field label={copy.fields.last_name}>
             <Input {...form.register("last_name")} />
           </Field>
-          <Field
-            label={copy.fields.date_of_birth}
-            hint={copy.hints.date_of_birth}
-          >
+          <Field label={copy.fields.date_of_birth} hint={copy.hints.date_of_birth}>
             <Input
               type="date"
               {...form.register("date_of_birth")}
@@ -206,11 +191,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
               render={({ field }) => (
                 <Select
                   value={field.value ?? ""}
-                  onChange={(v) =>
-                    field.onChange(
-                      v === "" ? null : (v as ProfileForm["gender"]),
-                    )
-                  }
+                  onChange={(v) => field.onChange(v === "" ? null : (v as ProfileForm["gender"]))}
                   options={[
                     { value: "", label: copy.none },
                     { value: "m", label: copy.enums.gender.m },
@@ -224,11 +205,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
           <Field label={copy.fields.favorite_player} className="col-span-2">
             <Input {...form.register("favorite_player")} />
           </Field>
-          <Field
-            label={copy.fields.motto}
-            hint={copy.hints.motto}
-            className="col-span-2"
-          >
+          <Field label={copy.fields.motto} hint={copy.hints.motto} className="col-span-2">
             <Input {...form.register("motto")} placeholder="Game. Set. Match." />
           </Field>
         </Grid2>
@@ -237,11 +214,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
       {/* Contacts */}
       <Section title={copy.sections.contacts} defaultOpen>
         <Grid2>
-          <Field
-            label={copy.fields.whatsapp}
-            hint={copy.hints.whatsapp}
-            className="col-span-2"
-          >
+          <Field label={copy.fields.whatsapp} hint={copy.hints.whatsapp} className="col-span-2">
             <div className="flex items-center gap-2 rounded-lg border-2 border-grass-300 bg-grass-50/50 px-3 transition focus-within:border-grass-500 focus-within:ring-2 focus-within:ring-grass-500/30">
               <span className="inline-flex items-center gap-1 rounded-md bg-grass-100 px-2 py-0.5 text-[11px] font-semibold text-grass-800">
                 {copy.fields.primary_badge}
@@ -255,16 +228,9 @@ export function ProfileForm({ profile, districts, copy }: Props) {
             </div>
           </Field>
           <Field label={copy.fields.phone} hint={copy.hints.phone}>
-            <Input
-              {...form.register("phone")}
-              placeholder="+48 600 000 000"
-              inputMode="tel"
-            />
+            <Input {...form.register("phone")} placeholder="+48 600 000 000" inputMode="tel" />
           </Field>
-          <Field
-            label={copy.fields.telegram_username}
-            hint={copy.hints.telegram_username}
-          >
+          <Field label={copy.fields.telegram_username} hint={copy.hints.telegram_username}>
             <Input {...form.register("telegram_username")} placeholder="@username" />
           </Field>
         </Grid2>
@@ -273,14 +239,9 @@ export function ProfileForm({ profile, districts, copy }: Props) {
       {/* Socials */}
       <Section title={copy.sections.socials}>
         <Grid2>
-          {(
-            ["instagram", "facebook", "x", "tiktok", "youtube", "website"] as const
-          ).map((k) => (
+          {(["instagram", "facebook", "x", "tiktok", "youtube", "website"] as const).map((k) => (
             <Field key={k} label={copy.fields[`social_${k}`]}>
-              <Input
-                {...form.register(`social_links.${k}` as const)}
-                placeholder="https://..."
-              />
+              <Input {...form.register(`social_links.${k}` as const)} placeholder="https://..." />
             </Field>
           ))}
         </Grid2>
@@ -290,7 +251,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
       <Section title={copy.sections.location}>
         <Grid2>
           <Field label={copy.fields.city}>
-            <Input {...form.register("city")} placeholder="Warszawa" />
+            <Input {...form.register("city")} placeholder="Минск" />
           </Field>
           <Field label={copy.fields.district} hint={copy.hints.district}>
             <Controller
@@ -321,9 +282,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
               render={({ field }) => (
                 <Select
                   value={field.value ?? ""}
-                  onChange={(v) =>
-                    field.onChange(v === "" ? null : (v as "R" | "L"))
-                  }
+                  onChange={(v) => field.onChange(v === "" ? null : (v as "R" | "L"))}
                   options={[
                     { value: "", label: copy.none },
                     { value: "R", label: copy.enums.hand.R },
@@ -333,10 +292,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
               )}
             />
           </Field>
-          <Field
-            label={copy.fields.backhand_style}
-            hint={copy.hints.backhand_style}
-          >
+          <Field label={copy.fields.backhand_style} hint={copy.hints.backhand_style}>
             <Controller
               control={form.control}
               name="backhand_style"
@@ -344,9 +300,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
                 <Select
                   value={field.value ?? ""}
                   onChange={(v) =>
-                    field.onChange(
-                      v === "" ? null : (v as "one_handed" | "two_handed"),
-                    )
+                    field.onChange(v === "" ? null : (v as "one_handed" | "two_handed"))
                   }
                   options={[
                     { value: "", label: copy.none },
@@ -365,11 +319,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
                 <Select
                   value={field.value ?? ""}
                   onChange={(v) =>
-                    field.onChange(
-                      v === ""
-                        ? null
-                        : (v as "hard" | "clay" | "grass" | "carpet"),
-                    )
+                    field.onChange(v === "" ? null : (v as "hard" | "clay" | "grass" | "carpet"))
                   }
                   options={[
                     { value: "", label: copy.none },
@@ -438,11 +388,10 @@ export function ProfileForm({ profile, districts, copy }: Props) {
             render={({ field }) => (
               <Select
                 value={field.value}
-                onChange={(v) => field.onChange(v as "pl" | "en" | "ru")}
+                onChange={(v) => field.onChange(v as "ru" | "en")}
                 options={[
-                  { value: "pl", label: copy.enums.locale.pl },
-                  { value: "en", label: copy.enums.locale.en },
                   { value: "ru", label: copy.enums.locale.ru },
+                  { value: "en", label: copy.enums.locale.en },
                 ]}
               />
             )}
@@ -492,9 +441,7 @@ function Section({
       >
         <h3 className="font-display text-lg font-semibold text-ink-900">{title}</h3>
         <ChevronDown
-          className={`h-4 w-4 text-ink-500 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 text-ink-500 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && <div className="border-t border-ink-100 px-5 py-4">{children}</div>}
@@ -528,20 +475,19 @@ function Field({
   );
 }
 
-const Input = React.forwardRef<
-  HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
->(function Input({ className, ...rest }, ref) {
-  return (
-    <input
-      ref={ref}
-      {...rest}
-      className={`h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 ${
-        className ?? ""
-      }`}
-    />
-  );
-});
+const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+  function Input({ className, ...rest }, ref) {
+    return (
+      <input
+        ref={ref}
+        {...rest}
+        className={`h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 ${
+          className ?? ""
+        }`}
+      />
+    );
+  },
+);
 
 function Select({
   value,
@@ -630,10 +576,7 @@ function AvailabilityGrid({
       name="availability"
       render={({ field }) => {
         const value = field.value ?? {};
-        const toggle = (
-          day: (typeof WEEKDAYS)[number],
-          slot: (typeof TIME_SLOTS)[number],
-        ) => {
+        const toggle = (day: (typeof WEEKDAYS)[number], slot: (typeof TIME_SLOTS)[number]) => {
           const current = value[day] ?? [];
           const next = current.includes(slot)
             ? current.filter((s) => s !== slot)

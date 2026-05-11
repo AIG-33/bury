@@ -14,7 +14,7 @@ import type { EloPoint } from "@/lib/rating/history";
 
 type Props = {
   history: EloPoint[];
-  locale: "pl" | "en" | "ru";
+  locale: "ru" | "en";
   copy: {
     empty: string;
     elo_axis: string;
@@ -97,9 +97,7 @@ export function EloChart({ history, locale, copy }: Props) {
               return (
                 <div className="rounded-lg border border-ink-100 bg-white px-3 py-2 text-xs shadow-card">
                   <div className="font-semibold text-ink-900">{p.label}</div>
-                  <div className="mt-0.5 font-mono text-base font-bold text-grass-700">
-                    {p.elo}
-                  </div>
+                  <div className="mt-0.5 font-mono text-base font-bold text-grass-700">{p.elo}</div>
                   <div className={positive ? "text-grass-700" : "text-clay-700"}>
                     {positive ? "+" : ""}
                     {p.delta} {copy.delta}
@@ -112,11 +110,7 @@ export function EloChart({ history, locale, copy }: Props) {
             }}
           />
           {data.length >= 2 && (
-            <ReferenceLine
-              y={data[0].elo}
-              stroke="#c9d2cf"
-              strokeDasharray="4 4"
-            />
+            <ReferenceLine y={data[0].elo} stroke="#c9d2cf" strokeDasharray="4 4" />
           )}
           <Line
             type="monotone"

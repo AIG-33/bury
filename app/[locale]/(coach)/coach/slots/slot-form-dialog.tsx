@@ -42,7 +42,7 @@ export type SlotDialogCopy = {
     duration: string;
     slot_type: string;
     max_participants: string;
-    price_pln: string;
+    price_byn: string;
     notes: string;
     range_from: string;
     range_to: string;
@@ -99,7 +99,7 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
       duration_minutes: 60,
       slot_type: "individual",
       max_participants: 1,
-      price_pln: null,
+      price_byn: null,
       notes: null,
       recurrence: { kind: "single", date: today },
     },
@@ -368,12 +368,12 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
                 className={inputCls}
               />
             </Field>
-            <Field label={copy.fields.price_pln} hint={copy.hints.price}>
+            <Field label={copy.fields.price_byn} hint={copy.hints.price}>
               <input
                 type="number"
                 min={0}
                 placeholder="—"
-                {...form.register("price_pln")}
+                {...form.register("price_byn")}
                 className={inputCls}
               />
             </Field>
@@ -496,9 +496,7 @@ function DatesPicker({
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(today);
   const [single, setSingle] = useState(today);
-  const [weekdayFilter, setWeekdayFilter] = useState<Set<IsoWeekday>>(
-    () => new Set<IsoWeekday>(),
-  );
+  const [weekdayFilter, setWeekdayFilter] = useState<Set<IsoWeekday>>(() => new Set<IsoWeekday>());
 
   function addRange() {
     if (!from || !to) return;
@@ -666,9 +664,7 @@ function DatesPicker({
             ))}
           </ul>
         )}
-        {copy.hints.dates && (
-          <p className="text-[11px] text-ink-500">{copy.hints.dates}</p>
-        )}
+        {copy.hints.dates && <p className="text-[11px] text-ink-500">{copy.hints.dates}</p>}
       </div>
     </div>
   );

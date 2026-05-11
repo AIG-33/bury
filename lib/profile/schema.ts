@@ -52,10 +52,7 @@ export type SocialLinks = z.infer<typeof SocialLinksSchema>;
 export const TIME_SLOTS = ["morning", "noon", "afternoon", "evening", "late"] as const;
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
-export type Availability = Record<
-  (typeof WEEKDAYS)[number],
-  (typeof TIME_SLOTS)[number][]
->;
+export type Availability = Record<(typeof WEEKDAYS)[number], (typeof TIME_SLOTS)[number][]>;
 
 export const AvailabilitySchema = z.object({
   mon: z.array(z.enum(TIME_SLOTS)).default([]),
@@ -91,9 +88,7 @@ export const ProfileFormSchema = z.object({
     .regex(/^@?[A-Za-z0-9_]{3,32}$/u, "Invalid telegram username")
     .optional()
     .or(z.literal(""))
-    .transform((v) =>
-      v && v.length > 0 ? (v.startsWith("@") ? v.slice(1) : v) : null,
-    ),
+    .transform((v) => (v && v.length > 0 ? (v.startsWith("@") ? v.slice(1) : v) : null)),
 
   // --- Socials ---
   social_links: SocialLinksSchema,
@@ -122,7 +117,7 @@ export const ProfileFormSchema = z.object({
   notification_telegram: z.boolean(),
 
   // --- Locale ---
-  locale: z.enum(["pl", "en", "ru"]),
+  locale: z.enum(["ru", "en"]),
 
   // --- Health & emergency (private) ---
   health_notes: trimmedNullableLong,

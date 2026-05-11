@@ -1,5 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Trophy, ArrowRight } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadActiveQuiz } from "./actions";
 import { QuizClient } from "./quiz-client";
@@ -36,8 +38,24 @@ export default async function OnboardingQuizPage({ params }: Props) {
         <p className="text-ink-600">{t("subtitle")}</p>
       </header>
 
+      <Link
+        href={`/${locale}/onboarding/import-lt`}
+        className="group flex items-start gap-3 rounded-xl border border-grass-200 bg-grass-50/60 p-4 shadow-card transition hover:border-grass-300 hover:bg-grass-50"
+      >
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-700">
+          <Trophy className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-base font-semibold text-grass-900">
+            {t("import_lt_banner.title")}
+          </p>
+          <p className="mt-0.5 text-sm text-grass-800">{t("import_lt_banner.body")}</p>
+        </div>
+        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-grass-700 transition group-hover:translate-x-0.5" />
+      </Link>
+
       <QuizClient
-        locale={locale as "pl" | "en" | "ru"}
+        locale={locale as "ru" | "en"}
         versionId={version.id}
         questions={questions}
         copy={{

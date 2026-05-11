@@ -5,10 +5,10 @@
  * Templates are intentionally simple HTML (no external assets) so they render
  * predictably across mail clients and survive aggressive mail-server stripping.
  *
- * Supported locales: pl (default), en, ru.
+ * Supported locales: ru (default), en.
  */
 
-export type Locale = "pl" | "en" | "ru";
+export type Locale = "ru" | "en";
 
 export type TemplateCode =
   | "invitation_created"
@@ -33,7 +33,7 @@ function shell(title: string, body: string, footer: string): string {
 <body style="font-family:-apple-system,Segoe UI,Inter,system-ui,sans-serif;background:#f8faf6;margin:0;padding:24px;color:#111827">
   <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
     <div style="background:linear-gradient(135deg,#16a34a 0%,#facc15 100%);padding:18px 24px;color:#fff">
-      <div style="font-weight:700;font-size:18px;letter-spacing:.4px">🎾 Bury Tennis</div>
+      <div style="font-weight:700;font-size:18px;letter-spacing:.4px">🎾 OpenCourt.by</div>
     </div>
     <div style="padding:24px">${body}</div>
     <div style="padding:14px 24px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px">${footer}</div>
@@ -58,7 +58,7 @@ function fmtDate(iso: string, locale: Locale): string {
     return new Intl.DateTimeFormat(locale, {
       dateStyle: "full",
       timeStyle: "short",
-      timeZone: "Europe/Warsaw",
+      timeZone: "Europe/Minsk",
     }).format(new Date(iso));
   } catch {
     return iso;
@@ -85,72 +85,11 @@ type Strings = {
 };
 
 const COPY: Record<Locale, Strings> = {
-  pl: {
-    invitation_created: {
-      subject: "Twoje zaproszenie do Bury Tennis 🎾",
-      intro: "Trener {coach} zaprosił Cię do swojego klubu na platformie Bury Tennis. Kliknij, aby utworzyć konto i wyznaczyć swój początkowy rating Elo (krótki quiz, ~60 s).",
-      cta: "Akceptuj zaproszenie",
-      ps: "Link wygasa za 14 dni. Jeśli to pomyłka — po prostu zignoruj wiadomość.",
-    },
-    booking_confirmed: {
-      subject: "Rezerwacja potwierdzona ✅",
-      intro: "Zarezerwowałeś trening w {when}.",
-      venue: "Miejsce: {venue} ({court})",
-      cta: "Otwórz rezerwacje",
-      ps: "Aby odwołać — wejdź na stronę rezerwacji nie później niż 12 h przed.",
-    },
-    booking_cancelled: {
-      subject: "Rezerwacja odwołana",
-      intro: "Twoja rezerwacja {when} została odwołana.",
-      rescheduleCta: "Znajdź inny termin",
-    },
-    booking_reminder_24h: {
-      subject: "Przypomnienie: trening jutro 🎾",
-      intro: "Jutro masz trening: {when}.",
-      venue: "Miejsce: {venue} ({court}). Do zobaczenia!",
-    },
-    tournament_registered: {
-      subject: "Zapisany na turniej 🏆",
-      intro: "Zapisałeś się na turniej «{tournament}». Start: {when}.",
-      format: "Format: {format}. Zasady meczu: {rules}.",
-      cta: "Otwórz turniej",
-    },
-    tournament_starting_24h: {
-      subject: "Turniej startuje jutro!",
-      intro: "Przygotuj rakietę — turniej «{tournament}» startuje {when}.",
-      cta: "Sprawdź drabinkę",
-    },
-    match_proposal: {
-      subject: "Nowa propozycja meczu od {opponent}",
-      intro: "{opponent} (Elo {elo}) proponuje mecz. {message}",
-      cta: "Zobacz propozycję",
-      declineHint: "Możesz odrzucić w jednym kliknięciu.",
-    },
-    match_confirmed: {
-      subject: "Wynik meczu zatwierdzony — Elo zaktualizowane",
-      intro: "Mecz z {opponent} został zatwierdzony. Twoje nowe Elo: {newElo} ({deltaSign}{delta}).",
-    },
-    match_disputed: {
-      subject: "Sporny wynik meczu — wymagana decyzja",
-      intro: "Wynik meczu z {opponent} został zakwestionowany. Trener przejrzy zgłoszenie.",
-    },
-    rating_changed: {
-      subject: "Twoje Elo: {newElo} ({deltaSign}{delta})",
-      intro: "Po ostatnim meczu Twoje Elo zmieniło się.",
-      eloLabel: "Nowe Elo",
-      deltaLabel: "Zmiana",
-    },
-    season_summary: {
-      subject: "Podsumowanie sezonu",
-      intro: "Sezon się skończył. Sprawdź swoje miejsce w rankingu.",
-      cta: "Zobacz wyniki",
-    },
-    footer: "Otrzymujesz tę wiadomość, ponieważ jesteś zarejestrowany w Bury Tennis. Aby zmienić preferencje — odwiedź ustawienia profilu.",
-  },
   en: {
     invitation_created: {
-      subject: "Your invitation to Bury Tennis 🎾",
-      intro: "Coach {coach} invited you to their club on Bury Tennis. Click below to create your account and set your starting Elo (~60 s quiz).",
+      subject: "Your invitation to OpenCourt.by 🎾",
+      intro:
+        "Coach {coach} invited you to their club on OpenCourt.by — the open amateur-tennis platform of Belarus. Click below to create your account and set your starting Elo (~60 s quiz).",
       cta: "Accept invitation",
       ps: "Link expires in 14 days. Ignore this email if it was sent by mistake.",
     },
@@ -207,12 +146,14 @@ const COPY: Record<Locale, Strings> = {
       intro: "The season is over. Check your standings.",
       cta: "See results",
     },
-    footer: "You're getting this because you're registered on Bury Tennis. Change your preferences in profile settings.",
+    footer:
+      "You're getting this because you're registered on OpenCourt.by. Change your preferences in profile settings.",
   },
   ru: {
     invitation_created: {
-      subject: "Приглашение в Bury Tennis 🎾",
-      intro: "Тренер {coach} пригласил тебя в свой клуб. Жми кнопку ниже — создай аккаунт и определи стартовый Эло (~60 секунд).",
+      subject: "Приглашение в OpenCourt.by 🎾",
+      intro:
+        "Тренер {coach} пригласил тебя в свой клуб на OpenCourt.by — открытой платформе для любителей тенниса в Беларуси. Жми кнопку ниже — создай аккаунт и определи стартовый Эло (~60 секунд).",
       cta: "Принять приглашение",
       ps: "Ссылка действительна 14 дней. Если письмо пришло по ошибке — игнорируй.",
     },
@@ -269,7 +210,8 @@ const COPY: Record<Locale, Strings> = {
       intro: "Сезон завершён. Посмотри своё место в рейтинге.",
       cta: "Открыть результаты",
     },
-    footer: "Ты получаешь это письмо, потому что зарегистрирован в Bury Tennis. Настроить уведомления можно в профиле.",
+    footer:
+      "Ты получаешь это письмо, потому что зарегистрирован на OpenCourt.by. Настроить уведомления можно в профиле.",
   },
 };
 
@@ -291,7 +233,7 @@ export function renderTemplate(
   locale: Locale,
   payload: Payload,
 ): RenderedEmail {
-  const L = COPY[locale] ?? COPY.pl;
+  const L = COPY[locale] ?? COPY.ru;
   const ftr = L.footer;
 
   switch (code) {

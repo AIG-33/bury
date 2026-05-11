@@ -44,7 +44,7 @@ export type TournamentRow = {
   ends_on: string | null;
   registration_deadline: string | null;
   max_participants: number | null;
-  entry_fee_pln: number | null;
+  entry_fee_byn: number | null;
   privacy: Privacy;
   status: TournamentStatus;
   draw_method: SeedingMethod | null;
@@ -93,9 +93,7 @@ export type PlayerOption = {
   current_elo: number;
 };
 
-type SaveResult =
-  | { ok: true; id: string }
-  | { ok: false; error: string };
+type SaveResult = { ok: true; id: string } | { ok: false; error: string };
 
 // =============================================================================
 // Auth — must be a coach (or admin).
@@ -127,8 +125,7 @@ async function requireCoach() {
 // =============================================================================
 
 export async function loadCoachTournaments(): Promise<
-  | { ok: true; tournaments: TournamentRow[] }
-  | { ok: false; error: string }
+  { ok: true; tournaments: TournamentRow[] } | { ok: false; error: string }
 > {
   const auth = await requireCoach();
   if (!auth.ok) return auth;
@@ -138,7 +135,7 @@ export async function loadCoachTournaments(): Promise<
     .from("tournaments")
     .select(
       "id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_pln, privacy, status, " +
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
         "draw_method, prizes_description, match_rules, created_at",
     )
     .eq("owner_coach_id", userId)
@@ -219,7 +216,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     .from("tournaments")
     .select(
       "id, owner_coach_id, name, description, format, surface, starts_on, start_time, " +
-        "ends_on, registration_deadline, max_participants, entry_fee_pln, privacy, status, " +
+        "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
         "draw_method, prizes_description, match_rules, created_at",
     )
     .eq("id", tournamentId)
@@ -315,8 +312,8 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
 
   const matches: MatchRow[] = (ms ?? []).map((m) => ({
     ...m,
-    p1_name: m.p1_id ? nameById.get(m.p1_id) ?? null : null,
-    p2_name: m.p2_id ? nameById.get(m.p2_id) ?? null : null,
+    p1_name: m.p1_id ? (nameById.get(m.p1_id) ?? null) : null,
+    p2_name: m.p2_id ? (nameById.get(m.p2_id) ?? null) : null,
   }));
 
   // Player options for the "add participant" picker. Same RLS reason
@@ -346,7 +343,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       ends_on: t.ends_on,
       registration_deadline: t.registration_deadline,
       max_participants: t.max_participants,
-      entry_fee_pln: t.entry_fee_pln,
+      entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
       status: t.status,
       draw_method: t.draw_method,
@@ -388,9 +385,7 @@ async function syncTournamentVenues(
     tournament_id: tournamentId,
     venue_id,
   }));
-  const { error: insErr } = await supabase
-    .from("tournament_venues")
-    .insert(rows as never);
+  const { error: insErr } = await supabase.from("tournament_venues").insert(rows as never);
   if (insErr) return { ok: false, error: insErr.message };
   return { ok: true };
 }
@@ -421,7 +416,7 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
         ? `${v.registration_deadline}T23:59:59Z`
         : null,
       max_participants: v.max_participants,
-      entry_fee_pln: v.entry_fee_pln,
+      entry_fee_byn: v.entry_fee_byn,
       privacy: v.privacy,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
@@ -441,10 +436,7 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
   return { ok: true, id: data.id };
 }
 
-export async function updateTournament(
-  id: string,
-  input: unknown,
-): Promise<SaveResult> {
+export async function updateTournament(id: string, input: unknown): Promise<SaveResult> {
   const auth = await requireCoach();
   if (!auth.ok) return { ok: false, error: auth.error };
   const { supabase, userId } = auth;
@@ -469,7 +461,7 @@ export async function updateTournament(
         ? `${v.registration_deadline}T23:59:59Z`
         : null,
       max_participants: v.max_participants,
-      entry_fee_pln: v.entry_fee_pln,
+      entry_fee_byn: v.entry_fee_byn,
       privacy: v.privacy,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
@@ -711,11 +703,9 @@ export async function generateBracket(
   if (method === "manual") {
     const seeded = (parts ?? [])
       .filter((p) => p.seed != null)
-      .sort((a, b) => (a.seed! - b.seed!))
+      .sort((a, b) => a.seed! - b.seed!)
       .map((p) => p.player_id);
-    const unseeded = (parts ?? [])
-      .filter((p) => p.seed == null)
-      .map((p) => p.player_id);
+    const unseeded = (parts ?? []).filter((p) => p.seed == null).map((p) => p.player_id);
     const ordering = [...seeded, ...unseeded];
     const byId = new Map(players.map((p) => [p.id, p] as const));
     orderedPlayers = ordering.map((id) => byId.get(id)!).filter(Boolean);
@@ -759,10 +749,7 @@ export async function generateBracket(
     rows = matches
       .filter((m) => m.p1_id || m.p2_id)
       .map((m) => {
-        const [p1, p2] =
-          m.p1_id == null && m.p2_id != null
-            ? [m.p2_id, null]
-            : [m.p1_id, m.p2_id];
+        const [p1, p2] = m.p1_id == null && m.p2_id != null ? [m.p2_id, null] : [m.p1_id, m.p2_id];
         const isAutoBye = m.round === 1 && (m.p1_id == null || m.p2_id == null);
         return {
           tournament_id: tournamentId,
@@ -777,9 +764,7 @@ export async function generateBracket(
       });
   }
 
-  const { error: insertErr } = await supabase
-    .from("matches")
-    .insert(rows as never);
+  const { error: insertErr } = await supabase.from("matches").insert(rows as never);
   if (insertErr) return { ok: false, error: insertErr.message };
 
   await supabase
@@ -795,9 +780,10 @@ export async function generateBracket(
 // Score entry → updates match + propagates winner into the next round.
 // =============================================================================
 
-export async function setMatchScore(input: unknown): Promise<
-  | { ok: true; eloP1Delta: number | null; eloP2Delta: number | null }
-  | { ok: false; error: string }
+export async function setMatchScore(
+  input: unknown,
+): Promise<
+  { ok: true; eloP1Delta: number | null; eloP2Delta: number | null } | { ok: false; error: string }
 > {
   const auth = await requireCoach();
   if (!auth.ok) return { ok: false, error: auth.error };
@@ -937,9 +923,7 @@ export type StandingsLine = StandingRow & {
   current_elo: number;
 };
 
-export async function loadRoundRobinStandings(
-  tournamentId: string,
-): Promise<StandingsLine[]> {
+export async function loadRoundRobinStandings(tournamentId: string): Promise<StandingsLine[]> {
   const supabase = await createSupabaseServerClient();
 
   const { data: parts } = (await supabase
@@ -990,9 +974,7 @@ export async function loadRoundRobinStandings(
       })),
   );
 
-  const profileById = new Map(
-    (parts ?? []).map((p) => [p.player_id, p.profiles] as const),
-  );
+  const profileById = new Map((parts ?? []).map((p) => [p.player_id, p.profiles] as const));
 
   return standings.map((s) => {
     const prof = profileById.get(s.player_id);
@@ -1004,4 +986,3 @@ export async function loadRoundRobinStandings(
     };
   });
 }
-

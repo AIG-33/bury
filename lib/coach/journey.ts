@@ -42,7 +42,7 @@ export async function loadCoachJourney(): Promise<
 
   const { data: profile } = (await supabase
     .from("profiles")
-    .select("id, is_coach, is_admin, coach_bio, coach_hourly_rate_pln")
+    .select("id, is_coach, is_admin, coach_bio, coach_hourly_rate_byn")
     .eq("id", user.id)
     .maybeSingle()) as {
     data: {
@@ -50,7 +50,7 @@ export async function loadCoachJourney(): Promise<
       is_coach: boolean;
       is_admin: boolean;
       coach_bio: string | null;
-      coach_hourly_rate_pln: number | null;
+      coach_hourly_rate_byn: number | null;
     } | null;
   };
 
@@ -66,7 +66,7 @@ export async function loadCoachJourney(): Promise<
   // pin would be busy-work that never closes the green check.
   const profileDone =
     Boolean(profile.coach_bio && profile.coach_bio.trim().length >= 30) &&
-    Boolean(profile.coach_hourly_rate_pln && profile.coach_hourly_rate_pln > 0);
+    Boolean(profile.coach_hourly_rate_byn && profile.coach_hourly_rate_byn > 0);
 
   const [slotsRes, acceptedInvitesRes, bookingsRes, tournamentsRes] = await Promise.all([
     supabase.from("slots").select("id", { count: "exact", head: true }).eq("owner_id", userId),

@@ -20,7 +20,7 @@ type Props = {
   labels: Labels;
 };
 
-const DEFAULT_CENTER: [number, number] = [21.0122, 52.2297]; // Warsaw
+const DEFAULT_CENTER: [number, number] = [27.5615, 53.9023]; // Minsk
 const DEFAULT_ZOOM = 5.2;
 const PIN_ZOOM = 13;
 
@@ -40,13 +40,7 @@ const OSM_STYLE = {
   layers: [{ id: "osm", type: "raster" as const, source: "osm" }],
 };
 
-export function CoachLocationPicker({
-  lat,
-  lng,
-  onPick,
-  onClear,
-  labels,
-}: Props) {
+export function CoachLocationPicker({ lat, lng, onPick, onClear, labels }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MlMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
@@ -86,8 +80,7 @@ export function CoachLocationPicker({
     }
     if (lat != null && lng != null) {
       const el = document.createElement("div");
-      el.className =
-        "h-7 w-7 rounded-full bg-grass-500 ring-4 ring-white shadow-lg";
+      el.className = "h-7 w-7 rounded-full bg-grass-500 ring-4 ring-white shadow-lg";
       const marker = new maplibregl.Marker({ element: el, draggable: true })
         .setLngLat([lng, lat])
         .addTo(m);
@@ -143,7 +136,7 @@ export function CoachLocationPicker({
             }
           }}
           placeholder={labels.search_placeholder}
-          className="h-10 flex-1 min-w-[200px] rounded-lg border border-ink-200 bg-white px-3 text-sm focus:border-grass-400 focus:outline-none"
+          className="h-10 min-w-[200px] flex-1 rounded-lg border border-ink-200 bg-white px-3 text-sm focus:border-grass-400 focus:outline-none"
         />
         <button
           type="button"

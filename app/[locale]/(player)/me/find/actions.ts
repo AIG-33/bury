@@ -41,6 +41,9 @@ const FiltersSchema = z.object({
     .default([]),
   hand: z.enum(["R", "L", "both"]).default("both"),
   query: z.string().trim().max(80).default(""),
+  ltOnly: z.boolean().default(false),
+  ltEloMin: z.coerce.number().int().min(0).max(3500).nullable().default(null),
+  ltEloMax: z.coerce.number().int().min(0).max(3500).nullable().default(null),
 });
 
 export type SearchInput = z.input<typeof FiltersSchema>;
@@ -56,7 +59,7 @@ export async function loadDistrictOptions(): Promise<DistrictOption[]> {
   const { data } = (await supabase
     .from("districts")
     .select("id, name, city")
-    .eq("country", "PL")
+    .eq("country", "BY")
     .order("city", { ascending: true })) as {
     data: Array<{ id: string; name: string; city: string }> | null;
   };
@@ -104,9 +107,7 @@ export type UpdateAvailabilityResult =
       message?: string;
     };
 
-export async function updateMyAvailability(
-  input: unknown,
-): Promise<UpdateAvailabilityResult> {
+export async function updateMyAvailability(input: unknown): Promise<UpdateAvailabilityResult> {
   const parsed = AvailabilitySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid_payload" };
 
@@ -152,14 +153,12 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
     .select("id, current_elo, district_id, availability")
     .eq("id", user.id)
     .single()) as {
-    data:
-      | {
-          id: string;
-          current_elo: number;
-          district_id: string | null;
-          availability: Partial<Availability> | null;
-        }
-      | null;
+    data: {
+      id: string;
+      current_elo: number;
+      district_id: string | null;
+      availability: Partial<Availability> | null;
+    } | null;
   };
   if (!meRow) return { ok: false, error: "no_profile" };
 
@@ -211,11 +210,7 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
 
   // District names lookup (one extra query, cheap thanks to small set).
   const districtIds = Array.from(
-    new Set(
-      (rawCandidates ?? [])
-        .map((c) => c.district_id)
-        .filter((x): x is string => Boolean(x)),
-    ),
+    new Set((rawCandidates ?? []).map((c) => c.district_id).filter((x): x is string => Boolean(x))),
   );
   const districtNames = new Map<string, string>();
   if (districtIds.length > 0) {
@@ -242,29 +237,77 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
   }
   excludeIds.delete(seeker.id);
 
+  // Lookup external ratings for the SQL pre-filtered candidate set so the
+  // ranker can apply the LT-Elo filter and the UI can show the LT badge
+  // next to each result. Public-readable (RLS allows anon) so this is a
+  // single round-trip via the regular client.
+  const candidateIds = (rawCandidates ?? []).map((c) => c.id);
+  const externalRatingByPlayer = new Map<
+    string,
+    {
+      external_url: string;
+      display_tier: string;
+      external_elo: number;
+      external_elo_doubles: number | null;
+      is_calibrating_singles: boolean;
+    }
+  >();
+  if (candidateIds.length > 0) {
+    const { data: ext } = (await supabase
+      .from("external_ratings")
+      .select(
+        "player_id, external_url, display_tier, external_elo, " +
+          "external_elo_doubles, is_calibrating_singles",
+      )
+      .eq("source", "liga_tennisa")
+      .in("player_id", candidateIds)) as {
+      data: Array<{
+        player_id: string;
+        external_url: string;
+        display_tier: string;
+        external_elo: number;
+        external_elo_doubles: number | null;
+        is_calibrating_singles: boolean;
+      }> | null;
+    };
+    for (const r of ext ?? []) {
+      externalRatingByPlayer.set(r.player_id, {
+        external_url: r.external_url,
+        display_tier: r.display_tier,
+        external_elo: r.external_elo,
+        external_elo_doubles: r.external_elo_doubles,
+        is_calibrating_singles: r.is_calibrating_singles,
+      });
+    }
+  }
+
   const now = Date.now();
-  const candidates: FindPlayerCandidate[] = (rawCandidates ?? []).map((c) => ({
-    id: c.id,
-    display_name: c.display_name,
-    avatar_url: c.avatar_url,
-    city: c.city,
-    district_id: c.district_id,
-    district_name: c.district_id ? (districtNames.get(c.district_id) ?? null) : null,
-    current_elo: c.current_elo,
-    elo_status: c.elo_status,
-    rated_matches_count: c.rated_matches_count,
-    dominant_hand: c.dominant_hand,
-    backhand_style: c.backhand_style,
-    favorite_surface: c.favorite_surface,
-    whatsapp: c.whatsapp,
-    telegram_username: c.telegram_username,
-    social_links: { ...EMPTY_SOCIAL_LINKS, ...(c.social_links ?? {}) },
-    availability: { ...EMPTY_AVAILABILITY, ...(c.availability ?? {}) } as Availability,
-    days_since_last_match:
-      c.last_match_at != null
-        ? Math.floor((now - Date.parse(c.last_match_at)) / (24 * 60 * 60 * 1000))
-        : null,
-  }));
+  const candidates: FindPlayerCandidate[] = (rawCandidates ?? []).map((c) => {
+    const ext = externalRatingByPlayer.get(c.id);
+    return {
+      id: c.id,
+      display_name: c.display_name,
+      avatar_url: c.avatar_url,
+      city: c.city,
+      district_id: c.district_id,
+      district_name: c.district_id ? (districtNames.get(c.district_id) ?? null) : null,
+      current_elo: c.current_elo,
+      elo_status: c.elo_status,
+      rated_matches_count: c.rated_matches_count,
+      dominant_hand: c.dominant_hand,
+      backhand_style: c.backhand_style,
+      favorite_surface: c.favorite_surface,
+      whatsapp: c.whatsapp,
+      telegram_username: c.telegram_username,
+      social_links: { ...EMPTY_SOCIAL_LINKS, ...(c.social_links ?? {}) },
+      availability: { ...EMPTY_AVAILABILITY, ...(c.availability ?? {}) } as Availability,
+      days_since_last_match:
+        c.last_match_at != null
+          ? Math.floor((now - Date.parse(c.last_match_at)) / (24 * 60 * 60 * 1000))
+          : null,
+      external_rating: ext ? { source: "liga_tennisa", ...ext } : null,
+    };
+  });
 
   const ranked = rankCandidates(candidates, seeker, filters, excludeIds).slice(0, 50);
 
@@ -310,15 +353,13 @@ export async function proposeMatch(input: unknown): Promise<ProposeResult> {
   // Look up opponent (need email + locale + display name + visibility).
   const { data: opponent } = (await supabase
     .from("profiles")
-    .select(
-      "id, display_name, locale, current_elo, visible_in_find_player, notification_email",
-    )
+    .select("id, display_name, locale, current_elo, visible_in_find_player, notification_email")
     .eq("id", opponent_id)
     .single()) as {
     data: {
       id: string;
       display_name: string | null;
-      locale: "pl" | "en" | "ru";
+      locale: "ru" | "en";
       current_elo: number;
       visible_in_find_player: boolean;
       notification_email: boolean;
@@ -335,7 +376,7 @@ export async function proposeMatch(input: unknown): Promise<ProposeResult> {
     data: {
       display_name: string | null;
       current_elo: number;
-      locale: "pl" | "en" | "ru";
+      locale: "ru" | "en";
     } | null;
   };
 
@@ -547,9 +588,7 @@ export async function loadMyProposals(): Promise<{
   };
 
   const otherIds = Array.from(
-    new Set(
-      (rows ?? []).map((m) => (m.p1_id === user.id ? m.p2_id : m.p1_id)),
-    ),
+    new Set((rows ?? []).map((m) => (m.p1_id === user.id ? m.p2_id : m.p1_id))),
   );
 
   const peopleById = new Map<string, ProposalRow["other"]>();
@@ -588,4 +627,3 @@ export async function loadMyProposals(): Promise<{
     history: all.filter((r) => r.outcome !== "proposed"),
   };
 }
-

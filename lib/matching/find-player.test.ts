@@ -27,20 +27,21 @@ function makeCandidate(overrides: Partial<FindPlayerCandidate>): FindPlayerCandi
     id: "c1",
     display_name: "Test Candidate",
     avatar_url: null,
-    city: "Warszawa",
+    city: "Минск",
     district_id: "dist-A",
-    district_name: "Mokotów",
+    district_name: "Центральный",
     current_elo: 1200,
     elo_status: "established",
     rated_matches_count: 30,
     dominant_hand: "R",
     backhand_style: "two_handed",
     favorite_surface: "clay",
-    whatsapp: "+48600000000",
+    whatsapp: "+375291234567",
     telegram_username: null,
     social_links: EMPTY_SOCIAL_LINKS,
     availability: { ...EMPTY_AVAILABILITY, mon: ["evening"], wed: ["evening"] },
     days_since_last_match: 5,
+    external_rating: null,
     ...overrides,
   };
 }
@@ -51,6 +52,9 @@ const noFilters: FindPlayerFilters = {
   desiredSlots: [],
   hand: "both",
   query: "",
+  ltOnly: false,
+  ltEloMin: null,
+  ltEloMax: null,
 };
 
 describe("computeOverlap", () => {
@@ -191,5 +195,52 @@ describe("rankCandidates", () => {
     const ranked = rankCandidates([meh, great], baseSeeker, noFilters);
     expect(ranked[0].id).toBe("great");
     expect(ranked[1].id).toBe("meh");
+  });
+
+  describe("Liga Tennisa filter", () => {
+    const withLt = (id: string, elo: number) =>
+      makeCandidate({
+        id,
+        external_rating: {
+          source: "liga_tennisa",
+          external_url: `https://www.ligatennisa.com/players/${id}`,
+          display_tier: "Legger",
+          external_elo: elo,
+          external_elo_doubles: null,
+          is_calibrating_singles: false,
+        },
+      });
+
+    it("ltOnly excludes candidates without an LT rating", () => {
+      const ranked = rankCandidates(
+        [makeCandidate({ id: "no_lt" }), withLt("with_lt", 1500)],
+        baseSeeker,
+        { ...noFilters, ltOnly: true },
+      );
+      expect(ranked.map((c) => c.id)).toEqual(["with_lt"]);
+    });
+
+    it("ltEloMin/Max narrow the range and imply ltOnly", () => {
+      const ranked = rankCandidates(
+        [
+          makeCandidate({ id: "no_lt" }),
+          withLt("low", 1100),
+          withLt("mid", 1500),
+          withLt("high", 2000),
+        ],
+        baseSeeker,
+        { ...noFilters, ltEloMin: 1400, ltEloMax: 1700 },
+      );
+      expect(ranked.map((c) => c.id)).toEqual(["mid"]);
+    });
+
+    it("only ltEloMin (no max) — open-ended upper bound", () => {
+      const ranked = rankCandidates(
+        [makeCandidate({ id: "no_lt" }), withLt("low", 1100), withLt("high", 2000)],
+        baseSeeker,
+        { ...noFilters, ltEloMin: 1500 },
+      );
+      expect(ranked.map((c) => c.id)).toEqual(["high"]);
+    });
   });
 });
