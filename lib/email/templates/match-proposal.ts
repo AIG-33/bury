@@ -21,7 +21,7 @@ const COPY: Record<
     cta: "Open proposal",
     whatsapp_hint:
       "Tip: in Belarus WhatsApp is the fastest way to coordinate. The proposal page has a one-tap “Message on WhatsApp” button.",
-    footer: "OpenCourt.by — universal Elo rating for every amateur tennis player in Belarus.",
+    footer: "playtennis.by — find a sparring partner, a coach or a tournament for amateur tennis in Belarus.",
   },
   ru: {
     subject: (n) => `${n} предлагает сыграть теннисный матч`,
@@ -32,7 +32,7 @@ const COPY: Record<
     cta: "Открыть предложение",
     whatsapp_hint:
       "Подсказка: в Беларуси быстрее всего договариваться через WhatsApp. На странице предложения есть кнопка «Написать в WhatsApp».",
-    footer: "OpenCourt.by — единый Эло-рейтинг для всех любителей тенниса в Беларуси.",
+    footer: "playtennis.by — спарринг, тренеры и турниры для любителей тенниса в Беларуси.",
   },
 };
 

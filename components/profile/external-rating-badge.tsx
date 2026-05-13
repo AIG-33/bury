@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Compact pill that surfaces a player's external (e.g. Liga Tennisa) rating
- * next to their primary OpenCourt.by Elo. Server-renderable; deep-links to
+ * next to their primary playtennis.by Elo. Server-renderable; deep-links to
  * the source profile so anyone reading the badge can verify the value.
  *
  * Used by:

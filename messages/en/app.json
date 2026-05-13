@@ -867,7 +867,7 @@
       "cta_primary_authed": "Open my dashboard",
       "cta_secondary": "Open tournaments",
       "quote_text": "\u201CFewer chats, more tennis. Run your own tournaments and invite everyone — we'll handle the logistics.\u201D",
-      "quote_author": "— OpenCourt.by · the open amateur-tennis community of Belarus."
+      "quote_author": "— playtennis.by · the open amateur-tennis community of Belarus."
     }
   },
   "helpDemo": {
@@ -1135,7 +1135,7 @@
       "what": {
         "1": "Type your first/last name (as on ligatennisa.com); add your city to break ties. We'll show 8 closest matches.",
         "2": "Click 'Pick' on the right profile — you'll see a card with tier, Elo and basic data.",
-        "3": "Confirm the import — the rating copies to us; your OpenCourt.by profile fills in from Liga Tennisa where it's blank."
+        "3": "Confirm the import — the rating copies to us; your playtennis.by profile fills in from Liga Tennisa where it's blank."
       },
       "result": {
         "1": "Starting Elo = your Liga Tennisa Elo (clamped to 800–2200 if outside).",
@@ -1166,11 +1166,11 @@
       "tier": "Tier",
       "singles_elo": "Singles Elo",
       "doubles_elo": "Doubles Elo",
-      "calibrating": "This profile is still calibrating in Liga Tennisa — its Elo may move further. We'll still seed your OpenCourt.by Elo from it; our matches will refine it.",
+      "calibrating": "This profile is still calibrating in Liga Tennisa — its Elo may move further. We'll still seed your playtennis.by Elo from it; our matches will refine it.",
       "ranking": "Ranking position",
       "wins": "Singles wins",
-      "seed_hint": "Your starting OpenCourt.by Elo will be {elo} — exactly your Liga Tennisa value.",
-      "seed_clamped_hint": "Your starting OpenCourt.by Elo will be {elo} (our scale is capped to 800–2200, so the value was nudged into range).",
+      "seed_hint": "Your starting playtennis.by Elo will be {elo} — exactly your Liga Tennisa value.",
+      "seed_clamped_hint": "Your starting playtennis.by Elo will be {elo} (our scale is capped to 800–2200, so the value was nudged into range).",
       "seed_fallback_hint": "We couldn't find a numeric Elo on the profile — we'll use our default starting value {elo} and let matches refine it.",
       "copy_label": "Fill in my empty profile fields",
       "copy_hint": "Name, avatar, date of birth, city, dominant hand, backhand and Instagram will be copied from Liga Tennisa. Fields you've already filled stay as-is.",
@@ -1550,7 +1550,7 @@
       "evening": "Evening",
       "late": "Late"
     },
-    "whatsapp_prefill": "Hi {name}! From OpenCourt.by — got time for a match?",
+    "whatsapp_prefill": "Hi {name}! From playtennis.by — got time for a match?",
     "focus": {
       "banner_title": "Opponent from the public catalogue",
       "banner_description": "This is the player you picked from the directory. Send a proposal or close to fall back to the filters.",
@@ -1609,7 +1609,7 @@
         "whatsapp": "WhatsApp",
         "optional_note": "Note (optional)",
         "confirm": "Confirm",
-        "whatsapp_prefill": "Hi {name}! About the OpenCourt.by match…"
+        "whatsapp_prefill": "Hi {name}! About the playtennis.by match…"
       }
     }
   },
@@ -2067,7 +2067,7 @@
       "no_whatsapp": "Coach has no WhatsApp linked",
       "notes_label": "Note for coach",
       "notes_placeholder": "Anything I should know? (injury, late arrival, …)",
-      "whatsapp_prefill": "Hi {name}! It's about my OpenCourt.by booking — quick question:"
+      "whatsapp_prefill": "Hi {name}! It's about my playtennis.by booking — quick question:"
     },
     "status_options": {
       "pending": "Pending",

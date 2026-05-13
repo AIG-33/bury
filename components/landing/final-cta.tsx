@@ -11,7 +11,7 @@ type Props = {
   secondaryCtaHref: string;
 };
 
-// Closing module: a single big CTA + the OpenCourt.by mission line.
+// Closing module: a single big CTA + the playtennis.by mission line.
 // Kept extremely calm visually — the page already has plenty of motion.
 export function FinalCta({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref }: Props) {
   const t = useTranslations("landing.final");

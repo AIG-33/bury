@@ -26,41 +26,43 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "OpenCourt.by — Платформа любительского тенниса в Беларуси",
-    template: "%s · OpenCourt.by",
+    default: "playtennis.by — найди соперника, тренера и турнир в Беларуси",
+    template: "%s · playtennis.by",
   },
   description:
-    "Открытая платформа для всех любителей тенниса в Беларуси: единый Эло на все матчи, поиск соперника, турниры и тренеры — в одном месте.",
+    "Открытая платформа любительского тенниса в Беларуси: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
   keywords: [
     "tennis",
     "amateur tennis",
-    "open court",
-    "Elo rating",
-    "find a player",
-    "tournaments",
+    "find a sparring partner",
+    "tennis coach",
+    "tennis tournaments",
     "Minsk tennis",
     "Belarus tennis",
     "теннис",
     "любительский теннис",
+    "найти спарринг-партнёра",
+    "тренер по теннису",
+    "теннисные турниры",
     "теннис Минск",
     "теннис Беларусь",
-    "OpenCourt.by",
+    "playtennis.by",
   ],
-  authors: [{ name: "OpenCourt.by" }],
+  authors: [{ name: "playtennis.by" }],
   openGraph: {
     type: "website",
-    title: "OpenCourt.by — единый Эло, соперники, турниры",
+    title: "playtennis.by — спарринг, тренер и турниры в одном месте",
     description:
-      "Один Эло-рейтинг на все матчи, поиск соперника по уровню и району, турниры в любых форматах. Открытая платформа для любителей тенниса в Беларуси.",
-    siteName: "OpenCourt.by",
+      "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса в Беларуси.",
+    siteName: "playtennis.by",
     locale: "ru_BY",
     alternateLocale: ["en_US"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OpenCourt.by — единый Эло, соперники, турниры",
+    title: "playtennis.by — спарринг, тренер и турниры в одном месте",
     description:
-      "Один Эло-рейтинг на все матчи, поиск соперника по уровню и району, турниры в любых форматах. Открытая платформа для любителей тенниса в Беларуси.",
+      "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса в Беларуси.",
   },
   robots: {
     index: true,
@@ -70,7 +72,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "OpenCourt.by",
+    title: "playtennis.by",
   },
   icons: {
     icon: [

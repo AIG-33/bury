@@ -3,7 +3,7 @@
 //
 // Why this file exists separately from `lib/rating/external/liga-tennisa.ts`:
 //   * `liga-tennisa.ts` is pure logic + thin upstream IO (testable, no DB).
-//   * This file does the OpenCourt.by side: writes to `external_ratings`,
+//   * This file does the playtennis.by side: writes to `external_ratings`,
 //     updates `profiles`, appends to `rating_history`. It must NEVER be
 //     called directly from the browser — it is wrapped by per-page
 //     `"use server"` modules (see
@@ -475,7 +475,7 @@ export async function confirmImportFromLt(
 // ---------------------------------------------------------------------------
 // REFRESH — re-fetch upstream and update external_ratings ONLY.
 //
-// Does NOT touch `profiles.current_elo`: by design the OpenCourt.by rating
+// Does NOT touch `profiles.current_elo`: by design the playtennis.by rating
 // evolves independently after the initial import. The badge stays in sync
 // with LT via this manual refresh.
 // ---------------------------------------------------------------------------

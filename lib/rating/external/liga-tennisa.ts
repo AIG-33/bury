@@ -37,7 +37,7 @@ import {
 export const LT_BASE_URL = "https://www.ligatennisa.com";
 export const LT_API_PLAYERS = `${LT_BASE_URL}/api/players`;
 export const LT_PROFILE_URL_PREFIX = `${LT_BASE_URL}/players`;
-export const LT_USER_AGENT = "OpenCourtBY/1.0 (+https://opencourt.by)";
+export const LT_USER_AGENT = "PlayTennisBY/1.0 (+https://playtennis.by)";
 
 /** Soft TTL for the in-process cache of the full player list (10 minutes). */
 const LIST_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -96,7 +96,7 @@ export function ltTierForElo(elo: number | null | undefined): LtTier {
 }
 
 // ---------------------------------------------------------------------------
-// Local Elo seeding (OpenCourt.by side)
+// Local Elo seeding (playtennis.by side)
 //   Per product decision (see docs/external-ratings.md), when a new player
 //   imports from LT during onboarding we seed our `profiles.current_elo`
 //   from their LT singles Elo. We clamp to our 800–2200 range so the value
@@ -111,7 +111,7 @@ export const LOCAL_ELO_MAX = 2200;
 export const LOCAL_ELO_FALLBACK = 1000;
 
 /**
- * Convert an LT Elo into a starting OpenCourt.by Elo.
+ * Convert an LT Elo into a starting playtennis.by Elo.
  *
  * Rules:
  *   * NULL / non-finite / 0 → fallback (1000), the same default our

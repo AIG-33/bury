@@ -67,7 +67,7 @@ export default async function LoginPage({ params }: Props) {
         </div>
 
         <p className="mt-6 text-center font-mono text-[11.5px] uppercase tracking-[0.18em] text-ink-500">
-          OpenCourt.by · Беларусь · Любительский теннис
+          playtennis.by · Беларусь · Любительский теннис
         </p>
       </div>
     </section>

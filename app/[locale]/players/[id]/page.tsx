@@ -20,7 +20,7 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 /**
  * Build a schema.org `SportsPerson` JSON-LD payload so search engines can
  * surface player profiles as rich-results candidates and link them to the
- * OpenCourt.by sports organization. We deliberately surface only public-
+ * playtennis.by sports organization. We deliberately surface only public-
  * safe fields (the same allowlist enforced by `lib/players/public-card.ts`)
  * and omit everything that could be considered PII.
  */
@@ -60,7 +60,7 @@ function buildPlayerJsonLd(
     sameAs: sameAs.length > 0 ? sameAs : undefined,
     memberOf: {
       "@type": "SportsOrganization",
-      name: "OpenCourt.by",
+      name: "playtennis.by",
       url: SITE_URL,
     },
   };

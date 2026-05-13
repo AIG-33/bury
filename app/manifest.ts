@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "OpenCourt.by — Платформа любительского тенниса",
-    short_name: "OpenCourt.by",
+    name: "playtennis.by — спарринг, тренер и турниры",
+    short_name: "playtennis.by",
     description:
-      "Открытая платформа для любителей тенниса в Беларуси: единый Эло на все матчи, поиск соперника, турниры и тренеры.",
+      "Открытая платформа любительского тенниса в Беларуси: находи соперника, выбирай тренера, записывайся в турниры или создавай свои.",
     start_url: "/",
     scope: "/",
     display: "standalone",
