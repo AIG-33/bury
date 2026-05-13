@@ -646,76 +646,92 @@
   "landing": {
     "hero": {
       "eyebrow": "Amateur tennis in Belarus",
-      "title": "Your tennis ranking. No compromises. One Elo across every match.",
-      "subtitle": "One Elo rating that follows you everywhere. Find an opponent, play a tournament, check coaches — in one place.",
-      "cta_primary": "Let's go!"
+      "badge_free": "Free for players",
+      "title_line_1": "Find an opponent,",
+      "title_line_2": "play the match,",
+      "title_line_3": "track your rating.",
+      "subtitle": "The amateur-tennis platform for Belarus. One Elo rating across every match — friendlies, leagues and tournaments. Same-level opponents in your district. Coaches with real reviews.",
+      "cta_primary": "Sign up · 1 minute",
+      "cta_primary_authed": "Open my dashboard",
+      "cta_secondary": "Player leaderboard",
+      "scroll": "Next"
     },
-    "features": {
-      "title": "What you can do here",
-      "rating": {
-        "title": "Universal ranking",
-        "body": "One Elo for all your matches — friendlies, tournaments, leagues."
-      },
-      "find": {
-        "title": "Find an opponent",
-        "body": "Filter by district, level and your free time. A match in two clicks."
-      },
-      "coaches": {
-        "title": "Coaches with reviews",
-        "body": "Real ratings from players who actually trained with them."
-      },
-      "tournaments": {
-        "title": "Tournaments your way",
-        "body": "Best-of-3, super-tiebreak, timed match, first-to-X-games. You choose how to play."
+    "trust": {
+      "label": "Already running",
+      "items": {
+        "cities": { "value": "12", "label": "cities in Belarus" },
+        "venues": { "value": "26", "label": "tennis venues" },
+        "formats": { "value": "6", "label": "tournament formats" },
+        "import": { "value": "Import", "label": "rating from ligatennisa.com" }
       }
     },
-    "quote": {
-      "text": "\u201CTennis is small choices repeated thousands of times. We just count them honestly.\u201D",
-      "author": "— OpenCourt.by · the open amateur-tennis community of Belarus."
-    },
-    "v2": {
-      "meta": {
-        "city": "MINSK · BELARUS",
-        "est": "AMATEUR LEAGUE",
-        "tagline_top": "AMATEUR · PLAYER · COMMUNITY"
-      },
-      "hero": {
-        "first_name": "Open",
-        "last_name": "Court.by",
-        "tagline": "An open court for every amateur. One rating — every match.",
-        "scroll": "Scroll"
-      },
-      "pillars": {
-        "section_label": "01 — What you do here",
-        "title": "Three pillars. One platform.",
-        "subtitle": "Everything you need to take your tennis seriously — in one place.",
-        "items": {
-          "rating": {
-            "index": "01",
-            "name": "Book a coaching session",
-            "body": "Pick a coach matched to your level and goals, and book a court in two clicks. The right mentor turns weeks of guesswork into measurable progress — and bad habits gone for good.",
-            "stat_label": "Progress with a coach",
-            "stat_value": "2× faster",
-            "cta": "Book a coach"
-          },
-          "find": {
-            "index": "02",
-            "name": "Find a player",
-            "body": "Filter by district, level and your free time. A match in two clicks, contact on WhatsApp.",
-            "stat_label": "Average match time",
-            "stat_value": "2 days",
-            "cta": "Find an opponent"
-          },
-          "tournaments": {
-            "index": "03",
-            "name": "Tournaments for every taste",
-            "body": "Best-of-3, super-tiebreak, timed match, first-to-X-games — pick the format, we'll run the bracket. Tournaments in every format: weekend events, evening series or a one-day grind.",
-            "stat_label": "Any format",
-            "stat_value": "6 types",
-            "cta": "Pick a tournament"
-          }
+    "benefits": {
+      "eyebrow": "01 — What you get",
+      "title": "Everything you need to play and improve",
+      "subtitle": "No more WhatsApp threads, Google sheets and guessing who's stronger. Every match feeds the same rating, every tournament is scored the same honest way.",
+      "items": {
+        "rating": {
+          "title": "One Elo across every match",
+          "body": "Your rating updates automatically after every confirmed match — friendly, league or tournament. Already on ligatennisa.com? We import your current level.",
+          "tag": "Universal Elo"
+        },
+        "find": {
+          "title": "Same-level opponents",
+          "body": "Filter by district, rating (±100 Elo) and your free time. The \"Propose match\" button creates the meeting; you finalise it on WhatsApp.",
+          "tag": "Find a player"
+        },
+        "tournaments": {
+          "title": "Tournaments with a fair bracket",
+          "body": "Single Elimination, Round Robin, Swiss, Group + Playoff and 2 more formats. Bracket, scoring and Elo recalc are on us — you just play.",
+          "tag": "6 formats"
+        },
+        "coaches": {
+          "title": "Coaches with real reviews",
+          "body": "Only players with a confirmed booking or match in the past 90 days can leave a review. No fake five-stars.",
+          "tag": "Trust"
         }
       }
+    },
+    "how": {
+      "eyebrow": "02 — How it works",
+      "title": "Four steps to your first ranked match",
+      "steps": {
+        "register": {
+          "n": "01",
+          "title": "Sign up",
+          "body": "Email magic link or Google. No passwords, no 30-minute forms."
+        },
+        "quiz": {
+          "n": "02",
+          "title": "Take the quiz",
+          "body": "7–12 questions about your experience, frequency and stroke confidence. You get a starting Elo and a higher K-factor for your first 10 matches."
+        },
+        "play": {
+          "n": "03",
+          "title": "Play",
+          "body": "Find an opponent in your district, register for an open tournament or book a coach. A match in two clicks."
+        },
+        "elo": {
+          "n": "04",
+          "title": "Rating updates",
+          "body": "Both players confirm the score, Elo recalculates in seconds. The seasonal race runs automatically."
+        }
+      }
+    },
+    "coach_cta": {
+      "eyebrow": "Coach or club",
+      "title": "Run tournaments and clients without a website or Google sheets",
+      "body": "Player cards, training schedule, 5-step tournament wizard, auto-bracket, Elo recalc and a public profile with reviews — already in the box.",
+      "cta": "Coach profile"
+    },
+    "final": {
+      "title": "Ready to start?",
+      "body": "Registration takes a minute. Your starting Elo is ready right after the quiz.",
+      "cta_primary": "Sign up",
+      "cta_primary_authed": "Open my dashboard",
+      "cta_secondary": "Open the leaderboard",
+      "quote_text": "\u201CTennis is small choices repeated thousands of times. We just count them honestly.\u201D",
+      "quote_author": "— OpenCourt.by · the open amateur-tennis community of Belarus."
     }
   },
   "helpDemo": {

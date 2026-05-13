@@ -1,29 +1,41 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { LandingHero } from "@/components/landing/landing-hero";
-import { PillarsSection } from "@/components/landing/pillars-section";
+import { BenefitsSection } from "@/components/landing/benefits-section";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { CoachCta } from "@/components/landing/coach-cta";
+import { FinalCta } from "@/components/landing/final-cta";
 
 type Props = { params: Promise<{ locale: string }> };
 
 type LandingHrefs = {
   primary: string;
+  primaryLabelKey: "cta_primary" | "cta_primary_authed";
+  secondary: string;
   rating: string;
   find: string;
   tournaments: string;
+  coaches: string;
+  coachCta: string;
 };
 
 // Resolve all landing CTAs in one Supabase round-trip.
-// Signed-in coach/admin → coach dashboard; signed-in player → player area.
-// Anonymous visitors get sent to PUBLIC catalogues whenever possible — only
-// the homepage's primary CTA pushes them toward /login. Critically, the
-// "find a sparring partner" pillar now points at the public `/players`
-// catalogue so guests can see real opponents before deciding to register.
+// - Anonymous visitors: primary → /login (sign-up funnel),
+//   secondary → /leaderboard (low-friction exploration), benefit cards
+//   → public catalogues so guests can browse real data.
+// - Signed-in player: primary → /me/rating (their dashboard), benefit cards
+//   point at their personal pages.
+// - Signed-in coach/admin: primary → /coach/dashboard.
 async function resolveLandingHrefs(): Promise<LandingHrefs> {
   const fallback: LandingHrefs = {
     primary: "/login",
-    rating: "/coaches",
+    primaryLabelKey: "cta_primary",
+    secondary: "/leaderboard",
+    rating: "/leaderboard",
     find: "/players",
     tournaments: "/tournaments",
+    coaches: "/coaches",
+    coachCta: "/login",
   };
   try {
     const supabase = await createSupabaseServerClient();
@@ -41,9 +53,13 @@ async function resolveLandingHrefs(): Promise<LandingHrefs> {
     const isStaff = !!(profile?.is_coach || profile?.is_admin);
     return {
       primary: isStaff ? "/coach/dashboard" : "/me/rating",
-      rating: "/coaches",
+      primaryLabelKey: "cta_primary_authed",
+      secondary: "/leaderboard",
+      rating: "/me/rating",
       find: "/me/find",
       tournaments: "/me/tournaments",
+      coaches: "/coaches",
+      coachCta: isStaff ? "/coach/dashboard" : "/me/profile",
     };
   } catch {
     return fallback;
@@ -58,11 +74,23 @@ export default async function LandingPage({ params }: Props) {
 
   return (
     <>
-      <LandingHero primaryCtaHref={hrefs.primary} primaryCtaLabel={t("hero.cta_primary")} />
-      <PillarsSection
+      <LandingHero
+        primaryCtaHref={hrefs.primary}
+        primaryCtaLabel={t(`hero.${hrefs.primaryLabelKey}`)}
+        secondaryCtaHref={hrefs.secondary}
+      />
+      <BenefitsSection
         ratingHref={hrefs.rating}
         findHref={hrefs.find}
         tournamentsHref={hrefs.tournaments}
+        coachesHref={hrefs.coaches}
+      />
+      <HowItWorks />
+      <CoachCta ctaHref={hrefs.coachCta} />
+      <FinalCta
+        primaryCtaHref={hrefs.primary}
+        primaryCtaLabel={t(`final.${hrefs.primaryLabelKey}`)}
+        secondaryCtaHref={hrefs.secondary}
       />
     </>
   );

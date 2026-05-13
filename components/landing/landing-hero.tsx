@@ -1,122 +1,156 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { LivingBall } from "./living-ball";
-import { MagneticCTA } from "./magnetic-cta";
-import { ScrollCue } from "./scroll-cue";
-import { LightTennisBackdrop } from "./light-tennis-backdrop";
 import type { Route } from "next";
+import { ArrowRight, BarChart3 } from "lucide-react";
+import { LivingBall } from "./living-ball";
+import { LightTennisBackdrop } from "./light-tennis-backdrop";
 
 type Props = {
   primaryCtaHref: string;
   primaryCtaLabel: string;
+  secondaryCtaHref: string;
 };
 
-export function LandingHero({ primaryCtaHref, primaryCtaLabel }: Props) {
-  const t = useTranslations("landing.v2");
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+// Hero is intentionally value-first: a plain-language promise is the H1 (not
+// the brand), two CTAs reduce sign-up friction, and a four-stat trust strip
+// gives anonymous visitors immediate proof the platform is real.
+export function LandingHero({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref }: Props) {
+  const t = useTranslations("landing.hero");
+  const tt = useTranslations("landing.trust");
+
+  const trust = [
+    {
+      key: "cities",
+      value: tt("items.cities.value"),
+      label: tt("items.cities.label"),
+    },
+    {
+      key: "venues",
+      value: tt("items.venues.value"),
+      label: tt("items.venues.label"),
+    },
+    {
+      key: "formats",
+      value: tt("items.formats.value"),
+      label: tt("items.formats.label"),
+    },
+    {
+      key: "import",
+      value: tt("items.import.value"),
+      label: tt("items.import.label"),
+    },
+  ] as const;
 
   return (
     <section className="film-grain relative isolate overflow-hidden bg-grass-50 text-ink-900">
-      {/* Abstract tennis backdrop — soft green wash + glowing yellow ball halo */}
       <LightTennisBackdrop className="-z-10" />
 
-      <div className="relative mx-auto flex min-h-[78svh] max-w-[1440px] flex-col px-6 pt-20 md:min-h-[84svh] md:px-12 md:pt-24">
-        {/* Eyebrow row */}
+      <div className="relative mx-auto flex max-w-[1280px] flex-col px-6 pt-16 md:px-12 md:pt-20">
+        {/* Eyebrow row: factual, no buzzwords */}
         <motion.div
-          className="flex items-center justify-between"
+          className="flex flex-wrap items-center gap-3"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+          transition={{ duration: 0.7, ease: EASE }}
         >
-          <span className="label-eyebrow">{t("meta.tagline_top")}</span>
-          <span className="label-eyebrow hidden md:inline">
-            {t("meta.city")} · {t("meta.est")}
+          <span className="label-eyebrow">{t("eyebrow")}</span>
+          <span
+            className="inline-flex h-6 items-center gap-1.5 rounded-full bg-grass-700/10 px-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-grass-800"
+            aria-label={t("badge_free")}
+          >
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-grass-700" />
+            {t("badge_free")}
           </span>
         </motion.div>
 
-        {/* Stage */}
-        <div className="relative mt-4 grid flex-1 grid-cols-12 items-center gap-6 md:mt-6">
-          {/* Living ball — pushed off the right edge on mobile so the
-               headline stays fully readable; centred-right on desktop. */}
-          <div className="col-span-12 md:col-span-6 md:col-start-7">
-            <div className="relative -mr-[14vw] ml-auto aspect-square w-[44vw] max-w-[260px] md:mx-auto md:mr-0 md:w-[26vw] md:max-w-none">
-              <LivingBall className="absolute inset-0" />
-            </div>
+        {/* Stage: headline left, decorative ball right */}
+        <div className="mt-10 grid grid-cols-12 items-center gap-6 md:mt-14">
+          <div className="col-span-12 md:col-span-7">
+            <motion.h1
+              className="font-display font-bold leading-[0.95] tracking-tightest text-ink-900"
+              style={{ fontSize: "clamp(40px, 6.4vw, 84px)" }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: EASE }}
+            >
+              <span className="block">{t("title_line_1")}</span>
+              <span className="block">{t("title_line_2")}</span>
+              <span className="block text-grass-800">{t("title_line_3")}</span>
+            </motion.h1>
+
+            <motion.p
+              className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-700 md:text-lg"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
+            >
+              {t("subtitle")}
+            </motion.p>
+
+            <motion.div
+              className="mt-8 flex flex-wrap items-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
+            >
+              <Link
+                href={primaryCtaHref as Route}
+                className="ease-followthrough group inline-flex h-12 items-center gap-3 rounded-full bg-grass-700 pl-6 pr-3 font-display text-[13px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_18px_44px_-18px_rgba(31,138,76,0.65)] transition-all duration-500 hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_28px_70px_-20px_rgba(31,138,76,0.75)]"
+              >
+                <span>{primaryCtaLabel}</span>
+                <span className="ease-followthrough inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 group-hover:translate-x-0.5">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </Link>
+
+              <Link
+                href={secondaryCtaHref as Route}
+                className="ease-followthrough group inline-flex h-12 items-center gap-2 rounded-full border border-ink-300/80 bg-white/60 px-5 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-ink-800 backdrop-blur-sm transition-all duration-500 hover:-translate-y-0.5 hover:border-grass-700 hover:bg-white hover:text-grass-800"
+              >
+                <BarChart3 className="h-4 w-4 text-grass-700" />
+                {t("cta_secondary")}
+              </Link>
+            </motion.div>
           </div>
 
-          {/* Type composition overlaid on top of the ball stage */}
-          <div className="pointer-events-none absolute inset-0 col-span-12 flex flex-col justify-end pb-8 md:pb-10">
-            <div className="relative">
-              <motion.h1
-                className="font-display leading-[0.86] tracking-tightest text-ink-900"
-                style={{ fontSize: "clamp(44px, 7.4vw, 120px)" }}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <span className="block font-semibold text-ink-700">{t("hero.first_name")}</span>
-                <span className="block font-extrabold text-grass-900">{t("hero.last_name")}</span>
-              </motion.h1>
-              <motion.p
-                className="mt-5 max-w-md font-mono text-[14px] uppercase leading-relaxed tracking-[0.2em] text-ink-700 md:max-w-lg md:text-[15px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.6,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              >
-                {t("hero.tagline")}
-              </motion.p>
+          {/* Decorative ball — shrunk so it never competes with the headline */}
+          <div className="relative col-span-12 md:col-span-5">
+            <div className="relative -mr-[10vw] ml-auto aspect-square w-[55vw] max-w-[260px] md:mx-auto md:mr-0 md:w-[22vw] md:max-w-[320px]">
+              <LivingBall className="absolute inset-0" />
             </div>
           </div>
         </div>
 
-        {/* Bottom rail: meta + big primary CTA + scroll cue */}
+        {/* Trust strip — concrete numbers, no marketing fluff */}
         <motion.div
-          className="relative z-10 mt-6 grid grid-cols-12 items-end gap-6 pb-7 md:mt-8 md:pb-8"
-          initial={{ opacity: 0, y: 14 }}
+          className="mt-14 border-t border-ink-900/10 pt-6 md:mt-20"
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
         >
-          <div className="col-span-12 md:col-span-4">
-            <div className="hairline mb-3 max-w-[180px]" />
-            <div className="font-mono text-[12.5px] uppercase leading-relaxed tracking-[0.22em] text-ink-700">
-              {t("meta.city")} · {t("meta.est")}
-            </div>
-          </div>
-
-          <div className="col-span-12 flex md:col-span-5 md:justify-center">
-            <div className="relative">
-              {/* Soft halo behind the CTA so it pops on the light backdrop */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -inset-4 -z-10 rounded-full bg-grass-500/15 blur-2xl"
-              />
-              <motion.div
-                animate={{ y: [0, -3, 0] }}
-                transition={{
-                  duration: 3.6,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                }}
-              >
-                <MagneticCTA href={primaryCtaHref as Route} variant="solid" size="lg">
-                  {primaryCtaLabel}
-                </MagneticCTA>
-              </motion.div>
-            </div>
-          </div>
-
-          <div className="col-span-12 flex md:col-span-3 md:justify-end">
-            <ScrollCue label={t("hero.scroll")} index="01 / 02" theme="light" />
-          </div>
+          <p className="label-eyebrow">{tt("label")}</p>
+          <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-4">
+            {trust.map((item) => (
+              <li key={item.key} className="flex flex-col gap-1">
+                <span className="tabular font-display text-2xl font-bold leading-none text-grass-900 md:text-3xl">
+                  {item.value}
+                </span>
+                <span className="text-[13.5px] leading-snug text-ink-600 md:text-sm">
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </motion.div>
+
+        <div className="h-12 md:h-16" aria-hidden />
       </div>
 
-      {/* Bottom hairline divider */}
       <div className="absolute inset-x-0 bottom-0 h-px bg-ink-900/10" />
     </section>
   );
