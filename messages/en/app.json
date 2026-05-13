@@ -12,6 +12,130 @@
     "result_W": "W",
     "result_L": "L"
   },
+  "openMatches": {
+    "title": "Open matches",
+    "subtitle": "Players post when and where they want to play. Apply to a match that fits and agree on the details.",
+    "create_cta": "Post an open match",
+    "guest_cta": "Sign in to post",
+    "empty_title": "Quiet here for now",
+    "empty_body": "No one has posted yet. Be first — it's better than waiting.",
+    "format_singles": "Singles",
+    "format_doubles": "Doubles",
+    "duration_short": "{min} min",
+    "level_any": "Any level",
+    "level_band": "{label} ({range})",
+    "starts_at": "{date}",
+    "venue_unknown": "No specific venue",
+    "district_only": "District: {name}",
+    "applications_pending": "{count, plural, =0 {No applications} one {# application} other {# applications}}",
+    "slots_needed": "Looking for {count, plural, one {# opponent} other {# opponents}}",
+    "filters": {
+      "title": "Filters",
+      "format": "Format",
+      "any_format": "Any format",
+      "level": "Level",
+      "venue": "Venue",
+      "any_venue": "Any venue",
+      "reset": "Reset",
+      "results_count": "{count, plural, =0 {No matches found} one {# match found} other {# matches found}}"
+    },
+    "status": {
+      "open": "Open",
+      "filled": "Filled",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "create": {
+      "title": "New open match",
+      "subtitle": "Post an invitation — opponents arrive faster than you'd think.",
+      "back": "Back to open matches",
+      "fields": {
+        "venue": "Venue",
+        "venue_optional": "Venue (if you've picked one)",
+        "district": "District",
+        "district_optional": "District (if no venue selected)",
+        "starts_at": "Date & time",
+        "duration": "Duration, min",
+        "format": "Format",
+        "level": "Opponent level",
+        "slots": "Players needed",
+        "notes": "Notes (optional)",
+        "notes_placeholder": "E.g. \"hard court only, I'll bring the ball\""
+      },
+      "submit": "Publish",
+      "submitting": "Publishing…",
+      "errors": {
+        "invalid_payload": "Please review the fields.",
+        "starts_in_past": "That date is in the past.",
+        "singles_one_slot_only": "Singles needs exactly one opponent.",
+        "location_required": "Pick a venue or at least a district.",
+        "not_authenticated": "Sign in to post.",
+        "unknown": "Couldn't save — please try again."
+      },
+      "help": {
+        "why": "An open match is a simple invitation: \"I want to play here, at this time, in this format.\" Matching players apply, and you agree on the rest.",
+        "what": {
+          "1": "Pick a venue (or at least a district) and a comfortable time.",
+          "2": "Choose format (singles/doubles) and target opponent level.",
+          "3": "Publish — applications arrive in your dashboard."
+        },
+        "result": {
+          "1": "No more chasing opponents — they come to you.",
+          "2": "You see the applicant's rating and style before agreeing."
+        }
+      }
+    },
+    "detail": {
+      "back": "Back to open matches",
+      "creator_label": "Posted by",
+      "applications_title": "Applications",
+      "applications_empty": "Nobody has applied yet.",
+      "your_application": "Your application",
+      "your_application_status": "Status: {status}",
+      "apply_cta": "Apply",
+      "apply_login": "Sign in to apply",
+      "apply_dialog_title": "Apply to this match",
+      "apply_message_label": "Message (optional)",
+      "apply_message_placeholder": "E.g. \"works after 7pm, can bring the ball\"",
+      "apply_send": "Send application",
+      "apply_sending": "Sending…",
+      "withdraw_cta": "Withdraw application",
+      "decide_accept": "Accept",
+      "decide_reject": "Reject",
+      "cancel_cta": "Cancel post",
+      "cancel_confirm": "Cancel this post? Applicants will see the match was cancelled.",
+      "filled_banner": "Filled. New applications are not accepted.",
+      "cancelled_banner": "Cancelled by the author.",
+      "expired_banner": "This match has already passed.",
+      "self_post_hint": "This is your post — manage applications below.",
+      "errors": {
+        "already_applied": "You've already applied.",
+        "cannot_apply_to_own": "This is your post.",
+        "open_match_closed": "Match closed for applications.",
+        "open_match_not_found": "Post not found.",
+        "not_authenticated": "Sign in to continue.",
+        "unknown": "Something went wrong — please try again."
+      },
+      "app_status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "withdrawn": "Withdrawn"
+      }
+    },
+    "help": {
+      "why": "The open-matches feed is the shortest path from \"I want to play\" to \"we're playing\". Instead of chasing one opponent, you publish an invitation and matching players apply.",
+      "what": {
+        "1": "Browse offers by city/district/level.",
+        "2": "Create your own posts — they appear in the feed instantly.",
+        "3": "Apply to ones you like — the author sees your Elo and decides."
+      },
+      "result": {
+        "1": "Less chat — more tennis.",
+        "2": "Any level: beginners and experts alike find balanced opponents."
+      }
+    }
+  },
   "publicMatches": {
     "title": "All matches",
     "subtitle": "Played friendly and tournament matches — an open results feed.",
@@ -605,6 +729,7 @@
     "matches": "Matches",
     "tournaments": "Tournaments",
     "find": "Find a Player",
+    "open_matches": "Open matches",
     "players": "Players",
     "profile": "Profile",
     "my_matches": "My matches",

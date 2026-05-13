@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CourtSurface, CourtStatus } from "@/lib/venues/schema";
+import type { OpenMatchFeedRow } from "@/lib/open-matches/schema";
 
 // =============================================================================
 // Loaders for the public venue detail page (`/venues/[id]`).
@@ -41,6 +42,7 @@ export type VenueDetail = {
     surface: CourtSurface | null;
     status: string;
   }>;
+  open_matches: OpenMatchFeedRow[];
 };
 
 export async function loadVenueDetail(venueId: string): Promise<VenueDetail | null> {
@@ -66,7 +68,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
 
   if (!venue) return null;
 
-  const [districtName, courts, tournaments] = await Promise.all([
+  const [districtName, courts, tournaments, openMatches] = await Promise.all([
     (async (): Promise<string | null> => {
       if (!venue.district_id) return null;
       const { data } = (await supabase
@@ -130,6 +132,23 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
         status: t.status,
       }));
     })(),
+    (async (): Promise<OpenMatchFeedRow[]> => {
+      const nowMinus1h = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data } = (await supabase
+        .from("open_matches_feed")
+        .select(
+          "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
+            "venue_id, venue_name, venue_city, venue_is_indoor, district_id, district_name, " +
+            "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
+            "pending_applications_count, accepted_applications_count",
+        )
+        .eq("venue_id", venueId)
+        .eq("status", "open")
+        .gte("starts_at", nowMinus1h)
+        .order("starts_at", { ascending: true })
+        .limit(20)) as { data: OpenMatchFeedRow[] | null };
+      return data ?? [];
+    })(),
   ]);
 
   return {
@@ -137,5 +156,6 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
     district_name: districtName,
     courts,
     tournaments,
+    open_matches: openMatches,
   };
 }

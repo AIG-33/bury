@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { LevelBadge } from "@/components/rating/level-badge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CourtSurface } from "@/lib/venues/schema";
 import { loadVenueDetail } from "./actions";
@@ -54,6 +55,9 @@ export default async function VenueDetailPage({ params }: Props) {
   const tSurfaces = await getTranslations("venues.detail.courts.surface_options");
   const tStatuses = await getTranslations("venues.detail.courts.status_options");
   const tFormats = await getTranslations("tournamentsPublic");
+  const tOpen = await getTranslations("openMatches");
+  const tLevels = await getTranslations("levels");
+  const dateFmtCompact = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
 
   const venue = await loadVenueDetail(id);
   if (!venue) notFound();
@@ -120,25 +124,77 @@ export default async function VenueDetailPage({ params }: Props) {
     </section>
   );
 
-  // Open Matches — Phase D will replace this with a real list. For now we
-  // render an empty-state with the canonical CTA so the tab is never blank.
+  // Open Matches at this venue — pulled from open_matches_feed (status=open,
+  // starts in the future). Empty state prompts the user to be the first.
   const openMatchesTab = (
     <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-      <h2 className="font-display text-lg font-semibold text-ink-900">
-        {tDetail("open_matches.title")}
-      </h2>
-      <div className="mt-3">
-        <EmptyState
-          title={tDetail("open_matches.empty_title")}
-          description={tDetail("open_matches.empty_body")}
-          ctaHref={isGuest ? `/${locale}/login` : `/${locale}/open-matches/new?venue=${venue.id}`}
-          ctaLabel={
-            isGuest
-              ? tDetail("open_matches.empty_cta_guest")
-              : tDetail("open_matches.empty_cta_authed")
-          }
-        />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold text-ink-900">
+          {tDetail("open_matches.title")}
+        </h2>
+        <Link
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          href={(isGuest ? "/login" : `/open-matches/new?venue=${venue.id}`) as any}
+          className="inline-flex h-9 items-center rounded-md bg-grass-500 px-3 text-xs font-semibold text-white hover:bg-grass-600"
+        >
+          {isGuest
+            ? tDetail("open_matches.empty_cta_guest")
+            : tDetail("open_matches.empty_cta_authed")}
+        </Link>
       </div>
+      {venue.open_matches.length === 0 ? (
+        <div className="mt-3">
+          <EmptyState
+            title={tDetail("open_matches.empty_title")}
+            description={tDetail("open_matches.empty_body")}
+            ctaHref={isGuest ? `/${locale}/login` : `/${locale}/open-matches/new?venue=${venue.id}`}
+            ctaLabel={
+              isGuest
+                ? tDetail("open_matches.empty_cta_guest")
+                : tDetail("open_matches.empty_cta_authed")
+            }
+          />
+        </div>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {venue.open_matches.map((om) => (
+            <li
+              key={om.id}
+              className="rounded-lg border border-ink-100 bg-white p-3 transition hover:border-grass-200"
+            >
+              <Link
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                href={`/open-matches/${om.id}` as any}
+                className="block space-y-1"
+              >
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="font-display text-sm font-semibold text-ink-900">
+                    {om.creator_name ?? "—"}
+                  </span>
+                  <span className="font-mono text-[12px] tabular-nums text-ink-500">
+                    {om.creator_elo}
+                  </span>
+                  <LevelBadge elo={om.creator_elo} showRange={false} />
+                  <span className="rounded-full bg-grass-50 px-2 py-0.5 text-[11px] font-medium text-grass-800">
+                    {tOpen(om.format === "singles" ? "format_singles" : "format_doubles")}
+                  </span>
+                </div>
+                <p className="text-xs text-ink-600">
+                  {dateFmtCompact.format(new Date(om.starts_at))}
+                  <span className="text-ink-400"> · </span>
+                  {tOpen("duration_short", { min: om.duration_min })}
+                  {om.level_band !== "any" && (
+                    <>
+                      <span className="text-ink-400"> · </span>
+                      <span>{tLevels(om.level_band)}</span>
+                    </>
+                  )}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 
@@ -217,7 +273,7 @@ export default async function VenueDetailPage({ params }: Props) {
       id: "open-matches",
       label: tDetail("tabs.open_matches"),
       content: openMatchesTab,
-      count: 0, // Until D ships, always 0. Phase D wires real counts in.
+      count: venue.open_matches.length,
     },
     {
       id: "tournaments",
