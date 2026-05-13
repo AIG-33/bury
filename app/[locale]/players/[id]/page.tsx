@@ -6,6 +6,9 @@ import { ArrowLeft, Award, CalendarClock, Clock, Hand, MapPin, Trophy, Users } f
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
+import { LevelBadge } from "@/components/rating/level-badge";
+import { WinRatePill } from "@/components/rating/win-rate-pill";
+import { RecentResultsStrip } from "@/components/rating/recent-results-strip";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadPublicPlayerProfile } from "../actions";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
@@ -156,6 +159,8 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
             />
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-ink-600">
+            <LevelBadge elo={profile.current_elo} size="md" />
+            <WinRatePill wins={profile.stats.wins_count} losses={profile.stats.losses_count} />
             {(profile.city || profile.district_name) && (
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
@@ -233,6 +238,21 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
           }
         />
       </section>
+
+      {/* Recent W/L strip — derived from `recent_matches` (newest first). The
+          strip is rendered only when there's at least one decided match; the
+          component itself returns null on empty input so we don't double-guard. */}
+      {(() => {
+        const recent = profile.recent_matches
+          .filter((m) => m.won != null)
+          .map((m) => (m.won ? "W" : "L") as "W" | "L");
+        if (recent.length === 0) return null;
+        return (
+          <section className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+            <RecentResultsStrip results={recent} take={5} />
+          </section>
+        );
+      })()}
 
       {/* Schedule grid */}
       <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">

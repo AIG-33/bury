@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Award, CalendarClock, Clock, Hand, MapPin, Sparkles, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { LevelBadge } from "@/components/rating/level-badge";
+import { WinRatePill } from "@/components/rating/win-rate-pill";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
 import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
@@ -290,6 +292,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                     <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500">
                       {t("card.elo_unit")}
                     </span>
+                    <LevelBadge elo={p.current_elo} showRange={false} />
                     {isProvisional && (
                       <span
                         title={t("card.status_provisional_hint")}
@@ -303,6 +306,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
 
                 {/* Style + matches pills. Dense but scannable. */}
                 <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-700">
+                  <WinRatePill wins={p.stats.wins_count} losses={p.stats.losses_count} />
                   <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 tabular-nums">
                     {t("card.matches_short", { count: p.rated_matches_count })}
                   </span>

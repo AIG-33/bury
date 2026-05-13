@@ -1,4 +1,17 @@
 {
+  "levels": {
+    "beginner": "Новичок",
+    "improver": "Любитель",
+    "confident": "Уверенный",
+    "strong": "Сильный",
+    "elite": "Эксперт",
+    "range_label": "Уровень",
+    "win_rate": "{wins}W–{losses}L · {percent}%",
+    "no_results": "Ещё нет завершённых матчей",
+    "recent_label": "Последние",
+    "result_W": "В",
+    "result_L": "П"
+  },
   "publicMatches": {
     "title": "Все матчи",
     "subtitle": "Сыгранные матчи клуба и турниров — открытая лента результатов.",

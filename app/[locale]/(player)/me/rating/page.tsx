@@ -17,6 +17,7 @@ import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
 import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
 import { PageHeader } from "@/components/layout/page-header";
 import { ExternalRatingStrip } from "@/components/profile/external-rating-strip";
+import { LevelBadge } from "@/components/rating/level-badge";
 import { EloChart } from "./elo-chart";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -115,6 +116,9 @@ export default async function MyRatingPage({ params }: Props) {
               <Trophy className="h-12 w-12 text-ball-500 drop-shadow-[0_4px_12px_rgba(31,138,76,0.25)]" />
               {hero.current_elo}
             </p>
+            <div className="mt-3">
+              <LevelBadge elo={hero.current_elo} size="md" />
+            </div>
             <p className="mt-3 text-[15px] text-ink-600">
               {t(`hero.status.${hero.elo_status}`)} ·{" "}
               {t("hero.matches", { n: hero.rated_matches_count })}

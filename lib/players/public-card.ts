@@ -58,6 +58,13 @@ export type PublicExternalRating = {
   external_elo: number;
 };
 
+export type PublicPlayerStats = {
+  /** Count of completed matches surfaced in `public_matches_feed`. */
+  completed_count: number;
+  wins_count: number;
+  losses_count: number;
+};
+
 export type PublicPlayerCard = {
   id: string;
   display_name: string | null;
@@ -75,6 +82,7 @@ export type PublicPlayerCard = {
   is_coach: boolean;
   external_rating: PublicExternalRating | null;
   available_slots: Array<{ weekday: Weekday; daypart: DayPart }>;
+  stats: PublicPlayerStats;
 };
 
 /**
@@ -98,6 +106,7 @@ export const PUBLIC_CARD_KEYS = [
   "is_coach",
   "external_rating",
   "available_slots",
+  "stats",
 ] as const satisfies ReadonlyArray<keyof PublicPlayerCard>;
 
 /** Keys that must NEVER appear on a public card. Locked-in by test. */
@@ -118,6 +127,12 @@ export const FORBIDDEN_PII_KEYS = [
   "lng",
 ] as const;
 
+export const EMPTY_PUBLIC_STATS: PublicPlayerStats = {
+  completed_count: 0,
+  wins_count: 0,
+  losses_count: 0,
+};
+
 /**
  * Pure transform: directory row → public card.
  * Does not perform filtering — the caller decides whether to drop a card.
@@ -127,6 +142,7 @@ export function toPublicPlayerCard(
   external: PublicExternalRating | null,
   districtName: string | null,
   now: number,
+  stats: PublicPlayerStats = EMPTY_PUBLIC_STATS,
 ): PublicPlayerCard {
   const availability = (row.availability ?? {}) as Partial<Availability>;
   const slots: Array<{ weekday: Weekday; daypart: DayPart }> = [];
@@ -159,5 +175,6 @@ export function toPublicPlayerCard(
     is_coach: row.is_coach,
     external_rating: external,
     available_slots: slots,
+    stats,
   };
 }

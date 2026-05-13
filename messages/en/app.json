@@ -1,4 +1,17 @@
 {
+  "levels": {
+    "beginner": "Beginner",
+    "improver": "Improver",
+    "confident": "Confident",
+    "strong": "Strong",
+    "elite": "Elite",
+    "range_label": "Level",
+    "win_rate": "{wins}W–{losses}L · {percent}%",
+    "no_results": "No completed matches yet",
+    "recent_label": "Recent",
+    "result_W": "W",
+    "result_L": "L"
+  },
   "publicMatches": {
     "title": "All matches",
     "subtitle": "Played friendly and tournament matches — an open results feed.",

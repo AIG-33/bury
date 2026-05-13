@@ -9,6 +9,7 @@ import {
   type PublicDirectoryRow,
   type PublicExternalRating,
   type PublicPlayerCard,
+  type PublicPlayerStats,
 } from "@/lib/players/public-card";
 import { LEVEL_BUCKETS, LEVEL_RANGES } from "./filters";
 
@@ -176,6 +177,30 @@ export async function loadPublicPlayers(input: PublicFiltersInput): Promise<Publ
     }
   }
 
+  // W/L aggregates from the `player_match_stats` view — single round-trip
+  // for the whole page so cards can render "7W–3L · 70%" without N+1 queries.
+  const statsByPlayer = new Map<string, PublicPlayerStats>();
+  if (ids.length > 0) {
+    const { data: stats } = (await supabase
+      .from("player_match_stats")
+      .select("player_id, completed_count, wins_count, losses_count")
+      .in("player_id", ids)) as {
+      data: Array<{
+        player_id: string;
+        completed_count: number;
+        wins_count: number;
+        losses_count: number;
+      }> | null;
+    };
+    for (const s of stats ?? []) {
+      statsByPlayer.set(s.player_id, {
+        completed_count: s.completed_count ?? 0,
+        wins_count: s.wins_count ?? 0,
+        losses_count: s.losses_count ?? 0,
+      });
+    }
+  }
+
   const now = Date.now();
   const slotFilter =
     filters.weekday && filters.daypart ? { wd: filters.weekday, dp: filters.daypart } : null;
@@ -189,6 +214,7 @@ export async function loadPublicPlayers(input: PublicFiltersInput): Promise<Publ
       externalRatingByPlayer.get(row.id) ?? null,
       row.district_id ? (districtNames.get(row.district_id) ?? null) : null,
       now,
+      statsByPlayer.get(row.id) ?? undefined,
     );
 
     if (slotFilter) {
@@ -235,7 +261,7 @@ export async function loadPublicPlayerProfile(
 
   if (!row) return null;
 
-  const [districtName, externalRating, recentMatches] = await Promise.all([
+  const [districtName, externalRating, stats, recentMatches] = await Promise.all([
     (async (): Promise<string | null> => {
       if (!row.district_id) return null;
       const { data } = (await supabase
@@ -260,6 +286,25 @@ export async function loadPublicPlayerProfile(
       };
       if (!data) return null;
       return { source: "liga_tennisa", ...data };
+    })(),
+    (async (): Promise<PublicPlayerStats | undefined> => {
+      const { data } = (await supabase
+        .from("player_match_stats")
+        .select("completed_count, wins_count, losses_count")
+        .eq("player_id", row.id)
+        .maybeSingle()) as {
+        data: {
+          completed_count: number;
+          wins_count: number;
+          losses_count: number;
+        } | null;
+      };
+      if (!data) return undefined;
+      return {
+        completed_count: data.completed_count ?? 0,
+        wins_count: data.wins_count ?? 0,
+        losses_count: data.losses_count ?? 0,
+      };
     })(),
     (async () => {
       const { data } = (await supabase
@@ -332,7 +377,7 @@ export async function loadPublicPlayerProfile(
     })(),
   ]);
 
-  const card = toPublicPlayerCard(row, externalRating, districtName, Date.now());
+  const card = toPublicPlayerCard(row, externalRating, districtName, Date.now(), stats);
 
   return { ...card, recent_matches: recentMatches };
 }
