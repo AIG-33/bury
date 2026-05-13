@@ -48,8 +48,15 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
 
+  // Client-side auth flows MUST use window.location.origin, not
+  // NEXT_PUBLIC_SITE_URL, because the env var is baked at build time and
+  // can drift behind the actual deployment URL (e.g. when the Vercel
+  // project is renamed). window.location.origin is always exactly the
+  // host the user is currently on, so it survives any rename and avoids
+  // dead-link confirmation emails.
   function siteBase() {
-    return process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    if (typeof window !== "undefined") return window.location.origin;
+    return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   }
 
   // Used as `emailRedirectTo` for sign-up / magic-link / recovery emails.

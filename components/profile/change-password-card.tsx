@@ -90,8 +90,10 @@ export function ChangePasswordCard({
     setErr(null);
     setBusy(true);
     const supabase = createSupabaseBrowserClient();
-    const siteBase =
-      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    // Use window.location.origin so the password-reset email always points
+    // back to the host the user is currently on, regardless of whether
+    // NEXT_PUBLIC_SITE_URL is up to date for the deployment.
+    const siteBase = window.location.origin;
     const cb = new URL(`${siteBase}/api/auth/callback`);
     cb.searchParams.set("next", "/auth/update-password");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
