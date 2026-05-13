@@ -45,8 +45,6 @@ export type ProfileRow = {
   timezone: string;
   health_notes: string | null;
   emergency_contact: string | null;
-  consent_terms_at: string | null;
-  consent_privacy_at: string | null;
   onboarding_completed_at: string | null;
   created_at: string;
   updated_at: string;
@@ -192,11 +190,6 @@ export type Database = {
     };
     Views: { [view: string]: { Row: AnyRow } };
     Functions: {
-      accept_invitation: {
-        Args: { p_token_hash: string; p_user_id: string };
-        Returns: { coach_id: string; invitation_id: string }[];
-      };
-      recalc_match_elo: { Args: { p_match_id: string }; Returns: void };
       [fn: string]: { Args: AnyRow; Returns: unknown };
     };
     Enums: Record<string, string>;

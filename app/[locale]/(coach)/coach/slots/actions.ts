@@ -221,7 +221,6 @@ export async function createSlots(input: unknown): Promise<CreateSlotsResult> {
 
     const { error } = await supabase.from("slots").insert({
       court_id: form.court_id,
-      template_id: null,
       owner_id: userId,
       starts_at: startsUtc,
       ends_at: endsUtc,
