@@ -1,8 +1,9 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Inbox } from "lucide-react";
+import { Inbox, Megaphone, UsersRound } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { BridgePanel } from "@/components/help/bridge-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadDistrictOptions, loadFocusedCandidate, loadMyAvailability } from "./actions";
 import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
@@ -18,6 +19,7 @@ export default async function FindPlayerPage({ params, searchParams }: Props) {
   const [{ locale }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
   const t = await getTranslations("find");
+  const tBridges = await getTranslations("find.bridges");
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -149,6 +151,24 @@ export default async function FindPlayerPage({ params, searchParams }: Props) {
         myAvailability={myAvailability}
         initialFocus={initialFocus}
         focusRequested={Boolean(focusId)}
+      />
+
+      <BridgePanel
+        title={tBridges("title")}
+        items={[
+          {
+            href: "/open-matches/new",
+            label: tBridges("to_open_match_label"),
+            hint: tBridges("to_open_match_hint"),
+            icon: Megaphone,
+          },
+          {
+            href: "/players",
+            label: tBridges("to_players_label"),
+            hint: tBridges("to_players_hint"),
+            icon: UsersRound,
+          },
+        ]}
       />
     </div>
   );

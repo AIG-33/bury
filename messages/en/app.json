@@ -134,6 +134,13 @@
         "1": "Less chat — more tennis.",
         "2": "Any level: beginners and experts alike find balanced opponents."
       }
+    },
+    "bridges": {
+      "title": "Didn't find what you wanted?",
+      "to_finder_label": "Find a partner by filters",
+      "to_finder_hint": "Level, district, free time slots — the system ranks candidates for you.",
+      "to_players_label": "Browse all players",
+      "to_players_hint": "Open directory of real amateur players in Belarus."
     }
   },
   "publicMatches": {
@@ -1485,6 +1492,13 @@
         "1": "Sent proposals reach the other player by email; they can accept or decline.",
         "2": "Once accepted, the match shows up in “My proposals” — coordinate on WhatsApp and enter the score."
       }
+    },
+    "bridges": {
+      "title": "Couldn't find a fit?",
+      "to_open_match_label": "Publish an open match",
+      "to_open_match_hint": "Players come to you: pick a time, a venue and a level band.",
+      "to_players_label": "Browse all players",
+      "to_players_hint": "The unfiltered directory — sometimes that's exactly what you need."
     },
     "filters": {
       "title": "Filters",

@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { Building2, CalendarClock, MapPin, Plus, Trophy, Users } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  MapPin,
+  Plus,
+  SlidersHorizontal,
+  Trophy,
+  Users,
+  UsersRound,
+} from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { BridgePanel } from "@/components/help/bridge-panel";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOpenMatches } from "./actions";
@@ -43,6 +53,7 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
 
   const t = await getTranslations("openMatches");
   const tLevels = await getTranslations("levels");
+  const tBridges = await getTranslations("openMatches.bridges");
 
   const filters = {
     format: FORMATS.includes(sp.format as OpenMatchFormat)
@@ -94,6 +105,28 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
           {isGuest ? t("guest_cta") : t("create_cta")}
         </Link>
       </div>
+
+      <BridgePanel
+        title={tBridges("title")}
+        items={[
+          ...(isGuest
+            ? []
+            : [
+                {
+                  href: "/me/find",
+                  label: tBridges("to_finder_label"),
+                  hint: tBridges("to_finder_hint"),
+                  icon: SlidersHorizontal,
+                },
+              ]),
+          {
+            href: "/players",
+            label: tBridges("to_players_label"),
+            hint: tBridges("to_players_hint"),
+            icon: UsersRound,
+          },
+        ]}
+      />
 
       {rows.length === 0 ? (
         <EmptyState
