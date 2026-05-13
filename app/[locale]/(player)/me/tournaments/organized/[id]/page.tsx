@@ -23,18 +23,18 @@ import {
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
-export default async function TournamentDetailPage({ params }: Props) {
+export default async function OrganizedTournamentDetailPage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("tournamentsCoach");
+  const t = await getTranslations("tournamentsOrganized");
 
   const result = await loadTournamentDetail(id);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
-      redirect(`/${locale}/login?next=/coach/tournaments/${id}`);
+      redirect(`/${locale}/login?next=/me/tournaments/organized/${id}`);
     }
     if (result.error === "not_found") notFound();
-    if (result.error === "not_owner") redirect(`/${locale}/coach/tournaments`);
+    if (result.error === "not_owner") redirect(`/${locale}/me/tournaments/organized`);
     redirect(`/${locale}/login`);
   }
 
@@ -69,6 +69,18 @@ export default async function TournamentDetailPage({ params }: Props) {
     no_seed: t("participants.no_seed"),
     withdrawn: t("participants.withdrawn"),
     no_options: t("participants.no_options"),
+    pending_section: t("participants.pending_section"),
+    approved_section: t("participants.approved_section"),
+    rejected_section: t("participants.rejected_section"),
+    pending_empty: t("participants.pending_empty"),
+    rejected_empty: t("participants.rejected_empty"),
+    approve: t("participants.approve"),
+    reject: t("participants.reject"),
+    reject_confirm: t("participants.reject_confirm"),
+    approving: t("participants.approving"),
+    rejecting: t("participants.rejecting"),
+    reapprove: t("participants.reapprove"),
+    add_directly_hint: t("participants.add_directly_hint"),
   };
 
   const bracketCopy: BracketCopy = {
@@ -103,7 +115,7 @@ export default async function TournamentDetailPage({ params }: Props) {
       <div>
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          href={"/coach/tournaments" as any}
+          href={"/me/tournaments/organized" as any}
           className="inline-flex items-center gap-1 text-xs font-medium text-ink-600 hover:text-ink-900"
         >
           <ArrowLeft className="h-3 w-3" /> {t("detail.back")}
@@ -116,7 +128,7 @@ export default async function TournamentDetailPage({ params }: Props) {
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h1 className="font-display text-2xl font-bold text-ink-900">{tournament.name}</h1>
               <HelpPanel
-                pageId="coach-tournament-detail"
+                pageId="me-tournaments-organized-detail"
                 variant="inline"
                 why={t("detail.help.why")}
                 what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
@@ -229,7 +241,7 @@ export default async function TournamentDetailPage({ params }: Props) {
         tournamentId={tournament.id}
         matches={matches}
         copy={bracketCopy}
-        participantsCount={participants.filter((p) => !p.withdrawn).length}
+        participantsCount={tournament.participants_count}
         initialMethod={tournament.draw_method ?? "rating"}
         format={tournament.format}
         matchRules={tournament.match_rules}

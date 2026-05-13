@@ -51,7 +51,7 @@ export type PublicTournamentRow = {
   participants_count: number;
   privacy: Privacy;
   status: TournamentStatus;
-  coach_name: string | null;
+  organizer_name: string | null;
   match_rules: MatchRules;
   venues: PublicTournamentVenue[];
 };
@@ -72,7 +72,7 @@ export async function loadPublicTournaments(opts: {
   let query = supabase
     .from("tournaments")
     .select(
-      "id, owner_coach_id, name, description, format, surface, starts_on, start_time, ends_on, " +
+      "id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
     )
     .eq("privacy", "public")
@@ -98,7 +98,7 @@ export async function loadPublicTournaments(opts: {
   const { data: rows } = (await query) as {
     data: Array<{
       id: string;
-      owner_coach_id: string;
+      owner_id: string;
       name: string;
       description: string | null;
       format: TournamentFormat;
@@ -118,7 +118,7 @@ export async function loadPublicTournaments(opts: {
   if (!rows || rows.length === 0) return [];
 
   const ids = rows.map((r) => r.id);
-  const ownerIds = Array.from(new Set(rows.map((r) => r.owner_coach_id)));
+  const ownerIds = Array.from(new Set(rows.map((r) => r.owner_id)));
   const { data: ownerRows } = (await supabase
     .from("public_profile_basic")
     .select("id, display_name")
@@ -129,9 +129,13 @@ export async function loadPublicTournaments(opts: {
   const [{ data: counts }, { data: tvs }] = await Promise.all([
     supabase
       .from("tournament_participants")
-      .select("tournament_id, withdrawn")
+      .select("tournament_id, status, withdrawn")
       .in("tournament_id", ids) as unknown as Promise<{
-      data: Array<{ tournament_id: string; withdrawn: boolean }> | null;
+      data: Array<{
+        tournament_id: string;
+        status: "pending" | "approved" | "rejected";
+        withdrawn: boolean;
+      }> | null;
     }>,
     supabase
       .from("tournament_venues")
@@ -147,7 +151,9 @@ export async function loadPublicTournaments(opts: {
   ]);
   const cnt = new Map<string, number>();
   for (const p of counts ?? []) {
-    if (!p.withdrawn) cnt.set(p.tournament_id, (cnt.get(p.tournament_id) ?? 0) + 1);
+    if (p.status === "approved" && !p.withdrawn) {
+      cnt.set(p.tournament_id, (cnt.get(p.tournament_id) ?? 0) + 1);
+    }
   }
   const venuesByT = new Map<string, PublicTournamentVenue[]>();
   for (const v of tvs ?? []) {
@@ -173,7 +179,7 @@ export async function loadPublicTournaments(opts: {
     participants_count: cnt.get(r.id) ?? 0,
     privacy: r.privacy,
     status: r.status,
-    coach_name: ownerNameById.get(r.owner_coach_id) ?? null,
+    organizer_name: ownerNameById.get(r.owner_id) ?? null,
     match_rules: r.match_rules,
     venues: venuesByT.get(r.id) ?? [],
   }));
@@ -223,14 +229,14 @@ export async function loadPublicTournamentDetail(
   const { data: row } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_coach_id, name, description, format, surface, starts_on, start_time, ends_on, " +
+      "id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
     )
     .eq("id", tournamentId)
     .maybeSingle()) as {
     data: {
       id: string;
-      owner_coach_id: string;
+      owner_id: string;
       name: string;
       description: string | null;
       format: TournamentFormat;
@@ -249,12 +255,12 @@ export async function loadPublicTournamentDetail(
 
   if (!row) return null;
 
-  // Coach name via the RLS-bypassing public projection (the raw `profiles`
-  // table is self-only).
-  const { data: coachBasic } = (await supabase
+  // Organizer name via the RLS-bypassing public projection (the raw
+  // `profiles` table is self-only).
+  const { data: organizerBasic } = (await supabase
     .from("public_profile_basic")
     .select("display_name")
-    .eq("id", row.owner_coach_id)
+    .eq("id", row.owner_id)
     .maybeSingle()) as { data: { display_name: string | null } | null };
 
   const { data: tvs } = (await supabase
@@ -278,12 +284,14 @@ export async function loadPublicTournamentDetail(
   const [{ data: parts }, { data: matches }] = await Promise.all([
     supabase
       .from("tournament_participants")
-      .select("player_id, seed, withdrawn")
+      .select("player_id, seed, status, withdrawn")
       .eq("tournament_id", tournamentId)
+      .eq("status", "approved")
       .order("seed", { ascending: true, nullsFirst: false }) as unknown as Promise<{
       data: Array<{
         player_id: string;
         seed: number | null;
+        status: "pending" | "approved" | "rejected";
         withdrawn: boolean;
       }> | null;
     }>,
@@ -395,7 +403,7 @@ export async function loadPublicTournamentDetail(
       participants_count,
       privacy: row.privacy,
       status: row.status,
-      coach_name: coachBasic?.display_name ?? null,
+      organizer_name: organizerBasic?.display_name ?? null,
       match_rules: row.match_rules,
       venues,
     },

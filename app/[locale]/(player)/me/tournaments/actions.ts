@@ -17,6 +17,8 @@ import type {
 // Types returned to UI
 // =============================================================================
 
+export type ApplicationStatus = "pending" | "approved" | "rejected" | "none";
+
 export type OpenTournamentRow = {
   id: string;
   name: string;
@@ -30,8 +32,8 @@ export type OpenTournamentRow = {
   participants_count: number;
   privacy: Privacy;
   status: TournamentStatus;
-  coach_name: string | null;
-  is_registered: boolean;
+  organizer_name: string | null;
+  application_status: ApplicationStatus;
   match_rules: MatchRules;
 };
 
@@ -66,25 +68,26 @@ export async function loadOpenTournaments(): Promise<
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
-  // Coach name resolved via `public_profile_basic` (RLS-safe). The
-  // `profiles` table is self-only.
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_coach_id, name, description, format, surface, starts_on, ends_on, registration_deadline, " +
+      "id, owner_id, name, description, format, surface, starts_on, ends_on, registration_deadline, " +
         "max_participants, privacy, status, match_rules",
     )
     .eq("privacy", "public")
     .in("status", ["draft", "registration"])
     .order("starts_on", { ascending: true })) as {
     data: Array<
-      Omit<OpenTournamentRow, "participants_count" | "is_registered" | "coach_name"> & {
-        owner_coach_id: string;
+      Omit<
+        OpenTournamentRow,
+        "participants_count" | "application_status" | "organizer_name"
+      > & {
+        owner_id: string;
       }
     > | null;
   };
 
-  const ownerIds = Array.from(new Set((rows ?? []).map((r) => r.owner_coach_id)));
+  const ownerIds = Array.from(new Set((rows ?? []).map((r) => r.owner_id)));
   const ownerNameById = new Map<string, string | null>();
   if (ownerIds.length > 0) {
     const { data: owners } = (await supabase
@@ -98,24 +101,30 @@ export async function loadOpenTournaments(): Promise<
 
   const tournaments = (rows ?? []).map((r) => ({
     ...r,
-    coach_name: ownerNameById.get(r.owner_coach_id) ?? null,
+    organizer_name: ownerNameById.get(r.owner_id) ?? null,
   }));
 
   const ids = tournaments.map((t) => t.id);
   const counts = new Map<string, number>();
-  const myRegs = new Set<string>();
+  const myStatus = new Map<string, ApplicationStatus>();
   if (ids.length > 0) {
     const { data: parts } = (await supabase
       .from("tournament_participants")
-      .select("tournament_id, player_id, withdrawn")
+      .select("tournament_id, player_id, status, withdrawn")
       .in("tournament_id", ids)) as {
-      data: Array<{ tournament_id: string; player_id: string; withdrawn: boolean }> | null;
+      data: Array<{
+        tournament_id: string;
+        player_id: string;
+        status: "pending" | "approved" | "rejected";
+        withdrawn: boolean;
+      }> | null;
     };
     for (const p of parts ?? []) {
-      if (!p.withdrawn) {
+      // Approved + not withdrawn = visible "filled seat".
+      if (p.status === "approved" && !p.withdrawn) {
         counts.set(p.tournament_id, (counts.get(p.tournament_id) ?? 0) + 1);
       }
-      if (p.player_id === userId) myRegs.add(p.tournament_id);
+      if (p.player_id === userId) myStatus.set(p.tournament_id, p.status);
     }
   }
 
@@ -124,7 +133,7 @@ export async function loadOpenTournaments(): Promise<
     tournaments: tournaments.map((t) => ({
       ...t,
       participants_count: counts.get(t.id) ?? 0,
-      is_registered: myRegs.has(t.id),
+      application_status: myStatus.get(t.id) ?? "none",
     })),
   };
 }
@@ -144,17 +153,18 @@ export async function loadMyTournaments(): Promise<
   const { data: regs } = (await supabase
     .from("tournament_participants")
     .select(
-      "tournament_id, withdrawn, " +
-        "tournaments(id, owner_coach_id, name, description, format, surface, starts_on, ends_on, " +
+      "tournament_id, status, withdrawn, " +
+        "tournaments(id, owner_id, name, description, format, surface, starts_on, ends_on, " +
         "registration_deadline, max_participants, privacy, status, match_rules)",
     )
     .eq("player_id", userId)) as {
     data: Array<{
       tournament_id: string;
+      status: "pending" | "approved" | "rejected";
       withdrawn: boolean;
       tournaments: {
         id: string;
-        owner_coach_id: string;
+        owner_id: string;
         name: string;
         description: string | null;
         format: TournamentFormat;
@@ -173,11 +183,8 @@ export async function loadMyTournaments(): Promise<
   const filtered = (regs ?? []).filter((r) => r.tournaments != null);
   const ids = filtered.map((r) => r.tournament_id);
 
-  // Coach names of every distinct owner (RLS-bypassing).
-  const ownerIds = Array.from(
-    new Set(filtered.map((r) => r.tournaments!.owner_coach_id)),
-  );
-  const coachNameById = new Map<string, string | null>();
+  const ownerIds = Array.from(new Set(filtered.map((r) => r.tournaments!.owner_id)));
+  const organizerNameById = new Map<string, string | null>();
   if (ownerIds.length > 0) {
     const { data: owners } = (await supabase
       .from("public_profile_basic")
@@ -185,24 +192,23 @@ export async function loadMyTournaments(): Promise<
       .in("id", ownerIds)) as {
       data: Array<{ id: string; display_name: string | null }> | null;
     };
-    for (const o of owners ?? []) coachNameById.set(o.id, o.display_name);
+    for (const o of owners ?? []) organizerNameById.set(o.id, o.display_name);
   }
 
-  // Headcounts.
   const counts = new Map<string, number>();
   if (ids.length > 0) {
     const { data: cnt } = (await supabase
       .from("tournament_participants")
-      .select("tournament_id, withdrawn")
-      .in("tournament_id", ids)) as {
-      data: Array<{ tournament_id: string; withdrawn: boolean }> | null;
+      .select("tournament_id, status, withdrawn")
+      .in("tournament_id", ids)
+      .eq("status", "approved")) as {
+      data: Array<{ tournament_id: string; status: string; withdrawn: boolean }> | null;
     };
     for (const c of cnt ?? []) {
       if (!c.withdrawn) counts.set(c.tournament_id, (counts.get(c.tournament_id) ?? 0) + 1);
     }
   }
 
-  // Next pending match per tournament for the current user.
   const nextMatches = new Map<
     string,
     { id: string; round: number | null; opponent_id: string | null; scheduled_at: string | null }
@@ -210,9 +216,7 @@ export async function loadMyTournaments(): Promise<
   if (ids.length > 0) {
     const { data: ms } = (await supabase
       .from("matches")
-      .select(
-        "id, tournament_id, round, p1_id, p2_id, outcome, scheduled_at",
-      )
+      .select("id, tournament_id, round, p1_id, p2_id, outcome, scheduled_at")
       .in("tournament_id", ids)
       .or(`p1_id.eq.${userId},p2_id.eq.${userId}`)
       .in("outcome", ["pending", "scheduled"])
@@ -240,7 +244,6 @@ export async function loadMyTournaments(): Promise<
     }
   }
 
-  // Opponent display names via the RLS-bypassing public projection.
   const opponentIds = Array.from(nextMatches.values())
     .map((v) => v.opponent_id)
     .filter((x): x is string => x !== null);
@@ -271,8 +274,8 @@ export async function loadMyTournaments(): Promise<
       privacy: t.privacy,
       status: t.status,
       participants_count: counts.get(t.id) ?? 0,
-      coach_name: coachNameById.get(t.owner_coach_id) ?? null,
-      is_registered: !r.withdrawn,
+      organizer_name: organizerNameById.get(t.owner_id) ?? null,
+      application_status: r.status,
       match_rules: t.match_rules,
       withdrawn: r.withdrawn,
       next_match: next
@@ -290,30 +293,37 @@ export async function loadMyTournaments(): Promise<
 }
 
 // =============================================================================
-// Register / withdraw
+// Apply / withdraw
 // =============================================================================
 
-export async function registerForTournament(
+/**
+ * Submit an application to a tournament. Players are NOT auto-approved any
+ * more — the row is created with status='pending' and the organizer must
+ * approve or reject it.
+ */
+export async function applyToTournament(
   tournamentId: string,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true; status: "pending" } | { ok: false; error: string }> {
   const auth = await requireUser();
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
-  // Ensure tournament is open for registration.
   const { data: t } = (await supabase
     .from("tournaments")
-    .select("id, status, max_participants, registration_deadline")
+    .select("id, owner_id, name, status, max_participants, registration_deadline")
     .eq("id", tournamentId)
     .single()) as {
     data: {
       id: string;
+      owner_id: string;
+      name: string;
       status: TournamentStatus;
       max_participants: number | null;
       registration_deadline: string | null;
     } | null;
   };
   if (!t) return { ok: false, error: "not_found" };
+  if (t.owner_id === userId) return { ok: false, error: "cant_apply_to_own_tournament" };
   if (t.status !== "draft" && t.status !== "registration") {
     return { ok: false, error: "registration_closed" };
   }
@@ -326,25 +336,31 @@ export async function registerForTournament(
       .from("tournament_participants")
       .select("id")
       .eq("tournament_id", tournamentId)
+      .eq("status", "approved")
       .eq("withdrawn", false)) as { data: Array<{ id: string }> | null };
     if ((cnt?.length ?? 0) >= t.max_participants) {
       return { ok: false, error: "full" };
     }
   }
 
-  // If a withdrawn row exists → revive it; otherwise insert.
+  // Existing row? Resurrect it on reapplication; reset status to 'pending'
+  // so the owner gets a fresh decision to make.
   const { data: existing } = (await supabase
     .from("tournament_participants")
-    .select("id, withdrawn")
+    .select("id, status, withdrawn")
     .eq("tournament_id", tournamentId)
     .eq("player_id", userId)
-    .maybeSingle()) as { data: { id: string; withdrawn: boolean } | null };
+    .maybeSingle()) as {
+    data: { id: string; status: "pending" | "approved" | "rejected"; withdrawn: boolean } | null;
+  };
 
   if (existing) {
-    if (!existing.withdrawn) return { ok: true }; // already registered
+    if (existing.status === "pending" && !existing.withdrawn) {
+      return { ok: true, status: "pending" };
+    }
     const { error } = await supabase
       .from("tournament_participants")
-      .update({ withdrawn: false } as never)
+      .update({ status: "pending", withdrawn: false } as never)
       .eq("id", existing.id);
     if (error) return { ok: false, error: error.message };
   } else {
@@ -353,70 +369,50 @@ export async function registerForTournament(
       .insert({
         tournament_id: tournamentId,
         player_id: userId,
+        status: "pending",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
     if (error) return { ok: false, error: error.message };
   }
 
+  // Best-effort notification to organizer that a new application landed.
   try {
-    const { data: profile } = (await supabase
+    const { data: ownerProfile } = (await supabase
       .from("profiles")
       .select("locale, notification_email")
-      .eq("id", userId)
+      .eq("id", t.owner_id)
       .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-    const { data: full } = (await supabase
-      .from("tournaments")
-      .select("name, format, starts_on, match_rules")
-      .eq("id", tournamentId)
-      .single()) as {
-      data:
-        | { name: string; format: string; starts_on: string; match_rules: MatchRules | null }
-        | null;
-    };
-    if (profile?.notification_email && full) {
+    if (ownerProfile?.notification_email) {
       const service = createSupabaseServiceClient();
-      const rulesText = (() => {
-        const r = full.match_rules;
-        if (!r) return "";
-        switch (r.kind) {
-          case "best_of_3":
-            return `best of 3 sets to ${r.set_target}`;
-          case "best_of_5":
-            return `best of 5 sets to ${r.set_target}`;
-          case "single_set":
-            return `single set to ${r.set_target}`;
-          case "pro_set":
-            return `pro-set to ${r.target_games}`;
-          case "first_to_games":
-            return `first to ${r.target_games} games`;
-          case "timed":
-            return `${r.minutes}-minute match`;
-          default:
-            return "standard";
-        }
-      })();
       await enqueue(service, {
-        recipient_id: userId,
+        recipient_id: t.owner_id,
         channel: "email",
-        template: "tournament_registered",
-        locale: profile.locale,
+        template: "tournament_application_submitted",
+        locale: ownerProfile.locale,
         payload: {
           tournament_id: tournamentId,
-          tournament_name: full.name,
-          starts_at: full.starts_on,
-          format: full.format,
-          rules: rulesText,
+          tournament_name: t.name,
         },
       });
     }
   } catch (e) {
-    console.warn("[tournaments] failed to enqueue registration email:", e);
+    console.warn("[tournaments] failed to enqueue organizer notification:", e);
   }
 
   revalidatePath("/me/tournaments");
-  return { ok: true };
+  revalidatePath(`/me/tournaments/organized/${tournamentId}`);
+  return { ok: true, status: "pending" };
 }
 
+/**
+ * Cancel an application or withdraw post-approval.
+ *   - If the row is still 'pending' or 'rejected', we hard-delete (the
+ *     player is taking back their request entirely).
+ *   - If 'approved' and tournament not started → hard-delete (still
+ *     no consequences, frees the seat).
+ *   - If 'approved' and tournament started → soft withdraw to keep
+ *     historical participation visible in /matches & standings.
+ */
 export async function withdrawFromTournament(
   tournamentId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -430,9 +426,8 @@ export async function withdrawFromTournament(
     .eq("id", tournamentId)
     .single()) as { data: { id: string; status: TournamentStatus } | null };
   if (!t) return { ok: false, error: "not_found" };
-  // Once the tournament has begun, withdrawal is a "soft" action (keeps history).
-  const wantHardDelete =
-    t.status === "draft" || t.status === "registration";
+
+  const wantHardDelete = t.status === "draft" || t.status === "registration";
 
   if (wantHardDelete) {
     const { error } = await supabase

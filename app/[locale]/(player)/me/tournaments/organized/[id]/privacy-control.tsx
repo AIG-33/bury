@@ -23,16 +23,6 @@ export type PrivacyControlCopy = {
   error_prefix: string;
 };
 
-/**
- * Inline privacy switch shown on the coach tournament detail page.
- * Surfaces the link between `tournaments.privacy` and the public
- * `/matches` feed so the coach doesn't have to dig through the full
- * edit dialog (or the docs) to discover that "club" tournaments are
- * not surfaced publicly. Two states:
- *
- *  - privacy = 'club'    → shows a "publish results" CTA card.
- *  - privacy = 'public'  → shows a confirmation row + a "make club" link.
- */
 export function PrivacyControl({
   tournamentId,
   initialPrivacy,

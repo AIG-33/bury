@@ -119,11 +119,11 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         </div>
         <div className="rounded-lg border border-ink-100 bg-white p-3">
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-            {t("detail.coach")}
+            {t("detail.organizer")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
             <Trophy className="text-leaf-700 h-4 w-4" />
-            {tournament.coach_name ?? "—"}
+            {tournament.organizer_name ?? "—"}
           </dd>
         </div>
         {tournament.venues.length > 0 && (

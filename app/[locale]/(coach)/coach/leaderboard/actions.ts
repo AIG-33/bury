@@ -107,13 +107,14 @@ export async function loadCoachLeaderboard(opts: {
   const { data: myTours } = (await supabase
     .from("tournaments")
     .select("id")
-    .eq("owner_coach_id", userId)) as { data: Array<{ id: string }> | null };
+    .eq("owner_id", userId)) as { data: Array<{ id: string }> | null };
   const tourIds = (myTours ?? []).map((t) => t.id);
   if (tourIds.length > 0) {
     const { data: tps } = (await supabase
       .from("tournament_participants")
       .select("player_id")
-      .in("tournament_id", tourIds)) as {
+      .in("tournament_id", tourIds)
+      .eq("status", "approved")) as {
       data: Array<{ player_id: string }> | null;
     };
     for (const tp of tps ?? []) myPlayerIds.add(tp.player_id);

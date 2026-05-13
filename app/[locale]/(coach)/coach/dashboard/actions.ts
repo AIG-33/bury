@@ -166,11 +166,13 @@ export async function loadCoachDashboard(): Promise<
   };
   const activePlayers = new Set((recentBookings ?? []).map((r) => r.player_id));
 
-  // KPI: tournaments active.
+  // KPI: tournaments active. Tournaments are no longer a coach-only feature,
+  // but we still surface "tournaments I organize" on the coach dashboard so
+  // coaches who do organize see them at a glance.
   const { count: tournamentsActive } = (await supabase
     .from("tournaments")
     .select("id", { count: "exact", head: true })
-    .eq("owner_coach_id", me.id)
+    .eq("owner_id", me.id)
     .in("status", ["registration", "in_progress", "draft"])) as { count: number | null };
 
   // Pending match confirmations: friendly matches where coach needs to step in

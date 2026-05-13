@@ -574,17 +574,22 @@ async function loadMyInteractionsWithCoach(
     }> | null;
   };
 
+  // Tournament-driven reviews need the organiser to be the same coach we're
+  // gathering interactions for. With tournaments now open to any user, only
+  // tournaments whose owner is also a coach (i.e. is the `target_coach_id`)
+  // count as a reviewable interaction.
   const tournamentsQ = supabase
     .from("tournament_participants")
-    .select("tournament_id, withdrawn, " + "tournaments(owner_coach_id, starts_on, ends_on)")
+    .select("tournament_id, withdrawn, " + "tournaments(owner_id, starts_on, ends_on)")
     .eq("player_id", playerId)
+    .eq("status", "approved")
     .eq("withdrawn", false);
   const { data: tps } = (await tournamentsQ) as {
     data: Array<{
       tournament_id: string;
       withdrawn: boolean;
       tournaments: {
-        owner_coach_id: string;
+        owner_id: string;
         starts_on: string;
         ends_on: string | null;
       } | null;
@@ -600,9 +605,9 @@ async function loadMyInteractionsWithCoach(
     })),
     ...(tps ?? [])
       .filter((t) => t.tournaments != null)
-      .filter((t) => !coachId || t.tournaments!.owner_coach_id === coachId)
+      .filter((t) => !coachId || t.tournaments!.owner_id === coachId)
       .map<InteractionRow>((t) => ({
-        coach_id: t.tournaments!.owner_coach_id,
+        coach_id: t.tournaments!.owner_id,
         source_type: "tournament",
         source_id: t.tournament_id,
         occurred_at: t.tournaments!.starts_on,

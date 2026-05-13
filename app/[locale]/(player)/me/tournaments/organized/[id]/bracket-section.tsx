@@ -55,7 +55,7 @@ export function BracketSection({
   format: string;
   matchRules: MatchRules;
 }) {
-  const t = useTranslations("tournamentsCoach.bracket");
+  const t = useTranslations("tournamentsOrganized.bracket");
   const router = useRouter();
   const [pending, startT] = useTransition();
   const [method, setMethod] = useState<SeedingMethod>(initialMethod);
@@ -185,8 +185,11 @@ function MatchCard({
   startT: (cb: () => void) => void;
 }) {
   const isEditing = editingId === match.id;
-  const isFinal = match.outcome === "completed" || match.outcome.startsWith("walkover_") ||
-    match.outcome.startsWith("retired_") || match.outcome.startsWith("dsq_");
+  const isFinal =
+    match.outcome === "completed" ||
+    match.outcome.startsWith("walkover_") ||
+    match.outcome.startsWith("retired_") ||
+    match.outcome.startsWith("dsq_");
 
   const p1Cls = match.winner_side === "p1" ? "font-semibold text-grass-800" : "text-ink-800";
   const p2Cls = match.winner_side === "p2" ? "font-semibold text-grass-800" : "text-ink-800";
@@ -195,15 +198,13 @@ function MatchCard({
     <div className="rounded-lg border border-ink-100 bg-grass-50/30 p-2.5">
       <div className="flex items-center justify-between text-sm">
         <span className={p1Cls}>{match.p1_name ?? copy.tbd}</span>
-        <span className="font-mono text-xs text-ink-500">
-          {scoreSummary(match.sets, "p1")}
-        </span>
+        <span className="font-mono text-xs text-ink-500">{scoreSummary(match.sets, "p1")}</span>
       </div>
       <div className="mt-0.5 flex items-center justify-between text-sm">
-        <span className={p2Cls}>{match.p2_name ?? (match.outcome === "walkover_p1" ? copy.bye : copy.tbd)}</span>
-        <span className="font-mono text-xs text-ink-500">
-          {scoreSummary(match.sets, "p2")}
+        <span className={p2Cls}>
+          {match.p2_name ?? (match.outcome === "walkover_p1" ? copy.bye : copy.tbd)}
         </span>
+        <span className="font-mono text-xs text-ink-500">{scoreSummary(match.sets, "p2")}</span>
       </div>
 
       {match.winner_side && (
@@ -250,10 +251,7 @@ function MatchCard({
   );
 }
 
-function scoreSummary(
-  sets: MatchRow["sets"],
-  side: "p1" | "p2",
-): string {
+function scoreSummary(sets: MatchRow["sets"], side: "p1" | "p2"): string {
   if (!sets || sets.length === 0) return "—";
   return sets.map((s) => (side === "p1" ? s.p1 : s.p2)).join(" ");
 }
@@ -277,14 +275,15 @@ function ScoreEditor({
   }) => void;
   pending: boolean;
 }) {
-  const initialSets = match.sets && match.sets.length > 0
-    ? match.sets.map((s) => ({ p1: s.p1, p2: s.p2 }))
-    : suggestInitialSets(matchRules);
+  const initialSets =
+    match.sets && match.sets.length > 0
+      ? match.sets.map((s) => ({ p1: s.p1, p2: s.p2 }))
+      : suggestInitialSets(matchRules);
 
   const [outcome, setOutcome] = useState<MatchOutcomeInput>(
-    (MatchOutcomeInputs.includes(match.outcome as MatchOutcomeInput)
+    MatchOutcomeInputs.includes(match.outcome as MatchOutcomeInput)
       ? (match.outcome as MatchOutcomeInput)
-      : "completed"),
+      : "completed",
   );
   const [sets, setSets] = useState(initialSets);
 

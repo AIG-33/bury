@@ -157,31 +157,41 @@ async function enqueueBookingReminders(supabase: AnySupabase): Promise<number> {
 // ---------------------------------------------------------------------------
 
 async function enqueueTournamentReminders(supabase: AnySupabase): Promise<number> {
-  const now = Date.now();
-  const fromIso = new Date(now + 23 * 3600 * 1000).toISOString();
-  const toIso = new Date(now + 25 * 3600 * 1000).toISOString();
+  // Tournament rows store the *date* of play in `starts_on` (not `starts_at`)
+  // and an optional `start_time` (HH:MM in Europe/Minsk). To pick up
+  // tomorrow's tournaments we just match on `starts_on` = today + 1 day.
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowIso = tomorrow.toISOString().slice(0, 10);
 
   const { data: tournaments } = (await supabase
     .from("tournaments")
-    .select("id, name, starts_at, format")
-    .gte("starts_at", fromIso)
-    .lte("starts_at", toIso)) as {
+    .select("id, name, starts_on, start_time, format")
+    .eq("starts_on", tomorrowIso)) as {
     data: Array<{
       id: string;
       name: string;
-      starts_at: string;
+      starts_on: string;
+      start_time: string | null;
       format: string;
     }> | null;
   };
   if (!tournaments || tournaments.length === 0) return 0;
 
   const tournamentIds = tournaments.map((t) => t.id);
+  // Only approved + non-withdrawn participants get the reminder.
   const { data: participants } = (await supabase
     .from("tournament_participants")
-    .select("tournament_id, player_id, status")
+    .select("tournament_id, player_id, status, withdrawn")
     .in("tournament_id", tournamentIds)
-    .eq("status", "confirmed")) as {
-    data: Array<{ tournament_id: string; player_id: string; status: string }> | null;
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as {
+    data: Array<{
+      tournament_id: string;
+      player_id: string;
+      status: string;
+      withdrawn: boolean;
+    }> | null;
   };
   if (!participants || participants.length === 0) return 0;
 
@@ -223,7 +233,9 @@ async function enqueueTournamentReminders(supabase: AnySupabase): Promise<number
       payload: {
         tournament_id: t.id,
         tournament_name: t.name,
-        starts_at: t.starts_at,
+        starts_at: t.start_time
+          ? `${t.starts_on}T${t.start_time.slice(0, 5)}:00`
+          : t.starts_on,
       },
     });
     if (r.ok) enqueued++;

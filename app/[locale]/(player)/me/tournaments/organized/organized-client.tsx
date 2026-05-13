@@ -16,10 +16,14 @@ import {
   Coins,
   MapPin,
   Users,
+  Inbox,
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
 import { deleteTournament, type TournamentRow, type VenueOption } from "./actions";
-import { TournamentFormDialog, type TournamentDialogCopy } from "./tournament-form-dialog";
+import {
+  TournamentFormDialog,
+  type TournamentDialogCopy,
+} from "./tournament-form-dialog";
 import type {
   TournamentFormat,
   TournamentStatus,
@@ -27,7 +31,7 @@ import type {
   MatchRules,
 } from "@/lib/tournaments/schema";
 
-export type TournamentsListCopy = {
+export type OrganizedTournamentsCopy = {
   empty_title: string;
   empty_description: string;
   empty_cta: string;
@@ -40,13 +44,14 @@ export type TournamentsListCopy = {
   no_surface: string;
   entry_fee_free: string;
   entry_fee_byn: string;
+  pending_badge: string;
   format_labels: Record<TournamentFormat, string>;
   status_labels: Record<TournamentStatus, string>;
   surface_labels: Record<Surface, string>;
   dialog: TournamentDialogCopy;
 };
 
-export function TournamentsClient({
+export function OrganizedTournamentsClient({
   locale,
   tournaments,
   venueOptions,
@@ -55,9 +60,9 @@ export function TournamentsClient({
   locale: string;
   tournaments: TournamentRow[];
   venueOptions: VenueOption[];
-  copy: TournamentsListCopy;
+  copy: OrganizedTournamentsCopy;
 }) {
-  const t = useTranslations("tournamentsCoach");
+  const t = useTranslations("tournamentsOrganized");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TournamentRow | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -149,7 +154,15 @@ export function TournamentsClient({
                     {copy.format_labels[tour.format]}
                   </p>
                 </div>
-                <StatusPill status={tour.status} label={copy.status_labels[tour.status]} />
+                <div className="flex flex-col items-end gap-1">
+                  <StatusPill status={tour.status} label={copy.status_labels[tour.status]} />
+                  {tour.pending_count > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-clay-800">
+                      <Inbox className="h-3 w-3" />
+                      {copy.pending_badge.replace("{n}", String(tour.pending_count))}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <p className="mt-3 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
@@ -226,8 +239,7 @@ export function TournamentsClient({
                   </button>
                 </div>
                 <Link
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={`/${locale}/coach/tournaments/${tour.id}` as any}
+                  href={`/${locale}/me/tournaments/organized/${tour.id}`}
                   className="inline-flex h-8 items-center gap-1 rounded-md bg-ink-900 px-3 text-xs font-semibold text-white transition hover:bg-ink-700"
                 >
                   {copy.open} <ArrowRight className="h-3 w-3" />
@@ -246,7 +258,7 @@ export function TournamentsClient({
         copy={copy.dialog}
         onSaved={(id) => {
           setOpen(false);
-          if (!editing) router.push(`/${locale}/coach/tournaments/${id}` as never);
+          if (!editing) router.push(`/${locale}/me/tournaments/organized/${id}` as never);
           else router.refresh();
         }}
       />

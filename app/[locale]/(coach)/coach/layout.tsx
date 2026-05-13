@@ -14,11 +14,15 @@ export default async function CoachLayout({ children, params }: Props) {
   // /coach/leaderboard was merged into /coach/players, so the leaderboard
   // tab is no longer in this nav. Old URLs still work via a redirect on the
   // /coach/leaderboard route.
+  //
+  // Tournaments moved out of /coach/* entirely — any registered user can
+  // organize one from /me/tournaments/organized — so the coach navigation
+  // no longer features them. Coaches still see "tournaments active" KPI
+  // on the dashboard for the tournaments they personally organize.
   const items = [
     { href: "/coach/dashboard", label: t("dashboard"), icon: "dashboard" },
     { href: "/coach/players", label: t("players"), icon: "users" },
     { href: "/coach/slots", label: t("slots"), icon: "calendar" },
-    { href: "/coach/tournaments", label: t("tournaments"), icon: "trophy" },
     { href: "/coach/profile", label: t("profile"), icon: "user" },
   ] as const;
 

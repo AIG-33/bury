@@ -1,10 +1,8 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
-import {
-  loadOpenTournaments,
-  loadMyTournaments,
-} from "./actions";
+import { loadOpenTournaments, loadMyTournaments } from "./actions";
+import { loadOrganizedTournaments } from "./organized/actions";
 import {
   PlayerTournamentsClient,
   type PlayerTournamentsCopy,
@@ -25,8 +23,11 @@ export default async function PlayerTournamentsPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsPlayer");
 
-  const openRes = await loadOpenTournaments();
-  const mineRes = await loadMyTournaments();
+  const [openRes, mineRes, organizedRes] = await Promise.all([
+    loadOpenTournaments(),
+    loadMyTournaments(),
+    loadOrganizedTournaments(),
+  ]);
   if (!openRes.ok) {
     if (openRes.error === "not_authenticated") {
       redirect(`/${locale}/login?next=/me/tournaments`);
@@ -50,20 +51,30 @@ export default async function PlayerTournamentsPage({ params }: Props) {
   const copy: PlayerTournamentsCopy = {
     tab_open: t("tab_open"),
     tab_mine: t("tab_mine"),
+    tab_organized: t("tab_organized"),
+    create_cta: t("create_cta"),
     open_empty_title: t("open_empty_title"),
     open_empty_description: t("open_empty_description"),
     mine_empty_title: t("mine_empty_title"),
     mine_empty_description: t("mine_empty_description"),
-    register: t("register"),
-    registering: t("registering"),
-    registered: t("registered"),
+    organized_empty_title: t("organized_empty_title"),
+    organized_empty_description: t("organized_empty_description"),
+    apply: t("apply"),
+    applying: t("applying"),
+    application_pending: t("application_pending"),
+    application_approved: t("application_approved"),
+    application_rejected: t("application_rejected"),
+    cancel_application: t("cancel_application"),
     withdraw: t("withdraw"),
     withdrawing: t("withdrawing"),
     withdraw_confirm: t("withdraw_confirm"),
+    cancel_application_confirm: t("cancel_application_confirm"),
     next_match: t("next_match"),
     no_next_match: t("no_next_match"),
     vs: t("vs"),
-    by_coach: t("by_coach"),
+    by_organizer: t("by_organizer"),
+    pending_badge: t("pending_badge"),
+    open_organizer: t("open_organizer"),
     format_labels: formatLabels,
     status_labels: statusLabels,
     surface_labels: surfaceLabels,
@@ -79,7 +90,7 @@ export default async function PlayerTournamentsPage({ params }: Props) {
             pageId="me-tournaments"
             variant="inline"
             why={t("help.why")}
-            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
         </div>
@@ -87,8 +98,10 @@ export default async function PlayerTournamentsPage({ params }: Props) {
       </header>
 
       <PlayerTournamentsClient
+        locale={locale}
         open={openRes.tournaments}
         mine={mineRes.tournaments}
+        organized={organizedRes.ok ? organizedRes.tournaments : []}
         copy={copy}
       />
     </div>

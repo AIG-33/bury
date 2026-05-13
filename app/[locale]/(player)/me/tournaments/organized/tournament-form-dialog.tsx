@@ -437,7 +437,6 @@ export function TournamentFormDialog({
                       value={field.value}
                       onChange={(e) => {
                         const k = e.target.value as MatchRuleKind;
-                        // Reset payload to safe defaults for each kind.
                         if (k === "best_of_3") {
                           form.setValue("match_rules", {
                             kind: "best_of_3",

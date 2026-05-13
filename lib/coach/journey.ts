@@ -80,7 +80,7 @@ export async function loadCoachJourney(): Promise<
     supabase
       .from("tournaments")
       .select("id", { count: "exact", head: true })
-      .eq("owner_coach_id", userId),
+      .eq("owner_id", userId),
   ]);
 
   const slotsCount = slotsRes.count ?? 0;
@@ -120,7 +120,7 @@ export async function loadCoachJourney(): Promise<
     {
       id: "tournament",
       done: tournamentsCount > 0,
-      href: "/coach/tournaments",
+      href: "/me/tournaments/organized",
       count: tournamentsCount,
     },
   ];
