@@ -103,16 +103,27 @@ export async function loadAdminCoachApplications(
 
   const { data: profiles } = (await service
     .from("profiles")
-    .select("id, display_name, email, avatar_url, is_coach")
+    .select("id, display_name, avatar_url, is_coach")
     .in("id", allProfileIds)) as {
     data: Array<{
       id: string;
       display_name: string | null;
-      email: string | null;
       avatar_url: string | null;
       is_coach: boolean;
     }> | null;
   };
+
+  // `profiles` does not store the full email — only `email_local`. The full
+  // address lives in `auth.users.email` and is exposed to the service role
+  // through the admin API. We resolve emails per id in parallel; the set is
+  // small (one admin queue page) so the round-trip cost is negligible.
+  const emailById = new Map<string, string | null>();
+  await Promise.all(
+    allProfileIds.map(async (id) => {
+      const { data, error } = await service.auth.admin.getUserById(id);
+      emailById.set(id, error || !data?.user ? null : data.user.email ?? null);
+    }),
+  );
 
   const profileById = new Map(
     (profiles ?? []).map((p) => [p.id, p] as const),
@@ -121,6 +132,7 @@ export async function loadAdminCoachApplications(
   const rows: AdminCoachApplicationRow[] = apps.map((a) => {
     const player = profileById.get(a.player_id);
     const decidedBy = a.decided_by ? profileById.get(a.decided_by) : null;
+    const decidedByEmail = a.decided_by ? emailById.get(a.decided_by) ?? null : null;
     return {
       id: a.id,
       status: a.status,
@@ -130,13 +142,13 @@ export async function loadAdminCoachApplications(
         : [],
       admin_comment: a.admin_comment,
       decided_at: a.decided_at,
-      decided_by_name: decidedBy?.display_name ?? decidedBy?.email ?? null,
+      decided_by_name: decidedBy?.display_name ?? decidedByEmail ?? null,
       created_at: a.created_at,
       updated_at: a.updated_at,
       player: {
         id: a.player_id,
         display_name: player?.display_name ?? null,
-        email: player?.email ?? null,
+        email: emailById.get(a.player_id) ?? null,
         avatar_url: player?.avatar_url ?? null,
         is_coach: Boolean(player?.is_coach),
       },
