@@ -12,7 +12,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 // Top navigation — variant A "3 pillars + Profile".
 // -------------------------------------------------
 // Public capsule (always 4 destinations) reflects the project's
-// positioning: Спарринги / Турниры / Тренеры / Площадки.
+// positioning: Спарринги / Турниры / Тренеры / Клубы.
 // Authenticated users get an additional Profile dropdown that hides the
 // secondary "me/*" pages (rating, bookings, my matches, my tournaments,
 // the personalised matchmaker), so the visible header stays calm.
@@ -20,6 +20,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 // Removed from the visible bar (still reachable):
 //   * /players  → footer + cross-links from /open-matches & /me/find
 //   * /matches  → footer
+//   * /venues   → footer + mobile menu (was a pillar pre-clubs)
 //   * /help     → "?" icon in the right cluster + footer
 export async function TopNav() {
   const t = await getTranslations("nav");
@@ -48,6 +49,7 @@ export async function TopNav() {
   const mobileItems: MobileMenuItem[] = user
     ? [
         { group: "personal", href: "/me/profile", label: t("my_profile") },
+        { group: "personal", href: "/me/clubs", label: t("my_clubs") },
         { group: "personal", href: "/me/find", label: t("my_finder") },
         { group: "personal", href: "/me/matches", label: t("my_matches") },
         { group: "personal", href: "/me/tournaments", label: t("my_tournaments") },
@@ -56,6 +58,7 @@ export async function TopNav() {
         { group: "public", href: "/open-matches", label: t("sparrings") },
         { group: "public", href: "/tournaments", label: t("tournaments") },
         { group: "public", href: "/coaches", label: t("coaches") },
+        { group: "public", href: "/clubs", label: t("clubs") },
         { group: "public", href: "/venues", label: t("venues") },
         { group: "public", href: "/players", label: t("players") },
         { group: "public", href: "/matches", label: t("matches") },
@@ -85,6 +88,7 @@ export async function TopNav() {
         { group: "public", href: "/open-matches", label: t("sparrings") },
         { group: "public", href: "/tournaments", label: t("tournaments") },
         { group: "public", href: "/coaches", label: t("coaches") },
+        { group: "public", href: "/clubs", label: t("clubs") },
         { group: "public", href: "/venues", label: t("venues") },
         { group: "public", href: "/players", label: t("players") },
         { group: "public", href: "/matches", label: t("matches") },
@@ -104,8 +108,8 @@ export async function TopNav() {
       <NavLink href="/coaches" tone="public">
         {t("coaches")}
       </NavLink>
-      <NavLink href="/venues" tone="public">
-        {t("venues")}
+      <NavLink href="/clubs" tone="public">
+        {t("clubs")}
       </NavLink>
     </>
   );
@@ -166,6 +170,7 @@ export async function TopNav() {
                   label={t("profile")}
                   items={[
                     { href: "/me/profile", label: t("my_profile"), icon: "user" },
+                    { href: "/me/clubs", label: t("my_clubs"), icon: "tournaments" },
                     { href: "/me/find", label: t("my_finder"), icon: "finder" },
                     { href: "/me/matches", label: t("my_matches"), icon: "matches" },
                     {

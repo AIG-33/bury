@@ -284,6 +284,81 @@ DB: новая таблица `external_ratings` (миграция `202605100001
 
 ---
 
+## 6.bis Clubs (миграция `20260515000000_clubs_membership.sql`)
+
+Базовая таблица `public.clubs` существует с самого начала (см. `..._init.sql`);
+эта миграция строит вокруг неё «секцию»:
+
+- **Расширение `clubs`** — `city`, `district_id` (для фильтров каталога),
+  `join_policy` (`approval` / `open` / `closed`), `invite_token_hash` +
+  `invite_expires_at` (многоразовая ссылка-приглашение для закрытых клубов),
+  `pending_owner_id` + `pending_owner_at` (двухшаговая передача владения).
+- **Новая таблица `club_members`** — одна строка на пару (`club`, `user`).
+  - `status` — `pending / approved / rejected` (зеркалит lifecycle
+    `tournament_participants`).
+  - `role` — `member / admin` (admin = со-модератор; не путать с владельцем
+    клуба, который хранится в `clubs.owner_id`).
+  - `is_primary boolean` — основной клуб игрока/тренера. Инвариант «не более
+    одного approved primary на пользователя» энфорсится **partial unique index**
+    `club_members_one_primary_per_user` — не триггером.
+- **`SECURITY DEFINER`-хелперы** `is_club_owner / is_club_admin /
+  is_club_member` — все RLS-политики ходят через них, поэтому recursion-loop
+  между `clubs` и `club_members` исключён (тот же приём, что в
+  `is_tournament_owner` / `is_tournament_visible`).
+- **RLS-политики `club_members`** (см. файл миграции):
+  - Read: approved-строки публичны (ростер открыт по продуктовому решению);
+    свою pending/rejected-строку юзер тоже видит; владелец и со-админы
+    видят всё.
+  - Self-insert: только за себя, role=`member`, is_primary=false. Status=
+    `pending` разрешён всегда, `approved` — только если у клуба
+    `join_policy='open'`. Закрытые клубы попадают через
+    `accept_club_invite` (см. ниже) или admin-side insert.
+  - Update: триггер `club_members_self_update_guard` не позволяет юзеру
+    менять собственные `status`/`role`/`decided_*`. Менять `is_primary` и
+    `message` — можно. Владелец и со-админы — без ограничений.
+- **`accept_club_invite(_token_hash text)`** — `SECURITY DEFINER`,
+  единственный способ для юзера получить approved-строку в закрытом клубе.
+  Сам пишет/апсёртит `club_members`, проверяя hash и expiry.
+- **`accept_club_ownership(_club_id uuid)`** — `SECURITY DEFINER`, выполняет
+  оба шага передачи владения: `clubs.owner_id` ↔ новый кандидат, бывший
+  владелец автоматически становится `role='admin'` в `club_members`.
+- **`club_stats(_club_id uuid)`** — `SECURITY DEFINER`-view-функция,
+  возвращает `members_total / coaches_total / avg_elo / top5_avg_elo /
+  active_30d / tournaments_total`. Используется каталогом `/clubs` и
+  публичной страницей клуба.
+- **Storage bucket `club-logos`** — public-read, write только для
+  владельца/со-админа (RLS на `storage.objects` через
+  `EXISTS (... is_club_admin)`). Лимит 2 МБ, форматы JPEG/PNG/WebP/SVG.
+
+### Server Actions
+- Публичные: `app/[locale]/clubs/actions.ts` —
+  `loadClubs / loadClubBySlug / applyToJoinClub / joinViaToken / leaveClub /
+  setPrimaryClub / cancelMyApplication` + helper-loaders для фильтров.
+- Член клуба: `app/[locale]/(player)/me/clubs/actions.ts` —
+  `loadMyMemberships / acceptOwnership / declineOwnership`.
+- Владелец/со-админ: `app/[locale]/(player)/me/clubs/owned/actions.ts` —
+  CRUD клуба, `decideApplication / setMemberRole / removeMember / addMember /
+  regenerateInviteToken / revokeInviteToken / proposeOwnership /
+  cancelOwnershipTransfer / setClubLogoUrl / deleteClub`.
+
+### Email-шаблоны
+- `lib/notifications/templates.ts`: `club_application_submitted`,
+  `club_application_approved`, `club_application_rejected`,
+  `club_member_kicked`, `club_ownership_offered`.
+
+### Primary-club бейдж
+- `lib/clubs/primary.ts` — `loadPrimaryClubsForUsers(supabase, ids)`,
+  batch-loader для бейджа основного клуба рядом с именем игрока/тренера.
+- Подключён в `/players` и `/coaches`. Бейдж — `<PrimaryClubBadge />`
+  (ссылка на `/clubs/<slug>`).
+
+### Навигация
+- Центральная капсула в `top-nav.tsx` теперь содержит:
+  Спарринги / Турниры / Тренеры / **Клубы**.
+- `/venues` перенесена в footer и mobile-menu.
+
+---
+
 ## 7. Чего ещё **нет** (важно отделить от реализованного)
 
 Чтобы документ не вводил в заблуждение — то, что упомянуто в TZ/плане, но в коде не подключено:

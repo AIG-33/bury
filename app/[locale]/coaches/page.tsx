@@ -7,6 +7,8 @@ import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadCoaches, loadVenueOptions, loadDistrictOptionsForCoaches } from "./actions";
+import { loadPrimaryClubsForUsers } from "@/lib/clubs/primary";
+import { PrimaryClubBadge } from "@/components/clubs/primary-club-badge";
 import {
   rankCoaches,
   sortCoaches,
@@ -103,6 +105,15 @@ export default async function CoachesPage({ params, searchParams }: Props) {
   const filtered = verifiedOnly ? ranked.filter((r) => r.qualifies) : ranked;
   const sorted = sortCoaches(filtered, sortKey);
   const coachesById = new Map(rawCoaches.map((c) => [c.id, c] as const));
+
+  const primaryClubByUserId = await (async () => {
+    if (rawCoaches.length === 0) return new Map<string, never>();
+    const supabase = await createSupabaseServerClient();
+    return loadPrimaryClubsForUsers(
+      supabase,
+      rawCoaches.map((c) => c.id),
+    );
+  })();
 
   const filterState = {
     sort: sortKey,
@@ -361,6 +372,15 @@ export default async function CoachesPage({ params, searchParams }: Props) {
                           </span>
                         )}
                       </div>
+                      {primaryClubByUserId.get(c.id) && (
+                        <div className="mt-1.5">
+                          <PrimaryClubBadge
+                            slug={primaryClubByUserId.get(c.id)!.slug}
+                            name={primaryClubByUserId.get(c.id)!.name}
+                            logoUrl={primaryClubByUserId.get(c.id)!.logo_url}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 

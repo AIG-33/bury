@@ -12,6 +12,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadPublicDistrictOptions, loadPublicPlayers } from "./actions";
 import { LEVEL_BUCKETS, type LevelBucket } from "./filters";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
+import { loadPrimaryClubsForUsers } from "@/lib/clubs/primary";
+import { PrimaryClubBadge } from "@/components/clubs/primary-club-badge";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -79,6 +81,15 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
 
   const isGuest = !sessionUser;
   const hasFilter = level !== "any" || Boolean(districtId) || hand !== "both" || slotApplied;
+
+  const primaryClubByUserId = await (async () => {
+    if (results.length === 0) return new Map<string, never>();
+    const supabase = await createSupabaseServerClient();
+    return loadPrimaryClubsForUsers(
+      supabase,
+      results.map((p) => p.id),
+    );
+  })();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
@@ -272,6 +283,15 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                         <MapPin className="h-3 w-3 shrink-0" />
                         <span className="truncate">{locationParts.join(" · ")}</span>
                       </p>
+                    )}
+                    {primaryClubByUserId.get(p.id) && (
+                      <div className="mt-1.5">
+                        <PrimaryClubBadge
+                          slug={primaryClubByUserId.get(p.id)!.slug}
+                          name={primaryClubByUserId.get(p.id)!.name}
+                          logoUrl={primaryClubByUserId.get(p.id)!.logo_url}
+                        />
+                      </div>
                     )}
                     {p.is_coach && (
                       <Link

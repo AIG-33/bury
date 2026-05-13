@@ -42,6 +42,26 @@
     "lt_tier": {
       "title": "Liga Tennisa tier",
       "body": "Skill bracket on Liga Tennisa: Rookies → Satellite → Futures → Legger → Challenger → Masters → Supreme → Pro. Derived from the Elo bands used on ligatennisa.com."
+    },
+    "primary_club": {
+      "title": "Primary club",
+      "body": "A player or coach can be a member of multiple clubs, but only one is marked as primary. The primary club appears as a badge next to the player/coach name across the platform. Change it in /me/clubs."
+    },
+    "club_admin": {
+      "title": "Club co-admin",
+      "body": "An approved club member with role 'admin'. Can approve/reject applications, remove members, edit settings and the invite token. Cannot delete the club and cannot grant the admin role to others — that's the owner's prerogative."
+    },
+    "club_join_policy": {
+      "title": "Club join policy",
+      "body": "Three modes: approval (player applies, owner approves), open (one-click join, auto-approved), closed (invite link only)."
+    },
+    "club_invite_token": {
+      "title": "Club invite link",
+      "body": "A reusable URL of the form /clubs/join/<token> that auto-joins the user into the club. Used by closed clubs. You can set an expiry and rotate the token any time — the previous URL stops working immediately."
+    },
+    "club_ownership_transfer": {
+      "title": "Club ownership transfer",
+      "body": "A two-step handover: the current owner nominates a candidate; the candidate accepts within 14 days. Once accepted, the candidate becomes the new owner and the previous owner is demoted to co-admin."
     }
   }
 }

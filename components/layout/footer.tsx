@@ -60,6 +60,9 @@ export async function Footer({ authed }: Props) {
                 <FooterLink href="/coaches">{t("links.coaches")}</FooterLink>
               </li>
               <li>
+                <FooterLink href="/clubs">{t("links.clubs")}</FooterLink>
+              </li>
+              <li>
                 <FooterLink href="/venues">{t("links.venues")}</FooterLink>
               </li>
               <li>

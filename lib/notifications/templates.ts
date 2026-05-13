@@ -16,12 +16,20 @@ export type TemplateCode =
   | "booking_cancelled"
   | "booking_reminder_24h"
   | "tournament_registered"
+  | "tournament_application_submitted"
+  | "tournament_application_approved"
+  | "tournament_application_rejected"
   | "tournament_starting_24h"
   | "match_proposal"
   | "match_confirmed"
   | "match_disputed"
   | "rating_changed"
-  | "season_summary";
+  | "season_summary"
+  | "club_application_submitted"
+  | "club_application_approved"
+  | "club_application_rejected"
+  | "club_member_kicked"
+  | "club_ownership_offered";
 
 export type RenderedEmail = { subject: string; html: string };
 
@@ -75,12 +83,20 @@ type Strings = {
   booking_cancelled: { subject: string; intro: string; rescheduleCta: string };
   booking_reminder_24h: { subject: string; intro: string; venue: string };
   tournament_registered: { subject: string; intro: string; format: string; cta: string };
+  tournament_application_submitted: { subject: string; intro: string; cta: string };
+  tournament_application_approved: { subject: string; intro: string; format: string; cta: string };
+  tournament_application_rejected: { subject: string; intro: string };
   tournament_starting_24h: { subject: string; intro: string; cta: string };
   match_proposal: { subject: string; intro: string; cta: string; declineHint: string };
   match_confirmed: { subject: string; intro: string };
   match_disputed: { subject: string; intro: string };
   rating_changed: { subject: string; intro: string; eloLabel: string; deltaLabel: string };
   season_summary: { subject: string; intro: string; cta: string };
+  club_application_submitted: { subject: string; intro: string; cta: string };
+  club_application_approved: { subject: string; intro: string; cta: string };
+  club_application_rejected: { subject: string; intro: string };
+  club_member_kicked: { subject: string; intro: string };
+  club_ownership_offered: { subject: string; intro: string; cta: string; ps: string };
   footer: string;
 };
 
@@ -116,6 +132,21 @@ const COPY: Record<Locale, Strings> = {
       format: "Format: {format}. Match rules: {rules}.",
       cta: "Open tournament",
     },
+    tournament_application_submitted: {
+      subject: "New tournament application 📨",
+      intro: "Someone applied to your tournament «{tournament}». Review the application and approve or reject it.",
+      cta: "Review applications",
+    },
+    tournament_application_approved: {
+      subject: "You're in the tournament 🏆",
+      intro: "Your application to «{tournament}» has been approved. Starts {when}.",
+      format: "Format: {format}. Match rules: {rules}.",
+      cta: "Open tournament",
+    },
+    tournament_application_rejected: {
+      subject: "Tournament application not approved",
+      intro: "Your application to «{tournament}» wasn't approved this time. Don't take it personally — try other open tournaments.",
+    },
     tournament_starting_24h: {
       subject: "Tournament starts tomorrow!",
       intro: "Get your racket ready — «{tournament}» starts {when}.",
@@ -145,6 +176,30 @@ const COPY: Record<Locale, Strings> = {
       subject: "Season wrap-up",
       intro: "The season is over. Check your standings.",
       cta: "See results",
+    },
+    club_application_submitted: {
+      subject: "New club application 📨",
+      intro: "{applicant} applied to join your club «{club}». {message}",
+      cta: "Review application",
+    },
+    club_application_approved: {
+      subject: "You're in the club ✅",
+      intro: "Your application to «{club}» has been approved. Welcome!",
+      cta: "Open club",
+    },
+    club_application_rejected: {
+      subject: "Club application not approved",
+      intro: "Your application to «{club}» wasn't approved this time. {reason}",
+    },
+    club_member_kicked: {
+      subject: "Club membership ended",
+      intro: "You are no longer a member of «{club}». {reason}",
+    },
+    club_ownership_offered: {
+      subject: "Club ownership offer 🎾",
+      intro: "{previous} offered you ownership of the club «{club}». Accept within 14 days, otherwise the offer expires.",
+      cta: "Open club",
+      ps: "If you accept, you become the new owner and the previous owner stays as a co-admin.",
     },
     footer:
       "You're getting this because you're registered on PlayTennis.by. Change your preferences in profile settings.",
@@ -180,6 +235,21 @@ const COPY: Record<Locale, Strings> = {
       format: "Формат: {format}. Регламент матча: {rules}.",
       cta: "Открыть турнир",
     },
+    tournament_application_submitted: {
+      subject: "Новая заявка на турнир 📨",
+      intro: "Кто-то подал заявку на твой турнир «{tournament}». Загляни и реши: одобрить или отклонить.",
+      cta: "Открыть заявки",
+    },
+    tournament_application_approved: {
+      subject: "Тебя одобрили в турнире 🏆",
+      intro: "Твоя заявка на турнир «{tournament}» одобрена. Старт: {when}.",
+      format: "Формат: {format}. Регламент матча: {rules}.",
+      cta: "Открыть турнир",
+    },
+    tournament_application_rejected: {
+      subject: "Заявка на турнир отклонена",
+      intro: "Твою заявку на турнир «{tournament}» в этот раз не одобрили. Не переживай — попробуй другие открытые турниры.",
+    },
     tournament_starting_24h: {
       subject: "Турнир стартует завтра!",
       intro: "Готовь ракетку — «{tournament}» стартует {when}.",
@@ -209,6 +279,30 @@ const COPY: Record<Locale, Strings> = {
       subject: "Итоги сезона",
       intro: "Сезон завершён. Посмотри своё место в рейтинге.",
       cta: "Открыть результаты",
+    },
+    club_application_submitted: {
+      subject: "Новая заявка в клуб 📨",
+      intro: "{applicant} подал заявку на вступление в клуб «{club}». {message}",
+      cta: "Открыть заявку",
+    },
+    club_application_approved: {
+      subject: "Тебя приняли в клуб ✅",
+      intro: "Твоя заявка на вступление в клуб «{club}» одобрена. Добро пожаловать!",
+      cta: "Открыть клуб",
+    },
+    club_application_rejected: {
+      subject: "Заявка в клуб отклонена",
+      intro: "Твою заявку в клуб «{club}» в этот раз не одобрили. {reason}",
+    },
+    club_member_kicked: {
+      subject: "Тебя удалили из клуба",
+      intro: "Ты больше не состоишь в клубе «{club}». {reason}",
+    },
+    club_ownership_offered: {
+      subject: "Предложение стать владельцем клуба 🎾",
+      intro: "{previous} предлагает тебе стать владельцем клуба «{club}». Прими предложение в течение 14 дней, иначе оно сгорит.",
+      cta: "Открыть клуб",
+      ps: "Если ты примешь — станешь новым владельцем, а текущий владелец станет со-администратором.",
     },
     footer:
       "Ты получаешь это письмо, потому что зарегистрирован на PlayTennis.by. Настроить уведомления можно в профиле.",
@@ -321,6 +415,56 @@ export function renderTemplate(
       );
       return { subject, html };
     }
+    case "tournament_application_submitted": {
+      const t = L.tournament_application_submitted;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+      };
+      const url = `${SITE}/${locale}/me/tournaments/organized/${payload.tournament_id ?? ""}`;
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">📨 ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "tournament_application_approved": {
+      const t = L.tournament_application_approved;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+        when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "TBD",
+        format: String(payload.format ?? ""),
+        rules: String(payload.rules ?? ""),
+      };
+      const url = `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`;
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">🏆 ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="color:#6b7280">${escape(fill(t.format, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "tournament_application_rejected": {
+      const t = L.tournament_application_rejected;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+      };
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
     case "tournament_starting_24h": {
       const t = L.tournament_starting_24h;
       const vars = {
@@ -414,6 +558,86 @@ export function renderTemplate(
         ftr,
       );
       return { subject: t.subject, html };
+    }
+    case "club_application_submitted": {
+      const t = L.club_application_submitted;
+      const vars = {
+        applicant: String(payload.applicant_name ?? ""),
+        club: String(payload.club_name ?? ""),
+        message: payload.message ? `«${String(payload.message)}»` : "",
+      };
+      const url = `${SITE}/${locale}/me/clubs/owned/${payload.club_id ?? ""}`;
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">📨 ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "club_application_approved": {
+      const t = L.club_application_approved;
+      const vars = { club: String(payload.club_name ?? "") };
+      const url = `${SITE}/${locale}/clubs/${payload.club_slug ?? ""}`;
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">✅ ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "club_application_rejected": {
+      const t = L.club_application_rejected;
+      const vars = {
+        club: String(payload.club_name ?? ""),
+        reason: payload.reason ? `«${String(payload.reason)}»` : "",
+      };
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "club_member_kicked": {
+      const t = L.club_member_kicked;
+      const vars = {
+        club: String(payload.club_name ?? ""),
+        reason: payload.reason ? `«${String(payload.reason)}»` : "",
+      };
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "club_ownership_offered": {
+      const t = L.club_ownership_offered;
+      const vars = {
+        previous: String(payload.previous_owner_name ?? ""),
+        club: String(payload.club_name ?? ""),
+      };
+      const url = `${SITE}/${locale}/me/clubs`;
+      const subject = t.subject;
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">🎾 ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>
+         <p style="color:#6b7280;font-size:13px">${escape(t.ps)}</p>`,
+        ftr,
+      );
+      return { subject, html };
     }
   }
 }

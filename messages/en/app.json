@@ -728,6 +728,8 @@
     "leaderboard": "Leaderboard",
     "coaches": "Coaches",
     "venues": "Venues",
+    "clubs": "Clubs",
+    "my_clubs": "My clubs",
     "help": "Help",
     "help_aria": "Help and glossary",
     "login": "Sign in",
@@ -2115,24 +2117,25 @@
     },
     "unknown_coach": "Coach"
   },
-  "tournamentsCoach": {
-    "title": "Tournaments",
-    "subtitle": "Run your club tournaments end-to-end: create, register players, draw, score.",
+  "tournamentsOrganized": {
+    "title": "Tournaments I organize",
+    "subtitle": "Create a tournament, collect applications and decide who plays.",
+    "back_to_player_tournaments": "Back to my tournaments",
     "help": {
-      "why": "A clean tournament page replaces messy chat threads, paper brackets and lost scores. Every player sees the same single source of truth.",
+      "why": "Any registered user can organize a tournament: pick a format, collect applications and approve the field. Here you'll find every tournament where you're the organizer.",
       "what": {
-        "1": "Create a tournament — pick a format (single elimination is supported now; the rest are coming) and match rules (best-of-3, super-tiebreak, timed match, etc.).",
-        "2": "Add participants from your club; you can also let players self-register if you set the tournament to public.",
-        "3": "Generate the bracket. We handle byes, seeding (by Elo / random / manual) and walkovers automatically.",
-        "4": "Enter the score after each match. The winner advances, the bracket updates, and the tournament finishes itself when the final is decided."
+        "1": "Create a tournament — format, match rules, venues, date.",
+        "2": "Make it public so players see it on /tournaments and submit applications.",
+        "3": "Open the tournament page: review incoming applications and approve the players you want in the bracket. You can also add players directly without an application.",
+        "4": "Once the field is set — generate the bracket and enter scores."
       },
       "result": {
-        "1": "Players know exactly when, where and against whom they play.",
-        "2": "You spend the day coaching, not chasing scores in WhatsApp."
+        "1": "Only approved players land in the bracket — nobody fills a slot without your say-so.",
+        "2": "Every match feeds Elo and the global /matches feed automatically (when the tournament is public)."
       }
     },
     "list": {
-      "empty_title": "No tournaments yet",
+      "empty_title": "You haven't organized a tournament yet",
       "empty_description": "Create your first tournament — best-of-3, single elimination is a great start.",
       "empty_cta": "Create tournament",
       "add": "Create tournament",
@@ -2144,7 +2147,8 @@
       "no_surface": "Surface n/a",
       "participants_count": "{n}/{max, plural, =0 {∞} other {#}} players",
       "entry_fee_free": "Free",
-      "entry_fee_byn": "{n} BYN"
+      "entry_fee_byn": "{n} BYN",
+      "pending_badge": "{n} applications"
     },
     "formats": {
       "single_elimination": "Single elimination",
@@ -2246,14 +2250,27 @@
       "add_placeholder": "Search players…",
       "add_button": "Add",
       "adding": "Adding…",
-      "empty": "No participants yet — add players above.",
+      "empty": "No participants yet — add players below or wait for applications.",
       "remove": "Remove",
       "remove_confirm": "Remove this participant?",
       "seed_label": "Seed",
       "no_seed": "—",
       "withdrawn": "Withdrawn",
       "no_options": "No matching players in the directory.",
-      "count": "{n, plural, one {# player} other {# players}}"
+      "count": "{n, plural, one {# player} other {# players}}",
+      "pending_count": "{n, plural, one {# application} other {# applications}}",
+      "pending_section": "Applications to review",
+      "approved_section": "Approved roster",
+      "rejected_section": "Rejected applications",
+      "pending_empty": "No applications yet — share the tournament page so players can apply.",
+      "rejected_empty": "Nobody rejected yet.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "reject_confirm": "Reject this application? The player will be notified; you can re-approve later if you change your mind.",
+      "approving": "Approving…",
+      "rejecting": "Rejecting…",
+      "reapprove": "Restore",
+      "add_directly_hint": "You can add a player directly (no application needed). They'll go straight into the approved roster."
     },
     "bracket": {
       "title": "Bracket",
@@ -2288,19 +2305,19 @@
       "insufficient_players": "Need at least 2 participants to draw a bracket."
     },
     "detail": {
-      "back": "Back to tournaments",
+      "back": "Back to my tournaments",
       "entry_fee_free": "Free",
       "entry_fee_byn": "{n} BYN",
       "help": {
-        "why": "This page is your control room: participants, bracket (or schedule for round-robin), and the visibility switch. Update them and players see changes instantly.",
+        "why": "This is where you review applications, lock the field, control visibility and enter scores. Players see your changes instantly.",
         "what": {
-          "1": "Add or remove participants until you're happy with the field, then click Generate bracket.",
-          "2": "After each match, click Score on the match card and enter set-by-set results — the match flips to Completed and Elo recalculates automatically.",
-          "3": "To make results visible to everyone (in /matches and on the public tournament page) — flip Visibility to Public in the block above."
+          "1": "In the Applications block, approve or reject each request — only approved players will land in the bracket.",
+          "2": "When the field is set, pick a seeding method and click Generate bracket.",
+          "3": "After each match, enter the score — Elo recalculates automatically, and the match shows up in /matches when visibility is Public."
         },
         "result": {
-          "1": "A finished bracket — or final standings table — is a single, shareable view of how the tournament played out.",
-          "2": "Every result feeds the universal Elo with the correct multiplier; with Public visibility it lands in the global /matches feed too."
+          "1": "The roster is locked: nobody steps onto a court without your approval.",
+          "2": "A finished bracket — or round-robin standings — is a single source of truth for everyone."
         }
       }
     },
@@ -2319,35 +2336,46 @@
   },
   "tournamentsPlayer": {
     "title": "Tournaments",
-    "subtitle": "Find an open tournament, register, and track your bracket.",
+    "subtitle": "Apply to open tournaments, follow your bracket, organize your own.",
     "help": {
-      "why": "All your tournaments — past, present and open for registration — live here.",
+      "why": "Your applications, your bracket, and the tournaments you organize — all in one place.",
       "what": {
-        "1": "Open registrations: tap Register on any open tournament. The coach gets your name automatically.",
-        "2": "My tournaments: see the next match you have to play and your opponent.",
-        "3": "Need to drop out? Use Withdraw — earlier is better, so the bracket can be redrawn."
+        "1": "Open registrations: send an application — the organizer reviews and approves or rejects it.",
+        "2": "My applications: see the status of each application, your next match and the score.",
+        "3": "Organize: create your own tournaments, review applications, run the bracket.",
+        "4": "Need to drop out? Use Withdraw — earlier is better, so the bracket can be redrawn."
       },
       "result": {
-        "1": "You never miss a tournament you wanted to play.",
-        "2": "You always know who you play next."
+        "1": "You instantly know which tournaments approved you and which didn't.",
+        "2": "Your own tournaments live next to the ones you play in — no jumping between sections."
       }
     },
     "tab_open": "Open registrations",
-    "tab_mine": "My tournaments",
+    "tab_mine": "My applications",
+    "tab_organized": "I organize",
+    "create_cta": "Create tournament",
     "open_empty_title": "No open tournaments right now",
-    "open_empty_description": "Coaches haven't published any public tournaments. Check back soon!",
+    "open_empty_description": "Nobody published a public tournament. Check back soon — or organize your own!",
     "mine_empty_title": "You're not in any tournament yet",
     "mine_empty_description": "Browse Open registrations to find one to join.",
-    "register": "Register",
-    "registering": "Registering…",
-    "registered": "Registered",
+    "organized_empty_title": "You haven't organized a tournament yet",
+    "organized_empty_description": "Spinning up a tournament is a couple of clicks: format, date, venue. Players will be able to apply.",
+    "apply": "Apply",
+    "applying": "Sending…",
+    "application_pending": "Application pending",
+    "application_approved": "Approved",
+    "application_rejected": "Rejected",
+    "cancel_application": "Cancel application",
+    "cancel_application_confirm": "Withdraw your application?",
     "withdraw": "Withdraw",
     "withdrawing": "Withdrawing…",
     "withdraw_confirm": "Withdraw from this tournament? Your spot will be released.",
     "next_match": "Your next match",
     "no_next_match": "Nothing scheduled yet — bracket may still be in the works.",
     "vs": "vs",
-    "by_coach": "Run by",
+    "by_organizer": "Organized by",
+    "pending_badge": "{n} apps",
+    "open_organizer": "Manage",
     "seats": "{n}/{max, plural, =0 {∞} other {#}} seats",
     "error": "Error",
     "formats": {
@@ -3170,7 +3198,7 @@
     "detail": {
       "starts": "Starts",
       "participants": "Participants",
-      "coach": "Organiser",
+      "organizer": "Organizer",
       "entry_fee": "Entry fee",
       "venues": "Venues",
       "participants_title": "Participants",
@@ -3198,6 +3226,7 @@
       "sparrings": "Sparrings",
       "tournaments": "Tournaments",
       "coaches": "Coaches",
+      "clubs": "Clubs",
       "venues": "Venues",
       "players": "Players",
       "matches": "Matches feed",
@@ -3396,6 +3425,355 @@
           "1": "Fewer awkward proposals.",
           "2": "Players feel their privacy is respected."
         }
+      }
+    }
+  },
+  "clubsCommon": {
+    "join_policy": {
+      "approval": "By approval",
+      "open": "Open",
+      "closed": "Invite-only"
+    },
+    "roles": {
+      "member": "Member",
+      "admin": "Co-admin"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "clubsCatalog": {
+    "title": "Clubs",
+    "subtitle": "Amateur tennis clubs in Belarus. Join, play, organise tournaments and train together.",
+    "create_cta": "Create a club",
+    "login_to_create": "Sign in to create a club",
+    "members_count": "{n, plural, one {member} other {members}}",
+    "coaches_count": "{n, plural, one {coach} other {coaches}}",
+    "top5_avg_elo": "Top-5 Elo:",
+    "no_elo_yet": "No rating yet",
+    "filters": {
+      "any_city": "Any city",
+      "any_district": "Any district",
+      "city_label": "City",
+      "district_label": "District",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "empty": {
+      "title": "No clubs yet",
+      "body": "Be the first — create your club and invite players.",
+      "cta": "Create a club"
+    },
+    "empty_filter": {
+      "title": "No clubs match these filters",
+      "body": "Try resetting the filters or browse another city.",
+      "cta": "Reset filters"
+    },
+    "help": {
+      "why": "A club is a community of players and coaches who play together and run tournaments. This is the directory of every club on the platform.",
+      "what": {
+        "1": "Pick a club by city or district and open its page.",
+        "2": "Apply to join, or jump in if the club is open.",
+        "3": "Create your own club and become its owner."
+      },
+      "result": {
+        "1": "You'll find a community near you — opponents, coaches, tournaments.",
+        "2": "Creating your own club gathers regular partners and lets you run internal tournaments."
+      }
+    }
+  },
+  "clubPublic": {
+    "back": "All clubs",
+    "created_at": "Created {date}",
+    "owner": "Owner",
+    "join_cta": {
+      "open": "Join",
+      "approval": "Apply to join",
+      "closed": "Invite-only",
+      "login": "Sign in to join",
+      "pending": "Application sent",
+      "approved": "You're in",
+      "rejected": "Application declined",
+      "owner": "This is your club"
+    },
+    "apply_dialog": {
+      "title": "Apply to «{club}»",
+      "message_label": "Message to the owner (optional)",
+      "message_placeholder": "Briefly: who you are and why you want to join.",
+      "submit": "Send application",
+      "submitting": "Sending…",
+      "cancel": "Cancel",
+      "errors": {
+        "club_closed": "Club is invite-only. Ask the owner for an invite link.",
+        "already_member": "You're already a member of this club or have a pending application.",
+        "unknown": "Could not send — please try again."
+      }
+    },
+    "stats": {
+      "title": "Club stats",
+      "members": "Members",
+      "coaches": "Coaches",
+      "avg_elo": "Average Elo",
+      "top5_avg_elo": "Top-5 average Elo",
+      "active_30d": "Active in 30 days",
+      "tournaments": "Tournaments"
+    },
+    "coaches_section": {
+      "title": "Club coaches",
+      "count": "{n, plural, =0 {no coaches} one {# coach} other {# coaches}}",
+      "empty": "No coaches in the club yet.",
+      "open_profile": "Open profile"
+    },
+    "players_section": {
+      "title": "Club players",
+      "count": "{n, plural, =0 {no players} one {# player} other {# players}}",
+      "empty": "No players in the club yet."
+    },
+    "venues_section": {
+      "title": "Club venues",
+      "empty": "No venues linked to this club. Venue linking is handled by platform admins — ping us if you want your courts attached."
+    },
+    "help": {
+      "why": "A public club page is the storefront: who's in, which coaches teach there, and where they play. Anyone can visit and decide whether to apply.",
+      "what": {
+        "1": "Browse coaches and players, open their profiles.",
+        "2": "See venues and statistics.",
+        "3": "Apply or join (if the club is open)."
+      },
+      "result": {
+        "1": "Once approved by the owner — you're in the roster.",
+        "2": "Set this club as primary and it will appear next to your player card."
+      }
+    },
+    "not_found": {
+      "title": "Club not found",
+      "body": "The link may be stale or the club was deleted.",
+      "cta": "Back to clubs"
+    }
+  },
+  "clubJoin": {
+    "accepting": "Accepting the invite…",
+    "success": {
+      "title": "Welcome to «{club}»",
+      "body": "Open the club page — you're now in the roster.",
+      "cta": "Open club"
+    },
+    "errors": {
+      "not_authenticated": "Sign in to accept the invite.",
+      "invite_invalid": "The link is invalid. Ask the club owner for a fresh one.",
+      "invite_expired": "The invite link has expired. Ask for a fresh one.",
+      "unknown": "Could not process the link."
+    },
+    "cta_login": "Sign in",
+    "cta_clubs": "All clubs"
+  },
+  "myClubs": {
+    "title": "My clubs",
+    "subtitle": "All clubs you are part of or waiting to join.",
+    "owned_link": "Clubs I own",
+    "create_cta": "Create a club",
+    "empty": {
+      "title": "You're not in any club yet",
+      "body": "Find a club in the directory and apply, or create your own.",
+      "cta_browse": "Browse clubs",
+      "cta_create": "Create a club"
+    },
+    "section_approved": "Member of",
+    "section_pending": "Pending applications",
+    "section_rejected": "Declined applications",
+    "section_offers": "Ownership offers",
+    "primary_label": "Primary",
+    "primary_set": "Set as primary",
+    "primary_clear": "Clear primary",
+    "primary_help": "A player has exactly one primary club at a time. It appears next to your name across the platform.",
+    "owner_badge": "Owner",
+    "admin_badge": "Co-admin",
+    "leave": "Leave club",
+    "leave_confirm": "Leave the club? Your membership ends but your match history stays.",
+    "cancel_application": "Cancel application",
+    "cancel_application_confirm": "Cancel application to «{club}»?",
+    "ownership_offer": {
+      "intro": "{previous} offers you ownership of the club «{club}».",
+      "expires": "Expires: {date}",
+      "accept": "Accept and become owner",
+      "decline": "Decline",
+      "accepting": "Accepting…",
+      "errors": {
+        "transfer_not_offered": "The offer is no longer active.",
+        "transfer_expired": "The offer has expired.",
+        "unknown": "Could not accept — please try later."
+      }
+    },
+    "help": {
+      "why": "All your club memberships in one place — including pending applications. Pick one club as primary; it's the badge shown next to your name across the platform.",
+      "what": {
+        "1": "Set your primary club — it's the badge on your player/coach card.",
+        "2": "Cancel applications you've changed your mind about.",
+        "3": "Accept or decline club ownership offers."
+      },
+      "result": {
+        "1": "You manage your club affiliations in one screen.",
+        "2": "Other players see which club you call home."
+      }
+    }
+  },
+  "clubsOwned": {
+    "title": "Clubs I run",
+    "subtitle": "Clubs you created and clubs where you're a co-admin.",
+    "back": "My clubs",
+    "create_cta": "Create a club",
+    "empty": {
+      "title": "No clubs yet",
+      "body": "Creating a club takes a minute. You become the owner automatically.",
+      "cta": "Create a club"
+    },
+    "card": {
+      "members": "Members",
+      "pending": "Pending applications",
+      "open": "Open",
+      "owner_badge": "Owner",
+      "admin_badge": "Co-admin",
+      "transfer_pending": "Ownership transfer in progress"
+    },
+    "dialog": {
+      "create_title": "New club",
+      "edit_title": "Club settings",
+      "fields": {
+        "name": "Name",
+        "slug": "URL (slug)",
+        "slug_hint": "Used in the /clubs/<slug> URL. Latin letters, digits, and dashes.",
+        "description": "Description",
+        "description_hint": "Tell people who you are: where you play, what level, special features.",
+        "city": "City",
+        "district": "District",
+        "district_any": "None",
+        "join_policy": "Join policy",
+        "join_policy_hints": {
+          "approval": "Player applies, you or a co-admin approves.",
+          "open": "Anyone can join — instant approval.",
+          "closed": "Invite-only — the link is generated in settings."
+        }
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "errors": {
+        "name_too_short": "Name is too short.",
+        "name_too_long": "Name is too long.",
+        "slug_invalid": "Invalid slug. Use Latin letters, digits, and dashes.",
+        "slug_too_short": "Slug is too short.",
+        "slug_too_long": "Slug is too long.",
+        "slug_owner_only": "Only the owner can change the slug.",
+        "unknown": "Could not save — please try again."
+      }
+    },
+    "detail": {
+      "title": "Club management",
+      "view_public": "Open public page",
+      "tabs": {
+        "applications": "Applications",
+        "members": "Members",
+        "settings": "Settings",
+        "invite": "Invite",
+        "transfer": "Ownership"
+      },
+      "applications": {
+        "title": "Join applications",
+        "empty": "No new applications.",
+        "count": "{n, plural, =0 {none} one {# application} other {# applications}}",
+        "applicant": "Player",
+        "elo": "Elo",
+        "location": "Location",
+        "message": "Message",
+        "applied_at": "Applied",
+        "approve": "Approve",
+        "reject": "Reject",
+        "reject_dialog": {
+          "title": "Reject application",
+          "reason_label": "Reason (optional)",
+          "reason_placeholder": "For example: «level mismatch» or «club is full».",
+          "submit": "Reject application",
+          "cancel": "Cancel"
+        },
+        "coach_badge": "Coach"
+      },
+      "members": {
+        "title": "Members",
+        "count": "{n, plural, =0 {no members} one {# member} other {# members}}",
+        "empty": "No approved members yet.",
+        "add_member": "Add member",
+        "promote": "Promote to co-admin",
+        "demote": "Demote co-admin",
+        "kick": "Remove from club",
+        "kick_confirm": "Remove member from the club? Their membership ends but the match history stays.",
+        "coach_badge": "Coach",
+        "owner_badge": "Owner"
+      },
+      "settings": {
+        "title": "Club settings",
+        "logo": {
+          "title": "Logo",
+          "upload": "Upload logo",
+          "uploading": "Uploading…",
+          "remove": "Remove",
+          "hint": "Square JPEG / PNG / WebP / SVG up to 2 MB."
+        },
+        "delete": {
+          "title": "Delete club",
+          "warning": "Deletion is permanent. All members and applications are removed. Venues and tournaments stay in the system but lose the club link.",
+          "confirm_label": "Type the club name to confirm:",
+          "submit": "Delete club",
+          "submit_disabled": "Type the name exactly",
+          "cancel": "Cancel",
+          "cta": "Delete club…"
+        }
+      },
+      "invite": {
+        "title": "Invite link",
+        "subtitle": "Reusable link for closed clubs. Anyone who follows it joins automatically.",
+        "no_token": "No link generated yet.",
+        "current_link": "Current link:",
+        "expires_at": "Expires: {date}",
+        "expires_never": "Never expires",
+        "expires_in_days_label": "Lifetime (days)",
+        "expires_in_days_zero": "0 = never expires",
+        "generate": "Generate link",
+        "generating": "Generating…",
+        "regenerate": "Regenerate",
+        "revoke": "Revoke link",
+        "revoke_confirm": "Revoke the link? Old URLs will stop working immediately.",
+        "copy": "Copy",
+        "copied": "Copied",
+        "warning_rotate": "Regenerating invalidates the previous link."
+      },
+      "transfer": {
+        "title": "Transfer ownership",
+        "subtitle": "Transfer the club to another approved member. After they accept, you become a co-admin and keep access.",
+        "no_pending": "No active offers.",
+        "select_label": "Transfer to",
+        "select_placeholder": "Pick an approved member",
+        "propose": "Propose transfer",
+        "proposing": "Sending…",
+        "pending_intro": "Waiting for {name} to accept.",
+        "pending_expires": "Expires in 14 days from the offer date.",
+        "cancel": "Cancel offer",
+        "cancelling": "Cancelling…"
+      }
+    },
+    "help": {
+      "why": "Your club command centre — applications, members and settings live here. Players don't visit this screen; they interact with the public club page.",
+      "what": {
+        "1": "Approve player and coach applications.",
+        "2": "Promote co-admins to delegate moderation.",
+        "3": "Switch the join policy — open / by approval / invite-only.",
+        "4": "Transfer ownership when needed."
+      },
+      "result": {
+        "1": "Approved players get an email and appear in the roster instantly.",
+        "2": "Co-admins see the same applications and help moderate.",
+        "3": "Closed clubs only open via the invite link you control."
       }
     }
   }
