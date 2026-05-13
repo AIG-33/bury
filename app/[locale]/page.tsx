@@ -32,7 +32,9 @@ async function resolveLandingHrefs(): Promise<LandingHrefs> {
     primary: "/login",
     primaryLabelKey: "cta_primary",
     secondary: "/tournaments",
-    rating: "/leaderboard",
+    // Public players catalogue doubles as the leaderboard (Elo column +
+    // sort-by-Elo). There is no separate /leaderboard route.
+    rating: "/players",
     find: "/players",
     tournaments: "/tournaments",
     coaches: "/coaches",
