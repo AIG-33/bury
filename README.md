@@ -1,4 +1,4 @@
-# playtennis.by — Open Amateur-Tennis Platform of Belarus
+# PlayTennis.by — Open Amateur-Tennis Platform of Belarus
 
 A platform for **everyone who plays amateur tennis in Belarus** — players of any level, coaches and small clubs. Find a sparring partner, find a coach, join or run a tournament — all in one place.
 
@@ -60,4 +60,4 @@ Iterations 1–3 complete: scaffold + auth + onboarding quiz + invitations. Liga
 
 ## Project ethos
 
-playtennis.by is built for the **whole amateur-tennis community of Belarus** — not for one club, one coach or one player. Anyone with a court, a coaching practice or just a racket is welcome to register and use the same find-a-sparring engine, the same tournament engine and the same coach directory as everyone else. Code, schema and content live in this repository so the project can be audited, forked or self-hosted by clubs that prefer to run their own instance.
+PlayTennis.by is built for the **whole amateur-tennis community of Belarus** — not for one club, one coach or one player. Anyone with a court, a coaching practice or just a racket is welcome to register and use the same find-a-sparring engine, the same tournament engine and the same coach directory as everyone else. Code, schema and content live in this repository so the project can be audited, forked or self-hosted by clubs that prefer to run their own instance.

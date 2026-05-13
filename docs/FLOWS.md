@@ -110,7 +110,7 @@
 
 1. Игрок попадает на `/onboarding` сразу после регистрации (см. изменённый редирект в `app/api/auth/{post-login,callback}/route.ts`) и выбирает один из двух путей.
 2. На `/onboarding/import-lt` ищет себя на ligatennisa.com через `searchLtCandidates` (имя + опционально город) → топ-8 совпадений.
-3. Открывает превью через `previewLtPlayer(externalId)` — карточка с тиром, Elo, фото, ссылкой на профиль и предполагаемым стартовым Elo на playtennis.by.
+3. Открывает превью через `previewLtPlayer(externalId)` — карточка с тиром, Elo, фото, ссылкой на профиль и предполагаемым стартовым Elo на PlayTennis.by.
 4. Подтверждает импорт через `confirmImportFromLt(externalId, copyEmptyFields)` — пишет `external_ratings` (см. ниже) + обновляет `profiles.current_elo` (LT.elo, зажатый в 800–2200) + `rating_history(reason='external_import')` + `onboarding_completed_at=now()`. Если выбрана опция «заполнить пустые поля» — копирует имя/аватар/руку/бэкхенд/инстаграм/ДР/город там, где у нас пусто.
 
 DB: новая таблица `external_ratings` (миграция `20260510000100_external_ratings.sql`) — одна строка на (player, source). RLS: public read (для бейджа), писать может только владелец или админ. См. `docs/external-ratings.md` и `lib/rating/external/liga-tennisa.ts` (фетч + Zod + tier-mapping + клэмп Elo + fuzzy match).

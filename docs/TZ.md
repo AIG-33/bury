@@ -1,4 +1,4 @@
-# Техническое задание — playtennis.by (платформа любительского тенниса в Беларуси)
+# Техническое задание — PlayTennis.by (платформа любительского тенниса в Беларуси)
 
 > Версия 1.1 · Базовая редакция для AI-агента-разработчика
 > Связанные документы: [AGENTS.md](../AGENTS.md), [AI_BUILD_PLAN.md](AI_BUILD_PLAN.md), [data-model.md](diagrams/data-model.md), [user-flows.md](diagrams/user-flows.md), [design-tokens.md](design-tokens.md), [copy-deck.md](copy-deck.md), [admin-help.md](admin-help.md), [rating-algorithm.md](rating-algorithm.md)

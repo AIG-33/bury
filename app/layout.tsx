@@ -26,8 +26,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "playtennis.by — найди соперника, тренера и турнир в Беларуси",
-    template: "%s · playtennis.by",
+    default: "PlayTennis.by — найди соперника, тренера и турнир в Беларуси",
+    template: "%s · PlayTennis.by",
   },
   description:
     "Открытая платформа любительского тенниса в Беларуси: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
@@ -46,21 +46,21 @@ export const metadata: Metadata = {
     "теннисные турниры",
     "теннис Минск",
     "теннис Беларусь",
-    "playtennis.by",
+    "PlayTennis.by",
   ],
-  authors: [{ name: "playtennis.by" }],
+  authors: [{ name: "PlayTennis.by" }],
   openGraph: {
     type: "website",
-    title: "playtennis.by — спарринг, тренер и турниры в одном месте",
+    title: "PlayTennis.by — спарринг, тренер и турниры в одном месте",
     description:
       "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса в Беларуси.",
-    siteName: "playtennis.by",
+    siteName: "PlayTennis.by",
     locale: "ru_BY",
     alternateLocale: ["en_US"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "playtennis.by — спарринг, тренер и турниры в одном месте",
+    title: "PlayTennis.by — спарринг, тренер и турниры в одном месте",
     description:
       "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса в Беларуси.",
   },
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "playtennis.by",
+    title: "PlayTennis.by",
   },
   icons: {
     icon: [

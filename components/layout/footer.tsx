@@ -39,7 +39,7 @@ export async function Footer({ authed }: Props) {
                 <TennisBall className="h-11 w-11 text-ball-500 drop-shadow-[0_2px_8px_rgba(31,138,76,0.3)]" />
               </span>
               <span className="font-display text-[22px] font-extrabold tracking-tight text-grass-900">
-                playtennis.by
+                PlayTennis.by
               </span>
             </Link>
             <p className="mt-3 max-w-md text-sm text-ink-600">{t("tagline")}</p>
@@ -88,7 +88,7 @@ export async function Footer({ authed }: Props) {
         </div>
 
         <div className="flex flex-col items-start justify-between gap-2 border-t border-ink-100 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
-          <span>© {year} playtennis.by · Минск</span>
+          <span>© {year} PlayTennis.by · Минск</span>
           <span>v1.0 · MVP</span>
         </div>
       </div>

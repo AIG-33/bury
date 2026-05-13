@@ -7,7 +7,7 @@ describe("renderTemplate", () => {
       coach_name: "Maksim",
       accept_url: "https://example.com/invite/abc",
     });
-    expect(r.subject).toContain("playtennis.by");
+    expect(r.subject).toContain("PlayTennis.by");
     expect(r.html).toContain("Maksim");
     expect(r.html).toContain("https://example.com/invite/abc");
   });

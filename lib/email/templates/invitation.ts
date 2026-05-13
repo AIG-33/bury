@@ -11,20 +11,20 @@ const COPY: Record<
   }
 > = {
   en: {
-    subject: (c) => `${c} invited you to playtennis.by`,
+    subject: (c) => `${c} invited you to PlayTennis.by`,
     intro: (c) =>
-      `${c} invited you to their club on playtennis.by — the open amateur-tennis platform of Belarus. When you click the link below:`,
+      `${c} invited you to their club on PlayTennis.by — the open amateur-tennis platform of Belarus. When you click the link below:`,
     cta: "Accept invitation",
     outro: "The link is valid for 14 days and can be used once.",
-    footer: "playtennis.by — find a sparring partner, a coach or a tournament for amateur tennis in Belarus.",
+    footer: "PlayTennis.by — find a sparring partner, a coach or a tournament for amateur tennis in Belarus.",
   },
   ru: {
-    subject: (c) => `${c} приглашает тебя в playtennis.by`,
+    subject: (c) => `${c} приглашает тебя в PlayTennis.by`,
     intro: (c) =>
-      `${c} приглашает тебя в свой клуб на playtennis.by — открытой платформе для любителей тенниса в Беларуси. После клика по ссылке ниже:`,
+      `${c} приглашает тебя в свой клуб на PlayTennis.by — открытой платформе для любителей тенниса в Беларуси. После клика по ссылке ниже:`,
     cta: "Принять приглашение",
     outro: "Ссылка работает 14 дней и одноразовая.",
-    footer: "playtennis.by — спарринг, тренеры и турниры для любителей тенниса в Беларуси.",
+    footer: "PlayTennis.by — спарринг, тренеры и турниры для любителей тенниса в Беларуси.",
   },
 };
 
@@ -58,7 +58,7 @@ export function buildInvitationEmail(opts: {
     <tr><td align="center" style="padding:24px;">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;box-shadow:0 8px 24px rgba(15,27,20,.08);overflow:hidden;">
         <tr><td style="padding:32px 32px 0 32px;">
-          <div style="display:inline-block;background:#EAF7EE;color:#155E36;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;">playtennis.by</div>
+          <div style="display:inline-block;background:#EAF7EE;color:#155E36;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;">PlayTennis.by</div>
           <h1 style="margin:16px 0 8px 0;font-size:26px;font-weight:700;color:#0f1b14;">${escapeHtml(c.subject(opts.coachName))}</h1>
           <p style="margin:0;font-size:15px;line-height:1.55;color:#445048;">${escapeHtml(c.intro(opts.coachName))}</p>
           <ol style="margin:16px 0 0 0;padding:0;list-style:none;font-size:14px;line-height:1.6;color:#445048;">

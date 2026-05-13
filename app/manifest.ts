@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "playtennis.by — спарринг, тренер и турниры",
-    short_name: "playtennis.by",
+    name: "PlayTennis.by — спарринг, тренер и турниры",
+    short_name: "PlayTennis.by",
     description:
       "Открытая платформа любительского тенниса в Беларуси: находи соперника, выбирай тренера, записывайся в турниры или создавай свои.",
     start_url: "/",

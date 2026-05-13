@@ -117,7 +117,7 @@ export async function TopNav() {
         <Link
           href="/"
           className="group inline-flex items-center gap-3"
-          aria-label="playtennis.by — найди соперника, тренера и турнир"
+          aria-label="PlayTennis.by — найди соперника, тренера и турнир"
         >
           <span className="relative inline-flex h-11 w-11 items-center justify-center">
             <span
@@ -127,7 +127,7 @@ export async function TopNav() {
             <TennisBall className="ease-followthrough relative h-10 w-10 text-ball-500 drop-shadow-[0_2px_8px_rgba(31,138,76,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]" />
           </span>
           <span className="font-display text-[20px] font-extrabold tracking-tight text-grass-900 sm:text-[22px]">
-            playtennis.by
+            PlayTennis.by
           </span>
         </Link>
 

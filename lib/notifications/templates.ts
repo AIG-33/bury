@@ -33,7 +33,7 @@ function shell(title: string, body: string, footer: string): string {
 <body style="font-family:-apple-system,Segoe UI,Inter,system-ui,sans-serif;background:#f8faf6;margin:0;padding:24px;color:#111827">
   <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
     <div style="background:linear-gradient(135deg,#16a34a 0%,#facc15 100%);padding:18px 24px;color:#fff">
-      <div style="font-weight:700;font-size:18px;letter-spacing:.4px">🎾 playtennis.by</div>
+      <div style="font-weight:700;font-size:18px;letter-spacing:.4px">🎾 PlayTennis.by</div>
     </div>
     <div style="padding:24px">${body}</div>
     <div style="padding:14px 24px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px">${footer}</div>
@@ -87,9 +87,9 @@ type Strings = {
 const COPY: Record<Locale, Strings> = {
   en: {
     invitation_created: {
-      subject: "Your invitation to playtennis.by 🎾",
+      subject: "Your invitation to PlayTennis.by 🎾",
       intro:
-        "Coach {coach} invited you to their club on playtennis.by — the open amateur-tennis platform of Belarus. Click below to create your account and start booking matches, coaches and tournaments.",
+        "Coach {coach} invited you to their club on PlayTennis.by — the open amateur-tennis platform of Belarus. Click below to create your account and start booking matches, coaches and tournaments.",
       cta: "Accept invitation",
       ps: "Link expires in 14 days. Ignore this email if it was sent by mistake.",
     },
@@ -147,13 +147,13 @@ const COPY: Record<Locale, Strings> = {
       cta: "See results",
     },
     footer:
-      "You're getting this because you're registered on playtennis.by. Change your preferences in profile settings.",
+      "You're getting this because you're registered on PlayTennis.by. Change your preferences in profile settings.",
   },
   ru: {
     invitation_created: {
-      subject: "Приглашение в playtennis.by 🎾",
+      subject: "Приглашение в PlayTennis.by 🎾",
       intro:
-        "Тренер {coach} пригласил тебя в свой клуб на playtennis.by — открытой платформе для любителей тенниса в Беларуси. Жми кнопку ниже — создай аккаунт, и сразу можно искать спарринг, записываться к тренеру или в турнир.",
+        "Тренер {coach} пригласил тебя в свой клуб на PlayTennis.by — открытой платформе для любителей тенниса в Беларуси. Жми кнопку ниже — создай аккаунт, и сразу можно искать спарринг, записываться к тренеру или в турнир.",
       cta: "Принять приглашение",
       ps: "Ссылка действительна 14 дней. Если письмо пришло по ошибке — игнорируй.",
     },
@@ -211,7 +211,7 @@ const COPY: Record<Locale, Strings> = {
       cta: "Открыть результаты",
     },
     footer:
-      "Ты получаешь это письмо, потому что зарегистрирован на playtennis.by. Настроить уведомления можно в профиле.",
+      "Ты получаешь это письмо, потому что зарегистрирован на PlayTennis.by. Настроить уведомления можно в профиле.",
   },
 };
 

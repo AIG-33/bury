@@ -128,7 +128,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
       <div className="absolute right-0 top-0 flex h-full w-[88%] max-w-sm flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
           <span className="font-display text-base font-extrabold tracking-tight text-grass-900">
-            playtennis.by
+            PlayTennis.by
           </span>
           <button
             type="button"

@@ -1,4 +1,4 @@
-# Data model — playtennis.by platform
+# Data model — PlayTennis.by platform
 
 20+ tables. All with RLS. UUID PKs (`gen_random_uuid()`). `created_at`/`updated_at` everywhere. JSONB for varying-shape data (socials, availability, match rules, algorithm config).
 
@@ -46,7 +46,7 @@ erDiagram
 
 ```sql
 -- ============================================================
--- playtennis.by platform — initial schema
+-- PlayTennis.by platform — initial schema
 -- ============================================================
 
 create extension if not exists "pgcrypto";

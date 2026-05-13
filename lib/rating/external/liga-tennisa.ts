@@ -96,7 +96,7 @@ export function ltTierForElo(elo: number | null | undefined): LtTier {
 }
 
 // ---------------------------------------------------------------------------
-// Local Elo seeding (playtennis.by side)
+// Local Elo seeding (PlayTennis.by side)
 //   Per product decision (see docs/external-ratings.md), when a new player
 //   imports from LT during onboarding we seed our `profiles.current_elo`
 //   from their LT singles Elo. We clamp to our 800–2200 range so the value
@@ -111,7 +111,7 @@ export const LOCAL_ELO_MAX = 2200;
 export const LOCAL_ELO_FALLBACK = 1000;
 
 /**
- * Convert an LT Elo into a starting playtennis.by Elo.
+ * Convert an LT Elo into a starting PlayTennis.by Elo.
  *
  * Rules:
  *   * NULL / non-finite / 0 → fallback (1000), the same default our
