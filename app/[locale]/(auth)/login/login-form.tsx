@@ -52,9 +52,16 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
     return process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
   }
 
-  function callbackUrl(): string {
-    const cb = new URL(`${siteBase()}/api/auth/callback`);
-    if (next) cb.searchParams.set("next", next);
+  // Used as `emailRedirectTo` for sign-up / magic-link / recovery emails.
+  // With the token_hash email templates (see Supabase Dashboard → Auth →
+  // Email Templates), this URL is what `{{ .RedirectTo }}` resolves to,
+  // and the link Supabase actually sends points at /api/auth/confirm with
+  // the token_hash attached. /api/auth/callback (PKCE) is kept as a
+  // fallback for OAuth providers.
+  function confirmRedirectUrl(targetNext?: string): string {
+    const cb = new URL(`${siteBase()}/api/auth/confirm`);
+    const n = targetNext ?? next;
+    if (n) cb.searchParams.set("next", n);
     return cb.toString();
   }
 
@@ -88,7 +95,7 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: callbackUrl() },
+      options: { emailRedirectTo: confirmRedirectUrl() },
     });
     setBusy(false);
     if (error) {
@@ -112,7 +119,7 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: callbackUrl() },
+      options: { emailRedirectTo: confirmRedirectUrl() },
     });
     setBusy(false);
     if (error) {
@@ -127,10 +134,8 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
     setErrMsg(null);
     setBusy(true);
     const supabase = createSupabaseBrowserClient();
-    const cb = new URL(`${siteBase()}/api/auth/callback`);
-    cb.searchParams.set("next", "/auth/update-password");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: cb.toString(),
+      redirectTo: confirmRedirectUrl("/auth/update-password"),
     });
     setBusy(false);
     if (error) {
