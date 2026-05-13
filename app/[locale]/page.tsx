@@ -21,8 +21,9 @@ type LandingHrefs = {
 
 // Resolve all landing CTAs in one Supabase round-trip.
 // - Anonymous visitors: primary → /login (sign-up funnel),
-//   secondary → /leaderboard (low-friction exploration), benefit cards
-//   → public catalogues so guests can browse real data.
+//   secondary → /tournaments (the flagship value: open tournaments to
+//   join or browse). Benefit cards → public catalogues so guests can
+//   browse real data.
 // - Signed-in player: primary → /me/rating (their dashboard), benefit cards
 //   point at their personal pages.
 // - Signed-in coach/admin: primary → /coach/dashboard.
@@ -30,7 +31,7 @@ async function resolveLandingHrefs(): Promise<LandingHrefs> {
   const fallback: LandingHrefs = {
     primary: "/login",
     primaryLabelKey: "cta_primary",
-    secondary: "/leaderboard",
+    secondary: "/tournaments",
     rating: "/leaderboard",
     find: "/players",
     tournaments: "/tournaments",
@@ -54,7 +55,7 @@ async function resolveLandingHrefs(): Promise<LandingHrefs> {
     return {
       primary: isStaff ? "/coach/dashboard" : "/me/rating",
       primaryLabelKey: "cta_primary_authed",
-      secondary: "/leaderboard",
+      secondary: isStaff ? "/coach/tournaments" : "/me/tournaments",
       rating: "/me/rating",
       find: "/me/find",
       tournaments: "/me/tournaments",

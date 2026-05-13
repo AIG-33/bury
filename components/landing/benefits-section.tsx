@@ -7,14 +7,16 @@ import { motion, useInView } from "framer-motion";
 import type { Route } from "next";
 import { ArrowUpRight, type LucideIcon, Search, Sparkles, Star, Trophy } from "lucide-react";
 
-const BENEFITS = ["rating", "find", "tournaments", "coaches"] as const;
+// Display order — tournaments lead because tournament organisation is the
+// flagship value of the platform; rating is a side benefit and ships last.
+const BENEFITS = ["tournaments", "find", "coaches", "rating"] as const;
 type BenefitId = (typeof BENEFITS)[number];
 
 const ICONS: Record<BenefitId, LucideIcon> = {
-  rating: Sparkles,
-  find: Search,
   tournaments: Trophy,
+  find: Search,
   coaches: Star,
+  rating: Sparkles,
 };
 
 type BenefitsSectionProps = {

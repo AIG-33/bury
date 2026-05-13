@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { Route } from "next";
-import { ArrowRight, BarChart3 } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 
 type Props = {
   primaryCtaHref: string;
@@ -44,7 +44,7 @@ export function FinalCta({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref }: 
             href={secondaryCtaHref as Route}
             className="ease-followthrough group inline-flex h-12 items-center gap-2 rounded-full border border-ink-300/80 bg-white/60 px-5 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-ink-800 backdrop-blur-sm transition-all duration-500 hover:-translate-y-0.5 hover:border-grass-700 hover:bg-white hover:text-grass-800"
           >
-            <BarChart3 className="h-4 w-4 text-grass-700" />
+            <Trophy className="h-4 w-4 text-grass-700" />
             {t("cta_secondary")}
           </Link>
         </div>
