@@ -6,9 +6,10 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Plus, MapPin, Building2, Trash2, Pencil, ArrowRight, Loader2 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
+import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { deleteVenue, type DistrictOption, type VenueRow } from "./actions";
 import { VenueFormDialog, type VenueDialogCopy } from "./venue-form-dialog";
-import type { VenueAmenity } from "@/lib/venues/schema";
+import type { VenueAmenity, VenueIndoorStatus } from "@/lib/venues/schema";
 
 // All copy props are plain strings (no function callbacks) so this object can
 // cross the Server → Client boundary; pluralized strings are resolved on the
@@ -23,8 +24,7 @@ export type VenuesListCopy = {
   delete_confirm: string;
   deleting: string;
   open: string;
-  indoor: string;
-  outdoor: string;
+  indoor_status_labels: Record<VenueIndoorStatus, string>;
   no_district: string;
   amenity_labels: Record<VenueAmenity, string>;
   dialog: VenueDialogCopy;
@@ -109,16 +109,11 @@ export function VenuesClient({
                     {[v.city, v.district_name].filter(Boolean).join(" · ") || copy.no_district}
                   </p>
                 </div>
-                <span
-                  className={
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
-                    (v.is_indoor
-                      ? "bg-grass-100 text-grass-800 ring-1 ring-grass-200"
-                      : "bg-ball-100 text-ball-800 ring-1 ring-ball-200")
-                  }
-                >
-                  {v.is_indoor ? copy.indoor : copy.outdoor}
-                </span>
+                <IndoorStatusBadge
+                  status={v.indoor_status}
+                  label={copy.indoor_status_labels[v.indoor_status]}
+                  size="xs"
+                />
               </div>
 
               {v.address && <p className="mt-2 text-xs text-ink-500">{v.address}</p>}

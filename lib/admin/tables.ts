@@ -248,8 +248,9 @@ export const TABLES: readonly TableDef[] = [
     pk: "id",
     defaultSort: { column: "name", ascending: true },
     searchColumns: ["name", "address", "city"],
-    filterColumns: ["is_indoor"],
-    description: "Physical locations with courts.",
+    filterColumns: ["indoor_status"],
+    description:
+      "Physical locations with courts. `indoor_status` is derived from each court's `is_indoor` and updates automatically; the legacy `is_indoor` column is mirrored.",
     columns: [
       { key: "id", label: "ID", type: "uuid", readonly: true, hideInList: true },
       { key: "owner_id", label: "Owner", type: "uuid", required: true },
@@ -260,7 +261,14 @@ export const TABLES: readonly TableDef[] = [
       { key: "district_id", label: "District", type: "uuid" },
       { key: "lat", label: "Lat", type: "decimal", hideInList: true },
       { key: "lng", label: "Lng", type: "decimal", hideInList: true },
-      { key: "is_indoor", label: "Indoor", type: "boolean" },
+      {
+        key: "indoor_status",
+        label: "Indoor status",
+        type: "select",
+        options: ["indoor", "outdoor", "mixed", "unknown"],
+        readonly: true,
+      },
+      { key: "is_indoor", label: "Indoor (legacy)", type: "boolean", readonly: true, hideInList: true },
       { key: "amenities", label: "Amenities", type: "json", hideInList: true },
       { key: "photos", label: "Photos", type: "json", hideInList: true },
       ...META_COLUMNS.slice(1),
@@ -273,8 +281,9 @@ export const TABLES: readonly TableDef[] = [
     pk: "id",
     defaultSort: { column: "number", ascending: true },
     searchColumns: ["name"],
-    filterColumns: ["surface", "status"],
-    description: "Courts inside venues.",
+    filterColumns: ["surface", "status", "is_indoor"],
+    description:
+      "Courts inside venues. Editing `is_indoor` here recomputes the parent venue's `indoor_status` automatically (trigger).",
     columns: [
       { key: "id", label: "ID", type: "uuid", readonly: true, hideInList: true },
       { key: "venue_id", label: "Venue", type: "uuid", required: true },
@@ -286,6 +295,7 @@ export const TABLES: readonly TableDef[] = [
         type: "select",
         options: ["hard", "clay", "grass", "carpet"],
       },
+      { key: "is_indoor", label: "Indoor", type: "boolean" },
       {
         key: "status",
         label: "Status",

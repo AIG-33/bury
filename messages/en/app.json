@@ -1773,6 +1773,8 @@
     "subtitle": "{venues} venues · {courts} courts in the shared club directory.",
     "indoor": "Indoor",
     "outdoor": "Outdoor",
+    "mixed": "Indoor + outdoor",
+    "unknown": "No courts yet",
     "open_in_maps": "Open in Maps",
     "courts_title": "{n, plural, =0 {No courts} one {# court} other {# courts}}",
     "courts_empty": "No courts have been added to this venue yet.",
@@ -1855,6 +1857,8 @@
       "courts": "{n, plural, =0 {no courts yet} one {# court} other {# courts}}",
       "indoor": "Indoor",
       "outdoor": "Outdoor",
+      "mixed": "Indoor + outdoor",
+      "unknown": "No courts yet",
       "no_district": "Location not specified"
     },
     "dialog": {
@@ -1868,13 +1872,13 @@
         "address": "Street address",
         "lat": "Latitude",
         "lng": "Longitude",
-        "is_indoor": "Indoor venue (covered courts)",
         "amenities": "Amenities"
       },
       "hints": {
         "lat_lng": "Optional. Used for the venue map (Phase 2). You can copy coordinates from Google Maps.",
         "address": "Visible to players. Helps with navigation.",
-        "amenities": "Tap to toggle. The list is shown to players when they book."
+        "amenities": "Tap to toggle. The list is shown to players when they book.",
+        "indoor_status": "Indoor / outdoor is derived automatically from the courts at this venue. Open the venue to mark each court."
       },
       "save": "Save",
       "saving": "Saving…",
@@ -1919,6 +1923,9 @@
         "name": "Name (optional)",
         "name_placeholder": "Centre court, Court A…",
         "surface": "Surface",
+        "indoor_label": "Type",
+        "indoor_yes": "Indoor",
+        "indoor_no": "Outdoor",
         "status": "Status",
         "status_options": {
           "active": "Active",

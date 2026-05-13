@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, Loader2, AlertCircle, Building2, CheckCircle2, MapPin } from "lucide-react";
+import { X, Loader2, AlertCircle, Building2, CheckCircle2, MapPin, Info } from "lucide-react";
 import {
   VenueFormSchema,
   VENUE_AMENITIES,
@@ -23,10 +23,9 @@ export type VenueDialogCopy = {
     address: string;
     lat: string;
     lng: string;
-    is_indoor: string;
     amenities: string;
   };
-  hints: { lat_lng: string; address: string; amenities: string };
+  hints: { lat_lng: string; address: string; amenities: string; indoor_status: string };
   amenity_labels: Record<VenueAmenity, string>;
   save: string;
   saving: string;
@@ -61,7 +60,6 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
       address: initial?.address ?? null,
       lat: initial?.lat ?? null,
       lng: initial?.lng ?? null,
-      is_indoor: initial?.is_indoor ?? false,
       amenities: (initial?.amenities ?? []) as VenueAmenity[],
     },
   });
@@ -75,7 +73,6 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
       address: initial?.address ?? null,
       lat: initial?.lat ?? null,
       lng: initial?.lng ?? null,
-      is_indoor: initial?.is_indoor ?? false,
       amenities: (initial?.amenities ?? []) as VenueAmenity[],
     });
     setErrMsg(null);
@@ -206,7 +203,10 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
             </Field>
           </div>
 
-          <Toggle label={copy.fields.is_indoor} control={form.control} name="is_indoor" />
+          <div className="flex items-start gap-2 rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2.5 text-xs text-ink-600">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />
+            <span>{copy.hints.indoor_status}</span>
+          </div>
 
           <div>
             <label className="mb-2 block text-xs font-medium text-ink-700">
@@ -318,41 +318,3 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   );
 }
 
-function Toggle({
-  label,
-  control,
-  name,
-}: {
-  label: string;
-  control: ReturnType<typeof useForm<VenueForm>>["control"];
-  name: "is_indoor";
-}) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2.5">
-          <span className="text-sm text-ink-800">{label}</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={field.value}
-            onClick={() => field.onChange(!field.value)}
-            className={
-              "relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition " +
-              (field.value ? "bg-grass-500" : "bg-ink-300")
-            }
-          >
-            <span
-              className={
-                "inline-block h-5 w-5 transform rounded-full bg-white shadow transition " +
-                (field.value ? "translate-x-5" : "translate-x-0.5")
-              }
-            />
-          </button>
-        </label>
-      )}
-    />
-  );
-}

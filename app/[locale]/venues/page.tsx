@@ -5,7 +5,6 @@ import {
   MapPin,
   Building2,
   Sun,
-  CloudSun,
   Lightbulb,
   ShowerHead,
   Lock,
@@ -17,8 +16,15 @@ import {
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { COURT_SURFACES, type CourtSurface, type CourtStatus } from "@/lib/venues/schema";
+import {
+  COURT_SURFACES,
+  VENUE_INDOOR_STATUSES,
+  type CourtSurface,
+  type CourtStatus,
+  type VenueIndoorStatus,
+} from "@/lib/venues/schema";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -30,7 +36,7 @@ type VenueRow = {
   address: string | null;
   lat: number | null;
   lng: number | null;
-  is_indoor: boolean;
+  indoor_status: VenueIndoorStatus;
   amenities: string[];
 };
 
@@ -88,8 +94,12 @@ export default async function VenuesCatalogPage({ params }: Props) {
 
   const { data: venuesRaw } = (await supabase
     .from("venues")
-    .select("id, name, city, district_id, address, lat, lng, is_indoor, amenities")
+    .select("id, name, city, district_id, address, lat, lng, indoor_status, amenities")
     .order("name", { ascending: true })) as { data: VenueRow[] | null };
+
+  const indoorStatusLabels = Object.fromEntries(
+    VENUE_INDOOR_STATUSES.map((s) => [s, t(s as never)]),
+  ) as Record<VenueIndoorStatus, string>;
 
   const venues = venuesRaw ?? [];
 
@@ -186,26 +196,10 @@ export default async function VenuesCatalogPage({ params }: Props) {
                       <h2 className="font-display text-xl font-semibold text-ink-900">
                         {v.name}
                       </h2>
-                      <span
-                        className={
-                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
-                          (v.is_indoor
-                            ? "bg-sky-50 text-sky-700"
-                            : "bg-ball-50 text-ball-800")
-                        }
-                      >
-                        {v.is_indoor ? (
-                          <>
-                            <Building2 className="h-3 w-3" />
-                            {t("indoor")}
-                          </>
-                        ) : (
-                          <>
-                            <CloudSun className="h-3 w-3" />
-                            {t("outdoor")}
-                          </>
-                        )}
-                      </span>
+                      <IndoorStatusBadge
+                        status={v.indoor_status}
+                        label={indoorStatusLabels[v.indoor_status]}
+                      />
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-600">
                       {(v.city || v.district_name) && (

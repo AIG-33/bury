@@ -16,6 +16,7 @@ import {
   Building2,
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { loadVenueDetail } from "../actions";
 import { CourtsManager, type CourtsManagerCopy } from "./courts-manager";
 import {
@@ -67,6 +68,9 @@ export default async function VenueDetailPage({ params }: Props) {
     name: t("detail.courts.name"),
     name_placeholder: t("detail.courts.name_placeholder"),
     surface: t("detail.courts.surface"),
+    indoor_label: t("detail.courts.indoor_label"),
+    indoor_yes: t("detail.courts.indoor_yes"),
+    indoor_no: t("detail.courts.indoor_no"),
     status: t("detail.courts.status"),
     status_options: Object.fromEntries(
       COURT_STATUSES.map((s) => [s, t(`detail.courts.status_options.${s}`)]),
@@ -106,16 +110,10 @@ export default async function VenueDetailPage({ params }: Props) {
             what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
             result={[t("detail.help.result.1"), t("detail.help.result.2")]}
           />
-          <span
-            className={
-              "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
-              (venue.is_indoor
-                ? "bg-grass-100 text-grass-800 ring-1 ring-grass-200"
-                : "bg-ball-100 text-ball-800 ring-1 ring-ball-200")
-            }
-          >
-            {venue.is_indoor ? t("list.indoor") : t("list.outdoor")}
-          </span>
+          <IndoorStatusBadge
+            status={venue.indoor_status}
+            label={t(`list.${venue.indoor_status}`)}
+          />
         </div>
         <p className="inline-flex items-center gap-1 text-sm text-ink-600">
           <MapPin className="h-3.5 w-3.5" />

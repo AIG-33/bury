@@ -131,6 +131,7 @@ export type OpenMatchFeedRow = {
   venue_name: string | null;
   venue_city: string | null;
   venue_is_indoor: boolean | null;
+  venue_indoor_status: "indoor" | "outdoor" | "mixed" | "unknown" | null;
   district_id: string | null;
   district_name: string | null;
   starts_at: string;

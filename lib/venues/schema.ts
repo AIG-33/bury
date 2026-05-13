@@ -45,6 +45,11 @@ export const VENUE_AMENITIES = [
 
 export type VenueAmenity = (typeof VENUE_AMENITIES)[number];
 
+// Indoor/outdoor of the venue is *derived* from its courts on the DB side
+// (see migration 20260513000500_courts_indoor.sql). Editors set it per-court
+// and the venue automatically reflects 'indoor' / 'outdoor' / 'mixed' /
+// 'unknown' (no courts yet). Therefore VenueFormSchema does NOT include the
+// indoor flag — it would be silently overwritten by the trigger.
 export const VenueFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
   city: trimmedNullable,
@@ -52,11 +57,13 @@ export const VenueFormSchema = z.object({
   address: trimmedNullableLong,
   lat,
   lng,
-  is_indoor: z.boolean().default(false),
   amenities: z.array(z.enum(VENUE_AMENITIES)).default([]),
 });
 
 export type VenueForm = z.infer<typeof VenueFormSchema>;
+
+export const VENUE_INDOOR_STATUSES = ["indoor", "outdoor", "mixed", "unknown"] as const;
+export type VenueIndoorStatus = (typeof VENUE_INDOOR_STATUSES)[number];
 
 export const COURT_SURFACES = ["hard", "clay", "grass", "carpet"] as const;
 export type CourtSurface = (typeof COURT_SURFACES)[number];
@@ -69,6 +76,7 @@ export const CourtFormSchema = z.object({
   name: trimmedNullable,
   surface: z.enum(COURT_SURFACES).optional().nullable(),
   status: z.enum(COURT_STATUSES).default("active"),
+  is_indoor: z.boolean().default(false),
 });
 
 export type CourtForm = z.infer<typeof CourtFormSchema>;

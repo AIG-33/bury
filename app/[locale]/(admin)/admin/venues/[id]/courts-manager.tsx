@@ -2,7 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, AlertCircle, CheckCircle2, CircleDot, Wrench } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  CircleDot,
+  Wrench,
+  Building2,
+  CloudSun,
+} from "lucide-react";
 import {
   COURT_SURFACES,
   COURT_STATUSES,
@@ -20,6 +30,9 @@ export type CourtsManagerCopy = {
   name: string;
   name_placeholder: string;
   surface: string;
+  indoor_label: string;
+  indoor_yes: string;
+  indoor_no: string;
   status: string;
   status_options: Record<CourtStatus, string>;
   surface_options: Record<CourtSurface, string>;
@@ -49,11 +62,15 @@ export function CourtsManager({
   const [isAdding, startAdd] = useTransition();
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  // New-court form state.
+  // New-court form state. New courts default to indoor=false (outdoor) — most
+  // newly added courts at Belarusian venues are outdoor; the editor flips this
+  // for indoor halls. The venue's overall indoor_status is recomputed
+  // server-side via trigger after each insert.
   const [newNumber, setNewNumber] = useState<number>(nextFreeNumber(initialCourts));
   const [newName, setNewName] = useState("");
   const [newSurface, setNewSurface] = useState<CourtSurface | "">("");
   const [newStatus, setNewStatus] = useState<CourtStatus>("active");
+  const [newIsIndoor, setNewIsIndoor] = useState<boolean>(false);
 
   function onAdd() {
     setErrMsg(null);
@@ -64,6 +81,7 @@ export function CourtsManager({
         name: newName.trim() || null,
         surface: newSurface === "" ? null : newSurface,
         status: newStatus,
+        is_indoor: newIsIndoor,
       });
       if (!r.ok) {
         setErrMsg(r.error === "duplicate_number" ? copy.duplicate : r.error);
@@ -73,6 +91,7 @@ export function CourtsManager({
       setNewName("");
       setNewSurface("");
       setNewStatus("active");
+      setNewIsIndoor(false);
       router.refresh();
     });
   }
@@ -118,7 +137,7 @@ export function CourtsManager({
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-grass-800">
           {copy.add_title}
         </p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[80px_1fr_140px_140px_auto] sm:items-end">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[64px_1fr_120px_150px_120px_auto] sm:items-end">
           <NumberField label={copy.number} value={newNumber} onChange={setNewNumber} />
           <TextField
             label={copy.name}
@@ -134,6 +153,13 @@ export function CourtsManager({
               { value: "", label: copy.none },
               ...COURT_SURFACES.map((s) => ({ value: s, label: copy.surface_options[s] })),
             ]}
+          />
+          <IndoorField
+            label={copy.indoor_label}
+            yesLabel={copy.indoor_yes}
+            noLabel={copy.indoor_no}
+            value={newIsIndoor}
+            onChange={setNewIsIndoor}
           />
           <SelectField
             label={copy.status}
@@ -186,6 +212,7 @@ function CourtRowEditor({
   const [name, setName] = useState(court.name ?? "");
   const [surface, setSurface] = useState<CourtSurface | "">(court.surface ?? "");
   const [status, setStatus] = useState<CourtStatus>(court.status);
+  const [isIndoor, setIsIndoor] = useState<boolean>(court.is_indoor);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [_, startT] = useTransition();
@@ -194,7 +221,8 @@ function CourtRowEditor({
     number !== court.number ||
     (name || null) !== (court.name ?? null) ||
     (surface || null) !== (court.surface ?? null) ||
-    status !== court.status;
+    status !== court.status ||
+    isIndoor !== court.is_indoor;
 
   function save() {
     setErrMsg(null);
@@ -207,6 +235,7 @@ function CourtRowEditor({
         name: name.trim() || null,
         surface: surface === "" ? null : surface,
         status,
+        is_indoor: isIndoor,
       });
       setBusy(false);
       if (!r.ok) {
@@ -234,7 +263,7 @@ function CourtRowEditor({
   }
 
   return (
-    <li className="grid grid-cols-1 gap-3 px-3 py-3 sm:grid-cols-[80px_1fr_140px_140px_auto] sm:items-center">
+    <li className="grid grid-cols-1 gap-3 px-3 py-3 sm:grid-cols-[64px_1fr_120px_150px_120px_auto] sm:items-center">
       <NumberField label={copy.number} value={number} onChange={setNumber} compact />
       <TextField label={copy.name} value={name} onChange={setName} compact />
       <SelectField
@@ -246,6 +275,14 @@ function CourtRowEditor({
           { value: "", label: copy.none },
           ...COURT_SURFACES.map((s) => ({ value: s, label: copy.surface_options[s] })),
         ]}
+      />
+      <IndoorField
+        label={copy.indoor_label}
+        yesLabel={copy.indoor_yes}
+        noLabel={copy.indoor_no}
+        value={isIndoor}
+        onChange={setIsIndoor}
+        compact
       />
       <SelectField
         label={copy.status}
@@ -387,6 +424,63 @@ function Label({ children }: { children: React.ReactNode }) {
     <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-500">
       {children}
     </label>
+  );
+}
+
+// Segmented two-state toggle: «Крытый | Открытый». Lighter than a Select for
+// a binary choice and reads well in the row layout next to Surface/Status.
+function IndoorField({
+  label,
+  yesLabel,
+  noLabel,
+  value,
+  onChange,
+  compact,
+}: {
+  label: string;
+  yesLabel: string;
+  noLabel: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  compact?: boolean;
+}) {
+  const baseSeg =
+    "inline-flex h-9 flex-1 items-center justify-center gap-1 px-2 text-xs font-medium transition";
+  return (
+    <div>
+      {!compact && <Label>{label}</Label>}
+      <div className="grid grid-cols-2 overflow-hidden rounded-md border border-ink-200 bg-white">
+        <button
+          type="button"
+          onClick={() => onChange(false)}
+          aria-pressed={!value}
+          className={
+            baseSeg +
+            (!value
+              ? " bg-ball-100 text-ball-900 ring-1 ring-inset ring-ball-300"
+              : " text-ink-600 hover:bg-ink-50")
+          }
+        >
+          <CloudSun className="h-3.5 w-3.5" />
+          {noLabel}
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(true)}
+          aria-pressed={value}
+          className={
+            baseSeg +
+            " border-l border-ink-200 " +
+            (value
+              ? "bg-grass-100 text-grass-900 ring-1 ring-inset ring-grass-300"
+              : "text-ink-600 hover:bg-ink-50")
+          }
+        >
+          <Building2 className="h-3.5 w-3.5" />
+          {yesLabel}
+        </button>
+      </div>
+    </div>
   );
 }
 

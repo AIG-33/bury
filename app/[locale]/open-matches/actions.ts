@@ -41,7 +41,8 @@ export async function loadOpenMatches(
     .from("open_matches_feed")
     .select(
       "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
-        "venue_id, venue_name, venue_city, venue_is_indoor, district_id, district_name, " +
+        "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
+        "district_id, district_name, " +
         "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
         "pending_applications_count, accepted_applications_count",
     )
@@ -78,7 +79,8 @@ export async function loadOpenMatch(id: string): Promise<OpenMatchDetail | null>
     .from("open_matches_feed")
     .select(
       "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
-        "venue_id, venue_name, venue_city, venue_is_indoor, district_id, district_name, " +
+        "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
+        "district_id, district_name, " +
         "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
         "pending_applications_count, accepted_applications_count",
     )

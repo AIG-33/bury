@@ -1,7 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CourtSurface, CourtStatus } from "@/lib/venues/schema";
+import type { CourtSurface, CourtStatus, VenueIndoorStatus } from "@/lib/venues/schema";
 import type { OpenMatchFeedRow } from "@/lib/open-matches/schema";
 
 // =============================================================================
@@ -24,7 +24,7 @@ export type VenueDetail = {
   address: string | null;
   lat: number | null;
   lng: number | null;
-  is_indoor: boolean;
+  indoor_status: VenueIndoorStatus;
   amenities: string[];
   courts: Array<{
     id: string;
@@ -32,6 +32,7 @@ export type VenueDetail = {
     name: string | null;
     surface: CourtSurface | null;
     status: CourtStatus;
+    is_indoor: boolean;
   }>;
   tournaments: Array<{
     id: string;
@@ -50,7 +51,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
 
   const { data: venue } = (await supabase
     .from("venues")
-    .select("id, name, city, district_id, address, lat, lng, is_indoor, amenities")
+    .select("id, name, city, district_id, address, lat, lng, indoor_status, amenities")
     .eq("id", venueId)
     .maybeSingle()) as {
     data: {
@@ -61,7 +62,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
       address: string | null;
       lat: number | null;
       lng: number | null;
-      is_indoor: boolean;
+      indoor_status: VenueIndoorStatus;
       amenities: string[];
     } | null;
   };
@@ -81,7 +82,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
     (async () => {
       const { data } = (await supabase
         .from("courts")
-        .select("id, number, name, surface, status")
+        .select("id, number, name, surface, status, is_indoor")
         .eq("venue_id", venueId)
         .order("number", { ascending: true })) as {
         data: VenueDetail["courts"] | null;
@@ -138,7 +139,8 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
         .from("open_matches_feed")
         .select(
           "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
-            "venue_id, venue_name, venue_city, venue_is_indoor, district_id, district_name, " +
+            "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
+            "district_id, district_name, " +
             "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
             "pending_applications_count, accepted_applications_count",
         )

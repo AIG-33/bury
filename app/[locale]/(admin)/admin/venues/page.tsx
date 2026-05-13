@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
 import { loadAdminVenues } from "./actions";
 import { VenuesClient, type VenuesListCopy } from "./venues-client";
-import { VENUE_AMENITIES, type VenueAmenity } from "@/lib/venues/schema";
+import {
+  VENUE_AMENITIES,
+  VENUE_INDOOR_STATUSES,
+  type VenueAmenity,
+  type VenueIndoorStatus,
+} from "@/lib/venues/schema";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -23,6 +28,10 @@ export default async function AdminVenuesPage({ params }: Props) {
     VENUE_AMENITIES.map((a) => [a, t(`amenities.${a}`)]),
   ) as Record<VenueAmenity, string>;
 
+  const indoorStatusLabels = Object.fromEntries(
+    VENUE_INDOOR_STATUSES.map((s) => [s, t(`list.${s}`)]),
+  ) as Record<VenueIndoorStatus, string>;
+
   const copy: VenuesListCopy = {
     empty_title: t("list.empty_title"),
     empty_description: t("list.empty_description"),
@@ -33,8 +42,7 @@ export default async function AdminVenuesPage({ params }: Props) {
     delete_confirm: t("list.delete_confirm"),
     deleting: t("list.deleting"),
     open: t("list.open"),
-    indoor: t("list.indoor"),
-    outdoor: t("list.outdoor"),
+    indoor_status_labels: indoorStatusLabels,
     no_district: t("list.no_district"),
     amenity_labels: amenityLabels,
     dialog: {
@@ -48,13 +56,13 @@ export default async function AdminVenuesPage({ params }: Props) {
         address: t("dialog.fields.address"),
         lat: t("dialog.fields.lat"),
         lng: t("dialog.fields.lng"),
-        is_indoor: t("dialog.fields.is_indoor"),
         amenities: t("dialog.fields.amenities"),
       },
       hints: {
         lat_lng: t("dialog.hints.lat_lng"),
         address: t("dialog.hints.address"),
         amenities: t("dialog.hints.amenities"),
+        indoor_status: t("dialog.hints.indoor_status"),
       },
       amenity_labels: amenityLabels,
       save: t("dialog.save"),

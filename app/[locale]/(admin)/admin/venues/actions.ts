@@ -7,6 +7,7 @@ import {
   VenueFormSchema,
   CourtFormSchema,
   type VenueAmenity,
+  type VenueIndoorStatus,
   type CourtSurface,
   type CourtStatus,
 } from "@/lib/venues/schema";
@@ -24,7 +25,7 @@ export type VenueRow = {
   address: string | null;
   lat: number | null;
   lng: number | null;
-  is_indoor: boolean;
+  indoor_status: VenueIndoorStatus;
   amenities: VenueAmenity[];
   courts_count: number;
   created_at: string;
@@ -38,6 +39,7 @@ export type CourtRow = {
   name: string | null;
   surface: CourtSurface | null;
   status: CourtStatus;
+  is_indoor: boolean;
 };
 
 export type DistrictOption = { id: string; name: string };
@@ -82,7 +84,7 @@ export async function loadAdminVenues(): Promise<
   const { data: venues } = (await supabase
     .from("venues")
     .select(
-      "id, name, city, district_id, address, lat, lng, is_indoor, amenities, created_at, updated_at",
+      "id, name, city, district_id, address, lat, lng, indoor_status, amenities, created_at, updated_at",
     )
     .order("created_at", { ascending: false })) as {
     data: Array<Omit<VenueRow, "courts_count" | "district_name">> | null;
@@ -157,7 +159,7 @@ export async function loadVenueDetail(venueId: string): Promise<
   const { data: row } = (await supabase
     .from("venues")
     .select(
-      "id, name, city, district_id, address, lat, lng, is_indoor, amenities, created_at, updated_at",
+      "id, name, city, district_id, address, lat, lng, indoor_status, amenities, created_at, updated_at",
     )
     .eq("id", venueId)
     .single()) as {
@@ -167,7 +169,7 @@ export async function loadVenueDetail(venueId: string): Promise<
 
   const { data: courts } = (await supabase
     .from("courts")
-    .select("id, venue_id, number, name, surface, status")
+    .select("id, venue_id, number, name, surface, status, is_indoor")
     .eq("venue_id", venueId)
     .order("number", { ascending: true })) as { data: CourtRow[] | null };
 
@@ -238,7 +240,6 @@ export async function createVenue(input: unknown): Promise<SaveResult> {
       address: v.address,
       lat: v.lat,
       lng: v.lng,
-      is_indoor: v.is_indoor,
       amenities: v.amenities,
     } as never)
     .select("id")
@@ -276,7 +277,6 @@ export async function updateVenue(input: unknown): Promise<SaveResult> {
       address: v.address,
       lat: v.lat,
       lng: v.lng,
-      is_indoor: v.is_indoor,
       amenities: v.amenities,
     } as never)
     .eq("id", id);
@@ -338,6 +338,7 @@ export async function createCourt(input: unknown): Promise<SaveResult> {
       name: c.name,
       surface: c.surface ?? null,
       status: c.status,
+      is_indoor: c.is_indoor,
     } as never)
     .select("id")
     .single()) as {
@@ -384,6 +385,7 @@ export async function updateCourt(input: unknown): Promise<SaveResult> {
       name: c.name,
       surface: c.surface ?? null,
       status: c.status,
+      is_indoor: c.is_indoor,
     } as never)
     .eq("id", id)
     .eq("venue_id", venue_id)) as { error: { code?: string; message: string } | null };

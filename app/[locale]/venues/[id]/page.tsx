@@ -14,6 +14,7 @@ import {
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CourtSurface } from "@/lib/venues/schema";
 import { loadVenueDetail } from "./actions";
@@ -107,6 +108,21 @@ export default async function VenueDetailPage({ params }: Props) {
               >
                 <span className="font-mono w-8 tabular-nums text-ink-500">#{c.number}</span>
                 <span className="flex-1 truncate">{c.name ?? "—"}</span>
+                <span
+                  className={
+                    "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
+                    (c.is_indoor
+                      ? "bg-grass-100 text-grass-800"
+                      : "bg-ball-100 text-ball-800")
+                  }
+                  aria-label={c.is_indoor ? t("indoor") : t("outdoor")}
+                >
+                  {c.is_indoor ? (
+                    <Building2 className="h-3 w-3" />
+                  ) : (
+                    <CloudSun className="h-3 w-3" />
+                  )}
+                </span>
                 <span className="inline-flex items-center gap-1.5 text-[12px]">
                   <span aria-hidden className={`h-2 w-2 rounded-full ${dot}`} />
                   {c.surface ? tSurfaces(c.surface) : "—"}
@@ -300,24 +316,10 @@ export default async function VenueDetailPage({ params }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-2">
             <h1 className="font-display text-2xl font-bold text-ink-900">{venue.name}</h1>
-            <span
-              className={
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
-                (venue.is_indoor ? "bg-sky-50 text-sky-700" : "bg-ball-50 text-ball-800")
-              }
-            >
-              {venue.is_indoor ? (
-                <>
-                  <Building2 className="h-3 w-3" />
-                  {t("indoor")}
-                </>
-              ) : (
-                <>
-                  <CloudSun className="h-3 w-3" />
-                  {t("outdoor")}
-                </>
-              )}
-            </span>
+            <IndoorStatusBadge
+              status={venue.indoor_status}
+              label={t(venue.indoor_status as never)}
+            />
           </div>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-600">
             {(venue.city || venue.district_name) && (
