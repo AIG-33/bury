@@ -99,6 +99,21 @@ export default async function ProfilePage({ params }: Props) {
     saving: t("form.saving"),
     saved: t("form.saved"),
     error: t("form.error"),
+    errors: {
+      invalid_payload: t("form.errors.invalid_payload"),
+      invalid_fields_prefix: t("form.errors.invalid_fields_prefix"),
+      not_authenticated: t("form.errors.not_authenticated"),
+      unknown: t("form.errors.unknown"),
+    },
+    field_errors: {
+      invalid_url: t("form.field_errors.invalid_url"),
+      invalid_phone: t("form.field_errors.invalid_phone"),
+      invalid_telegram: t("form.field_errors.invalid_telegram"),
+      invalid_date: t("form.field_errors.invalid_date"),
+      too_long: t("form.field_errors.too_long"),
+      required: t("form.field_errors.required"),
+      invalid: t("form.field_errors.invalid"),
+    },
     none: t("form.none"),
     sections: {
       personal: t("form.sections.personal"),

@@ -5,11 +5,17 @@ import { z } from "zod";
 // is allowed to change. Server-side action revalidates against the same shape.
 // =============================================================================
 
+// Note on `.nullish()`: RHF + zodResolver runs Zod transforms before
+// `handleSubmit`, so `""` becomes `null` on the client. The server action
+// re-parses the same payload — without `.nullish()` it would reject `null`
+// (because the chain is `string | undefined | ""`), producing `invalid_payload`
+// even though the form looked valid client-side. `.nullish()` makes the
+// schemas idempotent under that round-trip.
 const trimmedNullable = z
   .string()
   .trim()
   .max(200)
-  .optional()
+  .nullish()
   .or(z.literal(""))
   .transform((v) => (v && v.length > 0 ? v : null));
 
@@ -17,7 +23,7 @@ const trimmedNullableLong = z
   .string()
   .trim()
   .max(2000)
-  .optional()
+  .nullish()
   .or(z.literal(""))
   .transform((v) => (v && v.length > 0 ? v : null));
 
@@ -26,7 +32,7 @@ const phone = z
   .trim()
   .max(40)
   .regex(/^[+0-9 ()\-]*$/u, "Invalid phone")
-  .optional()
+  .nullish()
   .or(z.literal(""))
   .transform((v) => (v && v.length > 0 ? v : null));
 
@@ -35,7 +41,7 @@ const isoUrl = z
   .trim()
   .url()
   .max(300)
-  .optional()
+  .nullish()
   .or(z.literal(""))
   .transform((v) => (v && v.length > 0 ? v : null));
 
@@ -71,7 +77,7 @@ export const ProfileFormSchema = z.object({
   date_of_birth: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/u)
-    .optional()
+    .nullish()
     .or(z.literal(""))
     .transform((v) => (v && v.length > 0 ? v : null)),
   gender: z.enum(["m", "f", "other"]).optional().nullable(),
@@ -86,7 +92,7 @@ export const ProfileFormSchema = z.object({
     .trim()
     .max(40)
     .regex(/^@?[A-Za-z0-9_]{3,32}$/u, "Invalid telegram username")
-    .optional()
+    .nullish()
     .or(z.literal(""))
     .transform((v) => (v && v.length > 0 ? (v.startsWith("@") ? v.slice(1) : v) : null)),
 

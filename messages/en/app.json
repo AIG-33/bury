@@ -1503,6 +1503,21 @@
       "saving": "Saving…",
       "saved": "Saved",
       "error": "Error",
+      "errors": {
+        "invalid_payload": "Some fields look off — check the highlighted ones below.",
+        "invalid_fields_prefix": "Problem fields:",
+        "not_authenticated": "Session expired — sign in again.",
+        "unknown": "Couldn't save — please try again."
+      },
+      "field_errors": {
+        "invalid_url": "Link must start with http:// or https://",
+        "invalid_phone": "Only digits, spaces and + ( ) -",
+        "invalid_telegram": "Only letters, digits and _, 3–32 chars",
+        "invalid_date": "Format: YYYY-MM-DD",
+        "too_long": "Value is too long",
+        "required": "Field is required",
+        "invalid": "Invalid value"
+      },
       "none": "— not set —",
       "sections": {
         "personal": "Personal",

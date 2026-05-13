@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useTransition } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, CheckCircle2, Camera, Trash2, AlertCircle, ChevronDown } from "lucide-react";
 import { ProfileFormSchema, type ProfileForm, WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
@@ -21,6 +21,21 @@ type Copy = {
   saving: string;
   saved: string;
   error: string;
+  errors: {
+    invalid_payload: string;
+    invalid_fields_prefix: string;
+    not_authenticated: string;
+    unknown: string;
+  };
+  field_errors: {
+    invalid_url: string;
+    invalid_phone: string;
+    invalid_telegram: string;
+    invalid_date: string;
+    too_long: string;
+    required: string;
+    invalid: string;
+  };
   sections: {
     personal: string;
     contacts: string;
@@ -106,6 +121,18 @@ export function ProfileForm({ profile, districts, copy }: Props) {
     },
   });
 
+  // Map a server-returned field path (Zod's flatten().fieldErrors keys) to a
+  // human-readable label users will recognise. We fall back to the raw key.
+  const labelForField = (key: string): string => {
+    if (key === "social_links") return copy.sections.socials;
+    if (key.startsWith("social_links.")) {
+      const sub = key.slice("social_links.".length);
+      return copy.fields[`social_${sub}`] ?? sub;
+    }
+    if (key === "availability") return copy.sections.availability;
+    return copy.fields[key] ?? key;
+  };
+
   const onSubmit = form.handleSubmit((values) => {
     setErrMsg(null);
     startTransition(async () => {
@@ -113,9 +140,33 @@ export function ProfileForm({ profile, districts, copy }: Props) {
       if (result.ok) {
         setSavedAt(Date.now());
         form.reset(values);
-      } else {
-        setErrMsg(`${copy.error}: ${result.error}`);
+        return;
       }
+
+      if (result.error === "invalid_payload" && result.fieldErrors) {
+        const labels: string[] = [];
+        for (const [path, messages] of Object.entries(result.fieldErrors)) {
+          if (!messages || messages.length === 0) continue;
+          const label = labelForField(path);
+          labels.push(label);
+          form.setError(path as FieldPath<ProfileForm>, {
+            message: messages[0] ?? copy.field_errors.invalid,
+          });
+        }
+        setErrMsg(
+          labels.length > 0
+            ? `${copy.errors.invalid_payload} ${copy.errors.invalid_fields_prefix} ${labels.join(", ")}.`
+            : copy.errors.invalid_payload,
+        );
+        return;
+      }
+
+      if (result.error === "not_authenticated") {
+        setErrMsg(copy.errors.not_authenticated);
+        return;
+      }
+
+      setErrMsg(`${copy.error}: ${result.error || copy.errors.unknown}`);
     });
   });
 
@@ -161,10 +212,22 @@ export function ProfileForm({ profile, districts, copy }: Props) {
         </div>
       </div>
 
-      {errMsg && (
+      {(errMsg || Object.keys(form.formState.errors).length > 0) && (
         <div className="flex items-start gap-2 rounded-md bg-clay-50 px-3 py-2 text-sm text-clay-800">
-          <AlertCircle className="mt-0.5 h-4 w-4" />
-          <span>{errMsg}</span>
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="space-y-1">
+            <p>{errMsg ?? copy.errors.invalid_payload}</p>
+            {Object.keys(form.formState.errors).length > 0 && (
+              <ul className="list-disc space-y-0.5 pl-5 text-xs text-clay-700">
+                {flattenFormErrors(form.formState.errors).map((e) => (
+                  <li key={e.path}>
+                    <span className="font-medium">{labelForField(e.path)}</span>
+                    {e.message ? <span className="text-clay-600"> — {e.message}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
 
@@ -421,6 +484,33 @@ export function ProfileForm({ profile, districts, copy }: Props) {
 // =============================================================================
 // Sub-components
 // =============================================================================
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+type FormErrorNode = { message?: string; type?: string } | undefined | null;
+
+// RHF's `formState.errors` is a deeply nested object that mirrors the form
+// shape. We flatten it into `{path, message}` pairs so the validation banner
+// can list every offending field, no matter how deep (e.g. `social_links.x`).
+function flattenFormErrors(
+  errors: Record<string, unknown>,
+  prefix = "",
+): Array<{ path: string; message?: string }> {
+  const out: Array<{ path: string; message?: string }> = [];
+  for (const [key, value] of Object.entries(errors)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === "object" && "message" in value) {
+      out.push({ path, message: (value as FormErrorNode)?.message });
+      continue;
+    }
+    if (value && typeof value === "object") {
+      out.push(...flattenFormErrors(value as Record<string, unknown>, path));
+    }
+  }
+  return out;
+}
 
 function Section({
   title,
