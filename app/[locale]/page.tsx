@@ -24,16 +24,15 @@ type LandingHrefs = {
 //   secondary → /tournaments (the flagship value: open tournaments to
 //   join or browse). Benefit cards → public catalogues so guests can
 //   browse real data.
-// - Signed-in player: primary → /me/rating (their dashboard), benefit cards
-//   point at their personal pages.
+// - Signed-in player: primary → /me/find (find a sparring partner —
+//   matches the new positioning of the project: sparring/coaches/
+//   tournaments first, rating later).
 // - Signed-in coach/admin: primary → /coach/dashboard.
 async function resolveLandingHrefs(): Promise<LandingHrefs> {
   const fallback: LandingHrefs = {
     primary: "/login",
     primaryLabelKey: "cta_primary",
     secondary: "/tournaments",
-    // Public players catalogue doubles as the leaderboard (Elo column +
-    // sort-by-Elo). There is no separate /leaderboard route.
     rating: "/players",
     find: "/players",
     tournaments: "/tournaments",
@@ -55,7 +54,7 @@ async function resolveLandingHrefs(): Promise<LandingHrefs> {
     };
     const isStaff = !!(profile?.is_coach || profile?.is_admin);
     return {
-      primary: isStaff ? "/coach/dashboard" : "/me/rating",
+      primary: isStaff ? "/coach/dashboard" : "/me/find",
       primaryLabelKey: "cta_primary_authed",
       secondary: isStaff ? "/coach/tournaments" : "/me/tournaments",
       rating: "/me/rating",

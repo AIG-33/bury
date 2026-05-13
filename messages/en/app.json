@@ -81,7 +81,7 @@
         },
         "result": {
           "1": "No more chasing opponents — they come to you.",
-          "2": "You see the applicant's rating and style before agreeing."
+          "2": "You see the applicant's profile — level, district, reviews — before saying yes."
         }
       }
     },
@@ -128,7 +128,7 @@
       "what": {
         "1": "Browse offers by city/district/level.",
         "2": "Create your own posts — they appear in the feed instantly.",
-        "3": "Apply to ones you like — the author sees your Elo and decides."
+        "3": "Apply to ones you like — the author sees your profile and picks who to play."
       },
       "result": {
         "1": "Less chat — more tennis.",
@@ -138,16 +138,16 @@
   },
   "publicMatches": {
     "title": "All matches",
-    "subtitle": "Played friendly and tournament matches — an open results feed.",
+    "subtitle": "Open feed of played matches: tournaments, sparrings and games on Belarusian courts.",
     "help": {
-      "why": "So anyone — even visitors without an account — can see club and tournament results, keeping ratings transparent.",
+      "why": "The feed shows how the club is alive: who plays, on which courts, what tournaments run right now. From any row you can jump straight to a coach or a tournament.",
       "what": {
-        "1": "The feed only shows finished matches: friendlies (once both players confirmed) and tournament games whose tournament is set to public visibility.",
-        "2": "Filter by tournament to inspect a specific bracket.",
-        "3": "Coach names link to their public profile; tournament badge links to the tournament page."
+        "1": "Only finished matches are shown: sparrings (once both players confirmed) and games of public tournaments.",
+        "2": "Filter by tournament or venue to quickly find familiar matches.",
+        "3": "Player and coach names are clickable — open a profile or a tournament page and sign up."
       },
       "result": {
-        "1": "Visitors see honest results and understand how Elo is earned.",
+        "1": "It's easy to see which venue is busy and pick a club for your own match or coach.",
         "2": "Players and coaches can share a direct link to a single match or full tournament."
       }
     },
@@ -186,7 +186,7 @@
         },
         "tournament_score": {
           "title": "2. Coach: enter scores in your tournament",
-          "body": "Open your tournament under /coach/tournaments, click Score on a match card in the bracket and fill in the sets — the match flips to Completed and Elo recalculates automatically.",
+          "body": "Open your tournament under /coach/tournaments, click Score on a match card in the bracket and fill in the sets — the match flips to Completed and shows up in the public feed.",
           "cta": "Go to tournaments"
         },
         "tournament_publish": {
@@ -1471,8 +1471,8 @@
     "help": {
       "why": "In Belarus the hardest part is finding a partner of similar level who is free at the same time. We do that for you.",
       "what": {
-        "1": "Filter by district, Elo range, dominant hand, and your preferred time slots.",
-        "2": "Results are ranked by match score (Elo + overlapping slots + same district + recent activity).",
+        "1": "Filter by district, level, dominant hand and your preferred time slots.",
+        "2": "Results are ranked by match score: overlapping slots, same district, level, recent activity.",
         "3": "You can either jump straight to WhatsApp or send a formal in-app match proposal."
       },
       "result": {
@@ -2643,12 +2643,12 @@
   },
   "helpPage": {
     "title": "Help & glossary",
-    "subtitle": "Everything you need to know about ratings, formats and how the platform works.",
+    "subtitle": "How to find a sparring partner, pick a coach and join or host a tournament — quick answers and a glossary.",
     "help": {
-      "why": "Newcomers to club tennis often hit the same dozen questions. This page lives to answer them once.",
+      "why": "Newcomers to club tennis hit the same dozen questions about matches, coaches and tournaments. This page answers them once.",
       "what": {
-        "1": "Glossary of all the in-app jargon — Elo, K-factor, Swiss, no-ad…",
-        "2": "FAQ for the most common everyday actions.",
+        "1": "Quick guides: find an opponent, pick a coach, join a tournament or create one.",
+        "2": "Glossary of in-app jargon — bracket formats, no-ad, super-tiebreak, K-factor and more.",
         "3": "Direct contact channel if anything's still unclear."
       },
       "result": {
@@ -2758,11 +2758,11 @@
     "card_cta_button": "Open",
     "intro_title": "Why this app exists",
     "intro_bullets": [
-      "Keeps a single Elo rating that travels with you across every match and tournament.",
       "Helps you find an opponent of your level, in your district, at your preferred time.",
-      "Holds the calendar of courts and coaches and accepts online bookings.",
-      "Runs tournaments end-to-end: registration, draw, standings, scores — automatically.",
-      "Collects honest reviews of coaches (with anti-fraud checks).",
+      "Helps you pick a coach: filters by venue, price, reviews — with online booking.",
+      "Opens a catalog of tournaments — sign up to existing ones or create your own in any format.",
+      "Holds the calendar of courts and accepts online bookings.",
+      "Keeps a single player level so opponents and tournaments are matched fairly.",
       "Sends the right notifications and surfaces a one-tap WhatsApp contact."
     ],
     "sections": [
@@ -3073,17 +3073,17 @@
   },
   "tournamentsPublic": {
     "title": "Public tournaments",
-    "subtitle": "Browse open tournaments across the network. Sign up if you like the format.",
+    "subtitle": "Tournaments in Minsk and across Belarus — pick a format and a level you like and sign up in a couple of clicks.",
     "back": "Back to tournaments",
     "help": {
-      "why": "Lets anyone — guests included — see what's happening across the platform: who plays where, when, and which formats are popular.",
+      "why": "If you want real competition with stakes, this is where you pick a tournament — format, venue, level — and sign up. You can also create your own.",
       "what": {
         "1": "Filter by status: upcoming, in progress, finished.",
-        "2": "Click a tournament to see the bracket and participants.",
-        "3": "Sign in to register, set your starting Elo via the quiz, and join."
+        "2": "Click a tournament to see the bracket, participants and organizer contacts.",
+        "3": "Sign in to register or to create your own tournament — singles, doubles, swiss, round-robin."
       },
       "result": {
-        "1": "Builds organic trust: even a guest can verify a coach's track record.",
+        "1": "Builds organic trust: even a guest can verify a coach's track record and who played in their tournaments.",
         "2": "Players see the calendar at a glance and plan their season."
       }
     },
@@ -3165,7 +3165,7 @@
     }
   },
   "footer": {
-    "tagline": "Universal Elo, find a player nearby, run tournaments. Tennis in your pocket.",
+    "tagline": "Find a sparring partner, a coach or a tournament — and host your own. Tennis in your pocket.",
     "links": {
       "title": "Navigation",
       "tournaments": "Tournaments",
@@ -3231,7 +3231,7 @@
   },
   "playersPublic": {
     "title": "Players",
-    "subtitle": "Real people looking for opponents. Find your level — then propose a match.",
+    "subtitle": "Real amateur players in Belarus. Pick the right level and district — and propose a sparring.",
     "guest_banner": {
       "title": "Sign in to propose a match",
       "body": "The directory is public — see who plays in your area. To message someone or share WhatsApp you need a free account.",
@@ -3357,7 +3357,7 @@
       "help": {
         "why": "An open player profile — so you can decide whether they're a good sparring fit before investing in a conversation.",
         "what": {
-          "1": "Current Elo and rated matches show the level.",
+          "1": "The level pill and recent matches show how active and how strong the player is.",
           "2": "Schedule hints at when they're available.",
           "3": "Contacts are deliberately hidden — sign in to propose a match."
         },
