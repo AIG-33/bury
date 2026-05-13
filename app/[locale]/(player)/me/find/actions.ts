@@ -31,7 +31,7 @@ import { buildMatchProposalEmail } from "@/lib/email/templates/match-proposal";
 
 const FiltersSchema = z.object({
   districtIds: z.array(z.string().uuid()).max(20).default([]),
-  eloRadius: z.coerce.number().int().min(25).max(600).default(100),
+  eloRadius: z.coerce.number().int().min(25).max(1500).default(100),
   desiredSlots: z
     .array(
       z.object({

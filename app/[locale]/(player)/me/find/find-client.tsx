@@ -270,7 +270,7 @@ export function FindClient({
             <input
               type="range"
               min={25}
-              max={500}
+              max={1500}
               step={25}
               value={eloRadius}
               onChange={(e) => setEloRadius(Number(e.target.value))}
