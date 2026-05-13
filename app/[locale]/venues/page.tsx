@@ -1,5 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import {
+  ArrowRight,
   MapPin,
   Building2,
   Sun,
@@ -225,6 +227,14 @@ export default async function VenuesCatalogPage({ params }: Props) {
                           {t("open_in_maps")}
                         </a>
                       )}
+                      <Link
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        href={`/venues/${v.id}` as any}
+                        className="inline-flex items-center gap-1 font-medium text-grass-700 hover:text-grass-800 hover:underline"
+                      >
+                        {t("open_venue")}
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
                     </div>
 
                     {v.amenities.length > 0 && (

@@ -1634,6 +1634,7 @@
     "empty_title": "No venues yet",
     "empty_description": "The venue catalogue is curated by the club admin. As soon as venues are added, they will show up here.",
     "footnote_surfaces": "Surfaces: {surfaces}.",
+    "open_venue": "Open venue",
     "help": {
       "why": "The venue catalogue is the single shared directory of clubs and courts available to coaches and players. The admin maintains it. A coach picks any venue and any court when scheduling a slot; a player sees the address and amenities before booking.",
       "what": {
@@ -1644,6 +1645,40 @@
       "result": {
         "1": "Coaches pick the right court immediately when posting a slot.",
         "2": "Players know exactly where they're going before confirming a booking."
+      }
+    },
+    "detail": {
+      "back": "Back to venues",
+      "courts_count": "{n, plural, =0 {no courts} one {# court} other {# courts}}",
+      "tabs": {
+        "courts": "Courts",
+        "open_matches": "Open matches",
+        "tournaments": "Tournaments"
+      },
+      "courts": {
+        "title": "Courts at this venue",
+        "empty": "No courts have been added to this venue yet."
+      },
+      "open_matches": {
+        "title": "Open matches",
+        "empty_title": "No open matches here yet",
+        "empty_body": "Any player can post an open invite to play here — matching opponents will see it instantly in the feed.",
+        "empty_cta_authed": "Post an open match",
+        "empty_cta_guest": "Sign in to post"
+      },
+      "tournaments": {
+        "title": "Tournaments at this venue",
+        "empty_title": "No tournaments yet",
+        "empty_body": "When a coach or club hosts a tournament here, it'll show up in this tab. You can also create your own tournament and pick this venue.",
+        "empty_cta_authed": "Create tournament",
+        "empty_cta_guest": "Sign in to create",
+        "starts_on": "Starts {date}",
+        "format_label": "Format: {format}",
+        "open_tournament": "Details"
+      },
+      "recent_matches": {
+        "title": "Recent matches here",
+        "empty": "No completed matches at this venue yet."
       }
     }
   },
