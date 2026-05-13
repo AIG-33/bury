@@ -34,17 +34,12 @@ export async function Footer({ authed }: Props) {
 
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center">
-                <TennisBall className="h-7 w-7 text-ball-500" />
+            <Link href="/" className="inline-flex items-center gap-3">
+              <span className="inline-flex h-12 w-12 items-center justify-center">
+                <TennisBall className="h-11 w-11 text-ball-500 drop-shadow-[0_2px_8px_rgba(31,138,76,0.3)]" />
               </span>
-              <span className="flex flex-col leading-none">
-                <span className="font-display text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-500">
-                  Amateur tennis · BY
-                </span>
-                <span className="mt-0.5 font-display text-[14px] font-bold tracking-tight text-grass-900">
-                  OpenCourt.by
-                </span>
+              <span className="font-display text-[22px] font-extrabold tracking-tight text-grass-900">
+                OpenCourt.by
               </span>
             </Link>
             <p className="mt-3 max-w-md text-sm text-ink-600">{t("tagline")}</p>

@@ -80,25 +80,17 @@ export async function TopNav() {
         {/* Wordmark — ball spins on hover */}
         <Link
           href="/"
-          className="group inline-flex items-center gap-2.5"
+          className="group inline-flex items-center gap-3"
           aria-label="OpenCourt.by — платформа любительского тенниса"
         >
-          <span className="relative inline-flex h-7 w-7 items-center justify-center">
+          <span className="relative inline-flex h-11 w-11 items-center justify-center">
             <span
               aria-hidden
               className="absolute inset-0 rounded-full bg-grass-100/0 blur-md transition-colors duration-500 group-hover:bg-grass-200/60"
             />
-            <TennisBall className="ease-followthrough relative h-6 w-6 text-ball-500 drop-shadow-[0_2px_6px_rgba(31,138,76,0.25)] transition-transform duration-700 group-hover:rotate-[360deg]" />
+            <TennisBall className="ease-followthrough relative h-10 w-10 text-ball-500 drop-shadow-[0_2px_8px_rgba(31,138,76,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]" />
           </span>
-          <span className="hidden flex-col leading-none sm:flex">
-            <span className="font-display text-[10.5px] font-bold uppercase tracking-[0.2em] text-ink-500">
-              Amateur tennis · BY
-            </span>
-            <span className="mt-0.5 font-display text-[14px] font-extrabold tracking-tight text-grass-900">
-              OpenCourt.by
-            </span>
-          </span>
-          <span className="font-display text-[15px] font-extrabold tracking-tight text-grass-900 sm:hidden">
+          <span className="font-display text-[20px] font-extrabold tracking-tight text-grass-900 sm:text-[22px]">
             OpenCourt.by
           </span>
         </Link>
