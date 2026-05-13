@@ -39,11 +39,6 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref 
       value: tt("items.formats.value"),
       label: tt("items.formats.label"),
     },
-    {
-      key: "import",
-      value: tt("items.import.value"),
-      label: tt("items.import.label"),
-    },
   ] as const;
 
   return (
@@ -134,7 +129,7 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref 
           transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
         >
           <p className="label-eyebrow">{tt("label")}</p>
-          <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-4">
+          <ul className="mt-4 grid grid-cols-3 gap-x-6 gap-y-5">
             {trust.map((item) => (
               <li key={item.key} className="flex flex-col gap-1">
                 <span className="tabular font-display text-2xl font-bold leading-none text-grass-900 md:text-3xl">

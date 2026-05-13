@@ -661,8 +661,7 @@
       "items": {
         "cities": { "value": "12", "label": "cities in Belarus" },
         "venues": { "value": "26", "label": "tennis venues" },
-        "formats": { "value": "6", "label": "tournament formats" },
-        "import": { "value": "Import", "label": "rating from ligatennisa.com" }
+        "formats": { "value": "6", "label": "tournament formats" }
       }
     },
     "benefits": {
@@ -672,7 +671,7 @@
       "items": {
         "rating": {
           "title": "One Elo across every match",
-          "body": "Your rating updates automatically after every confirmed match — friendly, league or tournament. Already on ligatennisa.com? We import your current level.",
+          "body": "Your rating updates automatically after every confirmed match — friendly, league or tournament. One unified level, no separate per-club rankings.",
           "tag": "Universal Elo"
         },
         "find": {
