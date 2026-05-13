@@ -296,14 +296,14 @@ export async function confirmImportFromLt(
 
   // Read existing profile so we know which fields are blank and what the
   // "old" Elo was for the rating_history entry.
-  const { data: existingProfile } = (await service
+  let { data: existingProfile } = (await service
     .from("profiles")
     .select(
       "current_elo, first_name, last_name, avatar_url, dominant_hand, " +
         "backhand_style, date_of_birth, city, social_links",
     )
     .eq("id", user.id)
-    .single()) as {
+    .maybeSingle()) as {
     data: {
       current_elo: number | null;
       first_name: string | null;
@@ -316,6 +316,44 @@ export async function confirmImportFromLt(
       social_links: Record<string, unknown> | null;
     } | null;
   };
+
+  // Recover from the (rare) case where an authenticated auth.users row
+  // has no matching profiles row — this happens when the
+  // `handle_new_user` trigger was missing or failed at signup time. The
+  // FK on external_ratings.player_id would otherwise blow up the import
+  // with a generic "save failed". We re-run the same insert
+  // `handle_new_user` does, idempotently, so the rest of the flow has
+  // a profile to attach to.
+  if (!existingProfile) {
+    console.warn("[import-lt] profile row missing for authenticated user — creating one", {
+      user_id: user.id,
+    });
+    const { error: profCreateErr } = await service.from("profiles").insert(
+      {
+        id: user.id,
+        email_local: user.email ? user.email.split("@")[0] : null,
+        locale: "ru",
+      } as never,
+      { count: "exact" },
+    );
+    if (profCreateErr && !/duplicate key/i.test(profCreateErr.message)) {
+      console.error("[import-lt] could not create missing profile row", {
+        user_id: user.id,
+        message: profCreateErr.message,
+      });
+      return { ok: false, error: "db_error", message: profCreateErr.message };
+    }
+    // Re-fetch so the rest of the function operates on a real row.
+    const { data: created } = (await service
+      .from("profiles")
+      .select(
+        "current_elo, first_name, last_name, avatar_url, dominant_hand, " +
+          "backhand_style, date_of_birth, city, social_links",
+      )
+      .eq("id", user.id)
+      .maybeSingle()) as { data: typeof existingProfile };
+    existingProfile = created;
+  }
 
   const oldElo = existingProfile?.current_elo ?? 1000;
 
