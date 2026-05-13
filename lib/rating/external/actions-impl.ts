@@ -346,6 +346,11 @@ export async function confirmImportFromLt(
     error: { message: string } | null;
   };
   if (erErr || !erRow) {
+    console.error("[import-lt] external_ratings upsert failed", {
+      user_id: user.id,
+      external_id: safe.id,
+      message: erErr?.message,
+    });
     return { ok: false, error: "db_error", message: erErr?.message };
   }
 
@@ -385,13 +390,25 @@ export async function confirmImportFromLt(
     .update(patch as never)
     .eq("id", user.id);
   if (profErr) {
+    console.error("[import-lt] profiles update failed", {
+      user_id: user.id,
+      patch_keys: Object.keys(patch),
+      message: profErr.message,
+    });
     return { ok: false, error: "db_error", message: profErr.message };
   }
 
   // Audit row: rating_history with reason 'external_import'. Mirrors the
   // shape used by the onboarding quiz so the player's rating timeline stays
   // consistent in /me/rating.
-  await service.from("rating_history").insert({
+  //
+  // Failure here is logged but NOT fatal — the import itself already
+  // succeeded (external_ratings + profiles.current_elo are written), and
+  // we don't want to surface a "save failed" error to the user when the
+  // only thing missing is a timeline marker. The reason was added to the
+  // CHECK constraint in 20260513000000_rating_history_external_import.sql
+  // (legacy DBs without that migration silently drop the row here).
+  const { error: histErr } = await service.from("rating_history").insert({
     player_id: user.id,
     match_id: null,
     old_elo: oldElo,
@@ -400,6 +417,14 @@ export async function confirmImportFromLt(
     multiplier: 1.0,
     reason: "external_import",
   } as never);
+  if (histErr) {
+    console.error("[import-lt] rating_history insert failed (non-fatal)", {
+      user_id: user.id,
+      old_elo: oldElo,
+      new_elo: conv.elo,
+      message: histErr.message,
+    });
+  }
 
   return {
     ok: true,

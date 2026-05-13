@@ -155,7 +155,12 @@ export function ImportLtClient({
     startImport(async () => {
       const r = (await confirmImportFromLt(preview.external_id, copyEmpty)) as ImportResult;
       if (!r.ok) {
-        setImportError(copy.errors[r.error] ?? copy.errors.unknown);
+        // Surface the upstream/Postgres detail when present — these messages
+        // are not PII and they're the only signal a coach/player can give us
+        // when they hit a "save failed" path. Localised text comes first.
+        const localised = copy.errors[r.error] ?? copy.errors.unknown;
+        const detail = "message" in r && r.message ? ` (${r.message})` : "";
+        setImportError(`${localised}${detail}`);
         return;
       }
       setImported({ elo: r.new_local_elo });
