@@ -64,6 +64,8 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
     empty_cta: t("list.empty_cta"),
     add: t("list.add"),
     edit: t("list.edit"),
+    duplicate: t("list.duplicate"),
+    copy_suffix: t("list.copy_suffix"),
     delete: t("list.delete"),
     delete_confirm: t("list.delete_confirm"),
     deleting: t("list.deleting"),
@@ -78,6 +80,9 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
     dialog: {
       create_title: t("dialog.create_title"),
       edit_title: t("dialog.edit_title"),
+      duplicate_title: t("dialog.duplicate_title"),
+      third_place_match_label: t("dialog.third_place_match_label"),
+      third_place_match_hint: t("dialog.third_place_match_hint"),
       fields: {
         name: t("dialog.fields.name"),
         description: t("dialog.fields.description"),

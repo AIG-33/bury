@@ -15,6 +15,9 @@ import {
 
 export type BracketCopy = {
   title: string;
+  playoff_title: string;
+  playoff_pending: string;
+  third_place_label: string;
   generate: string;
   generating: string;
   regenerate_warning: string;
@@ -61,16 +64,35 @@ export function BracketSection({
   const [method, setMethod] = useState<SeedingMethod>(initialMethod);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const isHybrid = format === "group_playoff";
+  // For hybrid tournaments BracketSection only displays the PLAYOFF part —
+  // the group stage is owned by <GroupsSection>. For other formats we display
+  // everything (legacy behaviour: stage is null).
+  const visibleMatches = useMemo(
+    () =>
+      isHybrid ? matches.filter((m) => m.stage === "playoff" || m.stage === "third_place") : matches,
+    [matches, isHybrid],
+  );
+
+  const playoffMatches = useMemo(
+    () => visibleMatches.filter((m) => m.stage !== "third_place"),
+    [visibleMatches],
+  );
+  const thirdPlace = useMemo(
+    () => visibleMatches.find((m) => m.stage === "third_place") ?? null,
+    [visibleMatches],
+  );
+
   const grouped = useMemo(() => {
     const map = new Map<number, MatchRow[]>();
-    for (const m of matches) {
+    for (const m of playoffMatches) {
       const r = m.round ?? 0;
       const arr = map.get(r) ?? [];
       arr.push(m);
       map.set(r, arr);
     }
     return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
-  }, [matches]);
+  }, [playoffMatches]);
 
   function onGenerate() {
     if (matches.length > 0 && !confirm(copy.regenerate_warning)) return;
@@ -81,7 +103,7 @@ export function BracketSection({
     });
   }
 
-  if (format !== "single_elimination" && format !== "round_robin") {
+  if (format !== "single_elimination" && format !== "round_robin" && format !== "group_playoff") {
     return (
       <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
         <h2 className="font-display text-lg font-semibold text-ink-900">{copy.title}</h2>
@@ -93,50 +115,55 @@ export function BracketSection({
   }
 
   const totalRounds = grouped.length;
+  // For hybrids the "Generate" button is replaced by group-stage + close-groups
+  // UI in <GroupsSection>. BracketSection only renders the resulting bracket.
+  const showGenerate = !isHybrid;
 
   return (
     <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">{copy.title}</h2>
-        <div className="flex items-center gap-2">
-          <label className="inline-flex items-center gap-2 text-xs text-ink-700">
-            {copy.draw_method}
-            <select
-              value={method}
-              onChange={(e) => setMethod(e.target.value as SeedingMethod)}
-              className="h-8 rounded-md border border-ink-200 bg-white px-2 text-xs"
+        <h2 className="font-display text-lg font-semibold text-ink-900">
+          {isHybrid ? copy.playoff_title : copy.title}
+        </h2>
+        {showGenerate && (
+          <div className="flex items-center gap-2">
+            <label className="inline-flex items-center gap-2 text-xs text-ink-700">
+              {copy.draw_method}
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value as SeedingMethod)}
+                className="h-8 rounded-md border border-ink-200 bg-white px-2 text-xs"
+              >
+                {SEEDING_METHODS.map((m) => (
+                  <option key={m} value={m}>
+                    {copy.draw_method_labels[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={onGenerate}
+              disabled={pending || participantsCount < 2}
+              className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-500 px-3 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
             >
-              {SEEDING_METHODS.map((m) => (
-                <option key={m} value={m}>
-                  {copy.draw_method_labels[m]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            onClick={onGenerate}
-            disabled={pending || participantsCount < 2}
-            className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-500 px-3 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
-          >
-            {pending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Shuffle className="h-3 w-3" />
-            )}
-            {pending ? copy.generating : copy.generate}
-          </button>
-        </div>
+              {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shuffle className="h-3 w-3" />}
+              {pending ? copy.generating : copy.generate}
+            </button>
+          </div>
+        )}
       </div>
 
-      {participantsCount < 2 && (
+      {showGenerate && participantsCount < 2 && (
         <p className="mt-2 rounded-lg bg-clay-50 px-3 py-2 text-xs text-clay-800">
           {copy.insufficient_players}
         </p>
       )}
 
-      {matches.length === 0 ? (
-        <p className="mt-4 text-sm text-ink-500">{copy.no_matches}</p>
+      {playoffMatches.length === 0 ? (
+        <p className="mt-4 text-sm text-ink-500">
+          {isHybrid ? copy.playoff_pending : copy.no_matches}
+        </p>
       ) : (
         <div className="mt-4 grid gap-4 lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
           {grouped.map(([round, rms]) => (
@@ -161,11 +188,31 @@ export function BracketSection({
           ))}
         </div>
       )}
+
+      {isHybrid && thirdPlace && (
+        <div className="mt-6 border-t border-ink-100 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-clay-700">
+            {copy.third_place_label}
+          </p>
+          <div className="mt-2 max-w-sm">
+            <MatchCard
+              match={thirdPlace}
+              copy={copy}
+              matchRules={matchRules}
+              editingId={editingId}
+              setEditingId={setEditingId}
+              onSaved={() => router.refresh()}
+              pending={pending}
+              startT={startT}
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
-function MatchCard({
+export function MatchCard({
   match,
   copy,
   matchRules,

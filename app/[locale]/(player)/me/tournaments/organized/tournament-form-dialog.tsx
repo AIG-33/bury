@@ -26,6 +26,9 @@ import { createTournament, updateTournament, type VenueOption } from "./actions"
 export type TournamentDialogCopy = {
   create_title: string;
   edit_title: string;
+  duplicate_title: string;
+  third_place_match_label: string;
+  third_place_match_hint: string;
   fields: {
     name: string;
     description: string;
@@ -73,6 +76,8 @@ export type TournamentDialogCopy = {
   none: string;
 };
 
+export type TournamentDialogMode = "create" | "edit" | "duplicate";
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -80,6 +85,13 @@ type Props = {
     id: string;
     form: TournamentForm;
   } | null;
+  /**
+   * Pre-filled values for the "Duplicate" flow. When set, the dialog opens
+   * with these values but submits as a fresh create (no `id`). The caller
+   * is responsible for clearing dates / suffixing the name beforehand.
+   */
+  prefill?: TournamentForm | null;
+  mode?: TournamentDialogMode;
   venueOptions: VenueOption[];
   copy: TournamentDialogCopy;
   onSaved: (id: string) => void;
@@ -89,6 +101,8 @@ export function TournamentFormDialog({
   open,
   onClose,
   initial,
+  prefill,
+  mode = initial ? "edit" : "create",
   venueOptions,
   copy,
   onSaved,
@@ -98,23 +112,25 @@ export function TournamentFormDialog({
 
   const form = useForm<TournamentForm>({
     resolver: zodResolver(TournamentFormSchema),
-    defaultValues: initial?.form ?? {
-      name: "",
-      description: null,
-      format: "single_elimination",
-      surface: null,
-      starts_on: new Date().toISOString().slice(0, 10),
-      start_time: null,
-      ends_on: null,
-      registration_deadline: null,
-      max_participants: null,
-      entry_fee_byn: null,
-      privacy: "club",
-      draw_method: "rating",
-      prizes_description: null,
-      match_rules: DEFAULT_MATCH_RULES,
-      venue_ids: [],
-    },
+    defaultValues: initial?.form ??
+      prefill ?? {
+        name: "",
+        description: null,
+        format: "single_elimination",
+        surface: null,
+        starts_on: new Date().toISOString().slice(0, 10),
+        start_time: null,
+        ends_on: null,
+        registration_deadline: null,
+        max_participants: null,
+        entry_fee_byn: null,
+        privacy: "club",
+        draw_method: "rating",
+        prizes_description: null,
+        match_rules: DEFAULT_MATCH_RULES,
+        venue_ids: [],
+        third_place_match: false,
+      },
   });
 
   useEffect(() => {
@@ -123,9 +139,11 @@ export function TournamentFormDialog({
       setError(null);
     } else if (initial?.form) {
       form.reset(initial.form);
+    } else if (prefill) {
+      form.reset(prefill);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initial?.id]);
+  }, [open, initial?.id, mode]);
 
   if (!open) return null;
 
@@ -134,21 +152,27 @@ export function TournamentFormDialog({
   function onSubmit(values: TournamentForm) {
     setError(null);
     startT(async () => {
-      const r = initial
-        ? await updateTournament(initial.id, values)
-        : await createTournament(values);
+      const r =
+        mode === "edit" && initial
+          ? await updateTournament(initial.id, values)
+          : await createTournament(values);
       if (r.ok) onSaved(r.id);
       else setError(r.error);
     });
   }
 
+  const title =
+    mode === "edit"
+      ? copy.edit_title
+      : mode === "duplicate"
+        ? copy.duplicate_title
+        : copy.create_title;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 px-4 py-8">
       <div className="shadow-pop max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-ink-900">
-            {initial ? copy.edit_title : copy.create_title}
-          </h2>
+          <h2 className="font-display text-xl font-semibold text-ink-900">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -579,6 +603,20 @@ export function TournamentFormDialog({
               className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
           </div>
+
+          {form.watch("format") === "group_playoff" && (
+            <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-ink-100 bg-grass-50/30 p-3">
+              <input
+                type="checkbox"
+                {...form.register("third_place_match")}
+                className="mt-0.5 h-4 w-4 rounded border-ink-300 text-grass-600 focus:ring-grass-200"
+              />
+              <span className="text-xs">
+                <span className="font-semibold text-ink-800">{copy.third_place_match_label}</span>
+                <span className="mt-0.5 block text-ink-600">{copy.third_place_match_hint}</span>
+              </span>
+            </label>
+          )}
 
           {error && (
             <div className="rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-800">

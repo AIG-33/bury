@@ -2124,7 +2124,7 @@
     "help": {
       "why": "Any registered user can organize a tournament: pick a format, collect applications and approve the field. Here you'll find every tournament where you're the organizer.",
       "what": {
-        "1": "Create a tournament — format, match rules, venues, date.",
+        "1": "Create a tournament — format, match rules, venues, date. Or duplicate any past one to relaunch it on new dates (handy for recurring series).",
         "2": "Make it public so players see it on /tournaments and submit applications.",
         "3": "Open the tournament page: review incoming applications and approve the players you want in the bracket. You can also add players directly without an application.",
         "4": "Once the field is set — generate the bracket and enter scores."
@@ -2140,6 +2140,8 @@
       "empty_cta": "Create tournament",
       "add": "Create tournament",
       "edit": "Edit",
+      "duplicate": "Duplicate",
+      "copy_suffix": " (copy)",
       "delete": "Delete",
       "delete_confirm": "Delete this tournament? Participants and matches will be removed.",
       "deleting": "Deleting…",
@@ -2204,6 +2206,9 @@
     "dialog": {
       "create_title": "New tournament",
       "edit_title": "Edit tournament",
+      "duplicate_title": "Duplicate tournament",
+      "third_place_match_label": "3rd-place match",
+      "third_place_match_hint": "After the semifinals, the two losing semi-finalists play an extra match for bronze. Only for the «Groups + playoff» format.",
       "fields": {
         "name": "Name",
         "description": "Description",
@@ -2274,6 +2279,9 @@
     },
     "bracket": {
       "title": "Bracket",
+      "playoff_title": "Playoff",
+      "playoff_pending": "The playoff bracket appears here once the group stage is closed.",
+      "third_place_label": "3rd-place match",
       "generate": "Generate bracket",
       "generating": "Generating…",
       "regenerate_warning": "A bracket already exists. Generating again will erase all current matches. Continue?",
@@ -2303,6 +2311,34 @@
       "set": "Set",
       "error": "Error",
       "insufficient_players": "Need at least 2 participants to draw a bracket."
+    },
+    "groups": {
+      "title": "Group stage",
+      "setup_help": "Split approved players into groups. Each group plays a round-robin; top-N from every group then advance to the playoff bracket.",
+      "groups_count_label": "Number of groups",
+      "method_label": "Distribution method",
+      "generate": "Create groups",
+      "generating": "Creating…",
+      "regenerate_warning": "Groups already exist. Regenerating will drop them and every group-stage match. Continue?",
+      "not_enough_players": "Need at least 4 approved players to seed groups (2 players per group minimum).",
+      "empty": "No groups yet.",
+      "group_label": "Group {name}",
+      "move_to": "Move to group…",
+      "cannot_move_after_start": "Players can only be moved before the first group match has a score.",
+      "member_count": "{n} pl.",
+      "roster": "Roster",
+      "matches": "Matches",
+      "no_matches": "Matches appear after players are distributed into groups.",
+      "standings": "Standings",
+      "close_groups_title": "Close groups → start playoff",
+      "close_groups_help": "When every group match is in, pick the playoff stage and how many players advance from each group. Top finishers cross-seed into the bracket.",
+      "advance_per_group_label": "Advance per group",
+      "playoff_size_label": "Playoff stage",
+      "close_groups_cta": "Start playoff",
+      "closing": "Starting…",
+      "qualifiers_summary": "Groups: {groups}, advance per group: {n} → playoff of {size}.",
+      "playoff_too_small": "Playoff size is smaller than the total number of qualifiers. Bump the stage or reduce top-N.",
+      "groups_pending": "Finish every group match first — then you can close the groups."
     },
     "detail": {
       "back": "Back to my tournaments",

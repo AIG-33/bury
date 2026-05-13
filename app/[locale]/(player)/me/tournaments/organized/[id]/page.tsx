@@ -3,9 +3,14 @@ import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, CalendarDays, Clock, Coins, MapPin, Trophy, Eye } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
-import { loadRoundRobinStandings, loadTournamentDetail } from "../actions";
+import {
+  loadGroupStandings,
+  loadRoundRobinStandings,
+  loadTournamentDetail,
+} from "../actions";
 import { ParticipantsSection, type ParticipantsCopy } from "./participants-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
+import { GroupsSection, type GroupsCopy } from "./groups-section";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
 import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
 import {
@@ -38,7 +43,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     redirect(`/${locale}/login`);
   }
 
-  const { tournament, participants, matches, playerOptions } = result;
+  const { tournament, participants, matches, playerOptions, groups } = result;
 
   const formatLabels = Object.fromEntries(
     TOURNAMENT_FORMATS.map((f) => [f, t(`formats.${f}`)]),
@@ -85,6 +90,9 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
 
   const bracketCopy: BracketCopy = {
     title: t("bracket.title"),
+    playoff_title: t("bracket.playoff_title"),
+    playoff_pending: t("bracket.playoff_pending"),
+    third_place_label: t("bracket.third_place_label"),
     generate: t("bracket.generate"),
     generating: t("bracket.generating"),
     regenerate_warning: t("bracket.regenerate_warning"),
@@ -106,6 +114,44 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     set: t("bracket.set"),
     error: t("bracket.error"),
     insufficient_players: t("bracket.insufficient_players"),
+  };
+
+  const groupsCopy: GroupsCopy = {
+    title: t("groups.title"),
+    setup_help: t("groups.setup_help"),
+    groups_count_label: t("groups.groups_count_label"),
+    method_label: t("groups.method_label"),
+    method_labels: drawMethodLabels,
+    generate: t("groups.generate"),
+    generating: t("groups.generating"),
+    regenerate_warning: t("groups.regenerate_warning"),
+    not_enough_players: t("groups.not_enough_players"),
+    empty: t("groups.empty"),
+    group_label: (name: string) => t("groups.group_label", { name }),
+    move_to: t("groups.move_to"),
+    cannot_move_after_start: t("groups.cannot_move_after_start"),
+    member_count: t("groups.member_count"),
+    roster: t("groups.roster"),
+    matches: t("groups.matches"),
+    no_matches: t("groups.no_matches"),
+    standings: t("groups.standings"),
+    col_pos: t("standings.col_pos"),
+    col_player: t("standings.col_player"),
+    col_played: t("standings.col_played"),
+    col_wins: t("standings.col_wins"),
+    col_losses: t("standings.col_losses"),
+    col_sets: t("standings.col_sets"),
+    col_games: t("standings.col_games"),
+    close_groups_title: t("groups.close_groups_title"),
+    close_groups_help: t("groups.close_groups_help"),
+    advance_per_group_label: t("groups.advance_per_group_label"),
+    playoff_size_label: t("groups.playoff_size_label"),
+    close_groups_cta: t("groups.close_groups_cta"),
+    closing: t("groups.closing"),
+    qualifiers_summary: t("groups.qualifiers_summary"),
+    playoff_too_small: t("groups.playoff_too_small"),
+    groups_pending: t("groups.groups_pending"),
+    error: t("bracket.error"),
   };
 
   const locked = tournament.status === "in_progress" || tournament.status === "finished";
@@ -236,6 +282,24 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         copy={participantsCopy}
         locked={locked}
       />
+
+      {tournament.format === "group_playoff" && (
+        <GroupsSection
+          tournamentId={tournament.id}
+          format={tournament.format}
+          groupsCount={tournament.groups_count}
+          advancePerGroup={tournament.advance_per_group}
+          playoffSize={tournament.playoff_size}
+          thirdPlaceMatch={tournament.third_place_match}
+          participants={participants}
+          groups={groups}
+          matches={matches}
+          standings={await loadGroupStandings(tournament.id)}
+          copy={groupsCopy}
+          bracketCopy={bracketCopy}
+          matchRules={tournament.match_rules}
+        />
+      )}
 
       <BracketSection
         tournamentId={tournament.id}

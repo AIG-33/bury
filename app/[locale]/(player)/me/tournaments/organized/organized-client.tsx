@@ -14,6 +14,7 @@ import {
   CalendarDays,
   Clock,
   Coins,
+  Copy,
   MapPin,
   Users,
   Inbox,
@@ -23,12 +24,14 @@ import { deleteTournament, type TournamentRow, type VenueOption } from "./action
 import {
   TournamentFormDialog,
   type TournamentDialogCopy,
+  type TournamentDialogMode,
 } from "./tournament-form-dialog";
 import type {
   TournamentFormat,
   TournamentStatus,
   Surface,
   MatchRules,
+  TournamentForm,
 } from "@/lib/tournaments/schema";
 
 export type OrganizedTournamentsCopy = {
@@ -37,6 +40,8 @@ export type OrganizedTournamentsCopy = {
   empty_cta: string;
   add: string;
   edit: string;
+  duplicate: string;
+  copy_suffix: string;
   delete: string;
   delete_confirm: string;
   deleting: string;
@@ -64,17 +69,63 @@ export function OrganizedTournamentsClient({
 }) {
   const t = useTranslations("tournamentsOrganized");
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<TournamentDialogMode>("create");
   const [editing, setEditing] = useState<TournamentRow | null>(null);
+  const [prefill, setPrefill] = useState<TournamentForm | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pending, startT] = useTransition();
   const router = useRouter();
 
+  function tournamentToForm(t: TournamentRow): TournamentForm {
+    return {
+      name: t.name,
+      description: t.description,
+      format: t.format,
+      surface: t.surface,
+      starts_on: t.starts_on,
+      start_time: t.start_time ? t.start_time.slice(0, 5) : null,
+      ends_on: t.ends_on,
+      registration_deadline: t.registration_deadline
+        ? t.registration_deadline.slice(0, 10)
+        : null,
+      max_participants: t.max_participants,
+      entry_fee_byn: t.entry_fee_byn,
+      privacy: t.privacy,
+      draw_method: t.draw_method ?? "rating",
+      prizes_description: t.prizes_description,
+      match_rules: t.match_rules as MatchRules,
+      venue_ids: t.venues.map((v) => v.id),
+      third_place_match: t.third_place_match,
+    };
+  }
+
   function openCreate() {
+    setMode("create");
     setEditing(null);
+    setPrefill(null);
     setOpen(true);
   }
   function openEdit(t: TournamentRow) {
+    setMode("edit");
     setEditing(t);
+    setPrefill(null);
+    setOpen(true);
+  }
+  function openDuplicate(t: TournamentRow) {
+    // Clone settings, blank out everything date-related, suffix the name and
+    // demote registration_deadline to null — the organiser must pick fresh
+    // dates for the new run. Participants & matches stay behind.
+    const base = tournamentToForm(t);
+    const today = new Date().toISOString().slice(0, 10);
+    setMode("duplicate");
+    setEditing(null);
+    setPrefill({
+      ...base,
+      name: `${t.name}${copy.copy_suffix}`,
+      starts_on: today,
+      ends_on: null,
+      registration_deadline: null,
+    });
     setOpen(true);
   }
   function onDelete(id: string) {
@@ -91,25 +142,7 @@ export function OrganizedTournamentsClient({
   const initialForm = editing
     ? {
         id: editing.id,
-        form: {
-          name: editing.name,
-          description: editing.description,
-          format: editing.format,
-          surface: editing.surface,
-          starts_on: editing.starts_on,
-          start_time: editing.start_time ? editing.start_time.slice(0, 5) : null,
-          ends_on: editing.ends_on,
-          registration_deadline: editing.registration_deadline
-            ? editing.registration_deadline.slice(0, 10)
-            : null,
-          max_participants: editing.max_participants,
-          entry_fee_byn: editing.entry_fee_byn,
-          privacy: editing.privacy,
-          draw_method: editing.draw_method ?? "rating",
-          prizes_description: editing.prizes_description,
-          match_rules: editing.match_rules as MatchRules,
-          venue_ids: editing.venues.map((v) => v.id),
-        },
+        form: tournamentToForm(editing),
       }
     : null;
 
@@ -215,14 +248,21 @@ export function OrganizedTournamentsClient({
                 </ul>
               )}
 
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => openEdit(tour)}
                     className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
                   >
                     <Pencil className="h-3 w-3" /> {copy.edit}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openDuplicate(tour)}
+                    className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
+                  >
+                    <Copy className="h-3 w-3" /> {copy.duplicate}
                   </button>
                   <button
                     type="button"
@@ -254,12 +294,14 @@ export function OrganizedTournamentsClient({
         open={open}
         onClose={() => setOpen(false)}
         initial={initialForm}
+        prefill={prefill}
+        mode={mode}
         venueOptions={venueOptions}
         copy={copy.dialog}
         onSaved={(id) => {
           setOpen(false);
-          if (!editing) router.push(`/${locale}/me/tournaments/organized/${id}` as never);
-          else router.refresh();
+          if (mode === "edit") router.refresh();
+          else router.push(`/${locale}/me/tournaments/organized/${id}` as never);
         }}
       />
     </>

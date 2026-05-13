@@ -12,7 +12,21 @@ export const TOURNAMENT_FORMATS = [
 ] as const;
 export type TournamentFormat = (typeof TOURNAMENT_FORMATS)[number];
 
-export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = ["single_elimination", "round_robin"];
+export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = [
+  "single_elimination",
+  "round_robin",
+  "group_playoff",
+];
+
+// Power-of-two bracket sizes that can be picked when the organiser closes the
+// group stage of a hybrid tournament. 2 = direct final, 4 = semis, etc.
+export const PLAYOFF_SIZES = [2, 4, 8, 16, 32] as const;
+export type PlayoffSize = (typeof PLAYOFF_SIZES)[number];
+
+// Stages a match can belong to inside a hybrid tournament. Null = legacy
+// single-elim / round-robin tournament that pre-dates this enum.
+export const MATCH_STAGES = ["group", "playoff", "third_place"] as const;
+export type MatchStage = (typeof MATCH_STAGES)[number];
 
 export const TOURNAMENT_STATUSES = [
   "draft",
@@ -162,9 +176,54 @@ export const TournamentFormSchema = z.object({
   match_rules: MatchRulesSchema.default(DEFAULT_MATCH_RULES),
   // Empty array = no venues bound (e.g. "TBD"). Order is not significant.
   venue_ids: z.array(z.string().uuid()).max(20).default([]),
+  // Hybrid (group + playoff) tournaments only — toggles a 3rd-place match
+  // between the two losing semi-finalists. Ignored for other formats.
+  third_place_match: z.boolean().default(false),
 });
 
 export type TournamentForm = z.infer<typeof TournamentFormSchema>;
+
+// ─── Hybrid (group + playoff) tournament management ──────────────────────────
+
+/**
+ * Step 1 of the hybrid flow: organiser closes registration and tells us
+ * (a) how many groups to split approved players into and (b) which method
+ * to use to seed the groups. Manual = round-robin into A, B, … by Elo as a
+ * starting point; the organiser then drags individual players between
+ * groups before any group match has a score.
+ */
+export const GenerateGroupsSchema = z.object({
+  tournament_id: z.string().uuid(),
+  groups_count: z.coerce.number().int().min(2).max(16),
+  method: z.enum(SEEDING_METHODS).default("rating"),
+  rng_seed: z.coerce.number().int().min(0).max(2_000_000_000).optional().nullable(),
+});
+export type GenerateGroupsInput = z.infer<typeof GenerateGroupsSchema>;
+
+/**
+ * Step 2: every group match has a result, organiser picks the playoff size
+ * and how many players advance from every group. Total qualifiers
+ * (groups_count × advance_per_group) must be ≤ playoff_size; unfilled
+ * slots become byes for the top seeds.
+ */
+export const CloseGroupsSchema = z.object({
+  tournament_id: z.string().uuid(),
+  advance_per_group: z.coerce.number().int().min(1).max(8),
+  playoff_size: z.coerce.number().int().refine((n) => PLAYOFF_SIZES.includes(n as PlayoffSize), {
+    message: "expected one of 2/4/8/16/32",
+  }),
+});
+export type CloseGroupsInput = z.infer<typeof CloseGroupsSchema>;
+
+/**
+ * Drag-and-drop reassignment between groups. Only legal while every group
+ * match is still pending (no scores entered yet) — the SA enforces this.
+ */
+export const MoveToGroupSchema = z.object({
+  participant_id: z.string().uuid(),
+  group_id: z.string().uuid(),
+});
+export type MoveToGroupInput = z.infer<typeof MoveToGroupSchema>;
 
 // ─── Score entry ─────────────────────────────────────────────────────────────
 

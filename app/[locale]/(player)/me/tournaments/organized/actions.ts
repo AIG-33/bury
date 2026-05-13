@@ -9,20 +9,27 @@ import {
   TournamentFormSchema,
   ScoreFormSchema,
   AddParticipantSchema,
+  GenerateGroupsSchema,
+  CloseGroupsSchema,
+  MoveToGroupSchema,
   type TournamentFormat,
   type TournamentStatus,
   type SeedingMethod,
   type Privacy,
   type Surface,
   type MatchRules,
+  type MatchStage,
 } from "@/lib/tournaments/schema";
 import {
   buildRoundRobinSchedule,
   buildSingleEliminationBracket,
   computeRoundRobinStandings,
   computeWinnerSide,
+  distributeIntoGroups,
+  orderQualifiersForPlayoff,
   type Player as DrawPlayer,
   type StandingRow,
+  type GroupQualifier,
 } from "@/lib/tournaments/draw";
 import { recalcMatchElo } from "@/lib/rating/recalc";
 
@@ -57,6 +64,17 @@ export type TournamentRow = {
   pending_count: number;
   venues: TournamentVenueRef[];
   created_at: string;
+  // Hybrid (group + playoff) fields. Null on tournaments where they don't apply.
+  groups_count: number | null;
+  advance_per_group: number | null;
+  playoff_size: number | null;
+  third_place_match: boolean;
+};
+
+export type GroupRow = {
+  id: string;
+  name: string;
+  position: number;
 };
 
 export type VenueOption = {
@@ -77,6 +95,7 @@ export type ParticipantRow = {
   status: ParticipantStatus;
   withdrawn: boolean;
   registered_at: string;
+  group_id: string | null;
 };
 
 export type MatchRow = {
@@ -92,6 +111,8 @@ export type MatchRow = {
   sets: Array<{ p1: number; p2: number; tb_p1?: number | null; tb_p2?: number | null }> | null;
   scheduled_at: string | null;
   played_at: string | null;
+  stage: MatchStage | null;
+  group_id: string | null;
 };
 
 export type PlayerOption = {
@@ -131,7 +152,8 @@ export async function loadOrganizedTournaments(): Promise<
     .select(
       "id, name, description, format, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
-        "draw_method, prizes_description, match_rules, created_at",
+        "draw_method, prizes_description, match_rules, created_at, " +
+        "groups_count, advance_per_group, playoff_size, third_place_match",
     )
     .eq("owner_id", userId)
     .order("created_at", { ascending: false })) as {
@@ -211,6 +233,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       participants: ParticipantRow[];
       matches: MatchRow[];
       playerOptions: PlayerOption[];
+      groups: GroupRow[];
     }
   | { ok: false; error: string }
 > {
@@ -223,7 +246,8 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     .select(
       "id, owner_id, name, description, format, surface, starts_on, start_time, " +
         "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
-        "draw_method, prizes_description, match_rules, created_at",
+        "draw_method, prizes_description, match_rules, created_at, " +
+        "groups_count, advance_per_group, playoff_size, third_place_match",
     )
     .eq("id", tournamentId)
     .single()) as {
@@ -254,7 +278,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
   // NOTE: no `profiles` join — use the RLS-bypassing public projection.
   const { data: parts } = (await supabase
     .from("tournament_participants")
-    .select("id, player_id, seed, status, withdrawn, registered_at")
+    .select("id, player_id, seed, status, withdrawn, registered_at, group_id")
     .eq("tournament_id", tournamentId)
     .order("status", { ascending: true })
     .order("seed", { ascending: true, nullsFirst: false })
@@ -266,8 +290,18 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       status: ParticipantStatus;
       withdrawn: boolean;
       registered_at: string;
+      group_id: string | null;
     }> | null;
   };
+
+  const { data: groupRows } = (await supabase
+    .from("tournament_groups")
+    .select("id, name, position")
+    .eq("tournament_id", tournamentId)
+    .order("position", { ascending: true })) as {
+    data: Array<GroupRow> | null;
+  };
+  const groups: GroupRow[] = groupRows ?? [];
 
   const playerIds = Array.from(new Set((parts ?? []).map((p) => p.player_id)));
   type Basic = {
@@ -294,6 +328,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       status: p.status,
       withdrawn: p.withdrawn,
       registered_at: p.registered_at,
+      group_id: p.group_id,
       display_name: b?.display_name ?? null,
       avatar_url: b?.avatar_url ?? null,
       current_elo: b?.current_elo ?? 1000,
@@ -303,9 +338,11 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
   const { data: ms } = (await supabase
     .from("matches")
     .select(
-      "id, round, bracket_slot, p1_id, p2_id, winner_side, outcome, sets, scheduled_at, played_at",
+      "id, round, bracket_slot, p1_id, p2_id, winner_side, outcome, sets, scheduled_at, played_at, " +
+        "stage, group_id",
     )
     .eq("tournament_id", tournamentId)
+    .order("stage", { ascending: true, nullsFirst: true })
     .order("round", { ascending: true })
     .order("bracket_slot", { ascending: true })) as {
     data: Array<Omit<MatchRow, "p1_name" | "p2_name">> | null;
@@ -360,10 +397,15 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       pending_count,
       venues,
       created_at: t.created_at,
+      groups_count: t.groups_count,
+      advance_per_group: t.advance_per_group,
+      playoff_size: t.playoff_size,
+      third_place_match: t.third_place_match,
     },
     participants,
     matches,
     playerOptions,
+    groups,
   };
 }
 
@@ -427,6 +469,7 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
+      third_place_match: v.format === "group_playoff" ? v.third_place_match : false,
       status: "draft",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
@@ -473,6 +516,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
+      third_place_match: v.format === "group_playoff" ? v.third_place_match : false,
     } as never)
     .eq("id", id)
     .eq("owner_id", userId);
@@ -801,6 +845,7 @@ export async function generateBracket(
   };
   if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
   if (t.format !== "single_elimination" && t.format !== "round_robin") {
+    // Hybrid (group_playoff) tournaments use generateGroups → closeGroupsAndStartPlayoff instead.
     return { ok: false, error: "format_not_supported_yet" };
   }
   if (t.status === "in_progress" || t.status === "finished") {
@@ -909,6 +954,513 @@ export async function generateBracket(
 }
 
 // =============================================================================
+// Hybrid (group + playoff) flow
+// =============================================================================
+
+// Helpers shared by generate/close/move.
+async function loadApprovedDrawPlayers(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tournamentId: string,
+): Promise<DrawPlayer[]> {
+  const { data } = (await supabase
+    .from("tournament_participants")
+    .select(
+      "player_id, " +
+        "profiles!tournament_participants_player_id_fkey(display_name, current_elo)",
+    )
+    .eq("tournament_id", tournamentId)
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as {
+    data: Array<{
+      player_id: string;
+      profiles: { display_name: string | null; current_elo: number } | null;
+    }> | null;
+  };
+  return (data ?? []).map((p) => ({
+    id: p.player_id,
+    display_name: p.profiles?.display_name ?? null,
+    current_elo: p.profiles?.current_elo ?? 1000,
+  }));
+}
+
+function groupName(position: number): string {
+  // 0 → A, 1 → B, …, 25 → Z, 26 → AA — supports up to 16 groups (≤ Z) plus margin.
+  if (position < 26) return String.fromCharCode(65 + position);
+  const tens = Math.floor(position / 26) - 1;
+  const ones = position % 26;
+  return String.fromCharCode(65 + tens) + String.fromCharCode(65 + ones);
+}
+
+/**
+ * Generate the group stage for a hybrid (group_playoff) tournament. Wipes any
+ * previously generated groups / matches and starts fresh.
+ *
+ * Allowed when:
+ *   – format = group_playoff,
+ *   – status ∈ {draft, registration} (we'll bump it to in_progress here),
+ *   – ≥ 2 approved players per group requested.
+ */
+export async function generateGroups(
+  input: unknown,
+): Promise<{ ok: true; groupsCount: number; matchesCount: number } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = GenerateGroupsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id, format, status, match_rules")
+    .eq("id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      owner_id: string;
+      format: TournamentFormat;
+      status: TournamentStatus;
+      match_rules: MatchRules;
+    } | null;
+  };
+  if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
+  if (t.status === "finished") return { ok: false, error: "already_finished" };
+
+  const players = await loadApprovedDrawPlayers(supabase, v.tournament_id);
+  if (players.length < v.groups_count * 2) {
+    return { ok: false, error: "need_at_least_2_players_per_group" };
+  }
+
+  // Wipe previous state (matches first, then groups; participants get their
+  // group_id unset by the ON DELETE SET NULL FK).
+  await supabase.from("matches").delete().eq("tournament_id", v.tournament_id);
+  await supabase.from("tournament_groups").delete().eq("tournament_id", v.tournament_id);
+
+  // Create fresh groups.
+  const groupRows = Array.from({ length: v.groups_count }, (_, i) => ({
+    tournament_id: v.tournament_id,
+    name: groupName(i),
+    position: i,
+  }));
+  const { data: insertedGroups, error: gErr } = (await supabase
+    .from("tournament_groups")
+    .insert(groupRows as never)
+    .select("id, position")) as {
+    data: Array<{ id: string; position: number }> | null;
+    error: { message: string } | null;
+  };
+  if (gErr || !insertedGroups) {
+    return { ok: false, error: gErr?.message ?? "groups_insert_failed" };
+  }
+  const groupIdByPosition = new Map(insertedGroups.map((g) => [g.position, g.id] as const));
+
+  // Distribute players into buckets per the chosen method.
+  const buckets = distributeIntoGroups({
+    players,
+    groupsCount: v.groups_count,
+    method: v.method,
+    rngSeed: v.rng_seed ?? Date.now() % 1_000_000,
+  });
+
+  // Assign group_id on tournament_participants.
+  for (const b of buckets) {
+    const gid = groupIdByPosition.get(b.position);
+    if (!gid) continue;
+    if (b.players.length === 0) continue;
+    const ids = b.players.map((p) => p.id);
+    const { error: upErr } = await supabase
+      .from("tournament_participants")
+      .update({ group_id: gid } as never)
+      .eq("tournament_id", v.tournament_id)
+      .in("player_id", ids);
+    if (upErr) return { ok: false, error: upErr.message };
+  }
+
+  // Schedule round-robin matches inside each group.
+  type MatchInsert = {
+    tournament_id: string;
+    round: number;
+    bracket_slot: number;
+    p1_id: string;
+    p2_id: string | null;
+    outcome: "pending";
+    winner_side: null;
+    match_rules: MatchRules;
+    stage: "group";
+    group_id: string;
+  };
+  const matchRows: MatchInsert[] = [];
+  for (const b of buckets) {
+    if (b.players.length < 2) continue;
+    const gid = groupIdByPosition.get(b.position)!;
+    const { matches } = buildRoundRobinSchedule(b.players);
+    for (const m of matches) {
+      matchRows.push({
+        tournament_id: v.tournament_id,
+        round: m.round,
+        bracket_slot: m.bracket_slot,
+        p1_id: m.p1_id,
+        p2_id: m.p2_id,
+        outcome: "pending",
+        winner_side: null,
+        match_rules: t.match_rules,
+        stage: "group",
+        group_id: gid,
+      });
+    }
+  }
+  if (matchRows.length > 0) {
+    const { error: mErr } = await supabase.from("matches").insert(matchRows as never);
+    if (mErr) return { ok: false, error: mErr.message };
+  }
+
+  await supabase
+    .from("tournaments")
+    .update({
+      groups_count: v.groups_count,
+      // Clear any stale playoff/advance settings from a previous run.
+      advance_per_group: null,
+      playoff_size: null,
+      status: "in_progress",
+    } as never)
+    .eq("id", v.tournament_id);
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  return { ok: true, groupsCount: v.groups_count, matchesCount: matchRows.length };
+}
+
+/**
+ * Drag-and-drop a participant into a different group. Allowed only before any
+ * group match has a result — once standings start forming the bracket history
+ * would diverge.
+ */
+export async function reassignToGroup(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = MoveToGroupSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: p } = (await supabase
+    .from("tournament_participants")
+    .select("id, tournament_id, group_id, status, withdrawn, " +
+      "tournaments!inner(id, owner_id, format)")
+    .eq("id", v.participant_id)
+    .single()) as {
+    data: {
+      id: string;
+      tournament_id: string;
+      group_id: string | null;
+      status: ParticipantStatus;
+      withdrawn: boolean;
+      tournaments: { id: string; owner_id: string; format: TournamentFormat } | null;
+    } | null;
+  };
+  if (!p || !p.tournaments) return { ok: false, error: "participant_not_found" };
+  if (p.tournaments.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (p.tournaments.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
+  if (p.status !== "approved" || p.withdrawn) return { ok: false, error: "participant_not_approved" };
+
+  // Confirm the target group belongs to the same tournament.
+  const { data: targetGroup } = (await supabase
+    .from("tournament_groups")
+    .select("id, tournament_id")
+    .eq("id", v.group_id)
+    .single()) as { data: { id: string; tournament_id: string } | null };
+  if (!targetGroup || targetGroup.tournament_id !== p.tournament_id) {
+    return { ok: false, error: "group_not_in_tournament" };
+  }
+  if (targetGroup.id === p.group_id) return { ok: true };
+
+  // Block reassignment if any group match already has a result.
+  const { data: playedRows } = (await supabase
+    .from("matches")
+    .select("id")
+    .eq("tournament_id", p.tournament_id)
+    .eq("stage", "group")
+    .neq("outcome", "pending")
+    .limit(1)) as { data: Array<{ id: string }> | null };
+  if ((playedRows?.length ?? 0) > 0) {
+    return { ok: false, error: "group_matches_already_started" };
+  }
+
+  // Move the participant. The current player's old RR matches need to be
+  // dropped (they were scheduled against the wrong group's roster); we'll
+  // regenerate the affected groups' schedules below.
+  const oldGroupId = p.group_id;
+  await supabase
+    .from("matches")
+    .delete()
+    .eq("tournament_id", p.tournament_id)
+    .eq("stage", "group")
+    .in("group_id", [oldGroupId, v.group_id].filter(Boolean) as string[]);
+
+  const { error: upErr } = await supabase
+    .from("tournament_participants")
+    .update({ group_id: v.group_id } as never)
+    .eq("id", v.participant_id);
+  if (upErr) return { ok: false, error: upErr.message };
+
+  // Re-schedule RR for both affected groups (old + new).
+  const affected = [oldGroupId, v.group_id].filter((g): g is string => Boolean(g));
+  for (const gid of affected) {
+    const { data: members } = (await supabase
+      .from("tournament_participants")
+      .select(
+        "player_id, " +
+          "profiles!tournament_participants_player_id_fkey(display_name, current_elo)",
+      )
+      .eq("tournament_id", p.tournament_id)
+      .eq("group_id", gid)
+      .eq("status", "approved")
+      .eq("withdrawn", false)) as {
+      data: Array<{
+        player_id: string;
+        profiles: { display_name: string | null; current_elo: number } | null;
+      }> | null;
+    };
+    const roster: DrawPlayer[] = (members ?? []).map((m) => ({
+      id: m.player_id,
+      display_name: m.profiles?.display_name ?? null,
+      current_elo: m.profiles?.current_elo ?? 1000,
+    }));
+    if (roster.length < 2) continue;
+
+    const { data: tt } = (await supabase
+      .from("tournaments")
+      .select("match_rules")
+      .eq("id", p.tournament_id)
+      .single()) as { data: { match_rules: MatchRules } | null };
+    if (!tt) continue;
+
+    const { matches } = buildRoundRobinSchedule(roster);
+    const rows = matches.map((m) => ({
+      tournament_id: p.tournament_id,
+      round: m.round,
+      bracket_slot: m.bracket_slot,
+      p1_id: m.p1_id,
+      p2_id: m.p2_id,
+      outcome: "pending" as const,
+      winner_side: null,
+      match_rules: tt.match_rules,
+      stage: "group" as const,
+      group_id: gid,
+    }));
+    await supabase.from("matches").insert(rows as never);
+  }
+
+  revalidatePath(`/me/tournaments/organized/${p.tournament_id}`);
+  return { ok: true };
+}
+
+/**
+ * Close the group stage and generate the playoff bracket. Top-N players from
+ * every group qualify (N = advance_per_group). The playoff is a standard
+ * single-elimination bracket built via `buildSingleEliminationBracket` with
+ * method="manual" so cross-bracket seeding is preserved (A1 vs B2, B1 vs A2,
+ * etc). When `third_place_match` is on, an extra match is inserted to be
+ * filled by the two losing semi-finalists.
+ */
+export async function closeGroupsAndStartPlayoff(
+  input: unknown,
+): Promise<
+  | { ok: true; playoffMatches: number; thirdPlaceMatch: boolean }
+  | { ok: false; error: string }
+> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = CloseGroupsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id, format, status, match_rules, groups_count, third_place_match")
+    .eq("id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      owner_id: string;
+      format: TournamentFormat;
+      status: TournamentStatus;
+      match_rules: MatchRules;
+      groups_count: number | null;
+      third_place_match: boolean;
+    } | null;
+  };
+  if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
+  if (t.groups_count == null) return { ok: false, error: "groups_not_generated" };
+
+  const qualifiersTotal = t.groups_count * v.advance_per_group;
+  if (qualifiersTotal > v.playoff_size) {
+    return { ok: false, error: "playoff_size_too_small" };
+  }
+
+  // Bail out if any group match is still pending.
+  const { data: pending } = (await supabase
+    .from("matches")
+    .select("id")
+    .eq("tournament_id", v.tournament_id)
+    .eq("stage", "group")
+    .eq("outcome", "pending")
+    .limit(1)) as { data: Array<{ id: string }> | null };
+  if ((pending?.length ?? 0) > 0) {
+    return { ok: false, error: "group_matches_pending" };
+  }
+
+  // Compute per-group standings → take top-N.
+  const { data: groups } = (await supabase
+    .from("tournament_groups")
+    .select("id, position")
+    .eq("tournament_id", v.tournament_id)
+    .order("position", { ascending: true })) as {
+    data: Array<{ id: string; position: number }> | null;
+  };
+
+  // Pre-load every approved player's profile once for the bracket display.
+  const allPlayers = await loadApprovedDrawPlayers(supabase, v.tournament_id);
+  const playerById = new Map(allPlayers.map((p) => [p.id, p] as const));
+
+  const qualifiers: GroupQualifier[] = [];
+  for (const g of groups ?? []) {
+    const { data: members } = (await supabase
+      .from("tournament_participants")
+      .select("player_id")
+      .eq("tournament_id", v.tournament_id)
+      .eq("group_id", g.id)
+      .eq("status", "approved")
+      .eq("withdrawn", false)) as { data: Array<{ player_id: string }> | null };
+    const ids = (members ?? []).map((m) => m.player_id);
+
+    const { data: groupMatches } = (await supabase
+      .from("matches")
+      .select("p1_id, p2_id, winner_side, outcome, sets")
+      .eq("tournament_id", v.tournament_id)
+      .eq("group_id", g.id)) as {
+      data: Array<{
+        p1_id: string;
+        p2_id: string | null;
+        winner_side: "p1" | "p2" | null;
+        outcome: string;
+        sets: Array<{ p1: number; p2: number }> | null;
+      }> | null;
+    };
+
+    const standings = computeRoundRobinStandings(
+      ids,
+      (groupMatches ?? [])
+        .filter((m) => m.p2_id != null)
+        .map((m) => ({
+          p1_id: m.p1_id,
+          p2_id: m.p2_id as string,
+          winner_side: m.winner_side,
+          outcome: m.outcome,
+          sets: m.sets,
+        })),
+    );
+    standings.slice(0, v.advance_per_group).forEach((row) => {
+      const player = playerById.get(row.player_id);
+      if (!player) return;
+      qualifiers.push({
+        group_position: g.position,
+        rank: row.position,
+        player,
+      });
+    });
+  }
+
+  if (qualifiers.length < 2) {
+    return { ok: false, error: "not_enough_qualifiers" };
+  }
+
+  // Wipe any previous playoff/third-place matches (e.g. from a re-close).
+  await supabase
+    .from("matches")
+    .delete()
+    .eq("tournament_id", v.tournament_id)
+    .in("stage", ["playoff", "third_place"]);
+
+  // Cross-bracket seeding via buildSingleEliminationBracket(method=manual).
+  const orderedPlayers = orderQualifiersForPlayoff(qualifiers);
+  const { matches, totalRounds } = buildSingleEliminationBracket({
+    players: orderedPlayers,
+    method: "manual",
+  });
+
+  const baseRows = matches
+    .filter((m) => m.p1_id || m.p2_id || true /* keep skeleton */)
+    .map((m) => {
+      const isAutoBye = m.round === 1 && (m.p1_id == null || m.p2_id == null);
+      const [p1, p2] = m.p1_id == null && m.p2_id != null ? [m.p2_id, null] : [m.p1_id, m.p2_id];
+      return {
+        tournament_id: v.tournament_id,
+        round: m.round,
+        bracket_slot: m.bracket_slot,
+        p1_id: p1,
+        p2_id: p2,
+        outcome: isAutoBye ? "walkover_p1" : "pending",
+        winner_side: isAutoBye ? "p1" : null,
+        match_rules: t.match_rules,
+        stage: "playoff" as const,
+        group_id: null as string | null,
+      };
+    })
+    .filter((r) => r.p1_id != null); // round-1 slots where both sides ended up null (impossible) get dropped
+
+  // Drop bracket placeholders we don't need (next-round matches with both null).
+  // Keep round-1 byes (already auto-walkovered above) so the propagation step works.
+
+  const { error: insertErr } = await supabase.from("matches").insert(baseRows as never);
+  if (insertErr) return { ok: false, error: insertErr.message };
+
+  // Insert a 3rd-place match if requested AND the bracket has semis to feed it.
+  let thirdPlaceInserted = false;
+  if (t.third_place_match && totalRounds >= 2) {
+    const semiRound = totalRounds - 1;
+    const { error: tpErr } = await supabase.from("matches").insert({
+      tournament_id: v.tournament_id,
+      round: semiRound, // visual placement next to the SFs; filled when both end
+      bracket_slot: 99, // sentinel slot — clearly outside the main tree
+      p1_id: null,
+      p2_id: null,
+      outcome: "pending",
+      winner_side: null,
+      match_rules: t.match_rules,
+      stage: "third_place",
+      group_id: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    if (tpErr) return { ok: false, error: tpErr.message };
+    thirdPlaceInserted = true;
+  }
+
+  await supabase
+    .from("tournaments")
+    .update({
+      advance_per_group: v.advance_per_group,
+      playoff_size: v.playoff_size,
+    } as never)
+    .eq("id", v.tournament_id);
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  return {
+    ok: true,
+    playoffMatches: baseRows.length,
+    thirdPlaceMatch: thirdPlaceInserted,
+  };
+}
+
+// =============================================================================
 // Score entry → updates match + propagates winner into the next round.
 // =============================================================================
 
@@ -930,7 +1482,7 @@ export async function setMatchScore(
   const { data: m } = (await supabase
     .from("matches")
     .select(
-      "id, tournament_id, round, bracket_slot, p1_id, p2_id, " +
+      "id, tournament_id, round, bracket_slot, p1_id, p2_id, stage, group_id, " +
         "tournaments(owner_id, format)",
     )
     .eq("id", v.match_id)
@@ -942,6 +1494,8 @@ export async function setMatchScore(
       bracket_slot: number | null;
       p1_id: string;
       p2_id: string | null;
+      stage: MatchStage | null;
+      group_id: string | null;
       tournaments: { owner_id: string; format: TournamentFormat } | null;
     } | null;
   };
@@ -952,7 +1506,8 @@ export async function setMatchScore(
   if (!m.tournament_id || m.round == null || m.bracket_slot == null) {
     return { ok: false, error: "not_a_bracket_match" };
   }
-  const isRoundRobin = m.tournaments.format === "round_robin";
+  const isRoundRobin =
+    m.tournaments.format === "round_robin" || m.stage === "group";
 
   const winner = computeWinnerSide({
     outcome: v.outcome,
@@ -981,33 +1536,58 @@ export async function setMatchScore(
     eloP2Delta = recalc.p2Delta;
   }
 
+  // ── ROUND-ROBIN (pure RR tournaments and group-stage matches inside a hybrid)
   if (isRoundRobin) {
-    const { data: remaining } = (await supabase
+    // For a hybrid we only consider GROUP-stage matches; the playoff continues
+    // even after every group match is in.
+    const baseQuery = supabase
       .from("matches")
       .select("id", { count: "exact" })
       .eq("tournament_id", m.tournament_id)
-      .eq("outcome", "pending")
-      .limit(1)) as { data: Array<{ id: string }> | null };
+      .eq("outcome", "pending");
+    const { data: remaining } = (await (m.tournaments.format === "round_robin"
+      ? baseQuery
+      : baseQuery.eq("stage", "group")
+    ).limit(1)) as { data: Array<{ id: string }> | null };
+
     if (!remaining || remaining.length === 0) {
-      await supabase
-        .from("tournaments")
-        .update({ status: "finished" } as never)
-        .eq("id", m.tournament_id);
+      if (m.tournaments.format === "round_robin") {
+        await supabase
+          .from("tournaments")
+          .update({ status: "finished" } as never)
+          .eq("id", m.tournament_id);
+      }
+      // Hybrid: don't auto-finish — organiser still has to call
+      // closeGroupsAndStartPlayoff() to seed the playoff.
     }
-  } else {
+
+    revalidatePath(`/me/tournaments/organized/${m.tournament_id}`);
+    return { ok: true, eloP1Delta, eloP2Delta };
+  }
+
+  // ── SINGLE-ELIMINATION (pure SE tournaments and playoff stage of a hybrid)
+  // Either the legacy round-based propagation (stage = null) or the playoff
+  // tree of a hybrid (stage = 'playoff'). Third-place matches don't propagate
+  // anywhere — they're a leaf — so we skip propagation for stage='third_place'.
+  if (m.stage !== "third_place") {
     const winnerId = winner === "p1" ? m.p1_id : m.p2_id;
     if (winnerId) {
       const nextRound = m.round + 1;
       const nextSlot = Math.ceil(m.bracket_slot / 2);
       const side: "p1_id" | "p2_id" = m.bracket_slot % 2 === 1 ? "p1_id" : "p2_id";
 
-      const { data: nextMatch } = (await supabase
+      // Look up the next match within the same tree (same stage). For legacy
+      // tournaments stage is null on both sides, so we don't constrain by it.
+      const nextQ = supabase
         .from("matches")
         .select("id, p1_id, p2_id")
         .eq("tournament_id", m.tournament_id)
         .eq("round", nextRound)
-        .eq("bracket_slot", nextSlot)
-        .maybeSingle()) as {
+        .eq("bracket_slot", nextSlot);
+      const { data: nextMatch } = (await (m.stage
+        ? nextQ.eq("stage", m.stage)
+        : nextQ.is("stage", null)
+      ).maybeSingle()) as {
         data: { id: string; p1_id: string | null; p2_id: string | null } | null;
       };
 
@@ -1019,16 +1599,71 @@ export async function setMatchScore(
       }
     }
 
-    const { data: finalMatch } = (await supabase
-      .from("matches")
-      .select("round, winner_side")
-      .eq("tournament_id", m.tournament_id)
-      .order("round", { ascending: false })
-      .limit(1)
-      .maybeSingle()) as {
-      data: { round: number; winner_side: string | null } | null;
-    };
-    if (finalMatch?.winner_side) {
+    // If this was a semifinal of a hybrid playoff AND a third-place slot
+    // exists, drop the LOSER into it (first arriving → p1, second → p2).
+    if (m.stage === "playoff" && winner) {
+      const { data: tInfo } = (await supabase
+        .from("matches")
+        .select("round")
+        .eq("tournament_id", m.tournament_id)
+        .eq("stage", "playoff")
+        .order("round", { ascending: false })
+        .limit(1)
+        .maybeSingle()) as { data: { round: number } | null };
+      const finalRound = tInfo?.round ?? null;
+
+      if (finalRound != null && m.round === finalRound - 1) {
+        const loserId = winner === "p1" ? m.p2_id : m.p1_id;
+        if (loserId) {
+          const { data: tp } = (await supabase
+            .from("matches")
+            .select("id, p1_id, p2_id")
+            .eq("tournament_id", m.tournament_id)
+            .eq("stage", "third_place")
+            .maybeSingle()) as {
+            data: { id: string; p1_id: string | null; p2_id: string | null } | null;
+          };
+          if (tp) {
+            const patch = tp.p1_id == null ? { p1_id: loserId } : { p2_id: loserId };
+            await supabase
+              .from("matches")
+              .update(patch as never)
+              .eq("id", tp.id);
+          }
+        }
+      }
+    }
+  }
+
+  // Finish detection — single-elim and hybrid playoff alike: the tournament
+  // is finished when the playoff final has a winner AND, if applicable, the
+  // 3rd-place match has a winner too.
+  const stageScope = m.stage ?? null;
+  const finalQ = supabase
+    .from("matches")
+    .select("round, winner_side")
+    .eq("tournament_id", m.tournament_id);
+  const { data: finalMatch } = (await (stageScope
+    ? finalQ.eq("stage", "playoff")
+    : finalQ.is("stage", null)
+  )
+    .order("round", { ascending: false })
+    .limit(1)
+    .maybeSingle()) as { data: { round: number; winner_side: string | null } | null };
+
+  if (finalMatch?.winner_side) {
+    // For hybrids with a 3rd-place match, wait for it to resolve too.
+    let canFinish = true;
+    if (m.stage) {
+      const { data: tp } = (await supabase
+        .from("matches")
+        .select("winner_side")
+        .eq("tournament_id", m.tournament_id)
+        .eq("stage", "third_place")
+        .maybeSingle()) as { data: { winner_side: string | null } | null };
+      if (tp && !tp.winner_side) canFinish = false;
+    }
+    if (canFinish) {
       await supabase
         .from("tournaments")
         .update({ status: "finished" } as never)
@@ -1049,6 +1684,89 @@ export type StandingsLine = StandingRow & {
   avatar_url: string | null;
   current_elo: number;
 };
+
+export type GroupStandingsBlock = {
+  group: GroupRow;
+  rows: StandingsLine[];
+};
+
+export async function loadGroupStandings(
+  tournamentId: string,
+): Promise<GroupStandingsBlock[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: groups } = (await supabase
+    .from("tournament_groups")
+    .select("id, name, position")
+    .eq("tournament_id", tournamentId)
+    .order("position", { ascending: true })) as { data: Array<GroupRow> | null };
+  if (!groups || groups.length === 0) return [];
+
+  const { data: members } = (await supabase
+    .from("tournament_participants")
+    .select(
+      "player_id, group_id, status, withdrawn, " +
+        "profiles!tournament_participants_player_id_fkey(display_name, avatar_url, current_elo)",
+    )
+    .eq("tournament_id", tournamentId)
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as {
+    data: Array<{
+      player_id: string;
+      group_id: string | null;
+      profiles: {
+        display_name: string | null;
+        avatar_url: string | null;
+        current_elo: number;
+      } | null;
+    }> | null;
+  };
+
+  const { data: matches } = (await supabase
+    .from("matches")
+    .select("group_id, p1_id, p2_id, winner_side, outcome, sets")
+    .eq("tournament_id", tournamentId)
+    .eq("stage", "group")) as {
+    data: Array<{
+      group_id: string | null;
+      p1_id: string;
+      p2_id: string | null;
+      winner_side: "p1" | "p2" | null;
+      outcome: string;
+      sets: Array<{ p1: number; p2: number }> | null;
+    }> | null;
+  };
+
+  const profileById = new Map((members ?? []).map((m) => [m.player_id, m.profiles] as const));
+
+  return groups.map((g) => {
+    const groupPlayerIds = (members ?? [])
+      .filter((m) => m.group_id === g.id)
+      .map((m) => m.player_id);
+    const groupMatches = (matches ?? [])
+      .filter((m) => m.group_id === g.id && m.p2_id != null)
+      .map((m) => ({
+        p1_id: m.p1_id,
+        p2_id: m.p2_id as string,
+        winner_side: m.winner_side,
+        outcome: m.outcome,
+        sets: m.sets,
+      }));
+    const standings = computeRoundRobinStandings(groupPlayerIds, groupMatches);
+    return {
+      group: g,
+      rows: standings.map((s) => {
+        const prof = profileById.get(s.player_id);
+        return {
+          ...s,
+          display_name: prof?.display_name ?? null,
+          avatar_url: prof?.avatar_url ?? null,
+          current_elo: prof?.current_elo ?? 1000,
+        };
+      }),
+    };
+  });
+}
 
 export async function loadRoundRobinStandings(tournamentId: string): Promise<StandingsLine[]> {
   const supabase = await createSupabaseServerClient();

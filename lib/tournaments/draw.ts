@@ -385,6 +385,86 @@ export function computeRoundRobinStandings(
   return sorted;
 }
 
+// =============================================================================
+// Group split for hybrid (group + playoff) tournaments.
+//
+// Snake-seeded "serpentine" distribution gives each group an evenly balanced
+// strength:
+//
+//   With 3 groups (A, B, C) and 11 players ordered by Elo:
+//
+//   seed  1  2  3  4  5  6  7  8  9  10 11
+//   group A  B  C  C  B  A  A  B  C  C  B
+//
+// Group A ends up with seeds 1, 6, 7;  B with 2, 5, 8, 11;  C with 3, 4, 9, 10.
+// Sum of seeds is as close as the layout allows.
+// =============================================================================
+
+export type GroupBucket = {
+  position: number;       // 0..groups_count-1 → display name A, B, C, …
+  players: Player[];
+};
+
+export function distributeIntoGroups(opts: {
+  players: Player[];
+  groupsCount: number;
+  method: SeedingMethod;
+  rngSeed?: number;
+}): GroupBucket[] {
+  const { players, groupsCount, method, rngSeed = 1 } = opts;
+  if (groupsCount < 2) {
+    throw new Error("Need at least 2 groups");
+  }
+  if (players.length < groupsCount) {
+    throw new Error("Need at least one player per group");
+  }
+
+  const ordered = orderForSeeding(players, method, rngSeed);
+  const buckets: GroupBucket[] = Array.from({ length: groupsCount }, (_, i) => ({
+    position: i,
+    players: [],
+  }));
+
+  // Serpentine distribution. Each "row" of the boustrophedon walk has length
+  // groupsCount: pass 0 fills A→B→C, pass 1 fills C→B→A, pass 2 again A→B→C,
+  // and so on. This balances both "manual" (seeds preserved in order) and
+  // "rating" (best players spread across groups).
+  for (let i = 0; i < ordered.length; i++) {
+    const row = Math.floor(i / groupsCount);
+    const col = i % groupsCount;
+    const idx = row % 2 === 0 ? col : groupsCount - 1 - col;
+    buckets[idx].players.push(ordered[i]);
+  }
+
+  return buckets;
+}
+
+// =============================================================================
+// Playoff seeding from the group standings.
+//
+// Convention: top seeds first (1st of every group), then 2nd of every group,
+// etc. Within the same rank, groups are ordered by their `position` (A first).
+// We then feed the resulting list to `buildSingleEliminationBracket` with
+// method="manual" so the existing seed-positions logic produces a proper
+// cross-bracket (group A's 1st can only meet group B's 1st in the final).
+// =============================================================================
+
+export type GroupQualifier = {
+  group_position: number; // 0-based group index
+  rank: number;           // 1-based standing inside the group
+  player: Player;
+};
+
+export function orderQualifiersForPlayoff(qualifiers: GroupQualifier[]): Player[] {
+  return qualifiers
+    .slice()
+    .sort((a, b) => {
+      if (a.rank !== b.rank) return a.rank - b.rank;
+      return a.group_position - b.group_position;
+    })
+    .map((q) => q.player);
+}
+
 /**
  * Compute the winning side of a finished match according to its `outcome`
  * + sets payload. Returns null if the outcome is "pending" / invalid.

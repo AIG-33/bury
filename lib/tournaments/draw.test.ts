@@ -4,10 +4,13 @@ import {
   buildSingleEliminationBracket,
   computeRoundRobinStandings,
   computeWinnerSide,
+  distributeIntoGroups,
   nextPowerOfTwo,
   orderForSeeding,
+  orderQualifiersForPlayoff,
   seedPositions,
   shuffleDeterministic,
+  type GroupQualifier,
   type Player,
   type StandingsMatch,
 } from "./draw";
@@ -290,5 +293,62 @@ describe("computeRoundRobinStandings", () => {
     ];
     const rows = computeRoundRobinStandings(["A", "B", "C"], matches);
     expect(rows[0].player_id).toBe("A");
+  });
+});
+
+describe("distributeIntoGroups", () => {
+  it("snake-seeds by rating evenly across N groups", () => {
+    // p1 strongest (Elo 1800), p8 weakest (Elo 1100). With 2 groups:
+    // serpentine order  A B B A A B B A
+    // so seeds 1,4,5,8 → A; seeds 2,3,6,7 → B
+    const buckets = distributeIntoGroups({
+      players: players(8),
+      groupsCount: 2,
+      method: "rating",
+    });
+    const a = buckets[0].players.map((p) => p.id);
+    const b = buckets[1].players.map((p) => p.id);
+    expect(a).toEqual(["p1", "p4", "p5", "p8"]);
+    expect(b).toEqual(["p2", "p3", "p6", "p7"]);
+  });
+
+  it("handles odd splits by leaving the last group one short", () => {
+    const buckets = distributeIntoGroups({
+      players: players(11),
+      groupsCount: 3,
+      method: "rating",
+    });
+    expect(buckets.map((b) => b.players.length).sort()).toEqual([3, 4, 4]);
+  });
+
+  it("rejects fewer players than groups", () => {
+    expect(() =>
+      distributeIntoGroups({ players: players(3), groupsCount: 4, method: "rating" }),
+    ).toThrow();
+  });
+
+  it("preserves caller order for method=manual", () => {
+    const buckets = distributeIntoGroups({
+      players: players(6),
+      groupsCount: 2,
+      method: "manual",
+    });
+    // Manual = first-to-last serpentine into 2 groups: A B B A A B
+    expect(buckets[0].players.map((p) => p.id)).toEqual(["p1", "p4", "p5"]);
+    expect(buckets[1].players.map((p) => p.id)).toEqual(["p2", "p3", "p6"]);
+  });
+});
+
+describe("orderQualifiersForPlayoff", () => {
+  it("orders by rank then group position", () => {
+    const ps = players(8);
+    const q: GroupQualifier[] = [
+      { group_position: 1, rank: 2, player: ps[7] }, // B2
+      { group_position: 0, rank: 1, player: ps[0] }, // A1
+      { group_position: 1, rank: 1, player: ps[1] }, // B1
+      { group_position: 0, rank: 2, player: ps[6] }, // A2
+    ];
+    const ordered = orderQualifiersForPlayoff(q);
+    expect(ordered.map((p) => p.id)).toEqual(["p1", "p2", "p7", "p8"]);
   });
 });
