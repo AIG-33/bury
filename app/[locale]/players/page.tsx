@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { Award, Clock, Hand, MapPin, Sparkles, Trophy } from "lucide-react";
+import { Award, CalendarClock, Clock, Hand, MapPin, Sparkles, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
@@ -236,120 +236,141 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
         )
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {results.map((p) => (
-            <li
-              key={p.id}
-              className="flex flex-col rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition hover:shadow-ace"
-            >
-              <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
-                  {p.avatar_url ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={p.avatar_url} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <Trophy className="h-5 w-5" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <Link
-                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                    href={`/players/${p.id}` as any}
-                    className="truncate font-display text-base font-semibold text-ink-900 transition hover:text-grass-700"
-                  >
-                    {p.display_name ?? "—"}
-                  </Link>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-ink-500">
-                    {(p.city || p.district_name) && (
-                      <span className="inline-flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {[p.city, p.district_name].filter(Boolean).join(" · ")}
-                      </span>
+          {results.map((p) => {
+            const isProvisional = p.elo_status !== "established";
+            const locationParts = [p.city, p.district_name].filter(Boolean) as string[];
+            return (
+              <li
+                key={p.id}
+                className="group relative flex flex-col gap-4 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-grass-200 hover:shadow-ace"
+              >
+                {/* Header: avatar + name on the left, big Elo on the right.
+                    `min-w-0` on the centre column ensures long names truncate
+                    instead of pushing into the Elo column. */}
+                <div className="flex items-start gap-3">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800 ring-1 ring-grass-200/60">
+                    {p.avatar_url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={p.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <Trophy className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 pt-0.5">
+                    <Link
+                      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                      href={`/players/${p.id}` as any}
+                      className="block truncate font-display text-[17px] font-semibold leading-tight text-ink-900 transition hover:text-grass-700"
+                      title={p.display_name ?? undefined}
+                    >
+                      {p.display_name ?? "—"}
+                    </Link>
+                    {locationParts.length > 0 && (
+                      <p className="mt-1 inline-flex items-center gap-1 text-xs text-ink-500">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{locationParts.join(" · ")}</span>
+                      </p>
                     )}
                     {p.is_coach && (
                       <Link
                         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                         href={`/coaches/${p.id}` as any}
                         title={t("card.is_coach_hint")}
-                        className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold text-grass-700 hover:bg-grass-200"
+                        className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-grass-700 transition hover:bg-grass-200"
                       >
                         <Award className="h-3 w-3" />
                         {t("card.is_coach")}
                       </Link>
                     )}
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-mono text-base font-semibold tabular-nums text-grass-800">
-                    {p.elo_status === "established"
-                      ? t("card.elo_established", { elo: p.current_elo })
-                      : t("card.elo_provisional", { elo: p.current_elo })}
-                  </p>
-                  <p className="text-[10.5px] text-ink-500">
-                    {t("card.rated_matches", { count: p.rated_matches_count })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Sport prefs */}
-              <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-ink-700">
-                {p.dominant_hand && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5">
-                    <Hand className="h-3 w-3" />
-                    {t(`card.hand_${p.dominant_hand}`)}
-                    {p.backhand_style && (
-                      <span className="text-ink-500">
-                        {" · "}
-                        {t(`card.backhand_${p.backhand_style === "one_handed" ? "one" : "two"}`)}
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className="font-display text-[26px] font-bold leading-none tabular-nums text-grass-800">
+                      {p.current_elo}
+                    </span>
+                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500">
+                      {t("card.elo_unit")}
+                    </span>
+                    {isProvisional && (
+                      <span
+                        title={t("card.status_provisional_hint")}
+                        className="inline-flex items-center rounded-full bg-ball-100 px-1.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.12em] text-ink-800"
+                      >
+                        {t("card.status_provisional_label")}
                       </span>
                     )}
+                  </div>
+                </div>
+
+                {/* Style + matches pills. Dense but scannable. */}
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-700">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 tabular-nums">
+                    {t("card.matches_short", { count: p.rated_matches_count })}
                   </span>
-                )}
-                {p.external_rating && (
-                  <a
-                    href={p.external_rating.external_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-ball-300 bg-ball-50 px-2 py-0.5 font-mono text-ball-800 hover:bg-ball-100"
-                    title="Liga Tennisa"
-                  >
-                    LT · {p.external_rating.display_tier}
-                  </a>
-                )}
-              </div>
+                  {p.dominant_hand && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5">
+                      <Hand className="h-3 w-3" />
+                      {t(`card.hand_${p.dominant_hand}`)}
+                      {p.backhand_style && (
+                        <>
+                          <span className="text-ink-400">·</span>
+                          <span className="text-ink-600">
+                            {t(`card.backhand_${p.backhand_style === "one_handed" ? "one" : "two"}`)}
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  )}
+                  {p.external_rating && (
+                    <a
+                      href={p.external_rating.external_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-ball-300 bg-ball-50 px-2 py-0.5 font-mono text-ball-800 hover:bg-ball-100"
+                      title={t("card.lt_external_hint")}
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      LT · {p.external_rating.display_tier}
+                    </a>
+                  )}
+                </div>
 
-              {/* Recency / availability summary */}
-              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {p.days_since_last_match == null
-                    ? t("card.last_match_never")
-                    : p.days_since_last_match <= 7
-                      ? t("card.last_match_recent")
-                      : t("card.last_match_days", { days: p.days_since_last_match })}
-                </span>
-                <span>{t("card.available_summary", { count: p.available_slots.length })}</span>
-              </div>
+                {/* Activity row — last match + free slots count. */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-500">
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {p.days_since_last_match == null
+                      ? t("card.last_match_never")
+                      : p.days_since_last_match <= 7
+                        ? t("card.last_match_recent")
+                        : t("card.last_match_days", { days: p.days_since_last_match })}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarClock className="h-3 w-3" />
+                    {t("card.available_summary", { count: p.available_slots.length })}
+                  </span>
+                </div>
 
-              <div className="mt-auto pt-4">
-                {isGuest ? (
-                  <GuestProposeLink
-                    playerId={p.id}
-                    label={t("card.propose_login")}
-                    surface="players_list"
-                    className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-grass-700 px-3 text-sm font-semibold text-white transition hover:bg-grass-800"
-                  />
-                ) : (
-                  <Link
-                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                    href={`/me/find?focus=${p.id}` as any}
-                    className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-grass-500 px-3 text-sm font-semibold text-white transition hover:bg-grass-600"
-                  >
-                    {t("card.propose_login")}
-                  </Link>
-                )}
-              </div>
-            </li>
-          ))}
+                <div className="mt-auto pt-1">
+                  {isGuest ? (
+                    <GuestProposeLink
+                      playerId={p.id}
+                      label={t("card.propose_login")}
+                      surface="players_list"
+                      className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-grass-700 px-3 text-sm font-semibold text-white transition hover:bg-grass-800"
+                    />
+                  ) : (
+                    <Link
+                      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                      href={`/me/find?focus=${p.id}` as any}
+                      className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-grass-500 px-3 text-sm font-semibold text-white transition hover:bg-grass-600"
+                    >
+                      {t("card.propose_login")}
+                    </Link>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
