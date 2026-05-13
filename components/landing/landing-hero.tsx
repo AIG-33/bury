@@ -54,13 +54,6 @@ export function LandingHero({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref 
           transition={{ duration: 0.7, ease: EASE }}
         >
           <span className="label-eyebrow">{t("eyebrow")}</span>
-          <span
-            className="inline-flex h-6 items-center gap-1.5 rounded-full bg-grass-700/10 px-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-grass-800"
-            aria-label={t("badge_free")}
-          >
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-grass-700" />
-            {t("badge_free")}
-          </span>
         </motion.div>
 
         {/* Stage: headline left, decorative ball right */}
