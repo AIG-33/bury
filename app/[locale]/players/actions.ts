@@ -10,6 +10,7 @@ import {
   type PublicExternalRating,
   type PublicPlayerCard,
 } from "@/lib/players/public-card";
+import { LEVEL_BUCKETS, LEVEL_RANGES } from "./filters";
 
 export type PublicPlayerProfile = PublicPlayerCard & {
   recent_matches: Array<{
@@ -54,24 +55,6 @@ export type PublicPlayerProfile = PublicPlayerCard & {
 // =============================================================================
 // Filter schema
 // =============================================================================
-
-/** UI buckets we expose to guests instead of asking for raw Elo numbers. */
-export const LEVEL_BUCKETS = [
-  "any",
-  "beginner", // ≤ 950
-  "intermediate", // 951 – 1300
-  "advanced", // 1301 – 1700
-  "expert", // ≥ 1701
-] as const;
-export type LevelBucket = (typeof LEVEL_BUCKETS)[number];
-
-const LEVEL_RANGES: Record<LevelBucket, { min: number; max: number }> = {
-  any: { min: 0, max: 4000 },
-  beginner: { min: 0, max: 950 },
-  intermediate: { min: 951, max: 1300 },
-  advanced: { min: 1301, max: 1700 },
-  expert: { min: 1701, max: 4000 },
-};
 
 const PublicFiltersSchema = z.object({
   districtId: z

@@ -7,12 +7,8 @@ import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
 import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  loadPublicDistrictOptions,
-  loadPublicPlayers,
-  LEVEL_BUCKETS,
-  type LevelBucket,
-} from "./actions";
+import { loadPublicDistrictOptions, loadPublicPlayers } from "./actions";
+import { LEVEL_BUCKETS, type LevelBucket } from "./filters";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
 
 type Props = {
