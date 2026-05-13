@@ -122,7 +122,7 @@ export async function loadAdminVenues(): Promise<
   const { data: allDistricts } = (await supabase
     .from("districts")
     .select("id, name, city")
-    .eq("country", "PL")
+    .eq("country", "BY")
     .order("city", { ascending: true })) as {
     data: Array<{ id: string; name: string; city: string }> | null;
   };
@@ -184,7 +184,7 @@ export async function loadVenueDetail(venueId: string): Promise<
   const { data: allDistricts } = (await supabase
     .from("districts")
     .select("id, name, city")
-    .eq("country", "PL")
+    .eq("country", "BY")
     .order("city", { ascending: true })) as {
     data: Array<{ id: string; name: string; city: string }> | null;
   };

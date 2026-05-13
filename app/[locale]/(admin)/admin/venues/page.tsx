@@ -33,7 +33,6 @@ export default async function AdminVenuesPage({ params }: Props) {
     delete_confirm: t("list.delete_confirm"),
     deleting: t("list.deleting"),
     open: t("list.open"),
-    courts: (n: number) => t("list.courts", { n }),
     indoor: t("list.indoor"),
     outdoor: t("list.outdoor"),
     no_district: t("list.no_district"),

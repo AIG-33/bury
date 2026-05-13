@@ -624,7 +624,7 @@ export async function loadDistrictsForBooking(): Promise<Array<{ id: string; nam
   const { data } = (await supabase
     .from("districts")
     .select("id, name, city")
-    .eq("country", "PL")
+    .eq("country", "BY")
     .order("city", { ascending: true })) as {
     data: Array<{ id: string; name: string; city: string }> | null;
   };

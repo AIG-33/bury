@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Plus, MapPin, Building2, Trash2, Pencil, ArrowRight, Loader2 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
@@ -9,6 +10,9 @@ import { deleteVenue, type DistrictOption, type VenueRow } from "./actions";
 import { VenueFormDialog, type VenueDialogCopy } from "./venue-form-dialog";
 import type { VenueAmenity } from "@/lib/venues/schema";
 
+// All copy props are plain strings (no function callbacks) so this object can
+// cross the Server → Client boundary; pluralized strings are resolved on the
+// client via `useTranslations` below.
 export type VenuesListCopy = {
   empty_title: string;
   empty_description: string;
@@ -19,7 +23,6 @@ export type VenuesListCopy = {
   delete_confirm: string;
   deleting: string;
   open: string;
-  courts: (n: number) => string;
   indoor: string;
   outdoor: string;
   no_district: string;
@@ -43,6 +46,7 @@ export function VenuesClient({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pending, startT] = useTransition();
   const router = useRouter();
+  const tList = useTranslations("venues.list");
 
   function openCreate() {
     setEditing(null);
@@ -138,7 +142,7 @@ export function VenuesClient({
               <div className="mt-4 flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-grass-50 px-2 py-1 text-xs font-semibold text-grass-800">
                   <Building2 className="h-3.5 w-3.5" />
-                  {copy.courts(v.courts_count)}
+                  {tList("courts", { n: v.courts_count })}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
