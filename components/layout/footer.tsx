@@ -51,10 +51,22 @@ export async function Footer({ authed }: Props) {
             </h4>
             <ul className="space-y-2 text-sm">
               <li>
+                <FooterLink href="/open-matches">{t("links.sparrings")}</FooterLink>
+              </li>
+              <li>
                 <FooterLink href="/tournaments">{t("links.tournaments")}</FooterLink>
               </li>
               <li>
                 <FooterLink href="/coaches">{t("links.coaches")}</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/venues">{t("links.venues")}</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/players">{t("links.players")}</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/matches">{t("links.matches")}</FooterLink>
               </li>
               <li>
                 <FooterLink href="/help">{t("links.help")}</FooterLink>

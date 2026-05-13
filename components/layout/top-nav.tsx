@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { Globe2, LogOut, UserRound } from "lucide-react";
+import { Globe2, HelpCircle, LogOut } from "lucide-react";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { LanguageSwitcher } from "./language-switcher";
 import { NavShell } from "./nav-shell";
@@ -9,6 +9,18 @@ import { ProfileMenu } from "./profile-menu";
 import { MobileMenu, type MobileMenuItem } from "./mobile-menu";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// Top navigation — variant A "3 pillars + Profile".
+// -------------------------------------------------
+// Public capsule (always 4 destinations) reflects the project's
+// positioning: Спарринги / Турниры / Тренеры / Площадки.
+// Authenticated users get an additional Profile dropdown that hides the
+// secondary "me/*" pages (rating, bookings, my matches, my tournaments,
+// the personalised matchmaker), so the visible header stays calm.
+//
+// Removed from the visible bar (still reachable):
+//   * /players  → footer + cross-links from /open-matches & /me/find
+//   * /matches  → footer
+//   * /help     → "?" icon in the right cluster + footer
 export async function TopNav() {
   const t = await getTranslations("nav");
 
@@ -29,21 +41,24 @@ export async function TopNav() {
     isAdmin = data?.is_admin ?? false;
   }
 
-  // The mobile menu lists the same destinations as desktop but groups them
-  // explicitly so the personal vs public split is visible there too.
+  // Mobile menu mirrors the desktop split. Personal items (only for authed
+  // users) sit on top, then the public 4 pillars, then secondary public
+  // links (players, matches feed, help) so even mobile users keep a
+  // shortcut to them.
   const mobileItems: MobileMenuItem[] = user
     ? [
-        { group: "personal", href: "/me/rating", label: t("rating") },
-        { group: "personal", href: "/me/bookings", label: t("bookings") },
-        { group: "personal", href: "/me/find", label: t("find") },
-        { group: "personal", href: "/me/profile", label: t("profile") },
+        { group: "personal", href: "/me/profile", label: t("my_profile") },
+        { group: "personal", href: "/me/find", label: t("my_finder") },
         { group: "personal", href: "/me/matches", label: t("my_matches") },
-        { group: "public", href: "/players", label: t("players") },
+        { group: "personal", href: "/me/tournaments", label: t("my_tournaments") },
+        { group: "personal", href: "/me/bookings", label: t("bookings") },
+        { group: "personal", href: "/me/rating", label: t("my_elo") },
+        { group: "public", href: "/open-matches", label: t("sparrings") },
         { group: "public", href: "/tournaments", label: t("tournaments") },
-        { group: "public", href: "/open-matches", label: t("open_matches") },
-        { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/coaches", label: t("coaches") },
         { group: "public", href: "/venues", label: t("venues") },
+        { group: "public", href: "/players", label: t("players") },
+        { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/help", label: t("help") },
         ...(isCoach
           ? [
@@ -67,14 +82,33 @@ export async function TopNav() {
           : []),
       ]
     : [
-        { group: "public", href: "/players", label: t("players") },
+        { group: "public", href: "/open-matches", label: t("sparrings") },
         { group: "public", href: "/tournaments", label: t("tournaments") },
-        { group: "public", href: "/open-matches", label: t("open_matches") },
-        { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/coaches", label: t("coaches") },
         { group: "public", href: "/venues", label: t("venues") },
+        { group: "public", href: "/players", label: t("players") },
+        { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/help", label: t("help") },
       ];
+
+  // The 4 pillars are identical for anon and authed visitors — single
+  // source of truth, single visual treatment.
+  const pillars = (
+    <>
+      <NavLink href="/open-matches" tone="public">
+        {t("sparrings")}
+      </NavLink>
+      <NavLink href="/tournaments" tone="public">
+        {t("tournaments")}
+      </NavLink>
+      <NavLink href="/coaches" tone="public">
+        {t("coaches")}
+      </NavLink>
+      <NavLink href="/venues" tone="public">
+        {t("venues")}
+      </NavLink>
+    </>
+  );
 
   return (
     <NavShell>
@@ -97,161 +131,93 @@ export async function TopNav() {
           </span>
         </Link>
 
-        {/* Centre — two glass capsules: PERSONAL (your zone) + PUBLIC (club).
-            Their distinct backgrounds make it instantly obvious which links
-            require an account and which are open to everyone. The wrapper
-            allows horizontal scrolling on narrow desktops so both capsules
-            stay legible without compressing. */}
+        {/* Centre — single capsule with 4 pillars + (authed only) Profile
+            dropdown. The capsule keeps the existing glass treatment so the
+            visual continuity with the previous design is preserved. */}
         <div
           className={[
             "hidden min-w-0 flex-1 items-center gap-2 overflow-x-auto md:flex",
-            // Hide WebKit scrollbar so the nav stays clean.
             "scrollbar-none [&::-webkit-scrollbar]:hidden",
             "justify-center",
           ].join(" ")}
           style={{ scrollbarWidth: "none" }}
         >
-          {user ? (
-            <>
-              {/* Personal capsule — green-tinted, with a tiny user icon eyebrow */}
-              <nav
-                aria-label={t("group_personal")}
-                title={t("group_personal")}
-                className={[
-                  "group/cap relative flex h-11 shrink-0 items-center gap-0.5 rounded-full px-1.5",
-                  "border border-grass-200/70 bg-gradient-to-r from-grass-50/90 via-white/85 to-grass-50/80",
-                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_24px_-16px_rgba(31,138,76,0.45)]",
-                  "backdrop-blur-md",
-                ].join(" ")}
-              >
-                <span
-                  aria-hidden
-                  className="ml-1 mr-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/80 text-grass-700 ring-1 ring-grass-200/80"
-                >
-                  <UserRound className="h-3.5 w-3.5" />
-                </span>
-                <NavLink href="/me/rating" tone="personal">
-                  {t("rating")}
-                </NavLink>
-                <NavLink href="/me/bookings" tone="personal">
-                  {t("bookings")}
-                </NavLink>
-                <NavLink href="/me/find" tone="personal">
-                  {t("find")}
-                </NavLink>
+          <nav
+            aria-label={t("group_public")}
+            title={t("group_public")}
+            className={[
+              "flex h-11 shrink-0 items-center gap-0.5 rounded-full px-1.5",
+              "border border-ink-200/70 bg-white/60",
+              "shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_24px_-16px_rgba(15,27,20,0.18)]",
+              "backdrop-blur-md",
+            ].join(" ")}
+          >
+            <span
+              aria-hidden
+              className="ml-1 mr-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink-50 text-ink-600 ring-1 ring-ink-200/70"
+            >
+              <Globe2 className="h-3.5 w-3.5" />
+            </span>
+            {pillars}
+            {user && (
+              <>
+                <span aria-hidden className="mx-1 h-5 w-px bg-ink-200/70" />
                 <ProfileMenu
                   label={t("profile")}
                   items={[
-                    { href: "/me/profile", label: t("profile"), icon: "user" },
+                    { href: "/me/profile", label: t("my_profile"), icon: "user" },
+                    { href: "/me/find", label: t("my_finder"), icon: "finder" },
+                    { href: "/me/matches", label: t("my_matches"), icon: "matches" },
                     {
-                      href: "/me/matches",
-                      label: t("my_matches"),
-                      icon: "matches",
+                      href: "/me/tournaments",
+                      label: t("my_tournaments"),
+                      icon: "tournaments",
+                    },
+                    { href: "/me/bookings", label: t("bookings"), icon: "bookings" },
+                    {
+                      href: "/me/rating",
+                      label: t("my_elo"),
+                      icon: "elo",
+                      divider: true,
                     },
                   ]}
                 />
-              </nav>
+              </>
+            )}
+          </nav>
 
-              {/* Public capsule — neutral white glass, with a tiny globe eyebrow */}
-              <nav
-                aria-label={t("group_public")}
-                title={t("group_public")}
-                className={[
-                  "flex h-11 shrink-0 items-center gap-0.5 rounded-full px-1.5",
-                  "border border-ink-200/70 bg-white/60",
-                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_24px_-16px_rgba(15,27,20,0.18)]",
-                  "backdrop-blur-md",
-                ].join(" ")}
-              >
-                <span
-                  aria-hidden
-                  className="ml-1 mr-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink-50 text-ink-600 ring-1 ring-ink-200/70"
-                >
-                  <Globe2 className="h-3.5 w-3.5" />
-                </span>
-                <NavLink href="/players" tone="public">
-                  {t("players")}
+          {/* Highlight pills (coach / admin) sit outside the capsule so they
+              read as elevated CTAs, not regular nav. */}
+          {user && (isCoach || isAdmin) && (
+            <div className="ml-1 flex shrink-0 items-center gap-1.5">
+              {isCoach && (
+                <NavLink href="/coach/dashboard" tone="highlight">
+                  {t("coach")}
                 </NavLink>
-                <NavLink href="/tournaments" tone="public">
-                  {t("tournaments")}
-                </NavLink>
-                <NavLink href="/open-matches" tone="public">
-                  {t("open_matches")}
-                </NavLink>
-                <NavLink href="/matches" tone="public">
-                  {t("matches")}
-                </NavLink>
-                <NavLink href="/coaches" tone="public">
-                  {t("coaches")}
-                </NavLink>
-                <NavLink href="/venues" tone="public">
-                  {t("venues")}
-                </NavLink>
-              </nav>
-
-              {/* Highlight pills (coach / admin) sit outside the capsules so
-                  they read as elevated CTAs, not regular nav. */}
-              {(isCoach || isAdmin) && (
-                <div className="ml-1 flex shrink-0 items-center gap-1.5">
-                  {isCoach && (
-                    <NavLink href="/coach/dashboard" tone="highlight">
-                      {t("coach")}
-                    </NavLink>
-                  )}
-                  {isAdmin && (
-                    <NavLink href="/admin" tone="highlight">
-                      {t("admin")}
-                    </NavLink>
-                  )}
-                </div>
               )}
-            </>
-          ) : (
-            // Anonymous visitors see only the public capsule.
-            <nav
-              aria-label={t("group_public")}
-              title={t("group_public")}
-              className={[
-                "flex h-11 shrink-0 items-center gap-0.5 rounded-full px-1.5",
-                "border border-ink-200/70 bg-white/60",
-                "shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_24px_-16px_rgba(15,27,20,0.18)]",
-                "backdrop-blur-md",
-              ].join(" ")}
-            >
-              <span
-                aria-hidden
-                className="ml-1 mr-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink-50 text-ink-600 ring-1 ring-ink-200/70"
-              >
-                <Globe2 className="h-3.5 w-3.5" />
-              </span>
-              <NavLink href="/players" tone="public">
-                {t("players")}
-              </NavLink>
-              <NavLink href="/tournaments" tone="public">
-                {t("tournaments")}
-              </NavLink>
-              <NavLink href="/open-matches" tone="public">
-                {t("open_matches")}
-              </NavLink>
-              <NavLink href="/matches" tone="public">
-                {t("matches")}
-              </NavLink>
-              <NavLink href="/coaches" tone="public">
-                {t("coaches")}
-              </NavLink>
-              <NavLink href="/venues" tone="public">
-                {t("venues")}
-              </NavLink>
-              <NavLink href="/help" tone="public">
-                {t("help")}
-              </NavLink>
-            </nav>
+              {isAdmin && (
+                <NavLink href="/admin" tone="highlight">
+                  {t("admin")}
+                </NavLink>
+              )}
+            </div>
           )}
         </div>
 
         {/* Right cluster */}
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
+          {/* Help — replaced the bulky "Помощь" nav entry with a small icon
+              button so the help glossary stays one click away without
+              competing with the 4 pillars for attention. */}
+          <Link
+            href="/help"
+            aria-label={t("help_aria")}
+            title={t("help_aria")}
+            className="ease-followthrough hidden h-10 w-10 items-center justify-center rounded-full border border-ink-200/70 bg-white/70 text-ink-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-grass-300 hover:bg-white hover:text-grass-700 md:inline-flex"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </Link>
           <MobileMenu
             items={mobileItems}
             authed={!!user}

@@ -3,12 +3,33 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, usePathname } from "@/i18n/routing";
-import { ChevronDown, ListChecks, User } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronDown,
+  Gauge,
+  ListChecks,
+  Search,
+  Trophy,
+  User,
+} from "lucide-react";
+
+type IconKey = "user" | "matches" | "tournaments" | "bookings" | "finder" | "elo";
 
 type Item = {
   href: string;
   label: string;
-  icon: "user" | "matches";
+  icon: IconKey;
+  /** Render a thin separator BEFORE this item. */
+  divider?: boolean;
+};
+
+const ICONS: Record<IconKey, typeof User> = {
+  user: User,
+  matches: ListChecks,
+  tournaments: Trophy,
+  bookings: CalendarClock,
+  finder: Search,
+  elo: Gauge,
 };
 
 type Props = {
@@ -104,9 +125,12 @@ export function ProfileMenu({ label, items }: Props) {
           {items.map((it) => {
             const isActive =
               pathname === it.href || pathname.startsWith(`${it.href}/`);
-            const Icon = it.icon === "user" ? User : ListChecks;
+            const Icon = ICONS[it.icon];
             return (
               <li key={it.href}>
+                {it.divider ? (
+                  <div aria-hidden className="my-1 mx-3.5 h-px bg-ink-100" />
+                ) : null}
                 <Link
                   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                   href={it.href as any}
