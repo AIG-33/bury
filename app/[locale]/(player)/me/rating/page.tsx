@@ -14,7 +14,9 @@ import {
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
+import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
 import { PageHeader } from "@/components/layout/page-header";
+import { ExternalRatingStrip } from "@/components/profile/external-rating-strip";
 import { EloChart } from "./elo-chart";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -23,9 +25,12 @@ export default async function MyRatingPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("rating");
+  const tExt = await getTranslations("externalRating");
 
   const data = await loadMyRatingTab();
   if (!data) redirect(`/${locale}/login`);
+
+  const externalRating = await loadMyExternalRating();
 
   const { hero, history, season, recentMatches, needs_onboarding_quiz } = data;
   const deltaPositive = hero.delta_30d >= 0;
@@ -134,6 +139,42 @@ export default async function MyRatingPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Liga Tennisa rating — slim refresh strip. Empty state nudges
+          unlinked players toward /onboarding/import-lt without dominating
+          the page. */}
+      <ExternalRatingStrip
+        locale={locale as "ru" | "en"}
+        initial={externalRating}
+        copy={{
+          title: tExt("card.title"),
+          subtitle: tExt("card.subtitle"),
+          source_label: tExt("source_label"),
+          not_connected_title: tExt("not_connected.title"),
+          not_connected_body: tExt("not_connected.body"),
+          not_connected_cta: tExt("not_connected.cta"),
+          refresh: tExt("refresh"),
+          refreshing: tExt("refreshing"),
+          refreshed_now: tExt("refreshed_now"),
+          refreshed_ago: tExt("refreshed_ago"),
+          disconnect: tExt("disconnect"),
+          disconnecting: tExt("disconnecting"),
+          confirm_disconnect: tExt("confirm_disconnect"),
+          imported_at_label: tExt("imported_at_label"),
+          last_refreshed_label: tExt("last_refreshed_label"),
+          last_refresh_error_label: tExt("last_refresh_error_label"),
+          open_on_lt: tExt("open_on_lt"),
+          errors: {
+            not_authenticated: tExt("errors.not_authenticated"),
+            no_external_rating: tExt("errors.no_external_rating"),
+            upstream_unreachable: tExt("errors.upstream_unreachable"),
+            upstream_error: tExt("errors.upstream_error"),
+            player_not_found: tExt("errors.player_not_found"),
+            db_error: tExt("errors.db_error"),
+            unknown: tExt("errors.unknown"),
+          },
+        }}
+      />
 
       {/* Season race + chart */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
