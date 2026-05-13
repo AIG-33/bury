@@ -1,15 +1,15 @@
-# OpenCourt.by — Open Amateur-Tennis Platform of Belarus
+# playtennis.by — Open Amateur-Tennis Platform of Belarus
 
-A platform for **everyone who plays amateur tennis in Belarus** — players of any level, coaches and small clubs. Universal Elo rating, find-a-player, tournaments and a coach directory in one place.
+A platform for **everyone who plays amateur tennis in Belarus** — players of any level, coaches and small clubs. Find a sparring partner, find a coach, join or run a tournament — all in one place.
 
 This is **not a single-club admin app**. It is an open, community-owned platform for amateur tennis with:
 
-- **Universal Elo rating** that travels with the player across any tournament/match in the system. One rating across friendlies, club leagues, tournaments and the [ligatennisa.com](https://www.ligatennisa.com) import.
-- **4-tab player cabinet**: Rating, Tournaments, Find a Player, Profile.
-- **Find a Player** matching by district + level (Elo ±100) + preferred time, with optional Liga Tennisa Elo filter.
+- **Find a sparring partner** by district + level + preferred time, plus an open-matches feed where anyone can post or apply.
 - **Coach directory** with reviews and ratings, anti-fraud tied to bookings/matches.
+- **Tournaments** in 6 formats (SE / DE / RR / Group+PO / Swiss / Compass) with flexible match rules (best-of-3/5, single set, pro-set 8/10, super-tiebreak only, timed match, first-to-X-games, no-ad, etc.) — anyone can join a tournament or create their own.
+- **4-tab player cabinet**: Find, Tournaments, Rating, Profile.
 - **Onboarding** in two paths: a 60-second self-eval quiz, or a one-click rating import from Liga Tennisa.
-- **Tournaments** in 6 formats (SE / DE / RR / Group+PO / Swiss / Compass) with flexible match rules (best-of-3/5, single set, pro-set 8/10, super-tiebreak only, timed match, first-to-X-games, no-ad, etc.).
+- **Universal Elo rating** in the background — keeps matchmaking fair without becoming the headline.
 - **In-app guidance**: every admin page has a `HelpPanel` explaining "Why this page / What you can do / What will happen".
 
 Launch city: **Минск**. District-aware matching is wired for the whole country, so any club, court or coach in Belarus can join with no per-instance fork.
@@ -60,4 +60,4 @@ Iterations 1–3 complete: scaffold + auth + onboarding quiz + invitations. Liga
 
 ## Project ethos
 
-OpenCourt.by is built for the **whole amateur-tennis community of Belarus** — not for one club, one coach or one player. Anyone with a court, a coaching practice or just a racket is welcome to register and use the same Elo, the same tournament engine and the same matchmaker as everyone else. Code, schema and content live in this repository so the project can be audited, forked or self-hosted by clubs that prefer to run their own instance.
+playtennis.by is built for the **whole amateur-tennis community of Belarus** — not for one club, one coach or one player. Anyone with a court, a coaching practice or just a racket is welcome to register and use the same find-a-sparring engine, the same tournament engine and the same coach directory as everyone else. Code, schema and content live in this repository so the project can be audited, forked or self-hosted by clubs that prefer to run their own instance.

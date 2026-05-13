@@ -1,4 +1,4 @@
-project_id = "opencourt-by"
+project_id = "playtennis-by"
 
 [api]
 enabled = true

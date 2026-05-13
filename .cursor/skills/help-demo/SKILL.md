@@ -1,7 +1,7 @@
 ---
 name: help-demo
 description: >-
-  Maintains the canonical "/help-demo" reference page for the OpenCourt.by
+  Maintains the canonical "/help-demo" reference page for the playtennis.by
   project and enforces the help-content rules from AGENTS.md (§3.4, §8) on every
   admin or coach page. Use when creating or editing pages under
   app/[locale]/(admin)/ or app/[locale]/(coach)/, when working on any file in

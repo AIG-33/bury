@@ -132,6 +132,6 @@ select
   (date_trunc('month', current_date) + interval '6 months' - interval '1 day')::date,
   jsonb_build_object('match_win',10,'match_loss',1,'tournament_win',50,'tournament_final',30,'tournament_semifinal',15),
   3,
-  'Top-3 receive a complimentary coaching session with one of the platform coaches and an OpenCourt.by branded racket cover.',
+  'Top-3 receive a complimentary coaching session with one of the platform coaches and a playtennis.by branded racket cover.',
   'active'
 where not exists (select 1 from seasons where status = 'active');

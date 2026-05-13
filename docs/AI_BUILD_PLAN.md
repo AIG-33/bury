@@ -30,7 +30,7 @@ For every iteration: **goal · files · steps · acceptance criteria · tests ·
 4. Add base shadcn components: `button card dialog input label badge dropdown-menu sonner tabs tooltip popover sheet`.
 5. Configure next-intl: `i18n.ts` + `middleware.ts` + `app/[locale]/layout.tsx`.
 6. Implement Help components (own, not shadcn).
-7. Landing page with hero (OpenCourt.by wordmark + "Один Эло на все матчи. Любительский теннис в Беларуси."), features grid, language switcher.
+7. Landing page with hero (playtennis.by wordmark + "Найди соперника, тренера и турнир. Любительский теннис в Беларуси."), features grid, language switcher.
 8. Demo page `/help-demo` showing all three Help components.
 
 **Acceptance**:
@@ -286,7 +286,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=                  # optional in dev (falls back to console.log)
-RESEND_FROM=OpenCourt.by <noreply@example.com>
+RESEND_FROM=playtennis.by <noreply@example.com>
 TELEGRAM_BOT_TOKEN=              # optional in dev (bot disabled)
 TELEGRAM_WEBHOOK_SECRET=
 SENTRY_DSN=                      # optional

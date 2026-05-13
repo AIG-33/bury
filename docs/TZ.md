@@ -1,4 +1,4 @@
-# Техническое задание — OpenCourt.by (платформа любительского тенниса в Беларуси)
+# Техническое задание — playtennis.by (платформа любительского тенниса в Беларуси)
 
 > Версия 1.1 · Базовая редакция для AI-агента-разработчика
 > Связанные документы: [AGENTS.md](../AGENTS.md), [AI_BUILD_PLAN.md](AI_BUILD_PLAN.md), [data-model.md](diagrams/data-model.md), [user-flows.md](diagrams/user-flows.md), [design-tokens.md](design-tokens.md), [copy-deck.md](copy-deck.md), [admin-help.md](admin-help.md), [rating-algorithm.md](rating-algorithm.md)
@@ -279,7 +279,7 @@ RR-лига на N человек: после старта система выд
 ## 7. Архитектура
 
 ```
-opencourt-by/
+playtennis-by/
   app/[locale]/
     (public)/              landing, /leaderboard, /coaches, /tournaments/[id], /help
     (player)/              /me/rating, /me/tournaments, /me/find, /me/profile

@@ -1,4 +1,4 @@
-# Data model — OpenCourt.by platform
+# Data model — playtennis.by platform
 
 20+ tables. All with RLS. UUID PKs (`gen_random_uuid()`). `created_at`/`updated_at` everywhere. JSONB for varying-shape data (socials, availability, match rules, algorithm config).
 
@@ -46,7 +46,7 @@ erDiagram
 
 ```sql
 -- ============================================================
--- OpenCourt.by platform — initial schema
+-- playtennis.by platform — initial schema
 -- ============================================================
 
 create extension if not exists "pgcrypto";
