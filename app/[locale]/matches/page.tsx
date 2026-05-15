@@ -269,7 +269,7 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
             tournament: t("badge.tournament"),
             friendly: t("badge.friendly"),
             friendly_group: t("group.friendly"),
-            count: t("group.count"),
+            countLabel: (n: number) => t("group.count", { n }),
             open_tournament: t("group.open_tournament"),
             doubles: t("badge.doubles"),
             tba: t("no_date"),
@@ -477,7 +477,8 @@ type GroupLabels = {
   tournament: string;
   friendly: string;
   friendly_group: string;
-  count: string;
+  /** Renders e.g. "9 матчей" with proper plural form. */
+  countLabel: (n: number) => string;
   open_tournament: string;
   doubles: string;
   tba: string;
@@ -577,7 +578,7 @@ function MatchGroups({
                   {g.name}
                 </span>
                 <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-600">
-                  {labels.count.replace("{n}", String(g.matches.length))}
+                  {labels.countLabel(g.matches.length)}
                 </span>
               </div>
 
@@ -585,12 +586,12 @@ function MatchGroups({
                 <Link
                   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                   href={`/tournaments/${g.tournamentId}` as any}
-                  // The summary itself is a click target for toggling; this
-                  // inner Link needs to stop the toggle when the user clicks
-                  // it, which is the default browser behaviour for nested
-                  // anchors as long as we don't preventDefault elsewhere.
+                  // Click bubbles up and toggles the <details> too, but
+                  // navigation wins (the page changes), so the toggle is
+                  // not visible. Avoiding onClick keeps this a pure server
+                  // component (Server Components can't pass functions as
+                  // props to Client Components like <Link>).
                   className="hidden shrink-0 items-center gap-1 rounded-full border border-ball-200 bg-white px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ball-800 hover:bg-ball-50 sm:inline-flex"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   {labels.open_tournament}
                   <ChevronRight className="h-3 w-3" />

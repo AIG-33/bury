@@ -186,7 +186,7 @@
     },
     "group": {
       "friendly": "Friendly matches",
-      "count": "{n}",
+      "count": "{n, plural, one {# match} other {# matches}}",
       "open_tournament": "Open tournament"
     },
     "empty": {
@@ -3316,7 +3316,7 @@
       "participants_empty": "No participants yet.",
       "matches_title": "Matches",
       "matches_empty": "Bracket not generated yet.",
-      "matches_count": "{n}",
+      "matches_count": "{n, plural, one {# match} other {# matches}}",
       "round_short": "R",
       "tba": "TBD",
       "winner": "Winner",

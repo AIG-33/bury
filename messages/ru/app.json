@@ -186,7 +186,7 @@
     },
     "group": {
       "friendly": "Товарищеские матчи",
-      "count": "{n}",
+      "count": "{n, plural, one {# матч} few {# матча} many {# матчей} other {# матчей}}",
       "open_tournament": "К турниру"
     },
     "empty": {
@@ -3319,7 +3319,7 @@
       "participants_empty": "Пока нет участников.",
       "matches_title": "Матчи",
       "matches_empty": "Сетка ещё не сгенерирована.",
-      "matches_count": "{n}",
+      "matches_count": "{n, plural, one {# матч} few {# матча} many {# матчей} other {# матчей}}",
       "round_short": "R",
       "tba": "Без даты",
       "winner": "Победа",

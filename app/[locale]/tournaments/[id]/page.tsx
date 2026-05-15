@@ -222,7 +222,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               round_short: t("detail.round_short"),
               scheduled: t("detail.scheduled"),
               winner: t("detail.winner"),
-              count: t("detail.matches_count"),
+              countLabel: (n: number) => t("detail.matches_count", { n }),
               tba: t("detail.tba"),
             }}
           />
@@ -251,7 +251,8 @@ function TournamentMatchesByRound({
     round_short: string;
     scheduled: string;
     winner: string;
-    count: string;
+    /** Renders e.g. "9 матчей" with proper plural form. */
+    countLabel: (n: number) => string;
     tba: string;
   };
 }) {
@@ -301,7 +302,7 @@ function TournamentMatchesByRound({
                   {headerLabel}
                 </span>
                 <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-600">
-                  {labels.count.replace("{n}", String(g.matches.length))}
+                  {labels.countLabel(g.matches.length)}
                 </span>
               </div>
             </summary>
