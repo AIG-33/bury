@@ -81,7 +81,13 @@ export default async function MyClubsPage({ params }: Props) {
         <MyClubsClient
           locale={locale}
           memberships={memberships}
-          pendingOwnershipOffers={pendingOwnershipOffers}
+          // Pre-format every per-row value here. The client component
+          // receives only serialisable strings — Next.js 15 forbids passing
+          // functions across the server→client component boundary.
+          pendingOwnershipOffers={pendingOwnershipOffers.map((o) => ({
+            ...o,
+            expires_label: dateFmt.format(new Date(o.expires_at)),
+          }))}
           labels={{
             section_approved: t("section_approved"),
             section_pending: t("section_pending"),
@@ -96,8 +102,11 @@ export default async function MyClubsPage({ params }: Props) {
             leave: t("leave"),
             leave_confirm: t("leave_confirm"),
             cancel_application: t("cancel_application"),
-            cancel_application_confirm_template: (club) =>
-              t("cancel_application_confirm", { club }),
+            // ICU pass-through: keep the literal `{club}` placeholder; the
+            // client does a single .replace() at confirm-time.
+            cancel_application_confirm_template: t("cancel_application_confirm", {
+              club: "{club}",
+            }),
             join_policy: {
               approval: tCommon("join_policy.approval"),
               open: tCommon("join_policy.open"),
@@ -109,8 +118,11 @@ export default async function MyClubsPage({ params }: Props) {
               rejected: tCommon("statuses.rejected"),
             },
             ownership_offer: {
-              intro_template: (vars) => t("ownership_offer.intro", vars),
-              expires_template: (date) => t("ownership_offer.expires", { date }),
+              intro_template: t("ownership_offer.intro", {
+                previous: "{previous}",
+                club: "{club}",
+              }),
+              expires_template: t("ownership_offer.expires", { date: "{date}" }),
               accept: t("ownership_offer.accept"),
               decline: t("ownership_offer.decline"),
               accepting: t("ownership_offer.accepting"),
@@ -121,7 +133,6 @@ export default async function MyClubsPage({ params }: Props) {
               },
             },
           }}
-          dateFmt={(iso) => dateFmt.format(new Date(iso))}
         />
       )}
     </div>

@@ -32,12 +32,16 @@ type Labels = {
   leave: string;
   leave_confirm: string;
   cancel_application: string;
-  cancel_application_confirm_template: (club: string) => string;
+  // Template string with the literal placeholder "{club}" — the client
+  // substitutes it at confirm-time. Functions can't cross the
+  // server→client component boundary in Next.js 15.
+  cancel_application_confirm_template: string;
   join_policy: Record<JoinPolicy, string>;
   statuses: Record<MemberStatus, string>;
   ownership_offer: {
-    intro_template: (vars: { previous: string; club: string }) => string;
-    expires_template: (date: string) => string;
+    // Templates use {previous}, {club}, {date} placeholders.
+    intro_template: string;
+    expires_template: string;
     accept: string;
     decline: string;
     accepting: string;
@@ -45,12 +49,17 @@ type Labels = {
   };
 };
 
+// Per-row pre-formatted strings derived on the server. Keeps the client
+// component free of non-serialisable props.
+export type OwnershipOfferDerived = {
+  expires_label: string;
+};
+
 type Props = {
   locale: string;
   memberships: MyMembershipRow[];
-  pendingOwnershipOffers: PendingOwnershipOffer[];
+  pendingOwnershipOffers: Array<PendingOwnershipOffer & OwnershipOfferDerived>;
   labels: Labels;
-  dateFmt: (iso: string) => string;
 };
 
 export function MyClubsClient({
@@ -58,7 +67,6 @@ export function MyClubsClient({
   memberships,
   pendingOwnershipOffers,
   labels,
-  dateFmt,
 }: Props) {
   const approved = memberships.filter((m) => m.status === "approved");
   const pending = memberships.filter((m) => m.status === "pending");
@@ -75,7 +83,6 @@ export function MyClubsClient({
                 locale={locale}
                 offer={offer}
                 labels={labels.ownership_offer}
-                dateFmt={dateFmt}
               />
             ))}
           </div>
@@ -237,7 +244,11 @@ function MembershipCard({
             type="button"
             disabled={isPending}
             onClick={() => {
-              if (!confirm(labels.cancel_application_confirm_template(membership.club_name))) return;
+              const message = labels.cancel_application_confirm_template.replace(
+                "{club}",
+                membership.club_name,
+              );
+              if (!confirm(message)) return;
               startTransition(async () => {
                 await cancelMyApplication(membership.club_id);
                 router.refresh();
@@ -258,29 +269,27 @@ function OwnershipOfferCard({
   locale,
   offer,
   labels,
-  dateFmt,
 }: {
   locale: string;
-  offer: PendingOwnershipOffer;
+  offer: PendingOwnershipOffer & OwnershipOfferDerived;
   labels: Labels["ownership_offer"];
-  dateFmt: (iso: string) => string;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const introText = labels.intro_template
+    .replace("{previous}", offer.previous_owner_name ?? "—")
+    .replace("{club}", offer.club_name);
+  const expiresText = labels.expires_template.replace("{date}", offer.expires_label);
 
   return (
     <div className="rounded-xl2 border border-ball-200 bg-ball-50 p-4 shadow-card">
       <div className="flex items-start gap-3">
         <ClubLogo url={offer.club_logo_url} name={offer.club_name} size="md" />
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-sm font-medium text-ball-900">
-            {labels.intro_template({
-              previous: offer.previous_owner_name ?? "—",
-              club: offer.club_name,
-            })}
-          </p>
-          <p className="text-xs text-ball-700">{labels.expires_template(dateFmt(offer.expires_at))}</p>
+          <p className="text-sm font-medium text-ball-900">{introText}</p>
+          <p className="text-xs text-ball-700">{expiresText}</p>
           {error && (
             <p className="text-xs text-clay-700">
               {error === "transfer_not_offered"
