@@ -898,7 +898,7 @@ export async function generateBracket(
     tournament_id: string;
     round: number;
     bracket_slot: number;
-    p1_id: string;
+    p1_id: string | null;
     p2_id: string | null;
     outcome: "pending" | "walkover_p1";
     winner_side: "p1" | null;
@@ -923,22 +923,30 @@ export async function generateBracket(
       method,
       rngSeed: opts.rngSeed ?? Date.now() % 1_000_000,
     });
-    rows = matches
-      .filter((m) => m.p1_id || m.p2_id)
-      .map((m) => {
-        const [p1, p2] = m.p1_id == null && m.p2_id != null ? [m.p2_id, null] : [m.p1_id, m.p2_id];
-        const isAutoBye = m.round === 1 && (m.p1_id == null || m.p2_id == null);
-        return {
-          tournament_id: tournamentId,
-          round: m.round,
-          bracket_slot: m.bracket_slot,
-          p1_id: p1!,
-          p2_id: p2,
-          outcome: isAutoBye ? ("walkover_p1" as const) : ("pending" as const),
-          winner_side: isAutoBye ? ("p1" as const) : null,
-          match_rules: t.match_rules,
-        };
-      });
+    // Persist the FULL bracket skeleton (including matches whose sides are
+    // still TBD — e.g. final waiting on semifinal winners). The `matches.p1_id`
+    // column is nullable for exactly this reason; without these rows the UI
+    // would only render round 1 and the final would silently disappear until
+    // it bubbles up via propagation.
+    rows = matches.map((m) => {
+      const isAutoBye = m.round === 1 && (m.p1_id != null) !== (m.p2_id != null);
+      // If round-1 had a bye, normalise so the present player sits in p1_id
+      // and we can credit them an auto-win without a second row.
+      const [p1, p2] =
+        isAutoBye && m.p1_id == null && m.p2_id != null
+          ? [m.p2_id, null]
+          : [m.p1_id, m.p2_id];
+      return {
+        tournament_id: tournamentId,
+        round: m.round,
+        bracket_slot: m.bracket_slot,
+        p1_id: p1,
+        p2_id: p2,
+        outcome: isAutoBye ? ("walkover_p1" as const) : ("pending" as const),
+        winner_side: isAutoBye ? ("p1" as const) : null,
+        match_rules: t.match_rules,
+      };
+    });
   }
 
   const { error: insertErr } = await supabase.from("matches").insert(rows as never);
@@ -1397,28 +1405,31 @@ export async function closeGroupsAndStartPlayoff(
     method: "manual",
   });
 
-  const baseRows = matches
-    .filter((m) => m.p1_id || m.p2_id || true /* keep skeleton */)
-    .map((m) => {
-      const isAutoBye = m.round === 1 && (m.p1_id == null || m.p2_id == null);
-      const [p1, p2] = m.p1_id == null && m.p2_id != null ? [m.p2_id, null] : [m.p1_id, m.p2_id];
-      return {
-        tournament_id: v.tournament_id,
-        round: m.round,
-        bracket_slot: m.bracket_slot,
-        p1_id: p1,
-        p2_id: p2,
-        outcome: isAutoBye ? "walkover_p1" : "pending",
-        winner_side: isAutoBye ? "p1" : null,
-        match_rules: t.match_rules,
-        stage: "playoff" as const,
-        group_id: null as string | null,
-      };
-    })
-    .filter((r) => r.p1_id != null); // round-1 slots where both sides ended up null (impossible) get dropped
-
-  // Drop bracket placeholders we don't need (next-round matches with both null).
-  // Keep round-1 byes (already auto-walkovered above) so the propagation step works.
+  // Persist the FULL playoff skeleton, including round 2+ rows where both
+  // sides are still TBD. Without these rows the bracket UI would only render
+  // round 1 (semifinals) and the final would silently disappear until the
+  // propagation in `setMatchScore` created it — which it didn't, because
+  // `matches.p1_id` used to be NOT NULL.
+  const baseRows = matches.map((m) => {
+    const isAutoBye = m.round === 1 && (m.p1_id != null) !== (m.p2_id != null);
+    // Round-1 bye normalisation: present player to p1_id, auto-credit them.
+    const [p1, p2] =
+      isAutoBye && m.p1_id == null && m.p2_id != null
+        ? [m.p2_id, null]
+        : [m.p1_id, m.p2_id];
+    return {
+      tournament_id: v.tournament_id,
+      round: m.round,
+      bracket_slot: m.bracket_slot,
+      p1_id: p1,
+      p2_id: p2,
+      outcome: isAutoBye ? "walkover_p1" : "pending",
+      winner_side: isAutoBye ? "p1" : null,
+      match_rules: t.match_rules,
+      stage: "playoff" as const,
+      group_id: null as string | null,
+    };
+  });
 
   const { error: insertErr } = await supabase.from("matches").insert(baseRows as never);
   if (insertErr) return { ok: false, error: insertErr.message };
@@ -1492,7 +1503,7 @@ export async function setMatchScore(
       tournament_id: string | null;
       round: number | null;
       bracket_slot: number | null;
-      p1_id: string;
+      p1_id: string | null;
       p2_id: string | null;
       stage: MatchStage | null;
       group_id: string | null;
@@ -1505,6 +1516,10 @@ export async function setMatchScore(
   }
   if (!m.tournament_id || m.round == null || m.bracket_slot == null) {
     return { ok: false, error: "not_a_bracket_match" };
+  }
+  if (m.p1_id == null || m.p2_id == null) {
+    // Bracket placeholder waiting on a previous round — can't score yet.
+    return { ok: false, error: "match_not_ready" };
   }
   const isRoundRobin =
     m.tournaments.format === "round_robin" || m.stage === "group";
@@ -1729,7 +1744,7 @@ export async function loadGroupStandings(
     .eq("stage", "group")) as {
     data: Array<{
       group_id: string | null;
-      p1_id: string;
+      p1_id: string | null;
       p2_id: string | null;
       winner_side: "p1" | "p2" | null;
       outcome: string;
@@ -1744,9 +1759,9 @@ export async function loadGroupStandings(
       .filter((m) => m.group_id === g.id)
       .map((m) => m.player_id);
     const groupMatches = (matches ?? [])
-      .filter((m) => m.group_id === g.id && m.p2_id != null)
+      .filter((m) => m.group_id === g.id && m.p1_id != null && m.p2_id != null)
       .map((m) => ({
-        p1_id: m.p1_id,
+        p1_id: m.p1_id as string,
         p2_id: m.p2_id as string,
         winner_side: m.winner_side,
         outcome: m.outcome,
@@ -1800,7 +1815,7 @@ export async function loadRoundRobinStandings(tournamentId: string): Promise<Sta
     .select("p1_id, p2_id, winner_side, outcome, sets")
     .eq("tournament_id", tournamentId)) as {
     data: Array<{
-      p1_id: string;
+      p1_id: string | null;
       p2_id: string | null;
       winner_side: "p1" | "p2" | null;
       outcome: string;
@@ -1811,9 +1826,9 @@ export async function loadRoundRobinStandings(tournamentId: string): Promise<Sta
   const standings = computeRoundRobinStandings(
     playerIds,
     (matches ?? [])
-      .filter((m) => m.p2_id != null)
+      .filter((m) => m.p1_id != null && m.p2_id != null)
       .map((m) => ({
-        p1_id: m.p1_id,
+        p1_id: m.p1_id as string,
         p2_id: m.p2_id as string,
         winner_side: m.winner_side,
         outcome: m.outcome,

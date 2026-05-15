@@ -56,8 +56,25 @@ export type PublicTournamentRow = {
   venues: PublicTournamentVenue[];
 };
 
+/**
+ * View filter for the public tournament catalogue.
+ *
+ *   "all"           → render the page as 3 sections (registration → upcoming → finished),
+ *                     no DB-level status filter
+ *   "registration"  → only open-for-registration ones
+ *   "upcoming"      → draft + registration (legacy single-tab view)
+ *   "in_progress"   → currently running
+ *   "finished"      → finished
+ */
+export type PublicTournamentStatusFilter =
+  | "all"
+  | "registration"
+  | "upcoming"
+  | "in_progress"
+  | "finished";
+
 export async function loadPublicTournaments(opts: {
-  status?: "upcoming" | "in_progress" | "finished";
+  status?: PublicTournamentStatusFilter;
   format?: TournamentFormat | null;
   surface?: Surface | null;
   /** "free" → entry_fee_byn IS NULL OR 0; "paid" → > 0; null/undefined → any. */
@@ -78,13 +95,16 @@ export async function loadPublicTournaments(opts: {
     .eq("privacy", "public")
     .order("starts_on", { ascending: true });
 
-  if (opts.status === "upcoming") {
+  if (opts.status === "registration") {
+    query = query.eq("status", "registration");
+  } else if (opts.status === "upcoming") {
     query = query.in("status", ["draft", "registration"]);
   } else if (opts.status === "in_progress") {
     query = query.eq("status", "in_progress");
   } else if (opts.status === "finished") {
     query = query.eq("status", "finished");
   }
+  // "all" → no status filter; page splits the rows into sections itself.
 
   if (opts.format) query = query.eq("format", opts.format);
   if (opts.surface) query = query.eq("surface", opts.surface);

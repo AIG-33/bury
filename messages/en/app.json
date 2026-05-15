@@ -2309,6 +2309,8 @@
       "add_set": "Add set",
       "remove_set": "remove",
       "set": "Set",
+      "quick_scores": "Quick score",
+      "special_result": "Other result",
       "error": "Error",
       "insufficient_players": "Need at least 2 participants to draw a bracket."
     },
@@ -3179,9 +3181,16 @@
       }
     },
     "tabs": {
+      "all": "All",
+      "registration": "Registration",
       "upcoming": "Upcoming",
       "in_progress": "Live",
       "finished": "Finished"
+    },
+    "sections": {
+      "registration": "Registration open",
+      "upcoming": "Coming up",
+      "finished": "Past"
     },
     "filters": {
       "title": "Filters",

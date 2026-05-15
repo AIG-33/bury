@@ -2309,6 +2309,8 @@
       "add_set": "Добавить сет",
       "remove_set": "удалить",
       "set": "Сет",
+      "quick_scores": "Быстрый счёт",
+      "special_result": "Спец. исход",
       "error": "Ошибка",
       "insufficient_players": "Нужно минимум 2 участника, чтобы сделать жеребьёвку."
     },
@@ -3182,9 +3184,16 @@
       }
     },
     "tabs": {
+      "all": "Все",
+      "registration": "Регистрация",
       "upcoming": "Предстоящие",
       "in_progress": "Идут",
       "finished": "Завершены"
+    },
+    "sections": {
+      "registration": "Открыта регистрация",
+      "upcoming": "Скоро",
+      "finished": "Завершённые"
     },
     "filters": {
       "title": "Фильтры",

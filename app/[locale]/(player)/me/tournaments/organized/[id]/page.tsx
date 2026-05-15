@@ -112,6 +112,8 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     add_set: t("bracket.add_set"),
     remove_set: t("bracket.remove_set"),
     set: t("bracket.set"),
+    quick_scores: t("bracket.quick_scores"),
+    special_result: t("bracket.special_result"),
     error: t("bracket.error"),
     insufficient_players: t("bracket.insufficient_players"),
   };

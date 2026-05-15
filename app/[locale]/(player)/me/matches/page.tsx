@@ -128,6 +128,29 @@ export default async function MyMatchesPage({ params }: Props) {
         )}
       </Section>
 
+      {/* Recent — most recent completed matches (friendly AND tournament).
+          Earlier the recent feed was reachable only via /me/rating; players
+          asked to see tournament results next to their friendly history. */}
+      {data.recent.length > 0 && (
+        <Section
+          icon={<History className="h-4 w-4 text-grass-700" />}
+          title={t("recent")}
+          count={data.recent.length}
+        >
+          <ul className="space-y-3">
+            {data.recent.slice(0, 10).map((m) => (
+              <MatchCard
+                key={m.id}
+                m={m}
+                variant="recent"
+                locale={locale}
+                whatsappPrefill={whatsappPrefill}
+              />
+            ))}
+          </ul>
+        </Section>
+      )}
+
       {/* History link — full match history with Elo deltas now lives on /me/rating */}
       <Link
         href={`/${locale}/me/rating#matches`}

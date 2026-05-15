@@ -6,7 +6,12 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadPublicTournaments, loadVenueCities } from "./actions";
+import {
+  loadPublicTournaments,
+  loadVenueCities,
+  type PublicTournamentRow,
+  type PublicTournamentStatusFilter,
+} from "./actions";
 import type { Surface, TournamentFormat } from "@/lib/tournaments/schema";
 
 const TOURNAMENT_FORMATS: TournamentFormat[] = [
@@ -52,9 +57,14 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsPublic");
 
-  const filter = ["upcoming", "in_progress", "finished"].includes(sp.status ?? "")
-    ? (sp.status as "upcoming" | "in_progress" | "finished")
-    : "upcoming";
+  // "all" is the default — the page splits results into three sections in
+  // visual priority order (registration → upcoming → finished). The explicit
+  // tabs let users zoom into a single status.
+  const filter: PublicTournamentStatusFilter = (
+    ["all", "registration", "upcoming", "in_progress", "finished"] as const
+  ).includes(sp.status as PublicTournamentStatusFilter)
+    ? (sp.status as PublicTournamentStatusFilter)
+    : "all";
   const format = TOURNAMENT_FORMATS.includes(sp.format as TournamentFormat)
     ? (sp.format as TournamentFormat)
     : null;
@@ -96,8 +106,8 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
       <GuestNextStepBanner isGuest={isGuest} current="tournaments" />
 
       {/* Filter tabs — preserve secondary filters in the URL */}
-      <nav className="flex gap-2 border-b border-ink-100">
-        {(["upcoming", "in_progress", "finished"] as const).map((s) => {
+      <nav className="flex flex-wrap gap-2 border-b border-ink-100">
+        {(["all", "registration", "upcoming", "in_progress", "finished"] as const).map((s) => {
           const params = new URLSearchParams();
           params.set("status", s);
           if (format) params.set("format", format);
@@ -234,80 +244,183 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             ctaHref="/me/tournaments"
           />
         )
+      ) : filter === "all" ? (
+        <SectionedList tournaments={tournaments} locale={locale} t={t} fmtDate={fmtDate} />
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2">
           {tournaments.map((tn) => (
-            <li
-              key={tn.id}
-              className="hover:border-leaf-300 group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-md"
-            >
-              <Link href={`/${locale}/tournaments/${tn.id}`} className="flex items-start gap-3">
-                <div className="bg-leaf-100 text-leaf-700 flex h-11 w-11 items-center justify-center rounded-full">
-                  <Trophy className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="group-hover:text-leaf-700 font-display text-lg font-semibold text-ink-900">
-                    {tn.name}
-                  </h3>
-                  {tn.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-ink-600">{tn.description}</p>
-                  )}
-                  <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-ink-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {fmtDate.format(new Date(tn.starts_on))}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {tn.participants_count}
-                      {tn.max_participants ? ` / ${tn.max_participants}` : ""}
-                    </div>
-                    {tn.start_time && (
-                      <div className="flex items-center gap-1 tabular-nums">
-                        <Clock className="h-3.5 w-3.5" />
-                        {tn.start_time.slice(0, 5)}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 tabular-nums">
-                      <Coins className="h-3.5 w-3.5" />
-                      {tn.entry_fee_byn == null || tn.entry_fee_byn === 0
-                        ? t("entry_fee_free")
-                        : t("entry_fee_byn", { n: tn.entry_fee_byn })}
-                    </div>
-                    {tn.venues.length > 0 && (
-                      <div className="col-span-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-ink-600">
-                        <MapPin className="text-leaf-700 h-3.5 w-3.5" />
-                        {tn.venues.map((v) => (
-                          <span
-                            key={v.id}
-                            className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5"
-                          >
-                            {v.name}
-                            {v.city && <span className="text-ink-500">· {v.city}</span>}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="col-span-2 mt-1 inline-flex items-center gap-2">
-                      <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase">
-                        {t(`format.${tn.format}`)}
-                      </span>
-                      {tn.surface && (
-                        <span className="rounded-full bg-clay-50 px-2 py-0.5 text-[10px] font-medium uppercase text-clay-700">
-                          {tn.surface}
-                        </span>
-                      )}
-                      <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-600">
-                        {t(`status.${tn.status}`)}
-                      </span>
-                    </div>
-                  </dl>
-                </div>
-              </Link>
-            </li>
+            <TournamentCard key={tn.id} tn={tn} locale={locale} t={t} fmtDate={fmtDate} />
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+// =============================================================================
+// Sectioned list ("All" tab) — registration first, then upcoming, then
+// finished. Each section is hidden if empty so the page stays compact.
+// =============================================================================
+
+function SectionedList({
+  tournaments,
+  locale,
+  t,
+  fmtDate,
+}: {
+  tournaments: PublicTournamentRow[];
+  locale: string;
+  t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
+  fmtDate: Intl.DateTimeFormat;
+}) {
+  const registration = tournaments.filter((r) => r.status === "registration");
+  const draft = tournaments.filter((r) => r.status === "draft");
+  const inProgress = tournaments.filter((r) => r.status === "in_progress");
+  const finished = tournaments
+    .filter((r) => r.status === "finished")
+    .sort((a, b) => (a.starts_on > b.starts_on ? -1 : 1));
+
+  return (
+    <div className="space-y-8">
+      <SectionedGroup
+        title={t("sections.registration")}
+        accent="grass"
+        items={registration}
+        locale={locale}
+        t={t}
+        fmtDate={fmtDate}
+      />
+      <SectionedGroup
+        title={t("sections.upcoming")}
+        accent="leaf"
+        items={[...inProgress, ...draft]}
+        locale={locale}
+        t={t}
+        fmtDate={fmtDate}
+      />
+      <SectionedGroup
+        title={t("sections.finished")}
+        accent="ink"
+        items={finished}
+        locale={locale}
+        t={t}
+        fmtDate={fmtDate}
+      />
+    </div>
+  );
+}
+
+function SectionedGroup({
+  title,
+  accent,
+  items,
+  locale,
+  t,
+  fmtDate,
+}: {
+  title: string;
+  accent: "grass" | "leaf" | "ink";
+  items: PublicTournamentRow[];
+  locale: string;
+  t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
+  fmtDate: Intl.DateTimeFormat;
+}) {
+  if (items.length === 0) return null;
+  const dotCls =
+    accent === "grass"
+      ? "bg-grass-500"
+      : accent === "leaf"
+        ? "bg-leaf-500"
+        : "bg-ink-300";
+  return (
+    <section>
+      <header className="mb-3 flex items-center gap-2">
+        <span className={`inline-block h-2 w-2 rounded-full ${dotCls}`} />
+        <h2 className="font-display text-lg font-semibold text-ink-900">{title}</h2>
+        <span className="text-xs tabular-nums text-ink-500">·&nbsp;{items.length}</span>
+      </header>
+      <ul className="grid gap-4 sm:grid-cols-2">
+        {items.map((tn) => (
+          <TournamentCard key={tn.id} tn={tn} locale={locale} t={t} fmtDate={fmtDate} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TournamentCard({
+  tn,
+  locale,
+  t,
+  fmtDate,
+}: {
+  tn: PublicTournamentRow;
+  locale: string;
+  t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
+  fmtDate: Intl.DateTimeFormat;
+}) {
+  return (
+    <li className="hover:border-leaf-300 group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-md">
+      <Link href={`/${locale}/tournaments/${tn.id}`} className="flex items-start gap-3">
+        <div className="bg-leaf-100 text-leaf-700 flex h-11 w-11 items-center justify-center rounded-full">
+          <Trophy className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
+          <h3 className="group-hover:text-leaf-700 font-display text-lg font-semibold text-ink-900">
+            {tn.name}
+          </h3>
+          {tn.description && (
+            <p className="mt-1 line-clamp-2 text-sm text-ink-600">{tn.description}</p>
+          )}
+          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-ink-500">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              {fmtDate.format(new Date(tn.starts_on))}
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+              {tn.participants_count}
+              {tn.max_participants ? ` / ${tn.max_participants}` : ""}
+            </div>
+            {tn.start_time && (
+              <div className="flex items-center gap-1 tabular-nums">
+                <Clock className="h-3.5 w-3.5" />
+                {tn.start_time.slice(0, 5)}
+              </div>
+            )}
+            <div className="flex items-center gap-1 tabular-nums">
+              <Coins className="h-3.5 w-3.5" />
+              {tn.entry_fee_byn == null || tn.entry_fee_byn === 0
+                ? t("entry_fee_free")
+                : t("entry_fee_byn", { n: tn.entry_fee_byn })}
+            </div>
+            {tn.venues.length > 0 && (
+              <div className="col-span-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-ink-600">
+                <MapPin className="text-leaf-700 h-3.5 w-3.5" />
+                {tn.venues.map((v) => (
+                  <span key={v.id} className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5">
+                    {v.name}
+                    {v.city && <span className="text-ink-500">· {v.city}</span>}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="col-span-2 mt-1 inline-flex items-center gap-2">
+              <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase">
+                {t(`format.${tn.format}`)}
+              </span>
+              {tn.surface && (
+                <span className="rounded-full bg-clay-50 px-2 py-0.5 text-[10px] font-medium uppercase text-clay-700">
+                  {tn.surface}
+                </span>
+              )}
+              <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-600">
+                {t(`status.${tn.status}`)}
+              </span>
+            </div>
+          </dl>
+        </div>
+      </Link>
+    </li>
   );
 }
