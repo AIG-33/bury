@@ -6,6 +6,7 @@ import {
   CalendarClock,
   MapPin,
   Plus,
+  Search,
   SlidersHorizontal,
   Trophy,
   Users,
@@ -139,93 +140,115 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
         <ul className="space-y-3">
           {rows.map((m) => {
             const startsLabel = dateFmt.format(new Date(m.starts_at));
+            const isAnyLevel = m.level_band === "any";
             return (
               <li
                 key={m.id}
-                className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition hover:border-grass-200"
+                className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card transition hover:border-grass-200"
               >
                 <Link
                   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                   href={`/open-matches/${m.id}` as any}
-                  className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4"
+                  className="block"
                 >
-                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
-                    {m.creator_avatar ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={m.creator_avatar} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <Trophy className="h-6 w-6" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <span className="font-display text-base font-semibold text-ink-900">
-                        {m.creator_name ?? "—"}
+                  {/* Looking-for banner — the primary message of the card.
+                      Highlights WHO the host wants to play against so the
+                      desired level is never confused with the host's level. */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-grass-100 bg-grass-50/60 px-4 py-2.5">
+                    <span className="inline-flex items-center gap-2">
+                      <Search className="h-4 w-4 text-grass-700" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-grass-800">
+                        {t("looking_for")}
                       </span>
-                      <span className="font-mono text-[12px] tabular-nums text-ink-500">
-                        {m.creator_elo}
-                      </span>
-                      <LevelBadge elo={m.creator_elo} showRange={false} />
-                      <span
-                        className={
-                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
-                          (m.format === "singles"
-                            ? "bg-grass-50 text-grass-800"
-                            : "bg-ball-50 text-ink-800")
-                        }
-                      >
-                        {t(m.format === "singles" ? "format_singles" : "format_doubles")}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-600">
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarClock className="h-3.5 w-3.5 text-ink-400" />
-                        {t("starts_at", { date: startsLabel })}
-                        <span className="text-ink-400">·</span>
-                        <span className="text-ink-500">
-                          {t("duration_short", { min: m.duration_min })}
-                        </span>
-                      </span>
-                      {m.venue_name ? (
-                        <span className="inline-flex items-center gap-1">
-                          <Building2 className="h-3.5 w-3.5 text-ink-400" />
-                          {m.venue_name}
-                          {m.venue_city && (
-                            <span className="text-ink-400">· {m.venue_city}</span>
-                          )}
-                        </span>
-                      ) : m.district_name ? (
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-ink-400" />
-                          {t("district_only", { name: m.district_name })}
-                        </span>
-                      ) : (
-                        <span className="text-ink-400">{t("venue_unknown")}</span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
-                      {m.level_band !== "any" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 text-ink-700 ring-1 ring-ink-100">
+                      {!isAnyLevel ? (
+                        <span className="inline-flex items-center rounded-full bg-grass-600 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
                           {tLevels(m.level_band)}
                         </span>
                       ) : (
-                        <span className="text-ink-400">{t("level_any")}</span>
+                        <span className="text-xs text-ink-500">· {t("level_any")}</span>
                       )}
-                      <span className="inline-flex items-center gap-1 text-ink-500">
-                        <Users className="h-3.5 w-3.5" />
-                        {t("slots_needed", { count: m.slots_needed })}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-ink-500">
-                        {t("applications_pending", { count: m.pending_applications_count })}
-                      </span>
+                    </span>
+                    <span
+                      className={
+                        "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
+                        (m.format === "singles"
+                          ? "bg-grass-100 text-grass-800"
+                          : "bg-ball-100 text-ink-800")
+                      }
+                    >
+                      {t(m.format === "singles" ? "format_singles" : "format_doubles")}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
+                      {m.creator_avatar ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={m.creator_avatar} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Trophy className="h-6 w-6" />
+                      )}
                     </div>
 
-                    {m.notes && (
-                      <p className="line-clamp-2 text-[13px] text-ink-600">{m.notes}</p>
-                    )}
+                    <div className="min-w-0 flex-1 space-y-2">
+                      {/* Host info — labelled so it cannot be mistaken for the
+                          desired level. The host's own level chip sits AFTER
+                          their elo, not as a free-floating tag. */}
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+                          {t("host_label")}:
+                        </span>
+                        <span className="font-display text-base font-semibold text-ink-900">
+                          {m.creator_name ?? "—"}
+                        </span>
+                        <span className="font-mono text-[12px] tabular-nums text-ink-500">
+                          {m.creator_elo}
+                        </span>
+                        <LevelBadge elo={m.creator_elo} showRange={false} />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-600">
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarClock className="h-3.5 w-3.5 text-ink-400" />
+                          {t("starts_at", { date: startsLabel })}
+                          <span className="text-ink-400">·</span>
+                          <span className="text-ink-500">
+                            {t("duration_short", { min: m.duration_min })}
+                          </span>
+                        </span>
+                        {m.venue_name ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Building2 className="h-3.5 w-3.5 text-ink-400" />
+                            {m.venue_name}
+                            {m.venue_city && (
+                              <span className="text-ink-400">· {m.venue_city}</span>
+                            )}
+                          </span>
+                        ) : m.district_name ? (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-ink-400" />
+                            {t("district_only", { name: m.district_name })}
+                          </span>
+                        ) : (
+                          <span className="text-ink-400">{t("venue_unknown")}</span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-500">
+                        <span className="inline-flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5" />
+                          {t("slots_short", { count: m.slots_needed })}
+                        </span>
+                        <span className="text-ink-300">·</span>
+                        <span>
+                          {t("applications_pending", { count: m.pending_applications_count })}
+                        </span>
+                      </div>
+
+                      {m.notes && (
+                        <p className="line-clamp-2 text-[13px] text-ink-600">{m.notes}</p>
+                      )}
+                    </div>
                   </div>
                 </Link>
               </li>

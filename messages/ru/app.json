@@ -29,6 +29,10 @@
     "district_only": "Район: {name}",
     "applications_pending": "{count, plural, =0 {Заявок нет} one {# заявка} few {# заявки} many {# заявок} other {# заявок}}",
     "slots_needed": "Ищу {count, plural, one {соперника} few {{count} соперников} many {{count} соперников} other {{count} соперников}}",
+    "looking_for": "Ищу соперника",
+    "looking_for_any": "Ищу соперника · любой уровень",
+    "host_label": "Хост",
+    "slots_short": "{count, plural, one {# слот} few {# слота} many {# слотов} other {# слотов}}",
     "filters": {
       "title": "Фильтры",
       "format": "Формат",

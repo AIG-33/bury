@@ -29,6 +29,10 @@
     "district_only": "District: {name}",
     "applications_pending": "{count, plural, =0 {No applications} one {# application} other {# applications}}",
     "slots_needed": "Looking for {count, plural, one {# opponent} other {# opponents}}",
+    "looking_for": "Looking for an opponent",
+    "looking_for_any": "Looking for an opponent · any level",
+    "host_label": "Host",
+    "slots_short": "{count, plural, one {# slot} other {# slots}}",
     "filters": {
       "title": "Filters",
       "format": "Format",

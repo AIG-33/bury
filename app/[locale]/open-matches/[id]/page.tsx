@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { ArrowLeft, Building2, CalendarClock, MapPin, Trophy, Users } from "lucide-react";
+import { ArrowLeft, Building2, CalendarClock, MapPin, Search, Trophy, Users } from "lucide-react";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { loadOpenMatch } from "../actions";
 import { ApplyControls } from "./apply-controls";
@@ -71,45 +71,70 @@ export default async function OpenMatchDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Creator + meta */}
-      <header className="flex flex-wrap items-start gap-4 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-        <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
-          {match.creator_avatar ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={match.creator_avatar} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <Trophy className="h-7 w-7" />
-          )}
-        </div>
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-            {tDetail("creator_label")}
-          </p>
-          <Link
-            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-            href={`/players/${match.creator_id}` as any}
-            className="font-display text-lg font-semibold text-ink-900 hover:text-grass-800"
+      {/* Looking-for banner — the headline of the page. Earlier the
+          creator's own level badge sat next to the name, which made the page
+          read as if the host themselves was the "expert". Now the desired
+          opponent level is the prominent, unambiguous message. */}
+      <section className="overflow-hidden rounded-xl2 border border-grass-200 bg-white shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-grass-100 bg-grass-50/70 px-5 py-3">
+          <span className="inline-flex items-center gap-2">
+            <Search className="h-5 w-5 text-grass-700" />
+            <span className="font-display text-base font-semibold uppercase tracking-wider text-grass-800">
+              {t("looking_for")}
+            </span>
+            {match.level_band !== "any" ? (
+              <span className="inline-flex items-center rounded-full bg-grass-600 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-white">
+                {tLevels(match.level_band)}
+              </span>
+            ) : (
+              <span className="text-sm text-ink-500">· {t("level_any")}</span>
+            )}
+          </span>
+          <span
+            className={
+              "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider " +
+              (match.status === "open"
+                ? "bg-grass-100 text-grass-800"
+                : match.status === "filled"
+                  ? "bg-ink-100 text-ink-700"
+                  : "bg-clay-100 text-clay-700")
+            }
           >
-            {match.creator_name ?? "—"}
-          </Link>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-ink-600">
-            <span className="font-mono tabular-nums">{match.creator_elo}</span>
-            <LevelBadge elo={match.creator_elo} />
+            {t(`status.${match.status}`)}
+          </span>
+        </div>
+
+        {/* Host strip — clearly labelled, so the host's level chip can't be
+            mistaken for the desired opponent level. */}
+        <div className="flex flex-wrap items-center gap-4 px-5 py-4">
+          <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
+            {match.creator_avatar ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={match.creator_avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Trophy className="h-6 w-6" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+              {tDetail("creator_label")}
+            </p>
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <Link
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                href={`/players/${match.creator_id}` as any}
+                className="font-display text-lg font-semibold text-ink-900 hover:text-grass-800"
+              >
+                {match.creator_name ?? "—"}
+              </Link>
+              <span className="font-mono text-sm tabular-nums text-ink-500">
+                {match.creator_elo}
+              </span>
+              <LevelBadge elo={match.creator_elo} />
+            </div>
           </div>
         </div>
-        <span
-          className={
-            "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider " +
-            (match.status === "open"
-              ? "bg-grass-100 text-grass-800"
-              : match.status === "filled"
-                ? "bg-ink-100 text-ink-700"
-                : "bg-clay-100 text-clay-700")
-          }
-        >
-          {t(`status.${match.status}`)}
-        </span>
-      </header>
+      </section>
 
       {/* Match details */}
       <section className="grid gap-3 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card sm:grid-cols-2">
@@ -143,18 +168,8 @@ export default async function OpenMatchDetailPage({ params }: Props) {
           <Users className="h-4 w-4 text-ink-400" />
           <span>
             {t(match.format === "singles" ? "format_singles" : "format_doubles")} ·{" "}
-            {t("slots_needed", { count: match.slots_needed })}
+            {t("slots_short", { count: match.slots_needed })}
           </span>
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-ink-700">
-          {match.level_band === "any" ? (
-            <span className="text-ink-500">{t("level_any")}</span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 text-[12px] text-ink-700 ring-1 ring-ink-100">
-              {tLevels(match.level_band)}
-            </span>
-          )}
         </div>
 
         {match.notes && (
