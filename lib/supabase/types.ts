@@ -186,6 +186,27 @@ export type Database = {
         Insert: AnyRow;
         Update: AnyRow;
       };
+      external_rating_history: {
+        Row: {
+          id: string;
+          player_id: string;
+          external_rating_id: string;
+          source: "liga_tennisa";
+          external_id: string;
+          old_elo: number | null;
+          new_elo: number;
+          delta: number;
+          discipline: "singles" | "doubles";
+          display_tier_old: string | null;
+          display_tier_new: string;
+          is_calibrating: boolean;
+          reason: "initial_import" | "manual_refresh" | "admin_set";
+          raw_payload: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: AnyRow;
+        Update: AnyRow;
+      };
       [table: string]: { Row: AnyRow; Insert: AnyRow; Update: AnyRow };
     };
     Views: { [view: string]: { Row: AnyRow } };

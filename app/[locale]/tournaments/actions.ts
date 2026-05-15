@@ -222,6 +222,13 @@ export type PublicTournamentDetail = {
     seed: number | null;
     elo: number;
     withdrawn: boolean;
+    external_rating: {
+      source: "liga_tennisa";
+      external_elo: number;
+      external_url: string;
+      display_tier: string;
+      is_calibrating_singles: boolean;
+    } | null;
   }>;
   matches: Array<{
     id: string;
@@ -359,12 +366,37 @@ export async function loadPublicTournamentDetail(
     current_elo: number | null;
   };
   let basicById = new Map<string, Basic>();
+  const extByPlayer = new Map<string, PublicTournamentDetail["participants"][number]["external_rating"]>();
   if (playerIds.length > 0) {
-    const { data: basics } = (await supabase
-      .from("public_player_basic")
-      .select("id, display_name, current_elo")
-      .in("id", playerIds)) as { data: Basic[] | null };
+    const [{ data: basics }, { data: extRows }] = await Promise.all([
+      supabase
+        .from("public_player_basic")
+        .select("id, display_name, current_elo")
+        .in("id", playerIds) as unknown as Promise<{ data: Basic[] | null }>,
+      supabase
+        .from("external_ratings")
+        .select("player_id, external_elo, external_url, display_tier, is_calibrating_singles")
+        .eq("source", "liga_tennisa")
+        .in("player_id", playerIds) as unknown as Promise<{
+        data: Array<{
+          player_id: string;
+          external_elo: number;
+          external_url: string;
+          display_tier: string;
+          is_calibrating_singles: boolean;
+        }> | null;
+      }>,
+    ]);
     basicById = new Map((basics ?? []).map((b) => [b.id, b] as const));
+    for (const r of extRows ?? []) {
+      extByPlayer.set(r.player_id, {
+        source: "liga_tennisa",
+        external_elo: r.external_elo,
+        external_url: r.external_url,
+        display_tier: r.display_tier,
+        is_calibrating_singles: r.is_calibrating_singles,
+      });
+    }
   }
 
   const participants = (parts ?? []).map((p) => {
@@ -375,6 +407,7 @@ export async function loadPublicTournamentDetail(
       seed: p.seed,
       elo: b?.current_elo ?? 1000,
       withdrawn: p.withdrawn,
+      external_rating: extByPlayer.get(p.player_id) ?? null,
     };
   });
 

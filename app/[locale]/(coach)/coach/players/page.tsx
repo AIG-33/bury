@@ -13,11 +13,20 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { HelpTooltip } from "@/components/help/help-tooltip";
 import { EmptyState } from "@/components/help/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
 import { Link } from "@/i18n/routing";
 import { InviteForm } from "./invite-form";
 import { loadCoachLeaderboard } from "../leaderboard/actions";
 import { LeaderboardTabs } from "../leaderboard/leaderboard-tabs";
+
+type ClubPlayerExternalRating = {
+  source: "liga_tennisa";
+  external_elo: number;
+  external_url: string;
+  display_tier: string;
+  is_calibrating_singles: boolean;
+};
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -70,6 +79,7 @@ type ClubPlayer = {
   bookings_total: number;
   bookings_active: number;
   last_activity_at: string;
+  external_rating: ClubPlayerExternalRating | null;
 };
 
 function emptyClubPlayer(id: string, last_activity_at = ""): ClubPlayer {
@@ -88,6 +98,7 @@ function emptyClubPlayer(id: string, last_activity_at = ""): ClubPlayer {
     bookings_total: 0,
     bookings_active: 0,
     last_activity_at,
+    external_rating: null,
   };
 }
 
@@ -155,12 +166,37 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
 
   const ids = Array.from(players.keys());
   if (ids.length > 0) {
-    const { data: profs } = (await supabase
-      .from("public_player_basic")
-      .select(
-        "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, city, district_name",
-      )
-      .in("id", ids)) as { data: PlayerBasicRow[] | null };
+    const [{ data: profs }, { data: ext }] = await Promise.all([
+      supabase
+        .from("public_player_basic")
+        .select(
+          "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, city, district_name",
+        )
+        .in("id", ids) as unknown as Promise<{ data: PlayerBasicRow[] | null }>,
+      supabase
+        .from("external_ratings")
+        .select("player_id, external_elo, external_url, display_tier, is_calibrating_singles")
+        .eq("source", "liga_tennisa")
+        .in("player_id", ids) as unknown as Promise<{
+        data: Array<{
+          player_id: string;
+          external_elo: number;
+          external_url: string;
+          display_tier: string;
+          is_calibrating_singles: boolean;
+        }> | null;
+      }>,
+    ]);
+    const extByPlayer = new Map<string, ClubPlayerExternalRating>();
+    for (const r of ext ?? []) {
+      extByPlayer.set(r.player_id, {
+        source: "liga_tennisa",
+        external_elo: r.external_elo,
+        external_url: r.external_url,
+        display_tier: r.display_tier,
+        is_calibrating_singles: r.is_calibrating_singles,
+      });
+    }
     for (const p of profs ?? []) {
       const cur = players.get(p.id);
       if (cur) {
@@ -171,6 +207,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
         cur.rated_matches_count = p.rated_matches_count ?? 0;
         cur.city = p.city;
         cur.district_name = p.district_name;
+        cur.external_rating = extByPlayer.get(p.id) ?? null;
       }
     }
   }
@@ -272,8 +309,33 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                         </div>
                       </Link>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2 text-right font-mono text-base font-semibold tabular-nums text-ink-900 sm:px-4">
-                      {p.current_elo ?? "—"}
+                    <td className="whitespace-nowrap px-3 py-2 text-right sm:px-4">
+                      {p.current_elo == null ? (
+                        <span className="font-mono text-base font-semibold tabular-nums text-ink-900">
+                          —
+                        </span>
+                      ) : (
+                        <RatingDisplay
+                          internalElo={p.current_elo}
+                          internalStatus={
+                            p.elo_status === "provisional" ? "provisional" : "established"
+                          }
+                          external={
+                            p.external_rating
+                              ? {
+                                  source: "liga_tennisa",
+                                  elo: p.external_rating.external_elo,
+                                  displayTier: p.external_rating.display_tier,
+                                  externalUrl: p.external_rating.external_url,
+                                  isCalibrating: p.external_rating.is_calibrating_singles,
+                                }
+                              : null
+                          }
+                          variant="inline"
+                          size="sm"
+                          className="justify-end"
+                        />
+                      )}
                       {p.elo_status === "provisional" && (
                         <div className="text-[10px] font-normal uppercase tracking-wider text-ink-400">
                           {t("club.elo_provisional")}
@@ -408,9 +470,26 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                       </Link>
                     </td>
                     <td className="py-3 text-right align-middle">
-                      <span className="font-mono text-base font-semibold text-ink-900">
-                        {r.current_elo}
-                      </span>
+                      <RatingDisplay
+                        internalElo={r.current_elo}
+                        internalStatus={
+                          r.elo_status === "provisional" ? "provisional" : "established"
+                        }
+                        external={
+                          r.external_rating
+                            ? {
+                                source: "liga_tennisa",
+                                elo: r.external_rating.external_elo,
+                                displayTier: r.external_rating.display_tier,
+                                externalUrl: r.external_rating.external_url,
+                                isCalibrating: r.external_rating.is_calibrating_singles,
+                              }
+                            : null
+                        }
+                        variant="inline"
+                        size="sm"
+                        className="justify-end"
+                      />
                       {r.elo_status === "provisional" && (
                         <p className="text-[10px] uppercase tracking-wider text-ink-400">
                           {tLb("provisional")}

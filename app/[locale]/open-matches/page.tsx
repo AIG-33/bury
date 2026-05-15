@@ -16,6 +16,7 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { BridgePanel } from "@/components/help/bridge-panel";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -201,9 +202,28 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
                         <span className="font-display text-base font-semibold text-ink-900">
                           {m.creator_name ?? "—"}
                         </span>
-                        <span className="font-mono text-[12px] tabular-nums text-ink-500">
-                          {m.creator_elo}
-                        </span>
+                        <RatingDisplay
+                          internalElo={m.creator_elo}
+                          internalStatus={
+                            m.creator_elo_status === "provisional"
+                              ? "provisional"
+                              : "established"
+                          }
+                          external={
+                            m.creator_external_rating
+                              ? {
+                                  source: "liga_tennisa",
+                                  elo: m.creator_external_rating.external_elo,
+                                  displayTier: m.creator_external_rating.display_tier,
+                                  externalUrl: m.creator_external_rating.external_url,
+                                  isCalibrating:
+                                    m.creator_external_rating.is_calibrating_singles,
+                                }
+                              : null
+                          }
+                          variant="inline"
+                          size="sm"
+                        />
                         <LevelBadge elo={m.creator_elo} showRange={false} />
                       </div>
 

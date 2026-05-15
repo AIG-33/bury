@@ -9,9 +9,43 @@ import {
   type ApplyToOpenMatchInput,
   type CreateOpenMatchInput,
   type OpenMatchApplicationRow,
+  type OpenMatchExternalRating,
   type OpenMatchFeedRow,
   type OpenMatchesFilter,
 } from "@/lib/open-matches/schema";
+
+type ExternalRatingRow = {
+  player_id: string;
+  external_elo: number;
+  external_url: string;
+  display_tier: string;
+  is_calibrating_singles: boolean;
+};
+
+async function loadExternalRatingsByPlayerId(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  playerIds: readonly string[],
+): Promise<Map<string, OpenMatchExternalRating>> {
+  const out = new Map<string, OpenMatchExternalRating>();
+  if (playerIds.length === 0) return out;
+  const { data } = (await supabase
+    .from("external_ratings")
+    .select("player_id, external_elo, external_url, display_tier, is_calibrating_singles")
+    .eq("source", "liga_tennisa")
+    .in("player_id", Array.from(new Set(playerIds)))) as {
+    data: ExternalRatingRow[] | null;
+  };
+  for (const r of data ?? []) {
+    out.set(r.player_id, {
+      source: "liga_tennisa",
+      external_elo: r.external_elo,
+      external_url: r.external_url,
+      display_tier: r.display_tier,
+      is_calibrating_singles: r.is_calibrating_singles,
+    });
+  }
+  return out;
+}
 
 // =============================================================================
 // Phase D — Server actions for Open Matches.
@@ -57,8 +91,20 @@ export async function loadOpenMatches(
   if (filters.format) q = q.eq("format", filters.format);
   if (filters.to) q = q.lte("starts_at", filters.to);
 
-  const { data } = (await q) as { data: OpenMatchFeedRow[] | null };
-  return { rows: data ?? [] };
+  const { data } = (await q) as { data: Omit<OpenMatchFeedRow, "creator_external_rating">[] | null };
+  const base = data ?? [];
+
+  const extByPlayer = await loadExternalRatingsByPlayerId(
+    supabase,
+    base.map((r) => r.creator_id),
+  );
+
+  const rows: OpenMatchFeedRow[] = base.map((r) => ({
+    ...r,
+    creator_external_rating: extByPlayer.get(r.creator_id) ?? null,
+  }));
+
+  return { rows };
 }
 
 // ---------------------------------------------------------------------------
@@ -75,7 +121,7 @@ export type OpenMatchDetail = {
 export async function loadOpenMatch(id: string): Promise<OpenMatchDetail | null> {
   const supabase = await createSupabaseServerClient();
 
-  const { data: match } = (await supabase
+  const { data: matchBase } = (await supabase
     .from("open_matches_feed")
     .select(
       "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
@@ -85,14 +131,16 @@ export async function loadOpenMatch(id: string): Promise<OpenMatchDetail | null>
         "pending_applications_count, accepted_applications_count",
     )
     .eq("id", id)
-    .maybeSingle()) as { data: OpenMatchFeedRow | null };
+    .maybeSingle()) as {
+    data: Omit<OpenMatchFeedRow, "creator_external_rating"> | null;
+  };
 
-  if (!match) return null;
+  if (!matchBase) return null;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const isCreator = user != null && user.id === match.creator_id;
+  const isCreator = user != null && user.id === matchBase.creator_id;
 
   // Read applications. RLS filters to (applicant=me OR creator-of-parent),
   // so the creator gets all rows; a regular user only their own.
@@ -120,6 +168,17 @@ export async function loadOpenMatch(id: string): Promise<OpenMatchDetail | null>
     }> | null;
   };
 
+  // Batched LT lookup for the host and every applicant in one query.
+  const extByPlayer = await loadExternalRatingsByPlayerId(supabase, [
+    matchBase.creator_id,
+    ...(rawApps ?? []).map((a) => a.applicant_id),
+  ]);
+
+  const match: OpenMatchFeedRow = {
+    ...matchBase,
+    creator_external_rating: extByPlayer.get(matchBase.creator_id) ?? null,
+  };
+
   const applications: OpenMatchApplicationRow[] = (rawApps ?? []).map((a) => ({
     id: a.id,
     open_match_id: a.open_match_id,
@@ -127,6 +186,7 @@ export async function loadOpenMatch(id: string): Promise<OpenMatchDetail | null>
     applicant_name: a.profiles?.display_name ?? null,
     applicant_avatar: a.profiles?.avatar_url ?? null,
     applicant_elo: a.profiles?.current_elo ?? 0,
+    applicant_external_rating: extByPlayer.get(a.applicant_id) ?? null,
     message: a.message,
     status: a.status,
     created_at: a.created_at,

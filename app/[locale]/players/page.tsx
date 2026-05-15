@@ -4,6 +4,7 @@ import { Link } from "@/i18n/routing";
 import { Award, CalendarClock, Clock, Hand, MapPin, Sparkles, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { WinRatePill } from "@/components/rating/win-rate-pill";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
@@ -303,13 +304,22 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                       </Link>
                     )}
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className="font-display text-[26px] font-bold leading-none tabular-nums text-grass-800">
-                      {p.current_elo}
-                    </span>
-                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500">
-                      {t("card.elo_unit")}
-                    </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <RatingDisplay
+                      internalElo={p.current_elo}
+                      external={
+                        p.external_rating
+                          ? {
+                              source: "liga_tennisa",
+                              elo: p.external_rating.external_elo,
+                              displayTier: p.external_rating.display_tier,
+                              externalUrl: p.external_rating.external_url,
+                            }
+                          : null
+                      }
+                      variant="stacked"
+                      size="md"
+                    />
                     <LevelBadge elo={p.current_elo} showRange={false} />
                     {isProvisional && (
                       <span
@@ -341,18 +351,6 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                         </>
                       )}
                     </span>
-                  )}
-                  {p.external_rating && (
-                    <a
-                      href={p.external_rating.external_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-full border border-ball-300 bg-ball-50 px-2 py-0.5 font-mono text-ball-800 hover:bg-ball-100"
-                      title={t("card.lt_external_hint")}
-                    >
-                      <Sparkles className="h-3 w-3" />
-                      LT · {p.external_rating.display_tier}
-                    </a>
                   )}
                 </div>
 

@@ -120,6 +120,19 @@ export type OpenMatchesFilter = z.output<typeof OpenMatchesFilterSchema>;
 // Output types (mirror open_matches_feed view)
 // ---------------------------------------------------------------------------
 
+/**
+ * Slim Liga Tennisa snapshot attached to creator/applicant rows so the
+ * shared `<RatingDisplay>` component can render the LT-in-parens badge.
+ * Sourced via a batched secondary query on `external_ratings`.
+ */
+export type OpenMatchExternalRating = {
+  source: "liga_tennisa";
+  external_elo: number;
+  external_url: string;
+  display_tier: string;
+  is_calibrating_singles: boolean;
+};
+
 export type OpenMatchFeedRow = {
   id: string;
   creator_id: string;
@@ -127,6 +140,7 @@ export type OpenMatchFeedRow = {
   creator_avatar: string | null;
   creator_elo: number;
   creator_elo_status: "provisional" | "established";
+  creator_external_rating: OpenMatchExternalRating | null;
   venue_id: string | null;
   venue_name: string | null;
   venue_city: string | null;
@@ -153,6 +167,7 @@ export type OpenMatchApplicationRow = {
   applicant_name: string | null;
   applicant_avatar: string | null;
   applicant_elo: number;
+  applicant_external_rating: OpenMatchExternalRating | null;
   message: string | null;
   status: OpenMatchApplicationStatus;
   created_at: string;

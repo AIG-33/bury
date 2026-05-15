@@ -239,6 +239,7 @@ export default async function ProfilePage({ params }: Props) {
           errors: {
             not_authenticated: tExt("errors.not_authenticated"),
             no_external_rating: tExt("errors.no_external_rating"),
+            rate_limited: tExt("errors.rate_limited"),
             upstream_unreachable: tExt("errors.upstream_unreachable"),
             upstream_error: tExt("errors.upstream_error"),
             player_not_found: tExt("errors.player_not_found"),

@@ -885,6 +885,13 @@ export type ProposalRow = {
     current_elo: number;
     city: string | null;
     whatsapp: string | null;
+    external_rating: {
+      source: "liga_tennisa";
+      external_elo: number;
+      external_url: string;
+      display_tier: string;
+      is_calibrating_singles: boolean;
+    } | null;
   };
   is_initiator: boolean;
 };
@@ -929,13 +936,47 @@ export async function loadMyProposals(): Promise<{
 
   const peopleById = new Map<string, ProposalRow["other"]>();
   if (otherIds.length > 0) {
-    const { data: people } = (await supabase
-      .from("profiles")
-      .select("id, display_name, avatar_url, current_elo, city, whatsapp")
-      .in("id", otherIds)) as {
-      data: Array<ProposalRow["other"]> | null;
-    };
-    for (const p of people ?? []) peopleById.set(p.id, p);
+    const [{ data: people }, { data: ext }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, current_elo, city, whatsapp")
+        .in("id", otherIds) as unknown as Promise<{
+        data: Array<{
+          id: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          current_elo: number;
+          city: string | null;
+          whatsapp: string | null;
+        }> | null;
+      }>,
+      supabase
+        .from("external_ratings")
+        .select("player_id, external_elo, external_url, display_tier, is_calibrating_singles")
+        .eq("source", "liga_tennisa")
+        .in("player_id", otherIds) as unknown as Promise<{
+        data: Array<{
+          player_id: string;
+          external_elo: number;
+          external_url: string;
+          display_tier: string;
+          is_calibrating_singles: boolean;
+        }> | null;
+      }>,
+    ]);
+    const extByPlayer = new Map<string, ProposalRow["other"]["external_rating"]>();
+    for (const r of ext ?? []) {
+      extByPlayer.set(r.player_id, {
+        source: "liga_tennisa",
+        external_elo: r.external_elo,
+        external_url: r.external_url,
+        display_tier: r.display_tier,
+        is_calibrating_singles: r.is_calibrating_singles,
+      });
+    }
+    for (const p of people ?? []) {
+      peopleById.set(p.id, { ...p, external_rating: extByPlayer.get(p.id) ?? null });
+    }
   }
 
   const all: ProposalRow[] = (rows ?? []).flatMap((m) => {

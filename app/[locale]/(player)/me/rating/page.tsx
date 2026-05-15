@@ -15,9 +15,12 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
 import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
+import { loadMyExternalRatingTimeline } from "@/lib/rating/external/history";
 import { PageHeader } from "@/components/layout/page-header";
 import { ExternalRatingStrip } from "@/components/profile/external-rating-strip";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { RatingDisplay } from "@/components/rating/rating-display";
+import { ExternalEloChart } from "@/components/rating/external-elo-chart";
 import { EloChart } from "./elo-chart";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -32,9 +35,12 @@ export default async function MyRatingPage({ params }: Props) {
   if (!data) redirect(`/${locale}/login`);
 
   const externalRating = await loadMyExternalRating();
+  const externalTimeline = await loadMyExternalRatingTimeline();
 
   const { hero, history, season, recentMatches, needs_onboarding_quiz } = data;
   const deltaPositive = hero.delta_30d >= 0;
+  const extDelta30d = externalTimeline?.delta_30d ?? 0;
+  const extDeltaPositive = extDelta30d >= 0;
 
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
@@ -110,10 +116,27 @@ export default async function MyRatingPage({ params }: Props) {
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="label-eyebrow">{t("hero.label")}</p>
-            <p className="mt-2 inline-flex items-center gap-4 font-display text-6xl font-extrabold tabular-nums text-grass-900 md:text-7xl">
+            <div className="mt-2 flex items-center gap-4">
               <Trophy className="h-12 w-12 text-ball-500 drop-shadow-[0_4px_12px_rgba(31,138,76,0.25)]" />
-              {hero.current_elo}
-            </p>
+              <RatingDisplay
+                internalElo={hero.current_elo}
+                internalStatus={hero.elo_status}
+                external={
+                  externalRating
+                    ? {
+                        source: "liga_tennisa",
+                        elo: externalRating.external_elo,
+                        displayTier: externalRating.display_tier,
+                        externalUrl: externalRating.external_url,
+                        lastRefreshedAt: externalRating.last_refreshed_at,
+                        isCalibrating: externalRating.is_calibrating_singles,
+                      }
+                    : null
+                }
+                variant="stacked"
+                size="lg"
+              />
+            </div>
             <div className="mt-3">
               <LevelBadge elo={hero.current_elo} size="md" />
             </div>
@@ -169,6 +192,7 @@ export default async function MyRatingPage({ params }: Props) {
           errors: {
             not_authenticated: tExt("errors.not_authenticated"),
             no_external_rating: tExt("errors.no_external_rating"),
+            rate_limited: tExt("errors.rate_limited"),
             upstream_unreachable: tExt("errors.upstream_unreachable"),
             upstream_error: tExt("errors.upstream_error"),
             player_not_found: tExt("errors.player_not_found"),
@@ -178,9 +202,11 @@ export default async function MyRatingPage({ params }: Props) {
         }}
       />
 
-      {/* Season race + chart */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <section className="surface-card lg:col-span-2">
+      {/* Two timelines side by side: our internal Elo (left) + LT Elo (right).
+          On mobile they stack. The right column collapses gracefully when the
+          player has not connected an external rating. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="surface-card">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="section-title">
               {t("history.title")}
@@ -204,6 +230,66 @@ export default async function MyRatingPage({ params }: Props) {
           />
         </section>
 
+        <section className="surface-card">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h2 className="section-title">{t("ext_history.title")}</h2>
+              <p className="mt-0.5 text-xs text-ink-500">
+                {t("ext_history.subtitle")}
+              </p>
+            </div>
+            {externalTimeline && externalTimeline.refreshed_count > 0 && (
+              <span className="text-xs text-ink-500">
+                {t("ext_history.refreshes", { n: externalTimeline.refreshed_count })}
+              </span>
+            )}
+          </div>
+          <ExternalEloChart
+            singles={externalTimeline?.singles ?? []}
+            doubles={externalTimeline?.doubles ?? []}
+            locale={locale as "ru" | "en"}
+            copy={{
+              empty: t("ext_history.empty"),
+              not_enough_points: t("ext_history.not_enough_points"),
+              elo_axis: t("ext_history.axis"),
+              delta: t("history.delta_label"),
+              singles_label: t("ext_history.singles"),
+              doubles_label: t("ext_history.doubles"),
+              calibrating_label: t("ext_history.calibrating"),
+              reason_initial: t("ext_history.reasons.initial_import"),
+              reason_refresh: t("ext_history.reasons.manual_refresh"),
+              reason_admin: t("ext_history.reasons.admin_set"),
+            }}
+          />
+          {externalTimeline && externalTimeline.singles.length >= 2 && (
+            <div className="mt-4 grid grid-cols-3 gap-3 border-t border-ink-100 pt-3 text-center">
+              <Stat
+                label={t("ext_history.delta_30d")}
+                value={`${extDeltaPositive ? "+" : ""}${extDelta30d}`}
+                accent={
+                  extDelta30d === 0
+                    ? "neutral"
+                    : extDeltaPositive
+                      ? "positive"
+                      : "negative"
+                }
+                icon={
+                  extDelta30d === 0 ? null : extDeltaPositive ? (
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  )
+                }
+              />
+              <Stat label={t("ext_history.best")} value={externalTimeline.best_elo.toString()} />
+              <Stat label={t("ext_history.worst")} value={externalTimeline.worst_elo.toString()} />
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* Season race */}
+      <div className="grid grid-cols-1 gap-6">
         <section className="surface-card overflow-hidden bg-gradient-to-br from-ball-50 via-white to-white">
           <div className="mb-2 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-ball-700" />

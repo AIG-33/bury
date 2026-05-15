@@ -258,7 +258,7 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
       {rows.length === 0 ? (
         <EmptyHowTo locale={locale} t={t} filtersActive={filtersActive} />
       ) : (
-        <ul className="grid gap-3">
+        <ul className="grid gap-3 md:grid-cols-2">
           {rows.map((m) => (
             <MatchRowItem
               key={m.id}
@@ -465,7 +465,17 @@ function PaginationLink({
 }
 
 // =============================================================================
-// Match card
+// Match card — compact scorecard layout (ATP/WTA style).
+//
+// Layout:
+//   [date · tournament/friendly · venue]                    ← meta row
+//   ──────────────────────────────────────────────────────
+//   [avatar]  Player 1 (winner)         | 6 | 4 | 10 |
+//   [avatar]  Player 2                  | 3 | 6 |  6 |
+//
+// Names are stacked (фамилия под фамилией). The set scores form a small grid
+// on the right where each column is one set. Two cards fit per row on
+// desktop (md:grid-cols-2 in the parent ul).
 // =============================================================================
 function MatchRowItem({
   m,
@@ -488,13 +498,13 @@ function MatchRowItem({
 }) {
   const dateIso = m.played_at ?? m.scheduled_at;
   const dateLabel = dateIso ? dateFmt.format(new Date(dateIso)) : labels.tba;
-
   const isTournament = !!m.tournament_id;
+  const sets = m.sets ?? [];
 
   return (
     <li
       className={
-        "surface-row lift-on-hover relative overflow-hidden " +
+        "surface-row lift-on-hover relative h-full overflow-hidden " +
         (isTournament ? "hover:border-ball-200" : "hover:border-grass-200")
       }
     >
@@ -502,43 +512,43 @@ function MatchRowItem({
       <span
         aria-hidden
         className={
-          "absolute inset-y-0 left-0 w-1.5 " + (isTournament ? "bg-ball-400" : "bg-grass-400")
+          "absolute inset-y-0 left-0 w-1 " + (isTournament ? "bg-ball-400" : "bg-grass-400")
         }
       />
 
-      <div className="space-y-3 pl-7">
-        {/* Top row: meta */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wider">
+      <div className="space-y-2 pl-4">
+        {/* Top row: compact meta */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] font-semibold uppercase tracking-wider">
           <span className="inline-flex items-center gap-1 text-ink-500">
-            <CalendarDays className="h-3.5 w-3.5" />
-            <span className="text-ink-700">{dateLabel}</span>
+            <CalendarDays className="h-3 w-3" />
+            <span className="text-ink-700 normal-case tracking-normal">{dateLabel}</span>
           </span>
           {isTournament ? (
             <Link
               /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
               href={`/tournaments/${m.tournament_id}` as any}
-              className="inline-flex items-center gap-1 rounded-full bg-ball-100 px-2.5 py-1 text-ball-900 ring-1 ring-ball-200 transition hover:bg-ball-200"
+              className="inline-flex max-w-[180px] items-center gap-1 truncate rounded-full bg-ball-100 px-2 py-0.5 text-ball-900 ring-1 ring-ball-200 transition hover:bg-ball-200"
             >
-              <Trophy className="h-3.5 w-3.5" />
-              <span className="font-bold normal-case tracking-normal">
+              <Trophy className="h-3 w-3 shrink-0" />
+              <span className="truncate font-bold normal-case tracking-normal">
                 {m.tournament_name ?? labels.tournament}
               </span>
             </Link>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2.5 py-1 text-grass-900 ring-1 ring-grass-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-grass-900 ring-1 ring-grass-200">
               {labels.friendly}
             </span>
           )}
           {m.is_doubles && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2.5 py-1 text-ink-700">
-              <Users className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-ink-700">
+              <Users className="h-3 w-3" />
               {labels.doubles}
             </span>
           )}
           {m.venue_name && (
-            <span className="inline-flex items-center gap-1 text-ink-500">
-              <MapPin className="h-3.5 w-3.5" />
-              <span className="font-medium normal-case tracking-normal text-ink-700">
+            <span className="inline-flex min-w-0 items-center gap-1 text-ink-500">
+              <MapPin className="h-3 w-3 shrink-0" />
+              <span className="truncate font-medium normal-case tracking-normal text-ink-700">
                 {m.venue_name}
                 {m.venue_city ? ` · ${m.venue_city}` : ""}
               </span>
@@ -546,124 +556,76 @@ function MatchRowItem({
           )}
         </div>
 
-        {/* Players + score row */}
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-          <PlayerSide
+        {/* Stacked players + per-set scores */}
+        <div className="rounded-xl border border-ink-100/70 bg-white">
+          <PlayerScoreLine
+            position="top"
             id={m.p1_id}
             name={m.p1_name}
             avatar={m.p1_avatar}
             isCoach={m.p1_is_coach}
             partnerName={m.p1_partner_name}
-            align="left"
-            highlight={m.winner_side === "p1"}
+            isWinner={m.winner_side === "p1"}
+            sideKey="p1"
+            sets={sets}
             winnerLabel={labels.winner}
             locale={locale}
           />
-
-          <ScoreBlock
-            sets={m.sets}
-            winnerSide={m.winner_side}
-            noScoreLabel={labels.no_score}
-            setLabel={labels.set}
-          />
-
-          <PlayerSide
+          <PlayerScoreLine
+            position="bottom"
             id={m.p2_id}
             name={m.p2_name}
             avatar={m.p2_avatar}
             isCoach={m.p2_is_coach}
             partnerName={m.p2_partner_name}
-            align="right"
-            highlight={m.winner_side === "p2"}
+            isWinner={m.winner_side === "p2"}
+            sideKey="p2"
+            sets={sets}
             winnerLabel={labels.winner}
             locale={locale}
           />
+          {sets.length === 0 && (
+            <p className="border-t border-ink-100/60 px-3 py-1.5 text-center text-[11px] font-medium text-ink-400">
+              {labels.no_score}
+            </p>
+          )}
         </div>
       </div>
     </li>
   );
 }
 
-function ScoreBlock({
-  sets,
-  winnerSide,
-  noScoreLabel,
-  setLabel,
-}: {
-  sets: MatchRow["sets"];
-  winnerSide: "p1" | "p2" | null;
-  noScoreLabel: string;
-  setLabel: string;
-}) {
-  if (!sets || sets.length === 0) {
-    return (
-      <div className="flex items-center justify-center text-xs font-medium text-ink-400">
-        {noScoreLabel}
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-center justify-center">
-      <div className="inline-grid auto-cols-fr grid-flow-col gap-3 rounded-xl bg-ink-50 px-4 py-3">
-        {sets.map((s, i) => {
-          const p1Win = s.p1_games > s.p2_games;
-          const p2Win = s.p2_games > s.p1_games;
-          return (
-            <div key={i} className="flex flex-col items-center">
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-ink-400">
-                {setLabel}&nbsp;{i + 1}
-              </span>
-              <div className="mt-0.5 grid grid-cols-2 gap-x-2 font-display text-2xl font-extrabold tabular-nums leading-none">
-                <span
-                  className={
-                    p1Win ? "text-grass-700" : winnerSide === "p1" ? "text-ink-800" : "text-ink-400"
-                  }
-                >
-                  {s.p1_games}
-                  {s.tiebreak_p1 != null && (
-                    <sup className="ml-0.5 text-[10px] font-bold">{s.tiebreak_p1}</sup>
-                  )}
-                </span>
-                <span
-                  className={
-                    p2Win ? "text-grass-700" : winnerSide === "p2" ? "text-ink-800" : "text-ink-400"
-                  }
-                >
-                  {s.p2_games}
-                  {s.tiebreak_p2 != null && (
-                    <sup className="ml-0.5 text-[10px] font-bold">{s.tiebreak_p2}</sup>
-                  )}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function PlayerSide({
+/**
+ * One player row inside the scorecard. Avatar + name on the left, set
+ * scores in fixed-width columns on the right. Designed so that two of
+ * these stack pixel-perfectly and the score columns line up vertically.
+ */
+function PlayerScoreLine({
+  position,
   id,
   name,
   avatar,
   isCoach,
   partnerName,
-  align,
-  highlight,
+  isWinner,
+  sideKey,
+  sets,
   winnerLabel,
   locale,
 }: {
+  position: "top" | "bottom";
   id: string;
   name: string | null;
   avatar: string | null;
   isCoach: boolean | null;
   partnerName: string | null;
-  align: "left" | "right";
-  highlight: boolean;
+  isWinner: boolean;
+  sideKey: "p1" | "p2";
+  sets: NonNullable<MatchRow["sets"]>;
   winnerLabel: string;
   locale: string;
 }) {
+  void locale;
   const display = name ?? "—";
   const initial = display.slice(0, 1).toUpperCase();
 
@@ -673,15 +635,15 @@ function PlayerSide({
       src={avatar}
       alt=""
       className={
-        "h-11 w-11 rounded-full object-cover ring-2 transition " +
-        (highlight ? "ring-grass-400" : "ring-white")
+        "h-7 w-7 shrink-0 rounded-full object-cover ring-2 " +
+        (isWinner ? "ring-grass-400" : "ring-white")
       }
     />
   ) : (
     <span
       className={
-        "grid h-11 w-11 place-items-center rounded-full font-display text-base font-bold ring-2 transition " +
-        (highlight
+        "grid h-7 w-7 shrink-0 place-items-center rounded-full font-display text-[11px] font-bold ring-2 " +
+        (isWinner
           ? "bg-grass-100 text-grass-900 ring-grass-400"
           : "bg-ink-100 text-ink-700 ring-white")
       }
@@ -690,60 +652,80 @@ function PlayerSide({
     </span>
   );
 
-  const nameBlock = (
-    <span className="min-w-0 flex-1">
+  const NameInner = (
+    <span className="flex min-w-0 flex-col leading-tight">
       <span className="flex items-center gap-1.5">
         <span
           className={
-            "block truncate font-display text-base font-bold leading-tight " +
-            (highlight ? "text-grass-900" : "text-ink-900")
+            "truncate font-display text-[13.5px] font-bold leading-tight " +
+            (isWinner ? "text-grass-900" : "text-ink-900")
           }
+          title={display}
         >
           {display}
         </span>
-        {highlight && (
-          <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-grass-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
-            <Trophy className="h-2.5 w-2.5" />
-            {winnerLabel}
-          </span>
+        {isWinner && (
+          <Trophy
+            className="h-3 w-3 shrink-0 text-grass-600"
+            aria-label={winnerLabel}
+          />
         )}
       </span>
       {partnerName && (
-        <span className="block truncate text-xs font-medium text-ink-500">+ {partnerName}</span>
+        <span className="truncate text-[11px] font-medium text-ink-500" title={`+ ${partnerName}`}>
+          + {partnerName}
+        </span>
       )}
     </span>
   );
 
-  const inner = (
-    <span
+  const nameBlock = isCoach ? (
+    <Link
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      href={`/coaches/${id}` as any}
+      className="min-w-0 flex-1 transition hover:opacity-80"
+    >
+      {NameInner}
+    </Link>
+  ) : (
+    <div className="min-w-0 flex-1">{NameInner}</div>
+  );
+
+  return (
+    <div
       className={
-        "flex items-center gap-3 rounded-xl px-2 py-1 " +
-        (align === "right" ? "flex-row-reverse text-right" : "text-left")
+        "flex items-center gap-2.5 px-2.5 py-1.5 " +
+        (position === "top" ? "border-b border-ink-100/60" : "")
       }
     >
       {avatarBlock}
       {nameBlock}
-    </span>
-  );
 
-  if (isCoach) {
-    return (
-      <Link
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        href={`/coaches/${id}` as any}
-        className={
-          "min-w-0 transition hover:opacity-90 " +
-          (align === "right" ? "justify-self-end" : "justify-self-start")
-        }
-      >
-        {inner}
-      </Link>
-    );
-  }
-  void locale;
-  return (
-    <div className={"min-w-0 " + (align === "right" ? "justify-self-end" : "justify-self-start")}>
-      {inner}
+      {/* Set columns. Fixed width so the two rows stack with aligned digits. */}
+      <div className="flex shrink-0 items-center gap-1">
+        {sets.map((s, i) => {
+          const my = sideKey === "p1" ? s.p1_games : s.p2_games;
+          const their = sideKey === "p1" ? s.p2_games : s.p1_games;
+          const myTb = sideKey === "p1" ? s.tiebreak_p1 : s.tiebreak_p2;
+          const wonSet = my > their;
+          return (
+            <span
+              key={i}
+              className={
+                "inline-flex h-7 min-w-[28px] items-center justify-center rounded-md px-1.5 font-mono text-[14px] font-bold tabular-nums leading-none " +
+                (wonSet
+                  ? "bg-grass-50 text-grass-800 ring-1 ring-grass-200"
+                  : "bg-ink-50 text-ink-500 ring-1 ring-ink-100")
+              }
+            >
+              {my}
+              {myTb != null && (
+                <sup className="ml-0.5 text-[9px] font-bold opacity-80">{myTb}</sup>
+              )}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }

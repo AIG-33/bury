@@ -31,7 +31,7 @@ import {
 import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
 import type { ScoredCandidate, Weekday, DayPart } from "@/lib/matching/find-player";
 import { whatsappLink } from "@/lib/contact/whatsapp";
-import { ExternalRatingBadge } from "@/components/profile/external-rating-badge";
+import { RatingDisplay } from "@/components/rating/rating-display";
 
 type Locale = "ru" | "en";
 
@@ -591,18 +591,6 @@ function CandidateCard({
               </span>
             )}
             <ScoreBadge label={copy.card.score} value={candidate.score} />
-            {candidate.external_rating && (
-              <ExternalRatingBadge
-                size="sm"
-                source={candidate.external_rating.source}
-                externalUrl={candidate.external_rating.external_url}
-                displayTier={candidate.external_rating.display_tier}
-                externalElo={candidate.external_rating.external_elo}
-                externalEloDoubles={candidate.external_rating.external_elo_doubles}
-                isCalibratingSingles={candidate.external_rating.is_calibrating_singles}
-                sourceLabel={copy.lt_source_label}
-              />
-            )}
           </div>
           {candidate.overlap_count > 0 ? (
             <div className="mt-2 flex flex-wrap gap-1">
@@ -630,9 +618,22 @@ function CandidateCard({
         <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-end">
           <div className="text-right">
             <p className="text-[10px] uppercase tracking-wider text-ink-500">{copy.card.elo}</p>
-            <p className="font-mono text-2xl font-bold tabular-nums text-grass-700">
-              {candidate.current_elo}
-            </p>
+            <RatingDisplay
+              internalElo={candidate.current_elo}
+              external={
+                candidate.external_rating
+                  ? {
+                      source: "liga_tennisa",
+                      elo: candidate.external_rating.external_elo,
+                      displayTier: candidate.external_rating.display_tier,
+                      externalUrl: candidate.external_rating.external_url,
+                      isCalibrating: candidate.external_rating.is_calibrating_singles,
+                    }
+                  : null
+              }
+              variant="stacked"
+              size="md"
+            />
           </div>
           <div className="flex flex-col gap-2">
             {wa && (

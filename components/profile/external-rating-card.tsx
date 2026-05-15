@@ -40,6 +40,7 @@ export type ExternalRatingCardCopy = {
   errors: {
     not_authenticated: string;
     no_external_rating: string;
+    rate_limited: string;
     upstream_unreachable: string;
     upstream_error: string;
     player_not_found: string;

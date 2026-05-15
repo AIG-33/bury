@@ -13,6 +13,7 @@ import type {
   OpenMatchStatus,
   OpenMatchApplicationStatus,
 } from "@/lib/open-matches/schema";
+import { RatingDisplay } from "@/components/rating/rating-display";
 
 type Copy = {
   your_application: string;
@@ -194,8 +195,25 @@ export function ApplyControls({
                     >
                       {a.applicant_name ?? "—"}
                     </a>
-                    <p className="text-xs text-ink-500">
-                      <span className="font-mono tabular-nums">{a.applicant_elo}</span> · {statusLabel(a.status, copy)}
+                    <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-ink-500">
+                      <RatingDisplay
+                        internalElo={a.applicant_elo}
+                        external={
+                          a.applicant_external_rating
+                            ? {
+                                source: "liga_tennisa",
+                                elo: a.applicant_external_rating.external_elo,
+                                displayTier: a.applicant_external_rating.display_tier,
+                                externalUrl: a.applicant_external_rating.external_url,
+                                isCalibrating:
+                                  a.applicant_external_rating.is_calibrating_singles,
+                              }
+                            : null
+                        }
+                        variant="inline"
+                        size="sm"
+                      />
+                      <span>· {statusLabel(a.status, copy)}</span>
                     </p>
                     {a.message && (
                       <p className="mt-1 truncate text-[13px] text-ink-600">{a.message}</p>

@@ -9,6 +9,10 @@ import {
   BottomTabBar,
   type BottomTabItem,
 } from "@/components/layout/bottom-tab-bar";
+import {
+  InstallAppProvider,
+  InstallAppPrompt,
+} from "@/components/layout/install-app-card";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -31,6 +35,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale);
   const messages = await getMessages();
   const t = await getTranslations("nav");
+  const tFooter = await getTranslations("footer");
 
   // Single auth probe for layout-level chrome (footer cta state, mobile tabs).
   const supabase = await createSupabaseServerClient();
@@ -64,16 +69,48 @@ export default async function LocaleLayout({ children, params }: Props) {
     },
   ];
 
+  // Labels for the install-as-PWA UX (compact icons in the footer + the
+  // floating prompt mounted globally). Captured server-side so the client
+  // component doesn't need to call useTranslations() for layout chrome.
+  const installLabels = {
+    title: tFooter("install.title"),
+    body: tFooter("install.body"),
+    android_button: tFooter("install.android_button"),
+    ios_button: tFooter("install.ios_button"),
+    android_modal_title: tFooter("install.android_modal_title"),
+    android_step_1: tFooter("install.android_step_1"),
+    android_step_2: tFooter("install.android_step_2"),
+    android_step_3: tFooter("install.android_step_3"),
+    android_install_native: tFooter("install.android_install_native"),
+    android_native_hint: tFooter("install.android_native_hint"),
+    ios_modal_title: tFooter("install.ios_modal_title"),
+    ios_step_1: tFooter("install.ios_step_1"),
+    ios_step_2: tFooter("install.ios_step_2"),
+    ios_step_3: tFooter("install.ios_step_3"),
+    close: tFooter("install.close"),
+  };
+
+  const installPromptLabels = {
+    prompt_headline: tFooter("install.prompt_headline"),
+    prompt_body: tFooter("install.prompt_body"),
+    prompt_android: tFooter("install.android_button"),
+    prompt_ios: tFooter("install.ios_button"),
+    prompt_dismiss: tFooter("install.prompt_dismiss"),
+  };
+
   return (
     <NextIntlClientProvider messages={messages} locale={locale} timeZone="Europe/Minsk">
       <Suspense fallback={null}>
         <PostHogProvider>
-          <div className="flex min-h-screen flex-col">
-            <TopNav />
-            <main className="flex-1">{children}</main>
-            <Footer authed={!!user} />
-            <BottomTabBar items={bottomTabs} />
-          </div>
+          <InstallAppProvider labels={installLabels}>
+            <div className="flex min-h-screen flex-col">
+              <TopNav />
+              <main className="flex-1">{children}</main>
+              <Footer authed={!!user} />
+              <BottomTabBar items={bottomTabs} />
+            </div>
+            <InstallAppPrompt labels={installPromptLabels} />
+          </InstallAppProvider>
         </PostHogProvider>
       </Suspense>
     </NextIntlClientProvider>

@@ -7,6 +7,7 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { WinRatePill } from "@/components/rating/win-rate-pill";
 import { RecentResultsStrip } from "@/components/rating/recent-results-strip";
 import { PageHeader } from "@/components/layout/page-header";
@@ -152,6 +153,22 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
             title={profile.display_name ?? "—"}
             subtitle={
               <span className="flex flex-wrap items-center gap-3">
+                <RatingDisplay
+                  internalElo={profile.current_elo}
+                  internalStatus={profile.elo_status}
+                  external={
+                    profile.external_rating
+                      ? {
+                          source: "liga_tennisa",
+                          elo: profile.external_rating.external_elo,
+                          displayTier: profile.external_rating.display_tier,
+                          externalUrl: profile.external_rating.external_url,
+                        }
+                      : null
+                  }
+                  variant="inline"
+                  size="md"
+                />
                 <LevelBadge elo={profile.current_elo} size="md" />
                 <WinRatePill wins={profile.stats.wins_count} losses={profile.stats.losses_count} />
                 {(profile.city || profile.district_name) && (
@@ -175,17 +192,6 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
                     <Award className="h-3 w-3" />
                     {t("card.is_coach")}
                   </Link>
-                )}
-                {profile.external_rating && (
-                  <a
-                    href={profile.external_rating.external_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-ball-300 bg-ball-50 px-2 py-0.5 font-mono text-xs text-ball-800 hover:bg-ball-100"
-                    title="Liga Tennisa"
-                  >
-                    LT · {profile.external_rating.display_tier}
-                  </a>
                 )}
               </span>
             }

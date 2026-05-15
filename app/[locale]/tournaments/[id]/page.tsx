@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, Coins, MapPin, Users, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { Surface } from "@/components/ui/surface";
 import { Chip } from "@/components/ui/surface";
 import { loadPublicTournamentDetail } from "../actions";
@@ -173,7 +174,22 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                     </span>
                     {p.name ?? "?"}
                   </span>
-                  <span className="font-mono text-xs tabular-nums text-ink-500">Elo {p.elo}</span>
+                  <RatingDisplay
+                    internalElo={p.elo}
+                    external={
+                      p.external_rating
+                        ? {
+                            source: "liga_tennisa",
+                            elo: p.external_rating.external_elo,
+                            displayTier: p.external_rating.display_tier,
+                            externalUrl: p.external_rating.external_url,
+                            isCalibrating: p.external_rating.is_calibrating_singles,
+                          }
+                        : null
+                    }
+                    variant="inline"
+                    size="sm"
+                  />
                 </li>
               ))}
           </ol>

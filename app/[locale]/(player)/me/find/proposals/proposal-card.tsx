@@ -14,6 +14,7 @@ import { respondToProposal, type ProposalRow } from "../actions";
 import { whatsappLink } from "@/lib/contact/whatsapp";
 import { Button } from "@/components/ui/button";
 import { Surface, Chip } from "@/components/ui/surface";
+import { RatingDisplay } from "@/components/rating/rating-display";
 
 export type ProposalCardCopy = {
   accept: string;
@@ -104,7 +105,22 @@ export function ProposalCard({
             <p className="truncate font-display text-base font-semibold text-ink-900">
               {row.other.display_name ?? "—"}
             </p>
-            <span className="font-mono text-xs text-grass-700">Elo {row.other.current_elo}</span>
+            <RatingDisplay
+              internalElo={row.other.current_elo}
+              external={
+                row.other.external_rating
+                  ? {
+                      source: "liga_tennisa",
+                      elo: row.other.external_rating.external_elo,
+                      displayTier: row.other.external_rating.display_tier,
+                      externalUrl: row.other.external_rating.external_url,
+                      isCalibrating: row.other.external_rating.is_calibrating_singles,
+                    }
+                  : null
+              }
+              variant="inline"
+              size="sm"
+            />
             {row.other.city && <span className="text-xs text-ink-500">· {row.other.city}</span>}
           </div>
           <p className="mt-0.5 text-[11px] text-ink-500">

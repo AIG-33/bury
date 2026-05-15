@@ -119,17 +119,22 @@ export type RefreshResult =
       external_elo: number | null;
       display_tier: string;
       last_refreshed_at: string;
+      /** Whether the singles or doubles value actually changed since last refresh. */
+      changed: boolean;
     }
   | {
       ok: false;
       error:
         | "not_authenticated"
         | "no_external_rating"
+        | "rate_limited"
         | "upstream_unreachable"
         | "upstream_error"
         | "player_not_found"
         | "db_error";
       message?: string;
+      /** When `error === "rate_limited"`: seconds to wait before retrying. */
+      retry_after_seconds?: number;
     };
 
 export type DisconnectResult =
@@ -357,6 +362,26 @@ export async function confirmImportFromLt(
 
   const oldElo = existingProfile?.current_elo ?? 1000;
 
+  // Look up whether the player already has an external_ratings row so we know
+  // whether this is a true first-time connect (writes initial_import history)
+  // or a re-import (just bumps the snapshot, no history row — the dedicated
+  // refreshExternalRating action is the right channel for refresh tracking).
+  const { data: prevExt } = (await service
+    .from("external_ratings")
+    .select("id, external_elo, external_elo_doubles, display_tier, is_calibrating_singles, is_calibrating_doubles")
+    .eq("player_id", user.id)
+    .eq("source", "liga_tennisa")
+    .maybeSingle()) as {
+    data: {
+      id: string;
+      external_elo: number;
+      external_elo_doubles: number | null;
+      display_tier: string;
+      is_calibrating_singles: boolean;
+      is_calibrating_doubles: boolean;
+    } | null;
+  };
+
   // Upsert external_ratings (one row per (player, source)).
   const { data: erRow, error: erErr } = (await service
     .from("external_ratings")
@@ -392,14 +417,75 @@ export async function confirmImportFromLt(
     return { ok: false, error: "db_error", message: erErr?.message };
   }
 
-  // Build the profile patch. We always update current_elo (per product
-  // decision: LT.Elo is the seed). Other fields only when the user opted
-  // in AND our existing value is empty.
-  const patch: Record<string, unknown> = {
-    current_elo: conv.elo,
-    elo_status: "provisional",
-    onboarding_completed_at: new Date().toISOString(),
-  };
+  // First-time connect → seed external_rating_history with one point per
+  // discipline so the chart has an anchor. For re-imports (prevExt != null)
+  // we skip these — refresh tracking lives in refreshExternalRating().
+  if (!prevExt) {
+    const histRows: Array<Record<string, unknown>> = [];
+    histRows.push({
+      player_id: user.id,
+      external_rating_id: erRow.id,
+      source: "liga_tennisa",
+      external_id: String(safe.id),
+      old_elo: null,
+      new_elo: safe.elo_points ?? 0,
+      discipline: "singles",
+      display_tier_old: null,
+      display_tier_new: tier,
+      is_calibrating: safe.is_calibrating_singles,
+      reason: "initial_import",
+      raw_payload: safe,
+    });
+    if (safe.doubles_elo_points != null) {
+      histRows.push({
+        player_id: user.id,
+        external_rating_id: erRow.id,
+        source: "liga_tennisa",
+        external_id: String(safe.id),
+        old_elo: null,
+        new_elo: safe.doubles_elo_points,
+        discipline: "doubles",
+        display_tier_old: null,
+        display_tier_new: tier,
+        is_calibrating: safe.is_calibrating_doubles,
+        reason: "initial_import",
+        raw_payload: safe,
+      });
+    }
+    const { error: ehErr } = await service
+      .from("external_rating_history")
+      .insert(histRows as never);
+    if (ehErr) {
+      // Non-fatal: badge/seed already work; only the chart loses its anchor.
+      console.error(
+        "[import-lt] external_rating_history initial_import insert failed (non-fatal)",
+        {
+          user_id: user.id,
+          external_id: safe.id,
+          message: ehErr.message,
+        },
+      );
+    }
+  }
+
+  // Internal current_elo is seeded from LT *only* during onboarding. Once
+  // the player has finished onboarding (either via the quiz or a previous
+  // LT import) their internal Elo evolves independently from match results.
+  // Re-importing or refreshing must never overwrite it. See chat decision:
+  // "единственное где рейтинг ЛТ влияет на рейтинг внутренний это при создании
+  // пользователя".
+  const onboardingDone = !!(existingProfile as { onboarding_completed_at?: string | null } | null)
+    ?.onboarding_completed_at;
+
+  // Build the profile patch. current_elo + onboarding_completed_at are
+  // touched only on the first import; other empty-field copies happen any
+  // time (they only fill blanks, never overwrite).
+  const patch: Record<string, unknown> = {};
+  if (!onboardingDone) {
+    patch.current_elo = conv.elo;
+    patch.elo_status = "provisional";
+    patch.onboarding_completed_at = new Date().toISOString();
+  }
 
   if (copyEmptyFields && existingProfile) {
     if (!existingProfile.first_name && safe.first_name) patch.first_name = safe.first_name;
@@ -423,51 +509,48 @@ export async function confirmImportFromLt(
     }
   }
 
-  const { error: profErr } = await service
-    .from("profiles")
-    .update(patch as never)
-    .eq("id", user.id);
-  if (profErr) {
-    console.error("[import-lt] profiles update failed", {
-      user_id: user.id,
-      patch_keys: Object.keys(patch),
-      message: profErr.message,
-    });
-    return { ok: false, error: "db_error", message: profErr.message };
+  if (Object.keys(patch).length > 0) {
+    const { error: profErr } = await service
+      .from("profiles")
+      .update(patch as never)
+      .eq("id", user.id);
+    if (profErr) {
+      console.error("[import-lt] profiles update failed", {
+        user_id: user.id,
+        patch_keys: Object.keys(patch),
+        message: profErr.message,
+      });
+      return { ok: false, error: "db_error", message: profErr.message };
+    }
   }
 
-  // Audit row: rating_history with reason 'external_import'. Mirrors the
-  // shape used by the onboarding quiz so the player's rating timeline stays
-  // consistent in /me/rating.
-  //
-  // Failure here is logged but NOT fatal — the import itself already
-  // succeeded (external_ratings + profiles.current_elo are written), and
-  // we don't want to surface a "save failed" error to the user when the
-  // only thing missing is a timeline marker. The reason was added to the
-  // CHECK constraint in 20260513000000_rating_history_external_import.sql
-  // (legacy DBs without that migration silently drop the row here).
-  const { error: histErr } = await service.from("rating_history").insert({
-    player_id: user.id,
-    match_id: null,
-    old_elo: oldElo,
-    new_elo: conv.elo,
-    k_factor: 0,
-    multiplier: 1.0,
-    reason: "external_import",
-  } as never);
-  if (histErr) {
-    console.error("[import-lt] rating_history insert failed (non-fatal)", {
-      user_id: user.id,
+  // Audit row: rating_history with reason 'external_import'. Only written on
+  // the very first import (when current_elo was actually seeded). For
+  // subsequent re-imports we don't touch the internal Elo timeline.
+  if (!onboardingDone) {
+    const { error: histErr } = await service.from("rating_history").insert({
+      player_id: user.id,
+      match_id: null,
       old_elo: oldElo,
       new_elo: conv.elo,
-      message: histErr.message,
-    });
+      k_factor: 0,
+      multiplier: 1.0,
+      reason: "external_import",
+    } as never);
+    if (histErr) {
+      console.error("[import-lt] rating_history insert failed (non-fatal)", {
+        user_id: user.id,
+        old_elo: oldElo,
+        new_elo: conv.elo,
+        message: histErr.message,
+      });
+    }
   }
 
   return {
     ok: true,
     external_rating_id: erRow.id,
-    new_local_elo: conv.elo,
+    new_local_elo: onboardingDone ? oldElo : conv.elo,
     old_local_elo: oldElo,
   };
 }
@@ -478,7 +561,18 @@ export async function confirmImportFromLt(
 // Does NOT touch `profiles.current_elo`: by design the PlayTennis.by rating
 // evolves independently after the initial import. The badge stays in sync
 // with LT via this manual refresh.
+//
+// Rate limited: at most one refresh per `REFRESH_COOLDOWN_SECONDS` per
+// player. The cooldown is checked against `external_ratings.last_refreshed_at`
+// so it survives server restarts (no in-process state).
+//
+// History tracking: when the value actually changes, a row is inserted into
+// `external_rating_history` for each affected discipline (singles/doubles).
+// If neither value changed, we still update `last_refreshed_at` so the UI
+// can display "checked just now, no changes".
 // ---------------------------------------------------------------------------
+
+const REFRESH_COOLDOWN_SECONDS = 60;
 
 export async function refreshExternalRating(): Promise<RefreshResult> {
   const supabase = await createSupabaseServerClient();
@@ -491,13 +585,37 @@ export async function refreshExternalRating(): Promise<RefreshResult> {
 
   const { data: existing } = (await service
     .from("external_ratings")
-    .select("id, external_id")
+    .select(
+      "id, external_id, external_elo, external_elo_doubles, display_tier, " +
+        "is_calibrating_singles, is_calibrating_doubles, last_refreshed_at",
+    )
     .eq("player_id", user.id)
     .eq("source", "liga_tennisa")
     .maybeSingle()) as {
-    data: { id: string; external_id: string } | null;
+    data: {
+      id: string;
+      external_id: string;
+      external_elo: number;
+      external_elo_doubles: number | null;
+      display_tier: string;
+      is_calibrating_singles: boolean;
+      is_calibrating_doubles: boolean;
+      last_refreshed_at: string;
+    } | null;
   };
   if (!existing) return { ok: false, error: "no_external_rating" };
+
+  // Rate-limit guard.
+  const sinceLast = Date.now() - Date.parse(existing.last_refreshed_at);
+  if (sinceLast < REFRESH_COOLDOWN_SECONDS * 1000) {
+    return {
+      ok: false,
+      error: "rate_limited",
+      retry_after_seconds: Math.ceil(
+        (REFRESH_COOLDOWN_SECONDS * 1000 - sinceLast) / 1000,
+      ),
+    };
+  }
 
   let detail;
   try {
@@ -527,6 +645,8 @@ export async function refreshExternalRating(): Promise<RefreshResult> {
   }
 
   const safe = sanitiseLtPayload(detail);
+  const newSinglesElo = safe.elo_points ?? 0;
+  const newDoublesElo = safe.doubles_elo_points;
   const tier = ltTierForElo(safe.elo_points);
   const nowIso = new Date().toISOString();
 
@@ -534,8 +654,8 @@ export async function refreshExternalRating(): Promise<RefreshResult> {
     .from("external_ratings")
     .update({
       display_tier: tier,
-      external_elo: safe.elo_points ?? 0,
-      external_elo_doubles: safe.doubles_elo_points,
+      external_elo: newSinglesElo,
+      external_elo_doubles: newDoublesElo,
       is_calibrating_singles: safe.is_calibrating_singles,
       is_calibrating_doubles: safe.is_calibrating_doubles,
       raw_payload: safe,
@@ -547,11 +667,69 @@ export async function refreshExternalRating(): Promise<RefreshResult> {
     return { ok: false, error: "db_error", message: upErr.message };
   }
 
+  // History: only insert points for disciplines whose value actually moved.
+  // This keeps the chart clean (the user pressing ↻ five times in a row
+  // doesn't pile on five identical points).
+  const histRows: Array<Record<string, unknown>> = [];
+  if (newSinglesElo !== existing.external_elo) {
+    histRows.push({
+      player_id: user.id,
+      external_rating_id: existing.id,
+      source: "liga_tennisa",
+      external_id: String(safe.id),
+      old_elo: existing.external_elo,
+      new_elo: newSinglesElo,
+      discipline: "singles",
+      display_tier_old: existing.display_tier,
+      display_tier_new: tier,
+      is_calibrating: safe.is_calibrating_singles,
+      reason: "manual_refresh",
+      raw_payload: safe,
+    });
+  }
+  if (newDoublesElo != null && newDoublesElo !== existing.external_elo_doubles) {
+    histRows.push({
+      player_id: user.id,
+      external_rating_id: existing.id,
+      source: "liga_tennisa",
+      external_id: String(safe.id),
+      old_elo: existing.external_elo_doubles,
+      new_elo: newDoublesElo,
+      discipline: "doubles",
+      // Tier is keyed on singles Elo upstream; we track the same string for
+      // visual continuity in the doubles series.
+      display_tier_old: existing.display_tier,
+      display_tier_new: tier,
+      is_calibrating: safe.is_calibrating_doubles,
+      reason: "manual_refresh",
+      raw_payload: safe,
+    });
+  }
+  let changed = false;
+  if (histRows.length > 0) {
+    const { error: ehErr } = await service
+      .from("external_rating_history")
+      .insert(histRows as never);
+    if (ehErr) {
+      console.error(
+        "[refresh-lt] external_rating_history insert failed (non-fatal)",
+        {
+          user_id: user.id,
+          rows: histRows.length,
+          message: ehErr.message,
+        },
+      );
+    } else {
+      changed = true;
+    }
+  }
+
   return {
     ok: true,
     external_elo: safe.elo_points,
     display_tier: tier,
     last_refreshed_at: nowIso,
+    changed,
   };
 }
 

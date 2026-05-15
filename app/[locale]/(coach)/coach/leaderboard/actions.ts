@@ -26,6 +26,13 @@ export type LeaderboardRow = {
   delta_7d: number;
   delta_30d: number;
   is_my_player: boolean; // true if connected to me via booking/tournament
+  external_rating: {
+    source: "liga_tennisa";
+    external_elo: number;
+    external_url: string;
+    display_tier: string;
+    is_calibrating_singles: boolean;
+  } | null;
 };
 
 export type LeaderboardResult =
@@ -174,24 +181,49 @@ export async function loadCoachLeaderboard(opts: {
   const sinceIso = new Date(Date.now() - 30 * DAY_MS).toISOString();
   const deltas7 = new Map<string, number>();
   const deltas30 = new Map<string, number>();
+  const extByPlayer = new Map<string, LeaderboardRow["external_rating"]>();
   if (profileIds.length > 0) {
-    const { data: hist } = (await supabase
-      .from("rating_history")
-      .select("player_id, delta, created_at")
-      .in("player_id", profileIds)
-      .gte("created_at", sinceIso)) as {
-      data: Array<{
-        player_id: string;
-        delta: number;
-        created_at: string;
-      }> | null;
-    };
+    const [{ data: hist }, { data: ext }] = await Promise.all([
+      supabase
+        .from("rating_history")
+        .select("player_id, delta, created_at")
+        .in("player_id", profileIds)
+        .gte("created_at", sinceIso) as unknown as Promise<{
+        data: Array<{
+          player_id: string;
+          delta: number;
+          created_at: string;
+        }> | null;
+      }>,
+      supabase
+        .from("external_ratings")
+        .select("player_id, external_elo, external_url, display_tier, is_calibrating_singles")
+        .eq("source", "liga_tennisa")
+        .in("player_id", profileIds) as unknown as Promise<{
+        data: Array<{
+          player_id: string;
+          external_elo: number;
+          external_url: string;
+          display_tier: string;
+          is_calibrating_singles: boolean;
+        }> | null;
+      }>,
+    ]);
     const sevenDaysAgo = Date.now() - 7 * DAY_MS;
     for (const h of hist ?? []) {
       deltas30.set(h.player_id, (deltas30.get(h.player_id) ?? 0) + h.delta);
       if (Date.parse(h.created_at) >= sevenDaysAgo) {
         deltas7.set(h.player_id, (deltas7.get(h.player_id) ?? 0) + h.delta);
       }
+    }
+    for (const r of ext ?? []) {
+      extByPlayer.set(r.player_id, {
+        source: "liga_tennisa",
+        external_elo: r.external_elo,
+        external_url: r.external_url,
+        display_tier: r.display_tier,
+        is_calibrating_singles: r.is_calibrating_singles,
+      });
     }
   }
 
@@ -207,6 +239,7 @@ export async function loadCoachLeaderboard(opts: {
     delta_7d: deltas7.get(p.id) ?? 0,
     delta_30d: deltas30.get(p.id) ?? 0,
     is_my_player: myPlayerIds.has(p.id),
+    external_rating: extByPlayer.get(p.id) ?? null,
   }));
 
   // -- 6) Tally directory size for the scope tabs --------------------------

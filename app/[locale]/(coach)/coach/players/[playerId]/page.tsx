@@ -13,9 +13,18 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
 import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
+
+type PlayerExternalRating = {
+  source: "liga_tennisa";
+  external_elo: number;
+  external_url: string;
+  display_tier: string;
+  is_calibrating_singles: boolean;
+};
 
 type Props = { params: Promise<{ locale: string; playerId: string }> };
 
@@ -75,16 +84,41 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login?next=/coach/players/${playerId}`);
 
-  const { data: player } = (await supabase
-    .from("public_player_basic")
-    .select(
-      "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
-        "city, district_name, created_at",
-    )
-    .eq("id", playerId)
-    .maybeSingle()) as { data: PlayerBasicRow | null };
+  const [{ data: player }, { data: extRow }] = await Promise.all([
+    supabase
+      .from("public_player_basic")
+      .select(
+        "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
+          "city, district_name, created_at",
+      )
+      .eq("id", playerId)
+      .maybeSingle() as unknown as Promise<{ data: PlayerBasicRow | null }>,
+    supabase
+      .from("external_ratings")
+      .select("external_elo, external_url, display_tier, is_calibrating_singles")
+      .eq("source", "liga_tennisa")
+      .eq("player_id", playerId)
+      .maybeSingle() as unknown as Promise<{
+      data: {
+        external_elo: number;
+        external_url: string;
+        display_tier: string;
+        is_calibrating_singles: boolean;
+      } | null;
+    }>,
+  ]);
 
   if (!player) notFound();
+
+  const externalRating: PlayerExternalRating | null = extRow
+    ? {
+        source: "liga_tennisa",
+        external_elo: extRow.external_elo,
+        external_url: extRow.external_url,
+        display_tier: extRow.display_tier,
+        is_calibrating_singles: extRow.is_calibrating_singles,
+      }
+    : null;
 
   // Coach-side relations: invitation acceptance + bookings to this coach.
   const [invRes, bookingsRes, ratingRes] = await Promise.all([
@@ -201,7 +235,31 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
           <div className="grid grid-cols-3 gap-3 sm:gap-4">
             <Stat
               label={t("stat_elo")}
-              value={player.current_elo?.toString() ?? "—"}
+              value={
+                player.current_elo == null ? (
+                  "—"
+                ) : (
+                  <RatingDisplay
+                    internalElo={player.current_elo}
+                    internalStatus={
+                      player.elo_status === "provisional" ? "provisional" : "established"
+                    }
+                    external={
+                      externalRating
+                        ? {
+                            source: "liga_tennisa",
+                            elo: externalRating.external_elo,
+                            displayTier: externalRating.display_tier,
+                            externalUrl: externalRating.external_url,
+                            isCalibrating: externalRating.is_calibrating_singles,
+                          }
+                        : null
+                    }
+                    variant="inline"
+                    size="md"
+                  />
+                )
+              }
               hint={
                 player.elo_status === "provisional" ? t("elo_provisional") : undefined
               }
@@ -227,9 +285,29 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
           <div className="flex flex-wrap items-end gap-6">
             <div>
               <div className="label-eyebrow">{t("rating.current")}</div>
-              <div className="font-mono text-3xl font-bold tabular-nums text-ink-900">
-                {player.current_elo ?? "—"}
-              </div>
+              {player.current_elo == null ? (
+                <div className="font-mono text-3xl font-bold tabular-nums text-ink-900">—</div>
+              ) : (
+                <RatingDisplay
+                  internalElo={player.current_elo}
+                  internalStatus={
+                    player.elo_status === "provisional" ? "provisional" : "established"
+                  }
+                  external={
+                    externalRating
+                      ? {
+                          source: "liga_tennisa",
+                          elo: externalRating.external_elo,
+                          displayTier: externalRating.display_tier,
+                          externalUrl: externalRating.external_url,
+                          isCalibrating: externalRating.is_calibrating_singles,
+                        }
+                      : null
+                  }
+                  variant="stacked"
+                  size="lg"
+                />
+              )}
             </div>
             <div>
               <div className="label-eyebrow">{t("rating.delta_30d")}</div>
@@ -383,13 +461,13 @@ function Stat({
   hint,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   hint?: string;
 }) {
   return (
     <div className="surface-soft px-3 py-2 text-center">
       <div className="label-eyebrow">{label}</div>
-      <div className="font-mono text-lg font-bold tabular-nums text-ink-900">
+      <div className="flex justify-center font-mono text-lg font-bold tabular-nums text-ink-900">
         {value}
       </div>
       {hint && <div className="text-[10px] text-ink-400">{hint}</div>}

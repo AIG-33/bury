@@ -53,7 +53,15 @@ export function ExternalRatingStrip({
     startRefresh(async () => {
       const r: RefreshResult = await refreshExternalRating();
       if (!r.ok) {
-        setError(copy.errors[r.error] ?? copy.errors.unknown);
+        // Rate-limit messages embed the retry-after if the i18n string
+        // contains "{seconds}"; otherwise they fall back to the generic copy.
+        const base =
+          copy.errors[r.error as keyof typeof copy.errors] ?? copy.errors.unknown;
+        const msg =
+          r.error === "rate_limited" && r.retry_after_seconds
+            ? base.replace("{seconds}", String(r.retry_after_seconds))
+            : base;
+        setError(msg);
         return;
       }
       setSnapshot((prev) =>

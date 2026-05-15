@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
-import { InstallAppCard } from "./install-app-card";
+import { InstallAppIcons } from "./install-app-card";
 
 type Props = { authed: boolean };
 
@@ -9,8 +9,9 @@ type Props = { authed: boolean };
  * Compact, logically-grouped footer.
  *
  * Layout (desktop): brand + tagline | Discover | Catalog | Install/help
- * Layout (mobile):  stacked, with a slim install-row at the top so the
- * footer never grows past ~3 screens on small devices.
+ * Layout (mobile):  stacked. The "install as PWA" affordance is two compact
+ * icons next to the copyright (no longer a giant card) — the floating prompt
+ * mounted in the root layout handles discoverability for first-time visitors.
  *
  * Reserves bottom safe-area for the mobile bottom tab bar.
  */
@@ -21,28 +22,6 @@ export async function Footer({ authed }: Props) {
   return (
     <footer className="mt-16 border-t border-ink-100/80 bg-white/70 backdrop-blur-md pb-mobile-nav">
       <div className="page-shell !py-10 md:!py-12">
-        <InstallAppCard
-          labels={{
-            title: t("install.title"),
-            body: t("install.body"),
-            android_button: t("install.android_button"),
-            ios_button: t("install.ios_button"),
-            android_modal_title: t("install.android_modal_title"),
-            android_step_1: t("install.android_step_1"),
-            android_step_2: t("install.android_step_2"),
-            android_step_3: t("install.android_step_3"),
-            android_install_native: t("install.android_install_native"),
-            android_native_hint: t("install.android_native_hint"),
-            ios_modal_title: t("install.ios_modal_title"),
-            ios_step_1: t("install.ios_step_1"),
-            ios_step_2: t("install.ios_step_2"),
-            ios_step_3: t("install.ios_step_3"),
-            close: t("install.close"),
-          }}
-        />
-
-        <div className="court-line my-8 md:my-10" aria-hidden />
-
         <div className="grid gap-10 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-5">
             <Link href="/" className="group inline-flex items-center gap-3">
@@ -89,8 +68,22 @@ export async function Footer({ authed }: Props) {
           </FooterColumn>
         </div>
 
-        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-ink-100/80 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
+        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-ink-100/80 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
           <span>© {year} PlayTennis.by · Минск</span>
+
+          <div className="flex flex-wrap items-center gap-3 normal-case tracking-normal">
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
+              {t("install.title_short")}
+            </span>
+            <InstallAppIcons
+              size="sm"
+              labels={{
+                android_button: t("install.android_button"),
+                ios_button: t("install.ios_button"),
+              }}
+            />
+          </div>
+
           <span>v1.0 · MVP</span>
         </div>
       </div>

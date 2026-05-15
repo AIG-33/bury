@@ -4,6 +4,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, Building2, CalendarClock, MapPin, Search, Trophy, Users } from "lucide-react";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { RatingDisplay } from "@/components/rating/rating-display";
 import { Surface } from "@/components/ui/surface";
 import { loadOpenMatch } from "../actions";
 import { ApplyControls } from "./apply-controls";
@@ -122,9 +123,25 @@ export default async function OpenMatchDetailPage({ params }: Props) {
               >
                 {match.creator_name ?? "—"}
               </Link>
-              <span className="font-mono text-sm tabular-nums text-ink-500">
-                {match.creator_elo}
-              </span>
+              <RatingDisplay
+                internalElo={match.creator_elo}
+                internalStatus={
+                  match.creator_elo_status === "provisional" ? "provisional" : "established"
+                }
+                external={
+                  match.creator_external_rating
+                    ? {
+                        source: "liga_tennisa",
+                        elo: match.creator_external_rating.external_elo,
+                        displayTier: match.creator_external_rating.display_tier,
+                        externalUrl: match.creator_external_rating.external_url,
+                        isCalibrating: match.creator_external_rating.is_calibrating_singles,
+                      }
+                    : null
+                }
+                variant="inline"
+                size="sm"
+              />
               <LevelBadge elo={match.creator_elo} />
             </div>
           </div>
