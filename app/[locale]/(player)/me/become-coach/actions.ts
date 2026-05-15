@@ -53,9 +53,7 @@ export async function loadMyCoachApplications(): Promise<LoadMyApplicationsResul
 
   const { data: rows } = (await supabase
     .from("coach_applications")
-    .select(
-      "id, status, message, attachments, admin_comment, decided_at, created_at, updated_at",
-    )
+    .select("id, status, message, attachments, admin_comment, decided_at, created_at, updated_at")
     .eq("player_id", user.id)
     .order("created_at", { ascending: false })) as {
     data: Array<{
@@ -118,9 +116,7 @@ export type SubmitResult =
 
 const ALLOWED_MIME = COACH_APPLICATION_LIMITS.allowed_mime_types as readonly string[];
 
-export async function submitCoachApplication(
-  formData: FormData,
-): Promise<SubmitResult> {
+export async function submitCoachApplication(formData: FormData): Promise<SubmitResult> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -145,9 +141,7 @@ export async function submitCoachApplication(
   if (existing) return { ok: false, error: "pending_exists" };
 
   const message = String(formData.get("message") ?? "");
-  const files = formData
-    .getAll("files")
-    .filter((f): f is File => f instanceof File && f.size > 0);
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
 
   if (files.length > COACH_APPLICATION_LIMITS.attachments_max)
     return { ok: false, error: "too_many_files" };
@@ -200,9 +194,7 @@ export async function submitCoachApplication(
     if (upErr) {
       // Rollback: nuke uploaded files + the application row to keep state clean.
       if (uploaded.length > 0) {
-        await service.storage
-          .from("coach-applications")
-          .remove(uploaded.map((u) => u.path));
+        await service.storage.from("coach-applications").remove(uploaded.map((u) => u.path));
       }
       await service.from("coach_applications").delete().eq("id", application_id);
       return { ok: false, error: "upload_failed", detail: upErr.message };
@@ -215,17 +207,39 @@ export async function submitCoachApplication(
     });
   }
 
-  if (uploaded.length > 0) {
-    const { error: updErr } = await service
-      .from("coach_applications")
-      .update({ attachments: uploaded } as never)
-      .eq("id", application_id);
-    if (updErr) {
-      return { ok: false, error: "db_error", detail: updErr.message };
-    }
+  // Auto-approve: the policy decision is "any player who fills the cover
+  // letter becomes a coach immediately". Files are now optional credibility
+  // signals, not a manual review gate. We still record the application row
+  // (for history + future docs viewer) but flip it to `approved` right away
+  // and set `is_coach=true` on the profile.
+  //
+  // `decided_by` stays NULL (no admin acted) and `admin_comment` carries a
+  // breadcrumb so the audit trail in /admin/coach-applications stays honest.
+  const nowIso = new Date().toISOString();
+  const { error: approveErr } = await service
+    .from("coach_applications")
+    .update({
+      attachments: uploaded,
+      status: "approved",
+      admin_comment: "auto_approved_on_submit",
+      decided_at: nowIso,
+    } as never)
+    .eq("id", application_id);
+  if (approveErr) {
+    return { ok: false, error: "db_error", detail: approveErr.message };
+  }
+
+  const { error: profErr } = await service
+    .from("profiles")
+    .update({ is_coach: true } as never)
+    .eq("id", user.id);
+  if (profErr) {
+    return { ok: false, error: "db_error", detail: profErr.message };
   }
 
   revalidatePath("/me/become-coach");
   revalidatePath("/me/profile");
+  revalidatePath("/coach", "layout");
+  revalidatePath("/", "layout");
   return { ok: true, application_id };
 }

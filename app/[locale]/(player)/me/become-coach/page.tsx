@@ -38,6 +38,7 @@ export default async function BecomeCoachPage({ params }: Props) {
       max: COACH_APPLICATION_LIMITS.message_max,
     }),
     files_label: t("form.files_label"),
+    files_optional_chip: t("form.files_optional_chip"),
     files_hint: t("form.files_hint", {
       max_files: COACH_APPLICATION_LIMITS.attachments_max,
       max_mb: Math.round(COACH_APPLICATION_LIMITS.file_max_bytes / 1024 / 1024),
@@ -98,13 +99,9 @@ export default async function BecomeCoachPage({ params }: Props) {
               <h2 className="font-display text-lg font-bold text-grass-900">
                 {t("already_coach.title")}
               </h2>
-              <p className="mt-1 text-sm text-grass-800">
-                {t("already_coach.body")}
-              </p>
+              <p className="mt-1 text-sm text-grass-800">{t("already_coach.body")}</p>
               <Button asChild variant="primary" size="sm" className="mt-3">
-                <Link href="/coach/dashboard">
-                  {t("already_coach.cta")}
-                </Link>
+                <Link href="/coach/dashboard">{t("already_coach.cta")}</Link>
               </Button>
             </div>
           </div>
@@ -118,8 +115,7 @@ export default async function BecomeCoachPage({ params }: Props) {
             title: t("pending.title"),
             body: t("pending.body"),
             submitted_at: t("pending.submitted_at"),
-            attachments_count: (n: number) =>
-              t("pending.attachments_count", { n }),
+            attachments_count: (n: number) => t("pending.attachments_count", { n }),
             message_label: t("pending.message_label"),
           }}
         />
@@ -127,11 +123,7 @@ export default async function BecomeCoachPage({ params }: Props) {
         <>
           {head?.status === "rejected" && head.admin_comment && (
             <RejectionNote
-              decidedAt={
-                head.decided_at
-                  ? dateFmt.format(new Date(head.decided_at))
-                  : null
-              }
+              decidedAt={head.decided_at ? dateFmt.format(new Date(head.decided_at)) : null}
               comment={head.admin_comment}
               copy={{
                 title: t("rejected.title"),
@@ -153,22 +145,13 @@ export default async function BecomeCoachPage({ params }: Props) {
             {history.map((app) => (
               <Surface as="li" variant="row" key={app.id}>
                 <div className="flex items-center gap-2 text-xs">
-                  <StatusBadge
-                    status={app.status}
-                    label={t(`status.${app.status}`)}
-                  />
-                  <span className="text-ink-500">
-                    {dateFmt.format(new Date(app.created_at))}
-                  </span>
+                  <StatusBadge status={app.status} label={t(`status.${app.status}`)} />
+                  <span className="text-ink-500">{dateFmt.format(new Date(app.created_at))}</span>
                 </div>
-                <p className="mt-2 line-clamp-3 text-sm text-ink-700">
-                  {app.message}
-                </p>
+                <p className="mt-2 line-clamp-3 text-sm text-ink-700">{app.message}</p>
                 {app.admin_comment && (
                   <p className="mt-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
-                    <span className="font-medium text-ink-700">
-                      {t("history.admin_comment")}:
-                    </span>{" "}
+                    <span className="font-medium text-ink-700">{t("history.admin_comment")}:</span>{" "}
                     {app.admin_comment}
                   </p>
                 )}
@@ -179,10 +162,7 @@ export default async function BecomeCoachPage({ params }: Props) {
       )}
 
       {!head && !is_already_coach && history.length === 0 && (
-        <EmptyState
-          title={t("empty_title")}
-          description={t("empty_body")}
-        />
+        <EmptyState title={t("empty_title")} description={t("empty_body")} />
       )}
     </div>
   );
@@ -212,13 +192,10 @@ function PendingCard({
           <Clock className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <h2 className="font-display text-lg font-bold text-ink-900">
-            {copy.title}
-          </h2>
+          <h2 className="font-display text-lg font-bold text-ink-900">{copy.title}</h2>
           <p className="mt-1 text-sm text-ink-700">{copy.body}</p>
           <p className="mt-3 text-xs text-ink-500">
-            {copy.submitted_at}: {submittedAt} ·{" "}
-            {copy.attachments_count(attachmentsCount)}
+            {copy.submitted_at}: {submittedAt} · {copy.attachments_count(attachmentsCount)}
           </p>
           <details className="mt-3">
             <summary className="cursor-pointer text-xs font-medium text-ink-700 hover:text-ink-900">
@@ -255,9 +232,7 @@ function RejectionNote({
           <XCircle className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <h2 className="font-display text-lg font-semibold text-clay-900">
-            {copy.title}
-          </h2>
+          <h2 className="font-display text-lg font-semibold text-clay-900">{copy.title}</h2>
           <p className="mt-1 text-sm text-clay-800">{copy.body}</p>
           {decidedAt && (
             <p className="mt-2 text-xs text-clay-700">
@@ -265,10 +240,7 @@ function RejectionNote({
             </p>
           )}
           <p className="mt-3 rounded-lg bg-white px-3 py-2 text-sm text-ink-700">
-            <span className="font-medium text-ink-900">
-              {copy.comment_label}:
-            </span>{" "}
-            {comment}
+            <span className="font-medium text-ink-900">{copy.comment_label}:</span> {comment}
           </p>
         </div>
       </div>
@@ -289,13 +261,11 @@ function StatusBadge({
       : status === "rejected"
         ? "bg-clay-100 text-clay-700"
         : "bg-ball-100 text-clay-700";
-  const Icon =
-    status === "approved" ? CheckCircle2 : status === "rejected" ? XCircle : Clock;
+  const Icon = status === "approved" ? CheckCircle2 : status === "rejected" ? XCircle : Clock;
   return (
     <span
       className={
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
-        cls
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " + cls
       }
     >
       <Icon className="h-3 w-3" />

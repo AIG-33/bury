@@ -335,22 +335,22 @@
   "becomeCoach": {
     "eyebrow": "Profile · Become a coach",
     "title": "Become a club coach",
-    "subtitle": "Fill in the form, attach your documents (diploma, certificates, ID) — an admin will review and decide.",
+    "subtitle": "Fill in a short application — coach status is granted instantly. Documents (diploma, certificates, ID) are not required, but we recommend attaching them: your coach card looks more credible to players.",
     "help": {
-      "why": "Coaches in the club are added manually: before someone can publish slots and charge players, we want to see the documents and a short cover letter. This protects players from impostors and keeps club quality.",
+      "why": "Becoming a coach in the club isn't a blocking review — it's onboarding: fill in a short form and get the coach workspace right away. Documents are recommended (diploma, certificates, ID) — they make your coach card more credible to players, but we don't block applications without them.",
       "what": {
         "1": "Describe your experience: where you played/taught, languages, methodology, working hours.",
-        "2": "Attach documents: diploma, certificates, optionally an ID.",
-        "3": "Submit. You may submit a new application if a previous one was rejected."
+        "2": "Attach documents (optional but recommended): diploma, certificates, optionally an ID.",
+        "3": "Submit — coach status is granted instantly. You can tweak details later in the workspace."
       },
       "result": {
-        "1": "An admin sees your application in the admin panel and makes a decision.",
-        "2": "Once approved you immediately get the coach workspace: profile, slots, players, tournaments."
+        "1": "On submit your coach flag is enabled immediately and the coach workspace opens: profile, slots, players, tournaments.",
+        "2": "Attached documents appear on your coach card and help players choose you."
       }
     },
     "profile_card": {
       "title": "Become a coach",
-      "body_none": "Want to publish slots and accept players? Fill in the application and send the documents to the admin.",
+      "body_none": "Want to publish slots and accept players? Fill in a short application — coach status is granted right away. Documents are recommended but optional.",
       "body_pending": "Your application is under review. You can check its status and your message.",
       "body_rejected": "Your previous application was rejected. You may submit a new one with corrections."
     },
@@ -386,14 +386,15 @@
     "form": {
       "message_label": "Cover letter",
       "message_placeholder": "Tell us about yourself: playing experience, coaching practice, languages, preferred hours and lesson format, venues, etc.",
-      "message_hint": "Between {min} and {max} characters. The more detail you provide, the faster we can decide.",
+      "message_hint": "Between {min} and {max} characters. The more detail you provide, the more credible your coach card.",
       "files_label": "Documents",
-      "files_hint": "Up to {max_files} files, each at most {max_mb} MB. PDF, JPG, PNG, WEBP are accepted.",
+      "files_optional_chip": "Recommended",
+      "files_hint": "Documents are not required, but we recommend attaching them — your coach card looks more credible. Up to {max_files} files, each at most {max_mb} MB. PDF, JPG, PNG, WEBP.",
       "files_add": "Add file",
       "files_remove": "Remove file",
-      "submit": "Submit application",
-      "submitting": "Submitting…",
-      "submitted": "Application submitted",
+      "submit": "Become a coach",
+      "submitting": "Activating coach status…",
+      "submitted": "Done — you're a coach. Opening the workspace…",
       "error": "Could not submit the application",
       "error_message_too_short": "Cover letter is too short",
       "error_too_many_files": "You can attach at most {max_files} files",

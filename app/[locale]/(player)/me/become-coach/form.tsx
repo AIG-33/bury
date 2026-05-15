@@ -10,6 +10,7 @@ export type BecomeCoachCopy = {
   message_placeholder: string;
   message_hint: string;
   files_label: string;
+  files_optional_chip: string;
   files_hint: string;
   files_add: string;
   files_remove: string;
@@ -142,9 +143,14 @@ export function BecomeCoachForm({ copy }: { copy: BecomeCoachCopy }) {
       </div>
 
       <div className="space-y-2">
-        <label className="block font-display text-sm font-semibold text-ink-900">
-          {copy.files_label}
-        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="block font-display text-sm font-semibold text-ink-900">
+            {copy.files_label}
+          </label>
+          <span className="inline-flex items-center rounded-full bg-ball-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-clay-700">
+            {copy.files_optional_chip}
+          </span>
+        </div>
         <p className="text-xs text-ink-500">{copy.files_hint}</p>
 
         <input
@@ -174,9 +180,7 @@ export function BecomeCoachForm({ copy }: { copy: BecomeCoachCopy }) {
                 className="flex items-center gap-2 rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2 text-sm"
               >
                 <Paperclip className="h-3.5 w-3.5 shrink-0 text-ink-400" />
-                <span className="min-w-0 flex-1 truncate text-ink-800">
-                  {f.name}
-                </span>
+                <span className="min-w-0 flex-1 truncate text-ink-800">{f.name}</span>
                 <span className="shrink-0 font-mono text-[11px] tabular-nums text-ink-500">
                   {(f.size / 1024).toFixed(0)} KB
                 </span>
