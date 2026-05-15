@@ -460,6 +460,36 @@ export type MyMatchesPayload = {
   recent: MatchListItem[];
 };
 
+// Sets in the DB come in two shapes depending on which flow wrote them:
+//   - friendly flow → `{p1_games, p2_games, tiebreak_p1?, tiebreak_p2?}`
+//   - tournament flow (organised draw)
+//                    → `{p1, p2, tb_p1?, tb_p2?}`
+// The UI was written against the friendly shape, so tournament rows were
+// rendering with undefined scores. Normalise once here so consumers don't
+// have to care.
+function normaliseSets(
+  sets:
+    | Array<{
+        p1?: number;
+        p2?: number;
+        p1_games?: number;
+        p2_games?: number;
+        tiebreak_p1?: number | null;
+        tiebreak_p2?: number | null;
+        tb_p1?: number | null;
+        tb_p2?: number | null;
+      }>
+    | null,
+): MatchListItem["sets"] {
+  if (!sets) return null;
+  return sets.map((s) => ({
+    p1_games: (s.p1_games ?? s.p1 ?? 0) as number,
+    p2_games: (s.p2_games ?? s.p2 ?? 0) as number,
+    tiebreak_p1: (s.tiebreak_p1 ?? s.tb_p1 ?? null) as number | null,
+    tiebreak_p2: (s.tiebreak_p2 ?? s.tb_p2 ?? null) as number | null,
+  }));
+}
+
 export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
   const supabase = await createSupabaseServerClient();
   const {
@@ -494,7 +524,21 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
       p1_partner_id: string | null;
       p2_partner_id: string | null;
       outcome: string;
-      sets: MatchListItem["sets"];
+      // sets is a free-form jsonb in the DB. Friendly matches store
+      // `{p1_games, p2_games}`; tournament matches (organised flow) store
+      // `{p1, p2}`. We normalise in `normaliseSets` below.
+      sets:
+        | Array<{
+            p1?: number;
+            p2?: number;
+            p1_games?: number;
+            p2_games?: number;
+            tiebreak_p1?: number | null;
+            tiebreak_p2?: number | null;
+            tb_p1?: number | null;
+            tb_p2?: number | null;
+          }>
+        | null;
       winner_side: "p1" | "p2" | null;
       played_at: string | null;
       scheduled_at: string | null;
@@ -577,7 +621,7 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
         created_at: m.created_at,
         is_p1: isP1,
         i_am_winner: iAmWinner,
-        sets: m.sets,
+        sets: normaliseSets(m.sets),
         i_confirmed: iConfirmed,
         opponent_confirmed: otherConfirmed,
         reported_by_me: reportedByMe,

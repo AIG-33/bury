@@ -232,6 +232,29 @@
     "awaiting_their_confirmation": "Awaiting opponent",
     "scheduled": "Scheduled",
     "recent": "Recent",
+    "history_filters": {
+      "title": "Filters",
+      "date_label": "Period",
+      "event_label": "Event",
+      "tournament_label": "Tournament",
+      "tournament_any": "Any",
+      "results": "Found: {n}",
+      "reset": "Reset",
+      "empty": "No matches for the selected filters. Try a wider period or reset the filters.",
+      "show_more": "Show {n} more",
+      "date": {
+        "all": "All time",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "year": "Last year"
+      },
+      "event": {
+        "all": "All",
+        "friendly": "Friendly",
+        "tournament": "Tournaments"
+      }
+    },
     "history_link": {
       "title": "Match history & Elo changes",
       "subtitle": "Every completed match and the Elo +/- you got from it now lives on the \"My rating\" page."

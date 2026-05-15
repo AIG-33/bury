@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/help/empty-state";
 import { loadMyMatches } from "./actions";
 import { MatchCard } from "./match-card";
 import { QuickRegisterButton } from "./quick-register-button";
+import { RecentHistory } from "./recent-history";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -128,26 +129,21 @@ export default async function MyMatchesPage({ params }: Props) {
         )}
       </Section>
 
-      {/* Recent — most recent completed matches (friendly AND tournament).
-          Earlier the recent feed was reachable only via /me/rating; players
-          asked to see tournament results next to their friendly history. */}
+      {/* Recent — most recent completed matches (friendly AND tournament),
+          with client-side filters by date and event type. Tournament matches
+          land here through the same `matches` table; the filter UI lets a
+          player narrow down to e.g. "last 30 days, tournaments only". */}
       {data.recent.length > 0 && (
         <Section
           icon={<History className="h-4 w-4 text-grass-700" />}
           title={t("recent")}
           count={data.recent.length}
         >
-          <ul className="space-y-3">
-            {data.recent.slice(0, 10).map((m) => (
-              <MatchCard
-                key={m.id}
-                m={m}
-                variant="recent"
-                locale={locale}
-                whatsappPrefill={whatsappPrefill}
-              />
-            ))}
-          </ul>
+          <RecentHistory
+            items={data.recent}
+            locale={locale}
+            whatsappPrefill={whatsappPrefill}
+          />
         </Section>
       )}
 
