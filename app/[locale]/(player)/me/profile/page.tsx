@@ -6,7 +6,8 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
 import { ExternalRatingCard } from "@/components/profile/external-rating-card";
 import { ProfileForm } from "./profile-form";
-import { loadMyProfile } from "./actions";
+import { TelegramLinkCard } from "./telegram-link-card";
+import { loadMyProfile, loadTelegramLinkState } from "./actions";
 import { loadMyCoachApplications } from "../become-coach/actions";
 import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
 import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
@@ -26,6 +27,8 @@ export default async function ProfilePage({ params }: Props) {
 
   const { profile, districts } = result;
   const externalRating = await loadMyExternalRating();
+  const telegramState = await loadTelegramLinkState();
+  const tTg = await getTranslations("telegramLink");
 
   // Surface the "become a coach" entry point right inside the player profile.
   // We piggyback on the same loader so we know whether the player is already
@@ -243,6 +246,21 @@ export default async function ProfilePage({ params }: Props) {
             db_error: tExt("errors.db_error"),
             unknown: tExt("errors.unknown"),
           },
+        }}
+      />
+
+      <TelegramLinkCard
+        linked={telegramState.linked}
+        botUsername={telegramState.botUsername}
+        startUrl={telegramState.startUrl}
+        copy={{
+          title: tTg("title"),
+          body_linked: tTg("body_linked"),
+          body_unlinked: tTg("body_unlinked"),
+          cta_open_bot: tTg("cta_open_bot"),
+          cta_copy_link: tTg("cta_copy_link"),
+          cta_copied: tTg("cta_copied"),
+          not_configured: tTg("not_configured"),
         }}
       />
 

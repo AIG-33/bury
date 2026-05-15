@@ -769,6 +769,7 @@
     "my_tournaments": "My tournaments",
     "find": "Find a Player",
     "my_finder": "Find a partner",
+    "my_proposals": "Match proposals",
     "open_matches": "Open matches",
     "sparrings": "Sparrings",
     "players": "Players",
@@ -3326,6 +3327,15 @@
       "ios_step_3": "Choose \"Add to Home Screen\" and confirm.",
       "close": "Close"
     }
+  },
+  "telegramLink": {
+    "title": "Telegram notifications",
+    "body_linked": "The PlayTennis.by bot is linked to your Telegram. We'll ping you there about new match proposals and acceptances.",
+    "body_unlinked": "Connect Telegram to get notifications about new match proposals and their acceptance right in the messenger.",
+    "cta_open_bot": "Open the bot",
+    "cta_copy_link": "Copy link",
+    "cta_copied": "Copied",
+    "not_configured": "The Telegram bot isn't configured on the server yet. Linking will appear later."
   },
   "accountSecurity": {
     "title": "Password & security",

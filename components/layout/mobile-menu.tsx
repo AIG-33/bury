@@ -11,6 +11,8 @@ export type MobileMenuItem = {
   highlight?: boolean;
   /** Visual group — used to render a section header before the first item. */
   group: "personal" | "public";
+  /** Optional red counter rendered after the label (unread notifications etc). */
+  badge?: number;
 };
 
 type Props = {
@@ -97,7 +99,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
                   href={it.href as any}
                   onClick={() => setOpen(false)}
                   className={[
-                    "flex h-12 items-center rounded-xl px-4 font-display text-[15px] tracking-tight transition-colors",
+                    "flex h-12 items-center gap-2 rounded-xl px-4 font-display text-[15px] tracking-tight transition-colors",
                     active
                       ? "bg-grass-700 font-bold text-white shadow-[0_10px_24px_-12px_rgba(21,94,54,0.55)]"
                       : it.highlight
@@ -105,7 +107,12 @@ export function MobileMenu({ items, authed, labels }: Props) {
                         : "font-semibold text-ink-800 hover:bg-ink-50",
                   ].join(" ")}
                 >
-                  {it.label}
+                  <span className="flex-1">{it.label}</span>
+                  {it.badge && it.badge > 0 ? (
+                    <span className="inline-flex h-5 min-w-[22px] items-center justify-center rounded-full bg-clay-500 px-1.5 text-[11px] font-bold tabular-nums text-white">
+                      {it.badge > 99 ? "99+" : it.badge}
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             );

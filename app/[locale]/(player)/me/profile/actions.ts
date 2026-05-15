@@ -11,6 +11,7 @@ import {
   type Availability,
   type SocialLinks,
 } from "@/lib/profile/schema";
+import { mintTelegramLinkToken } from "@/lib/telegram/link-token";
 
 // =============================================================================
 // Types returned to UI (server → client safe)
@@ -260,4 +261,38 @@ export async function removeMyAvatar(): Promise<AvatarResult> {
   revalidatePath("/me/profile");
   revalidatePath("/", "layout");
   return { ok: true, avatar_url: null };
+}
+
+// =============================================================================
+// Telegram link state (Connect Telegram card on /me/profile)
+// =============================================================================
+
+export type TelegramLinkState = {
+  linked: boolean;
+  botUsername: string | null;
+  startUrl: string | null;
+};
+
+export async function loadTelegramLinkState(): Promise<TelegramLinkState> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { linked: false, botUsername: null, startUrl: null };
+
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? null;
+  const token = mintTelegramLinkToken(user.id);
+  const startUrl = botUsername && token ? `https://t.me/${botUsername}?start=${token}` : null;
+
+  const { data: link } = (await supabase
+    .from("telegram_links")
+    .select("chat_id")
+    .eq("player_id", user.id)
+    .maybeSingle()) as { data: { chat_id: number } | null };
+
+  return {
+    linked: !!link?.chat_id,
+    botUsername,
+    startUrl,
+  };
 }

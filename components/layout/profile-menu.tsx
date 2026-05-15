@@ -3,15 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, usePathname } from "@/i18n/routing";
-import {
-  CalendarClock,
-  ChevronDown,
-  Gauge,
-  ListChecks,
-  Search,
-  Trophy,
-  User,
-} from "lucide-react";
+import { CalendarClock, ChevronDown, Gauge, ListChecks, Search, Trophy, User } from "lucide-react";
 
 type IconKey = "user" | "matches" | "tournaments" | "bookings" | "finder" | "elo";
 
@@ -21,6 +13,8 @@ type Item = {
   icon: IconKey;
   /** Render a thin separator BEFORE this item. */
   divider?: boolean;
+  /** Optional red counter rendered after the label (e.g. unread proposals). */
+  badge?: number;
 };
 
 const ICONS: Record<IconKey, typeof User> = {
@@ -35,6 +29,8 @@ const ICONS: Record<IconKey, typeof User> = {
 type Props = {
   label: string;
   items: readonly Item[];
+  /** Sum of all per-item badges. Renders a red dot on the trigger button. */
+  totalBadge?: number;
 };
 
 type Coords = { top: number; right: number } | null;
@@ -49,7 +45,7 @@ type Coords = { top: number; right: number } | null;
  * the parent <nav> uses `overflow-x-auto`, which (per CSS spec) also
  * clips the y-axis and would otherwise hide the dropdown.
  */
-export function ProfileMenu({ label, items }: Props) {
+export function ProfileMenu({ label, items, totalBadge }: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<Coords>(null);
@@ -57,9 +53,7 @@ export function ProfileMenu({ label, items }: Props) {
   const popRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  const active = items.some(
-    (i) => pathname === i.href || pathname.startsWith(`${i.href}/`),
-  );
+  const active = items.some((i) => pathname === i.href || pathname.startsWith(`${i.href}/`));
 
   useEffect(() => {
     setMounted(true);
@@ -123,14 +117,11 @@ export function ProfileMenu({ label, items }: Props) {
       >
         <ul className="py-1.5">
           {items.map((it) => {
-            const isActive =
-              pathname === it.href || pathname.startsWith(`${it.href}/`);
+            const isActive = pathname === it.href || pathname.startsWith(`${it.href}/`);
             const Icon = ICONS[it.icon];
             return (
               <li key={it.href}>
-                {it.divider ? (
-                  <div aria-hidden className="my-1 mx-3.5 h-px bg-ink-100" />
-                ) : null}
+                {it.divider ? <div aria-hidden className="mx-3.5 my-1 h-px bg-ink-100" /> : null}
                 <Link
                   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                   href={it.href as any}
@@ -144,12 +135,14 @@ export function ProfileMenu({ label, items }: Props) {
                   ].join(" ")}
                 >
                   <Icon
-                    className={[
-                      "h-4 w-4",
-                      isActive ? "text-grass-700" : "text-ink-500",
-                    ].join(" ")}
+                    className={["h-4 w-4", isActive ? "text-grass-700" : "text-ink-500"].join(" ")}
                   />
-                  {it.label}
+                  <span className="flex-1">{it.label}</span>
+                  {it.badge && it.badge > 0 ? (
+                    <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-clay-500 px-1.5 text-[11px] font-bold tabular-nums text-white">
+                      {it.badge > 99 ? "99+" : it.badge}
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             );
@@ -168,7 +161,7 @@ export function ProfileMenu({ label, items }: Props) {
         onClick={() => setOpen((v) => !v)}
         className={[
           "group relative inline-flex h-9 items-center gap-1.5 rounded-full px-3",
-          "font-display text-[13px] tracking-tight transition-all duration-300 ease-followthrough",
+          "ease-followthrough font-display text-[13px] tracking-tight transition-all duration-300",
           active
             ? "bg-white font-bold text-grass-900 shadow-[0_8px_20px_-12px_rgba(31,138,76,0.5)] ring-1 ring-grass-300/60"
             : "font-semibold text-ink-800 hover:-translate-y-0.5 hover:bg-white/70 hover:text-grass-900",
@@ -187,6 +180,14 @@ export function ProfileMenu({ label, items }: Props) {
             open ? "rotate-180 text-grass-700" : "",
           ].join(" ")}
         />
+        {totalBadge && totalBadge > 0 ? (
+          <span
+            aria-label={`${totalBadge} new`}
+            className="pointer-events-none absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-clay-500 px-1 text-[10px] font-bold tabular-nums text-white shadow ring-2 ring-white"
+          >
+            {totalBadge > 9 ? "9+" : totalBadge}
+          </span>
+        ) : null}
       </button>
       {mounted && popover ? createPortal(popover, document.body) : null}
     </>

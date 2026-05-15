@@ -32,6 +32,7 @@ export async function TopNav() {
 
   let isCoach = false;
   let isAdmin = false;
+  let pendingProposals = 0;
   if (user) {
     const { data } = (await supabase
       .from("profiles")
@@ -40,6 +41,18 @@ export async function TopNav() {
       .single()) as { data: { is_coach: boolean; is_admin: boolean } | null };
     isCoach = data?.is_coach ?? false;
     isAdmin = data?.is_admin ?? false;
+
+    // Unread match proposals → red badge on the Profile dropdown.
+    // Only count rows where the viewer is the RECIPIENT (p2_id) of a still-
+    // pending friendly proposal — that's the only state where the user has
+    // an action to take.
+    const { count } = (await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .eq("p2_id", user.id)
+      .eq("outcome", "proposed")
+      .is("tournament_id", null)) as { count: number | null };
+    pendingProposals = count ?? 0;
   }
 
   // Mobile menu mirrors the desktop split. Personal items (only for authed
@@ -51,6 +64,12 @@ export async function TopNav() {
         { group: "personal", href: "/me/profile", label: t("my_profile") },
         { group: "personal", href: "/me/clubs", label: t("my_clubs") },
         { group: "personal", href: "/me/find", label: t("my_finder") },
+        {
+          group: "personal",
+          href: "/me/find/proposals",
+          label: t("my_proposals"),
+          badge: pendingProposals,
+        },
         { group: "personal", href: "/me/matches", label: t("my_matches") },
         { group: "personal", href: "/me/tournaments", label: t("my_tournaments") },
         { group: "personal", href: "/me/bookings", label: t("bookings") },
@@ -168,10 +187,17 @@ export async function TopNav() {
                 <span aria-hidden className="mx-1 h-5 w-px bg-ink-200/70" />
                 <ProfileMenu
                   label={t("profile")}
+                  totalBadge={pendingProposals}
                   items={[
                     { href: "/me/profile", label: t("my_profile"), icon: "user" },
                     { href: "/me/clubs", label: t("my_clubs"), icon: "tournaments" },
                     { href: "/me/find", label: t("my_finder"), icon: "finder" },
+                    {
+                      href: "/me/find/proposals",
+                      label: t("my_proposals"),
+                      icon: "matches",
+                      badge: pendingProposals,
+                    },
                     { href: "/me/matches", label: t("my_matches"), icon: "matches" },
                     {
                       href: "/me/tournaments",

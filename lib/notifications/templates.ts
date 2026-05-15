@@ -21,6 +21,7 @@ export type TemplateCode =
   | "tournament_application_rejected"
   | "tournament_starting_24h"
   | "match_proposal"
+  | "match_accepted"
   | "match_confirmed"
   | "match_disputed"
   | "rating_changed"
@@ -88,6 +89,7 @@ type Strings = {
   tournament_application_rejected: { subject: string; intro: string };
   tournament_starting_24h: { subject: string; intro: string; cta: string };
   match_proposal: { subject: string; intro: string; cta: string; declineHint: string };
+  match_accepted: { subject: string; intro: string; cta: string; whatsappHint: string };
   match_confirmed: { subject: string; intro: string };
   match_disputed: { subject: string; intro: string };
   rating_changed: { subject: string; intro: string; eloLabel: string; deltaLabel: string };
@@ -134,7 +136,8 @@ const COPY: Record<Locale, Strings> = {
     },
     tournament_application_submitted: {
       subject: "New tournament application 📨",
-      intro: "Someone applied to your tournament «{tournament}». Review the application and approve or reject it.",
+      intro:
+        "Someone applied to your tournament «{tournament}». Review the application and approve or reject it.",
       cta: "Review applications",
     },
     tournament_application_approved: {
@@ -145,7 +148,8 @@ const COPY: Record<Locale, Strings> = {
     },
     tournament_application_rejected: {
       subject: "Tournament application not approved",
-      intro: "Your application to «{tournament}» wasn't approved this time. Don't take it personally — try other open tournaments.",
+      intro:
+        "Your application to «{tournament}» wasn't approved this time. Don't take it personally — try other open tournaments.",
     },
     tournament_starting_24h: {
       subject: "Tournament starts tomorrow!",
@@ -157,6 +161,14 @@ const COPY: Record<Locale, Strings> = {
       intro: "{opponent} (Elo {elo}) wants to play you. {message}",
       cta: "View proposal",
       declineHint: "You can decline in one click.",
+    },
+    match_accepted: {
+      subject: "{opponent} accepted your match",
+      intro:
+        "Good news — {opponent} accepted your proposal. Coordinate the venue and time, play, and don't forget to log the score.",
+      cta: "Open match",
+      whatsappHint:
+        "Tip: open the match page — there's a one-tap WhatsApp button to message your opponent.",
     },
     match_confirmed: {
       subject: "Match score confirmed — Elo updated",
@@ -197,7 +209,8 @@ const COPY: Record<Locale, Strings> = {
     },
     club_ownership_offered: {
       subject: "Club ownership offer 🎾",
-      intro: "{previous} offered you ownership of the club «{club}». Accept within 14 days, otherwise the offer expires.",
+      intro:
+        "{previous} offered you ownership of the club «{club}». Accept within 14 days, otherwise the offer expires.",
       cta: "Open club",
       ps: "If you accept, you become the new owner and the previous owner stays as a co-admin.",
     },
@@ -237,7 +250,8 @@ const COPY: Record<Locale, Strings> = {
     },
     tournament_application_submitted: {
       subject: "Новая заявка на турнир 📨",
-      intro: "Кто-то подал заявку на твой турнир «{tournament}». Загляни и реши: одобрить или отклонить.",
+      intro:
+        "Кто-то подал заявку на твой турнир «{tournament}». Загляни и реши: одобрить или отклонить.",
       cta: "Открыть заявки",
     },
     tournament_application_approved: {
@@ -248,7 +262,8 @@ const COPY: Record<Locale, Strings> = {
     },
     tournament_application_rejected: {
       subject: "Заявка на турнир отклонена",
-      intro: "Твою заявку на турнир «{tournament}» в этот раз не одобрили. Не переживай — попробуй другие открытые турниры.",
+      intro:
+        "Твою заявку на турнир «{tournament}» в этот раз не одобрили. Не переживай — попробуй другие открытые турниры.",
     },
     tournament_starting_24h: {
       subject: "Турнир стартует завтра!",
@@ -260,6 +275,14 @@ const COPY: Record<Locale, Strings> = {
       intro: "{opponent} (Эло {elo}) предлагает сыграть. {message}",
       cta: "Открыть предложение",
       declineHint: "Отказаться можно в один клик.",
+    },
+    match_accepted: {
+      subject: "{opponent} принял твоё предложение",
+      intro:
+        "Хорошая новость — {opponent} принял твоё предложение матча. Согласуй время и площадку, сыграй и не забудь занести счёт.",
+      cta: "Открыть матч",
+      whatsappHint:
+        "Подсказка: на странице матча есть кнопка «Написать в WhatsApp» — это самый быстрый способ договориться.",
     },
     match_confirmed: {
       subject: "Матч подтверждён — Эло обновлён",
@@ -300,7 +323,8 @@ const COPY: Record<Locale, Strings> = {
     },
     club_ownership_offered: {
       subject: "Предложение стать владельцем клуба 🎾",
-      intro: "{previous} предлагает тебе стать владельцем клуба «{club}». Прими предложение в течение 14 дней, иначе оно сгорит.",
+      intro:
+        "{previous} предлагает тебе стать владельцем клуба «{club}». Прими предложение в течение 14 дней, иначе оно сгорит.",
       cta: "Открыть клуб",
       ps: "Если ты примешь — станешь новым владельцем, а текущий владелец станет со-администратором.",
     },
@@ -314,6 +338,62 @@ function fill(s: string, vars: Record<string, string | number | undefined | null
     const v = vars[k];
     return v === undefined || v === null ? "" : String(v);
   });
+}
+
+// ---------------------------------------------------------------------------
+// Telegram renderer — same `payload + locale` contract, but renders to plain
+// text (with light HTML for bold/link, which Telegram understands via
+// `parse_mode: HTML`). Returns null for templates we haven't wired for
+// Telegram yet — the outbox treats that as "skip" rather than "fail".
+// ---------------------------------------------------------------------------
+
+export type RenderedTelegram = { text: string };
+
+function tgEscape(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function tgLink(href: string, label: string): string {
+  return `<a href="${tgEscape(href)}">${tgEscape(label)}</a>`;
+}
+
+export function renderTelegram(
+  code: TemplateCode,
+  locale: Locale,
+  payload: Payload,
+): RenderedTelegram | null {
+  const L = COPY[locale] ?? COPY.ru;
+  switch (code) {
+    case "match_proposal": {
+      const t = L.match_proposal;
+      const vars = {
+        opponent: String(payload.opponent_name ?? ""),
+        elo: String(payload.opponent_elo ?? ""),
+        message: payload.message ? `«${String(payload.message)}»` : "",
+      };
+      const url = `${SITE}/${locale}/me/find/proposals`;
+      return {
+        text:
+          `🎾 <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
+          `${tgEscape(fill(t.intro, vars))}\n\n` +
+          `${tgLink(url, t.cta)}`,
+      };
+    }
+    case "match_accepted": {
+      const t = L.match_accepted;
+      const vars = { opponent: String(payload.opponent_name ?? "") };
+      const url = `${SITE}/${locale}/me/matches`;
+      return {
+        text:
+          `✅ <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
+          `${tgEscape(fill(t.intro, vars))}\n\n` +
+          `${tgLink(url, t.cta)}`,
+      };
+    }
+    // Other templates fall through to "not wired for Telegram yet".
+    default:
+      return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -496,6 +576,23 @@ export function renderTemplate(
          <p>${escape(fill(t.intro, vars))}</p>
          <p style="margin:18px 0">${btn(url, t.cta)}</p>
          <p style="color:#6b7280;font-size:13px">${escape(t.declineHint)}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "match_accepted": {
+      const t = L.match_accepted;
+      const vars = {
+        opponent: String(payload.opponent_name ?? ""),
+      };
+      const url = `${SITE}/${locale}/me/matches`;
+      const subject = fill(t.subject, vars);
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>
+         <p style="color:#6b7280;font-size:13px">${escape(t.whatsappHint)}</p>`,
         ftr,
       );
       return { subject, html };

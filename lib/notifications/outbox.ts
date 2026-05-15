@@ -12,8 +12,15 @@
  *  - Future-proof for WhatsApp Business API + Telegram bot.
  */
 
-import { renderTemplate, type Locale, type Payload, type TemplateCode } from "./templates";
+import {
+  renderTelegram,
+  renderTemplate,
+  type Locale,
+  type Payload,
+  type TemplateCode,
+} from "./templates";
 import { sendEmail } from "@/lib/email/send";
+import { isTelegramConfigured, sendTelegramMessage } from "@/lib/telegram/send";
 
 // Loose Supabase shape so we can accept either server or service client.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,10 +39,7 @@ export type EnqueueInput = {
 
 export type EnqueueResult = { ok: true; id: string } | { ok: false; error: string };
 
-export async function enqueue(
-  supabase: AnySupabase,
-  input: EnqueueInput,
-): Promise<EnqueueResult> {
+export async function enqueue(supabase: AnySupabase, input: EnqueueInput): Promise<EnqueueResult> {
   const { data, error } = await supabase
     .from("notifications_outbox")
     .insert({
@@ -113,12 +117,39 @@ export async function drainOutbox(
   const stats: DrainStats = { scanned: 0, sent: 0, failed: 0, skipped: 0 };
   for (const row of rows ?? []) {
     stats.scanned++;
-    if (row.channel !== "email") {
-      // Telegram channel intentionally a no-op until bot wired (Phase 2).
-      stats.skipped++;
-      await markStatus(supabase, row.id, "cancelled", row.attempts, "telegram_not_wired");
+
+    if (row.channel === "telegram") {
+      if (!isTelegramConfigured()) {
+        stats.skipped++;
+        await markStatus(supabase, row.id, "cancelled", row.attempts, "telegram_not_configured");
+        continue;
+      }
+      const chatId = await resolveTelegramChatId(supabase, row.recipient_id);
+      if (!chatId) {
+        stats.skipped++;
+        // Recipient has Telegram preference on but hasn't linked yet — drop
+        // the row rather than retrying forever.
+        await markStatus(supabase, row.id, "cancelled", row.attempts, "no_telegram_link");
+        continue;
+      }
+      const tg = renderTelegram(row.template, row.locale, row.payload);
+      if (!tg) {
+        stats.skipped++;
+        await markStatus(supabase, row.id, "cancelled", row.attempts, "template_not_wired_tg");
+        continue;
+      }
+      const result = await sendTelegramMessage({ chatId, text: tg.text });
+      if (result.ok) {
+        stats.sent++;
+        await markStatus(supabase, row.id, "sent", row.attempts + 1, null);
+      } else {
+        stats.failed++;
+        await markStatus(supabase, row.id, "failed", row.attempts + 1, result.error);
+      }
       continue;
     }
+
+    // channel === "email"
     const recipientEmail = await resolveEmail(supabase, row.recipient_id);
     if (!recipientEmail) {
       stats.failed++;
@@ -142,6 +173,18 @@ export async function drainOutbox(
   return stats;
 }
 
+async function resolveTelegramChatId(
+  supabase: AnySupabase,
+  userId: string,
+): Promise<number | null> {
+  const { data } = (await supabase
+    .from("telegram_links")
+    .select("chat_id")
+    .eq("player_id", userId)
+    .maybeSingle()) as { data: { chat_id: number } | null };
+  return data?.chat_id ?? null;
+}
+
 async function markStatus(
   supabase: AnySupabase,
   id: string,
@@ -160,7 +203,10 @@ async function markStatus(
     patch.status = "pending";
     patch.scheduled_at = new Date(Date.now() + backoffMs(attempts)).toISOString();
   }
-  await supabase.from("notifications_outbox").update(patch as never).eq("id", id);
+  await supabase
+    .from("notifications_outbox")
+    .update(patch as never)
+    .eq("id", id);
 }
 
 export function backoffMs(attempts: number): number {

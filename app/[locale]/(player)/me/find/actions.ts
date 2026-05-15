@@ -24,6 +24,9 @@ import {
 } from "@/lib/profile/schema";
 import { sendEmail } from "@/lib/email/send";
 import { buildMatchProposalEmail } from "@/lib/email/templates/match-proposal";
+import { enqueue } from "@/lib/notifications/outbox";
+import { renderTelegram, renderTemplate } from "@/lib/notifications/templates";
+import { isTelegramConfigured, sendTelegramMessage } from "@/lib/telegram/send";
 
 // =============================================================================
 // Filter validation
@@ -590,9 +593,185 @@ export async function proposeMatch(input: unknown): Promise<ProposeResult> {
     }
   }
 
+  // Telegram delivery — best-effort, additive to email. The outbox row gets
+  // dropped in by the helper so we still have an audit trail and the cron
+  // worker can retry if the inline send fails.
+  await notifyTelegramMatchProposal({
+    service,
+    recipientId: opponent.id,
+    locale: opponent.locale,
+    matchId: inserted.id,
+    initiatorName,
+    initiatorElo: me?.current_elo ?? 1000,
+    message: message ?? null,
+  });
+
   revalidatePath("/me/find");
   revalidatePath("/me/find/proposals");
   return { ok: true, match_id: inserted.id };
+}
+
+// =============================================================================
+// Telegram helpers — shared by proposeMatch and respondToProposal.
+//
+// We don't want notification delivery to block the primary action, so each
+// helper wraps its own try/catch and never throws. If the env isn't
+// configured or the recipient isn't linked, the outbox row gets marked
+// `cancelled` (no retries) and we move on.
+// =============================================================================
+
+async function notifyTelegramMatchProposal(opts: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  service: any;
+  recipientId: string;
+  locale: "ru" | "en";
+  matchId: string;
+  initiatorName: string;
+  initiatorElo: number;
+  message: string | null;
+}): Promise<void> {
+  try {
+    const { service, recipientId, locale, matchId } = opts;
+    const payload = {
+      match_id: matchId,
+      opponent_name: opts.initiatorName,
+      opponent_elo: opts.initiatorElo,
+      message: opts.message ?? "",
+    };
+    // Only enqueue when the user has opted in AND has a linked chat —
+    // otherwise we'd litter the outbox with rows that immediately cancel.
+    const { data: prof } = (await service
+      .from("profiles")
+      .select("notification_telegram")
+      .eq("id", recipientId)
+      .maybeSingle()) as { data: { notification_telegram: boolean } | null };
+    if (!prof?.notification_telegram) return;
+    const { data: link } = (await service
+      .from("telegram_links")
+      .select("chat_id")
+      .eq("player_id", recipientId)
+      .maybeSingle()) as { data: { chat_id: number } | null };
+
+    await enqueue(service, {
+      recipient_id: recipientId,
+      channel: "telegram",
+      template: "match_proposal",
+      locale,
+      payload,
+    });
+
+    if (link?.chat_id && isTelegramConfigured()) {
+      const tg = renderTelegram("match_proposal", locale, payload);
+      if (tg) {
+        const result = await sendTelegramMessage({ chatId: link.chat_id, text: tg.text });
+        if (result.ok) {
+          await service
+            .from("notifications_outbox")
+            .update({ status: "sent", sent_at: new Date().toISOString() } as never)
+            .eq("recipient_id", recipientId)
+            .eq("channel", "telegram")
+            .eq("template", "match_proposal")
+            .eq("payload->>match_id", matchId);
+        }
+      }
+    }
+  } catch {
+    // Best-effort — the outbox cron will retry whatever ends up still pending.
+  }
+}
+
+async function notifyMatchAccepted(opts: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  service: any;
+  initiatorId: string;
+  acceptorName: string;
+  matchId: string;
+}): Promise<void> {
+  try {
+    const { service, initiatorId, acceptorName, matchId } = opts;
+    const { data: prof } = (await service
+      .from("profiles")
+      .select("locale, notification_email, notification_telegram")
+      .eq("id", initiatorId)
+      .maybeSingle()) as {
+      data: {
+        locale: "ru" | "en";
+        notification_email: boolean;
+        notification_telegram: boolean;
+      } | null;
+    };
+    if (!prof) return;
+    const payload = {
+      match_id: matchId,
+      opponent_name: acceptorName,
+    };
+
+    // Email
+    if (prof.notification_email) {
+      const { data: authUser } = await service.auth.admin.getUserById(initiatorId);
+      const recipientEmail = authUser?.user?.email as string | undefined;
+      await enqueue(service, {
+        recipient_id: initiatorId,
+        channel: "email",
+        template: "match_accepted",
+        locale: prof.locale,
+        payload,
+      });
+      if (recipientEmail) {
+        const tpl = renderTemplate("match_accepted", prof.locale, payload);
+        const result = await sendEmail({
+          to: recipientEmail,
+          subject: tpl.subject,
+          html: tpl.html,
+        });
+        if (result.ok) {
+          await service
+            .from("notifications_outbox")
+            .update({ status: "sent", sent_at: new Date().toISOString() } as never)
+            .eq("recipient_id", initiatorId)
+            .eq("channel", "email")
+            .eq("template", "match_accepted")
+            .eq("payload->>match_id", matchId);
+        }
+      }
+    }
+
+    // Telegram
+    if (prof.notification_telegram) {
+      const { data: link } = (await service
+        .from("telegram_links")
+        .select("chat_id")
+        .eq("player_id", initiatorId)
+        .maybeSingle()) as { data: { chat_id: number } | null };
+      await enqueue(service, {
+        recipient_id: initiatorId,
+        channel: "telegram",
+        template: "match_accepted",
+        locale: prof.locale,
+        payload,
+      });
+      if (link?.chat_id && isTelegramConfigured()) {
+        const tg = renderTelegram("match_accepted", prof.locale, payload);
+        if (tg) {
+          const result = await sendTelegramMessage({
+            chatId: link.chat_id,
+            text: tg.text,
+          });
+          if (result.ok) {
+            await service
+              .from("notifications_outbox")
+              .update({ status: "sent", sent_at: new Date().toISOString() } as never)
+              .eq("recipient_id", initiatorId)
+              .eq("channel", "telegram")
+              .eq("template", "match_accepted")
+              .eq("payload->>match_id", matchId);
+          }
+        }
+      }
+    }
+  } catch {
+    // Best-effort.
+  }
 }
 
 const RespondSchema = z.object({
@@ -666,6 +845,22 @@ export async function respondToProposal(input: unknown): Promise<RespondResult> 
     .eq("id", match_id);
 
   if (error) return { ok: false, error: "db_error", message: error.message };
+
+  // When the recipient accepts, notify the initiator — they care more about
+  // the answer than the responder does. Email + Telegram, best-effort.
+  if (decision === "accept" && isRecipient) {
+    const { data: meRow } = (await service
+      .from("profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle()) as { data: { display_name: string | null } | null };
+    await notifyMatchAccepted({
+      service,
+      initiatorId: m.p1_id,
+      acceptorName: meRow?.display_name ?? "Tennis player",
+      matchId: m.id,
+    });
+  }
 
   revalidatePath("/me/find");
   revalidatePath("/me/find/proposals");
