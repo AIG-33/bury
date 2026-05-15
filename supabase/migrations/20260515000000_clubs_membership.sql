@@ -585,6 +585,11 @@ create policy "club_logos_public_read"
   on storage.objects for select
   using (bucket_id = 'club-logos');
 
+-- IMPORTANT: qualify `name` with `storage.objects.name`. Inside the
+-- subquery `from clubs c`, an unqualified `name` would resolve to
+-- `c.name` (the club's display name) and the folder check would never
+-- match. 20260516000100_fix_club_logos_storage_policy.sql exists to
+-- repair databases that picked up the earlier broken version.
 drop policy if exists "club_logos_admin_insert" on storage.objects;
 create policy "club_logos_admin_insert"
   on storage.objects for insert
@@ -593,7 +598,7 @@ create policy "club_logos_admin_insert"
     and auth.role() = 'authenticated'
     and exists (
       select 1 from public.clubs c
-       where c.id::text = (storage.foldername(name))[1]
+       where c.id::text = (storage.foldername(storage.objects.name))[1]
          and public.is_club_admin(c.id)
     )
   );
@@ -605,7 +610,7 @@ create policy "club_logos_admin_update"
     bucket_id = 'club-logos'
     and exists (
       select 1 from public.clubs c
-       where c.id::text = (storage.foldername(name))[1]
+       where c.id::text = (storage.foldername(storage.objects.name))[1]
          and public.is_club_admin(c.id)
     )
   )
@@ -613,7 +618,7 @@ create policy "club_logos_admin_update"
     bucket_id = 'club-logos'
     and exists (
       select 1 from public.clubs c
-       where c.id::text = (storage.foldername(name))[1]
+       where c.id::text = (storage.foldername(storage.objects.name))[1]
          and public.is_club_admin(c.id)
     )
   );
@@ -625,7 +630,7 @@ create policy "club_logos_admin_delete"
     bucket_id = 'club-logos'
     and exists (
       select 1 from public.clubs c
-       where c.id::text = (storage.foldername(name))[1]
+       where c.id::text = (storage.foldername(storage.objects.name))[1]
          and public.is_club_admin(c.id)
     )
   );
