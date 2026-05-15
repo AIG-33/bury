@@ -139,16 +139,42 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
         {t("detail.back")}
       </Link>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
+      {/* Hero: large portrait on the left spans two rows (PageHeader + stats trio)
+          on desktop. On mobile it stacks as a big square photo above the info.
+          Goal: the player's face is the first thing you see on the profile. */}
+      <section className="grid gap-4 md:grid-cols-[minmax(240px,280px)_1fr] md:items-start">
+        <div className="relative md:row-span-2 mx-auto w-full max-w-[420px] md:max-w-none aspect-square md:aspect-auto md:h-full md:min-h-[320px] overflow-hidden rounded-3xl bg-gradient-to-br from-grass-100 via-ball-50 to-grass-50 ring-1 ring-grass-200/60 shadow-sm">
           {profile.avatar_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+            <img
+              src={profile.avatar_url}
+              alt={profile.display_name ?? ""}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           ) : (
-            <Trophy className="h-7 w-7" />
+            <div className="grid h-full w-full place-items-center">
+              {profile.display_name ? (
+                <span className="select-none font-display text-7xl font-bold tracking-tight text-grass-600/40">
+                  {initialsOf(profile.display_name)}
+                </span>
+              ) : (
+                <Trophy className="h-20 w-20 text-grass-400" />
+              )}
+            </div>
+          )}
+          {profile.is_coach && (
+            <Link
+              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+              href={`/coaches/${profile.id}` as any}
+              className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-grass-700/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur transition hover:bg-grass-700"
+            >
+              <Award className="h-3 w-3" />
+              {t("card.is_coach")}
+            </Link>
           )}
         </div>
-        <div className="min-w-0 flex-1">
+
+        <div className="min-w-0">
           <PageHeader
             title={profile.display_name ?? "—"}
             subtitle={
@@ -183,16 +209,6 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
                     {t(`card.hand_${profile.dominant_hand}`)}
                   </span>
                 )}
-                {profile.is_coach && (
-                  <Link
-                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                    href={`/coaches/${profile.id}` as any}
-                    className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-700 hover:bg-grass-200"
-                  >
-                    <Award className="h-3 w-3" />
-                    {t("card.is_coach")}
-                  </Link>
-                )}
               </span>
             }
             help={
@@ -225,29 +241,29 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
             }
           />
         </div>
-      </div>
 
-      {/* Stats trio */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Stat
-          label={t("detail.stats.elo")}
-          value={
-            profile.elo_status === "established"
-              ? t("card.elo_established", { elo: profile.current_elo })
-              : t("card.elo_provisional", { elo: profile.current_elo })
-          }
-        />
-        <Stat label={t("detail.stats.rated_matches")} value={String(profile.rated_matches_count)} />
-        <Stat
-          label={t("detail.stats.last_match")}
-          value={
-            profile.days_since_last_match == null
-              ? t("detail.stats.never")
-              : profile.days_since_last_match <= 7
-                ? t("card.last_match_recent")
-                : t("card.last_match_days", { days: profile.days_since_last_match })
-          }
-        />
+        {/* Stats trio — sits to the right of the lower half of the portrait */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Stat
+            label={t("detail.stats.elo")}
+            value={
+              profile.elo_status === "established"
+                ? t("card.elo_established", { elo: profile.current_elo })
+                : t("card.elo_provisional", { elo: profile.current_elo })
+            }
+          />
+          <Stat label={t("detail.stats.rated_matches")} value={String(profile.rated_matches_count)} />
+          <Stat
+            label={t("detail.stats.last_match")}
+            value={
+              profile.days_since_last_match == null
+                ? t("detail.stats.never")
+                : profile.days_since_last_match <= 7
+                  ? t("card.last_match_recent")
+                  : t("card.last_match_days", { days: profile.days_since_last_match })
+            }
+          />
+        </div>
       </section>
 
       {(() => {
@@ -397,6 +413,11 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
       </section>
     </div>
   );
+}
+
+function initialsOf(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

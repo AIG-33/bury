@@ -28,16 +28,35 @@ export default async function CoachProfilePage({ params }: Props) {
 
   return (
     <div className="page-shell space-y-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
+      {/* Hero: large portrait on the left spans PageHeader + bio on desktop.
+          Without a bio it just spans the header. Mobile stacks naturally. */}
+      <section className="grid gap-4 md:grid-cols-[minmax(240px,280px)_1fr] md:items-start">
+        <div className="relative md:row-span-2 mx-auto w-full max-w-[420px] md:max-w-none aspect-square md:aspect-auto md:h-full md:min-h-[320px] overflow-hidden rounded-3xl bg-gradient-to-br from-grass-100 via-ball-50 to-grass-50 ring-1 ring-grass-200/60 shadow-sm">
           {coach.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" />
+            <img
+              src={coach.avatar_url}
+              alt={coach.display_name ?? ""}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           ) : (
-            <Award className="h-7 w-7" />
+            <div className="grid h-full w-full place-items-center">
+              {coach.display_name ? (
+                <span className="select-none font-display text-7xl font-bold tracking-tight text-grass-600/40">
+                  {initialsOf(coach.display_name)}
+                </span>
+              ) : (
+                <Award className="h-20 w-20 text-grass-400" />
+              )}
+            </div>
           )}
+          <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-grass-700/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
+            <Award className="h-3 w-3" />
+            {t("title")}
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
+
+        <div className="min-w-0">
           <PageHeader
             title={coach.display_name ?? "—"}
             subtitle={
@@ -77,14 +96,16 @@ export default async function CoachProfilePage({ params }: Props) {
             }
           />
         </div>
-      </div>
 
-      {coach.coach_bio && (
-        <Surface variant="card" as="section">
-          <h2 className="font-display text-base font-bold text-grass-900">{t("detail.about")}</h2>
-          <p className="mt-2 whitespace-pre-line text-sm text-ink-700">{coach.coach_bio}</p>
-        </Surface>
-      )}
+        {coach.coach_bio ? (
+          <Surface variant="card" as="div">
+            <h2 className="font-display text-base font-bold text-grass-900">{t("detail.about")}</h2>
+            <p className="mt-2 whitespace-pre-line text-sm text-ink-700">{coach.coach_bio}</p>
+          </Surface>
+        ) : (
+          <span aria-hidden className="hidden md:block" />
+        )}
+      </section>
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
@@ -178,4 +199,9 @@ export default async function CoachProfilePage({ params }: Props) {
       </section>
     </div>
   );
+}
+
+function initialsOf(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
