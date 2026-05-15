@@ -2,6 +2,8 @@
 
 import { Send, CheckCircle2, Copy } from "lucide-react";
 import { useState } from "react";
+import { Surface } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   /** Already linked? Shown as a "connected" pill. */
@@ -28,9 +30,9 @@ export function TelegramLinkCard({ linked, botUsername, startUrl, copy }: Props)
   // user understands why the option is missing instead of seeing nothing.
   if (!botUsername || !startUrl) {
     return (
-      <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+      <Surface variant="card" as="section">
         <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sky-50 text-sky-600">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-50 text-grass-600">
             <Send className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
@@ -38,17 +40,17 @@ export function TelegramLinkCard({ linked, botUsername, startUrl, copy }: Props)
             <p className="mt-1 text-sm text-ink-600">{copy.not_configured}</p>
           </div>
         </div>
-      </section>
+      </Surface>
     );
   }
 
   return (
-    <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+    <Surface variant="card" as="section">
       <div className="flex items-start gap-3">
         <div
           className={[
             "grid h-10 w-10 shrink-0 place-items-center rounded-full",
-            linked ? "bg-grass-50 text-grass-700" : "bg-sky-50 text-sky-600",
+            linked ? "bg-grass-50 text-grass-700" : "bg-grass-100 text-grass-600",
           ].join(" ")}
         >
           {linked ? <CheckCircle2 className="h-5 w-5" /> : <Send className="h-5 w-5" />}
@@ -60,32 +62,29 @@ export function TelegramLinkCard({ linked, botUsername, startUrl, copy }: Props)
           </p>
           {!linked && (
             <div className="mt-3 flex flex-wrap gap-2">
-              <a
-                href={startUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-600 px-3 font-display text-[13px] font-semibold text-white shadow hover:bg-grass-700"
-              >
-                <Send className="h-3.5 w-3.5" />
-                {copy.cta_open_bot}
-              </a>
-              <button
-                type="button"
+              <Button asChild variant="primary" size="sm">
+                <a href={startUrl} target="_blank" rel="noopener noreferrer">
+                  <Send className="h-3.5 w-3.5" />
+                  {copy.cta_open_bot}
+                </a>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   navigator.clipboard.writeText(startUrl).then(() => {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   });
                 }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 font-display text-[13px] font-semibold text-ink-700 hover:bg-ink-50"
               >
                 <Copy className="h-3.5 w-3.5" />
                 {copied ? copy.cta_copied : copy.cta_copy_link}
-              </button>
+              </Button>
             </div>
           )}
         </div>
       </div>
-    </section>
+    </Surface>
   );
 }

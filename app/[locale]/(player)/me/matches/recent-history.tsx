@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Filter } from "lucide-react";
+import { Surface } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
 import { MatchCard } from "./match-card";
 import type { MatchListItem } from "./actions";
 
@@ -83,7 +85,7 @@ export function RecentHistory({
   return (
     <div className="space-y-3">
       {/* Filter bar — three compact selects on desktop, stack on mobile */}
-      <div className="rounded-xl2 border border-ink-100 bg-white p-3 shadow-sm">
+      <Surface variant="flat" className="!p-3">
         <div className="flex flex-wrap items-end gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">
             <Filter className="h-3.5 w-3.5" />
@@ -151,21 +153,17 @@ export function RecentHistory({
           </span>
 
           {hasFilter && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="inline-flex h-8 items-center rounded-md border border-ink-200 bg-white px-2 text-xs font-medium text-ink-700 hover:bg-ink-50"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={resetFilters}>
               {t("reset")}
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Surface>
 
       {filtered.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-ink-200 bg-white p-4 text-center text-sm text-ink-500">
-          {t("empty")}
-        </p>
+        <Surface variant="soft" className="py-4 text-center">
+          <p className="text-sm text-ink-600">{t("empty")}</p>
+        </Surface>
       ) : (
         <>
           <ul className="space-y-3">
@@ -180,15 +178,16 @@ export function RecentHistory({
             ))}
           </ul>
           {filtered.length > limit && (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => setLimit((n) => n + PAGE_SIZE)}
-              className="inline-flex h-9 items-center rounded-md border border-grass-300 bg-white px-3 text-sm font-medium text-grass-700 hover:bg-grass-50"
             >
               {t("show_more", {
                 n: Math.min(PAGE_SIZE, filtered.length - limit),
               })}
-            </button>
+            </Button>
           )}
         </>
       )}

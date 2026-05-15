@@ -3,6 +3,8 @@ import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { joinViaToken } from "../../actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 
 type Props = {
   params: Promise<{ locale: string; token: string }>;
@@ -23,12 +25,13 @@ export default async function ClubJoinByTokenPage({ params }: Props) {
   if (!user) {
     return (
       <ResultShell title={t("errors.not_authenticated")} variant="error">
-        <Link
-          href={`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/clubs/join/${token}`)}`}
-          className="inline-flex h-10 items-center rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-        >
-          {t("cta_login")}
-        </Link>
+        <Button asChild variant="primary" size="sm">
+          <Link
+            href={`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/clubs/join/${token}`)}`}
+          >
+            {t("cta_login")}
+          </Link>
+        </Button>
       </ResultShell>
     );
   }
@@ -49,12 +52,11 @@ export default async function ClubJoinByTokenPage({ params }: Props) {
 
   return (
     <ResultShell title={t(`errors.${errorKey}`)} variant="error">
-      <Link
-        href={`/${locale}/clubs`}
-        className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-      >
-        {t("cta_clubs")}
-      </Link>
+      <Button asChild variant="secondary" size="sm">
+        <Link href={`/${locale}/clubs`}>
+          {t("cta_clubs")}
+        </Link>
+      </Button>
     </ResultShell>
   );
 }
@@ -68,16 +70,18 @@ function ResultShell({
   children: React.ReactNode;
   variant: "error" | "success";
 }) {
-  const tone =
-    variant === "error"
-      ? "border-clay-200 bg-clay-50 text-clay-900"
-      : "border-grass-200 bg-grass-50 text-grass-900";
   return (
-    <div className="mx-auto max-w-md px-6 py-16">
-      <div className={`rounded-xl2 border p-6 text-center ${tone}`}>
+    <div className="page-shell flex min-h-[40vh] items-center justify-center">
+      <Surface
+        variant={variant === "error" ? "soft" : "card"}
+        className={
+          "w-full max-w-md text-center " +
+          (variant === "error" ? "border-clay-200 bg-clay-50/60 text-clay-900" : "")
+        }
+      >
         <h1 className="font-display text-xl font-semibold">{title}</h1>
         <div className="mt-4 flex justify-center">{children}</div>
-      </div>
+      </Surface>
     </div>
   );
 }

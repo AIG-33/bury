@@ -15,6 +15,7 @@ import {
   CalendarRange,
   Plus,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   SlotFormSchema,
   SLOT_TYPES,
@@ -419,18 +420,10 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
           )}
 
           <footer className="sticky bottom-0 -mx-6 flex items-center justify-end gap-3 border-t border-ink-100 bg-white/95 px-6 pb-1 pt-4 backdrop-blur">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-            >
+            <Button variant="secondary" type="button" onClick={onClose}>
               {copy.cancel}
-            </button>
-            <button
-              type="submit"
-              disabled={pending || courts.length === 0}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={pending || courts.length === 0}>
               {pending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> {copy.saving}
@@ -440,7 +433,7 @@ export function SlotFormDialog({ open, onClose, courts, copy, onSaved }: Props) 
                   <CalendarPlus className="h-4 w-4" /> {copy.save}
                 </>
               )}
-            </button>
+            </Button>
           </footer>
         </form>
       </div>
@@ -558,13 +551,9 @@ function DatesPicker({
           />
         </Field>
         <div className="flex items-end">
-          <button
-            type="button"
-            onClick={addRange}
-            className="inline-flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-grass-500 px-3 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 sm:w-auto"
-          >
+          <Button type="button" size="sm" onClick={addRange} className="w-full sm:w-auto">
             <CalendarRange className="h-4 w-4" /> {copy.add_range}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -611,13 +600,9 @@ function DatesPicker({
           />
         </Field>
         <div className="flex items-end">
-          <button
-            type="button"
-            onClick={addSingle}
-            className="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-          >
+          <Button variant="secondary" size="sm" type="button" onClick={addSingle}>
             <Plus className="h-4 w-4" /> {copy.add_date}
-          </button>
+          </Button>
         </div>
       </div>
 

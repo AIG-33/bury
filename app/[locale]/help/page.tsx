@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -52,10 +54,11 @@ export default async function HelpPage({ params }: Props) {
   ] as const;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="help"
             variant="inline"
@@ -63,65 +66,67 @@ export default async function HelpPage({ params }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <Link
         href={`/${locale}/help/guide`}
-        className="border-leaf-200 bg-leaf-50 hover:border-leaf-400 hover:bg-leaf-100 block rounded-xl2 border p-5 transition"
+        className="surface-card lift-on-hover block"
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-leaf-900 font-display text-lg font-semibold">
+            <h2 className="font-display text-lg font-semibold text-grass-900">
               {tg("card_cta_title")}
             </h2>
-            <p className="text-leaf-800 mt-1 text-sm">{tg("card_cta_body")}</p>
+            <p className="mt-1 text-sm text-grass-800">{tg("card_cta_body")}</p>
           </div>
-          <span
-            aria-hidden
-            className="bg-leaf-600 mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-white"
-          >
+          <Chip tone="grass" aria-hidden>
             {tg("card_cta_button")}
-          </span>
+          </Chip>
         </div>
       </Link>
 
+      <div className="court-line" aria-hidden />
+
       <section className="space-y-3">
-        <h2 className="font-display text-2xl font-semibold text-ink-900">{t("glossary_title")}</h2>
+        <SectionTitle>{t("glossary_title")}</SectionTitle>
         <dl className="grid gap-3 sm:grid-cols-2">
           {glossary.map((g) => (
-            <div key={g} className="rounded-lg border border-ink-100 bg-white p-3">
+            <Surface variant="row" key={g}>
               <dt className="font-display text-sm font-semibold text-ink-900">
                 {t(`glossary.${g}.term`)}
               </dt>
               <dd className="mt-1 text-sm text-ink-600">{t(`glossary.${g}.def`)}</dd>
-            </div>
+            </Surface>
           ))}
         </dl>
       </section>
 
+      <div className="court-line" aria-hidden />
+
       <section className="space-y-3">
-        <h2 className="font-display text-2xl font-semibold text-ink-900">{t("faq_title")}</h2>
+        <SectionTitle>{t("faq_title")}</SectionTitle>
         <ul className="space-y-2">
           {faqs.map((q) => (
-            <li key={q} className="rounded-lg border border-ink-100 bg-white p-4">
+            <Surface variant="row" as="li" key={q}>
               <details className="group">
                 <summary className="cursor-pointer font-medium text-ink-900 [&::-webkit-details-marker]:hidden">
-                  <span className="bg-leaf-500 mr-2 inline-block h-1.5 w-1.5 rounded-full align-middle" />
+                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-grass-500 align-middle" />
                   {t(`faq.${q}.q`)}
                 </summary>
                 <p className="mt-2 text-sm text-ink-600">{t(`faq.${q}.a`)}</p>
               </details>
-            </li>
+            </Surface>
           ))}
         </ul>
       </section>
 
-      <section className="bg-leaf-50 rounded-xl2 border border-ink-100 p-5">
-        <h2 className="text-leaf-900 font-display text-lg font-semibold">{t("contact_title")}</h2>
-        <p className="text-leaf-800 mt-1 text-sm">{t("contact_body")}</p>
-      </section>
+      <div className="court-line" aria-hidden />
+
+      <Surface variant="soft" as="section">
+        <h2 className="font-display text-lg font-semibold text-grass-900">{t("contact_title")}</h2>
+        <p className="mt-1 text-sm text-grass-800">{t("contact_body")}</p>
+      </Surface>
     </div>
   );
 }

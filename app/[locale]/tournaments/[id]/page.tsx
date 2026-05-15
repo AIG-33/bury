@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, Coins, MapPin, Users, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface } from "@/components/ui/surface";
+import { Chip } from "@/components/ui/surface";
 import { loadPublicTournamentDetail } from "../actions";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
@@ -41,7 +44,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
         href={`/${locale}/tournaments`}
         className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900"
@@ -50,9 +53,10 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         {t("back")}
       </Link>
 
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{tournament.name}</h1>
+      <PageHeader
+        title={tournament.name}
+        subtitle={tournament.description ?? undefined}
+        help={
           <HelpPanel
             pageId="public-tournament-detail"
             variant="inline"
@@ -60,74 +64,74 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
             result={[t("detail.help.result.1")]}
           />
-        </div>
-        {tournament.description && <p className="text-ink-600">{tournament.description}</p>}
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 font-medium uppercase">
-            {t(`format.${tournament.format}`)}
-          </span>
-          {tournament.surface && (
-            <span className="rounded-full bg-clay-50 px-2 py-0.5 font-medium uppercase text-clay-700">
-              {tournament.surface}
-            </span>
-          )}
-          <span className="rounded-full bg-ink-100 px-2 py-0.5 font-medium uppercase text-ink-600">
-            {t(`status.${tournament.status}`)}
-          </span>
-        </div>
-      </header>
+        }
+      />
+
+      <div className="flex flex-wrap gap-2 text-xs">
+        <Chip tone="grass" className="font-medium uppercase">
+          {t(`format.${tournament.format}`)}
+        </Chip>
+        {tournament.surface && (
+          <Chip tone="clay" className="font-medium uppercase">
+            {tournament.surface}
+          </Chip>
+        )}
+        <Chip tone="ink" className="font-medium uppercase">
+          {t(`status.${tournament.status}`)}
+        </Chip>
+      </div>
 
       {/* Meta strip */}
       <dl className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-ink-100 bg-white p-3">
+        <Surface variant="row">
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.starts")}
           </dt>
           <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
             <span className="inline-flex items-center gap-1">
-              <Calendar className="text-leaf-700 h-4 w-4" />
+              <Calendar className="h-4 w-4 text-grass-700" />
               {fmtDate.format(new Date(tournament.starts_on))}
             </span>
             {tournament.start_time && (
               <span className="inline-flex items-center gap-1 text-sm tabular-nums text-ink-700">
-                <Clock className="text-leaf-700 h-3.5 w-3.5" />
+                <Clock className="h-3.5 w-3.5 text-grass-700" />
                 {tournament.start_time.slice(0, 5)}
               </span>
             )}
           </dd>
-        </div>
-        <div className="rounded-lg border border-ink-100 bg-white p-3">
+        </Surface>
+        <Surface variant="row">
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.participants")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Users className="text-leaf-700 h-4 w-4" />
+            <Users className="h-4 w-4 text-grass-700" />
             {tournament.participants_count}
             {tournament.max_participants ? ` / ${tournament.max_participants}` : ""}
           </dd>
-        </div>
-        <div className="rounded-lg border border-ink-100 bg-white p-3">
+        </Surface>
+        <Surface variant="row">
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.entry_fee")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium tabular-nums text-ink-900">
-            <Coins className="text-leaf-700 h-4 w-4" />
+            <Coins className="h-4 w-4 text-grass-700" />
             {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
               ? t("entry_fee_free")
               : t("entry_fee_byn", { n: tournament.entry_fee_byn })}
           </dd>
-        </div>
-        <div className="rounded-lg border border-ink-100 bg-white p-3">
+        </Surface>
+        <Surface variant="row">
           <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
             {t("detail.organizer")}
           </dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Trophy className="text-leaf-700 h-4 w-4" />
+            <Trophy className="h-4 w-4 text-grass-700" />
             {tournament.organizer_name ?? "—"}
           </dd>
-        </div>
+        </Surface>
         {tournament.venues.length > 0 && (
-          <div className="rounded-lg border border-ink-100 bg-white p-3 sm:col-span-2">
+          <Surface variant="row" className="sm:col-span-2">
             <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
               {t("detail.venues")}
             </dt>
@@ -135,7 +139,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               {tournament.venues.map((v) => (
                 <span
                   key={v.id}
-                  className="bg-leaf-50 text-leaf-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
+                  className="inline-flex items-center gap-1 rounded-full bg-grass-50 px-2 py-0.5 text-xs text-grass-700"
                 >
                   <MapPin className="h-3 w-3" />
                   {v.name}
@@ -143,13 +147,13 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                 </span>
               ))}
             </dd>
-          </div>
+          </Surface>
         )}
       </dl>
 
       {/* Participants */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-        <h2 className="mb-3 font-display text-lg font-semibold text-ink-900">
+      <Surface variant="card" as="section">
+        <h2 className="mb-3 font-display text-lg font-bold text-grass-900">
           {t("detail.participants_title")}
         </h2>
         {participants.length === 0 ? (
@@ -174,11 +178,11 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               ))}
           </ol>
         )}
-      </section>
+      </Surface>
 
       {/* Matches */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-        <h2 className="mb-3 font-display text-lg font-semibold text-ink-900">
+      <Surface variant="card" as="section">
+        <h2 className="mb-3 font-display text-lg font-bold text-grass-900">
           {t("detail.matches_title")}
         </h2>
         {matches.length === 0 ? (
@@ -199,9 +203,9 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                   key={m.id}
                   className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md border border-ink-100 px-3 py-2 text-sm"
                 >
-                  <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase">
+                  <Chip tone="grass" className="text-[10px] font-medium uppercase">
                     R{m.round ?? "?"}
-                  </span>
+                  </Chip>
                   <div className="min-w-0">
                     <div
                       className={`truncate ${winnerLabel === "p1" ? "font-semibold text-ink-900" : "text-ink-700"}`}
@@ -220,7 +224,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             })}
           </ul>
         )}
-      </section>
+      </Surface>
     </div>
   );
 }

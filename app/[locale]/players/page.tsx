@@ -8,6 +8,9 @@ import { WinRatePill } from "@/components/rating/win-rate-pill";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
 import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadPublicDistrictOptions, loadPublicPlayers } from "./actions";
 import { LEVEL_BUCKETS, type LevelBucket } from "./filters";
@@ -58,7 +61,6 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const daypart = (TIME_SLOTS as readonly string[]).includes(sp.daypart ?? "")
     ? (sp.daypart as (typeof TIME_SLOTS)[number])
     : "";
-  // weekday and daypart are paired filters — only apply when both are picked.
   const slotApplied = Boolean(weekday) && Boolean(daypart);
 
   const [{ results, total, truncated }, districts, sessionUser] = await Promise.all([
@@ -92,10 +94,11 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   })();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell-wide space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="players-public"
             variant="inline"
@@ -103,123 +106,120 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <GuestNextStepBanner isGuest={isGuest} current="players" />
 
       {/* Filter bar — URL-driven so SSR & shareable links work. */}
-      <form
-        action={`/${locale}/players`}
-        method="get"
-        className="grid gap-3 rounded-xl2 border border-ink-100 bg-white p-4 shadow-card sm:grid-cols-2 lg:grid-cols-5"
-      >
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("controls.level_label")}
-          </span>
-          <select
-            name="level"
-            defaultValue={level}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            {LEVEL_BUCKETS.map((b) => (
-              <option key={b} value={b}>
-                {t(`controls.level.${b}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("controls.district")}
-          </span>
-          <select
-            name="district"
-            defaultValue={districtId}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("controls.any_district")}</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.city} · {d.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("controls.hand")}
-          </span>
-          <select
-            name="hand"
-            defaultValue={hand}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            {(["both", "R", "L"] as const).map((h) => (
-              <option key={h} value={h}>
-                {t(`controls.hand_options.${h}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("controls.weekday")}
-          </span>
-          <select
-            name="weekday"
-            defaultValue={weekday}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("controls.any_weekday")}</option>
-            {WEEKDAYS.map((d) => (
-              <option key={d} value={d}>
-                {t(`weekday.${d}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("controls.daypart")}
-          </span>
-          <select
-            name="daypart"
-            defaultValue={daypart}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("controls.any_daypart")}</option>
-            {TIME_SLOTS.map((s) => (
-              <option key={s} value={s}>
-                {t(`daypart.${s}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-5 lg:justify-end">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-          >
-            {t("controls.apply")}
-          </button>
-          {hasFilter && (
-            <Link
-              href="/players"
-              className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+      <Surface variant="flat">
+        <form
+          action={`/${locale}/players`}
+          method="get"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+        >
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("controls.level_label")}
+            </span>
+            <select
+              name="level"
+              defaultValue={level}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
-              {t("controls.reset")}
-            </Link>
-          )}
-        </div>
-      </form>
+              {LEVEL_BUCKETS.map((b) => (
+                <option key={b} value={b}>
+                  {t(`controls.level.${b}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("controls.district")}
+            </span>
+            <select
+              name="district"
+              defaultValue={districtId}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("controls.any_district")}</option>
+              {districts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.city} · {d.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("controls.hand")}
+            </span>
+            <select
+              name="hand"
+              defaultValue={hand}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              {(["both", "R", "L"] as const).map((h) => (
+                <option key={h} value={h}>
+                  {t(`controls.hand_options.${h}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("controls.weekday")}
+            </span>
+            <select
+              name="weekday"
+              defaultValue={weekday}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("controls.any_weekday")}</option>
+              {WEEKDAYS.map((d) => (
+                <option key={d} value={d}>
+                  {t(`weekday.${d}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("controls.daypart")}
+            </span>
+            <select
+              name="daypart"
+              defaultValue={daypart}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("controls.any_daypart")}</option>
+              {TIME_SLOTS.map((s) => (
+                <option key={s} value={s}>
+                  {t(`daypart.${s}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-5 lg:justify-end">
+            <Button type="submit" variant="primary" size="sm">
+              {t("controls.apply")}
+            </Button>
+            {hasFilter && (
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/players">
+                  {t("controls.reset")}
+                </Link>
+              </Button>
+            )}
+          </div>
+        </form>
+      </Surface>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-600">
         <span className="font-mono tabular-nums">{t("results.showing", { count: total })}</span>
@@ -255,11 +255,9 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             return (
               <li
                 key={p.id}
-                className="group relative flex flex-col gap-4 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-grass-200 hover:shadow-ace"
+                className="surface-row lift-on-hover group relative flex flex-col gap-4"
               >
-                {/* Header: avatar + name on the left, big Elo on the right.
-                    `min-w-0` on the centre column ensures long names truncate
-                    instead of pushing into the Elo column. */}
+                {/* Header: avatar + name on the left, big Elo on the right. */}
                 <div className="flex items-start gap-3">
                   <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800 ring-1 ring-grass-200/60">
                     {p.avatar_url ? (
@@ -324,7 +322,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                   </div>
                 </div>
 
-                {/* Style + matches pills. Dense but scannable. */}
+                {/* Style + matches pills. */}
                 <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-700">
                   <WinRatePill wins={p.stats.wins_count} losses={p.stats.losses_count} />
                   <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 tabular-nums">
@@ -358,7 +356,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                   )}
                 </div>
 
-                {/* Activity row — last match + free slots count. */}
+                {/* Activity row */}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-500">
                   <span className="inline-flex items-center gap-1">
                     <Clock className="h-3 w-3" />
@@ -380,16 +378,17 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                       playerId={p.id}
                       label={t("card.propose_login")}
                       surface="players_list"
-                      className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-grass-700 px-3 text-sm font-semibold text-white transition hover:bg-grass-800"
+                      className="btn btn-primary w-full justify-center"
                     />
                   ) : (
-                    <Link
-                      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                      href={`/me/find?focus=${p.id}` as any}
-                      className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-grass-500 px-3 text-sm font-semibold text-white transition hover:bg-grass-600"
-                    >
-                      {t("card.propose_login")}
-                    </Link>
+                    <Button asChild variant="primary" className="w-full justify-center">
+                      <Link
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        href={`/me/find?focus=${p.id}` as any}
+                      >
+                        {t("card.propose_login")}
+                      </Link>
+                    </Button>
                   )}
                 </div>
               </li>

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
 import { loadOpenTournaments, loadMyTournaments } from "./actions";
 import { loadOrganizedTournaments } from "./organized/actions";
 import {
@@ -82,10 +83,11 @@ export default async function PlayerTournamentsPage({ params }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="me-tournaments"
             variant="inline"
@@ -93,9 +95,8 @@ export default async function PlayerTournamentsPage({ params }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <PlayerTournamentsClient
         locale={locale}

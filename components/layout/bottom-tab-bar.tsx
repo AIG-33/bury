@@ -1,0 +1,89 @@
+"use client";
+
+import { Link, usePathname } from "@/i18n/routing";
+import { Home, Swords, Trophy, GraduationCap, UserRound } from "lucide-react";
+
+export type BottomTabItem = {
+  href: string;
+  label: string;
+  icon: "home" | "sparrings" | "tournaments" | "coaches" | "profile";
+  badge?: number;
+};
+
+type Props = {
+  items: readonly BottomTabItem[];
+};
+
+const ICONS = {
+  home: Home,
+  sparrings: Swords,
+  tournaments: Trophy,
+  coaches: GraduationCap,
+  profile: UserRound,
+} as const;
+
+/**
+ * Mobile-only bottom tab bar.
+ *
+ * Sits fixed at the bottom of the viewport on `< md`. Provides 5 always-on
+ * shortcuts to the most-used destinations so any feature is one tap away.
+ *
+ * The page layout reserves vertical space via `.pb-mobile-nav` (applied on
+ * the root `<footer>` so the bar never overlaps real content).
+ */
+export function BottomTabBar({ items }: Props) {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      aria-label="Mobile primary navigation"
+      className="fixed inset-x-0 bottom-0 z-50 md:hidden"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div className="mx-auto max-w-[600px] px-3 pb-2 pt-2">
+        <ul
+          className={[
+            "grid grid-cols-5 items-stretch gap-0.5 rounded-3xl",
+            "border border-ink-200/70 bg-white/85 shadow-[0_18px_60px_-20px_rgba(15,27,20,0.18)]",
+            "backdrop-blur-xl",
+          ].join(" ")}
+        >
+          {items.map((item) => {
+            const Icon = ICONS[item.icon];
+            const active =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(`${item.href}/`)) ||
+              (item.href === "/" && pathname === "/");
+            return (
+              <li key={item.href} className="relative">
+                <Link
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  href={item.href as any}
+                  aria-current={active ? "page" : undefined}
+                  className={[
+                    "ease-followthrough flex h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10.5px] font-display font-semibold tracking-tight transition-all",
+                    active
+                      ? "bg-grass-700 text-white shadow-[0_10px_24px_-12px_rgba(21,94,54,0.55)]"
+                      : "text-ink-600 hover:text-grass-800",
+                  ].join(" ")}
+                >
+                  <Icon
+                    className={
+                      active ? "h-[18px] w-[18px]" : "h-[18px] w-[18px]"
+                    }
+                  />
+                  <span className="truncate leading-none">{item.label}</span>
+                  {item.badge && item.badge > 0 ? (
+                    <span className="absolute right-2 top-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-clay-500 px-1 text-[9.5px] font-bold leading-none text-white ring-2 ring-white">
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </nav>
+  );
+}

@@ -7,6 +7,8 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { ClubLogo } from "@/components/clubs/club-logo";
 import { JoinPolicyBadge } from "@/components/clubs/join-policy-badge";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface } from "@/components/ui/surface";
 import { loadClubBySlug } from "../actions";
 import type { JoinPolicy } from "@/lib/clubs/schema";
 import { JoinCta } from "./join-cta";
@@ -52,7 +54,7 @@ export default async function ClubPage({ params }: Props) {
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
         href={`/${locale}/clubs`}
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"
@@ -62,50 +64,60 @@ export default async function ClubPage({ params }: Props) {
       </Link>
 
       {/* HEADER */}
-      <header className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
+      <Surface variant="card">
         <div className="flex flex-wrap items-start gap-4">
           <ClubLogo url={club.logo_url} name={club.name} size="xl" />
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="font-display text-3xl font-bold text-ink-900">{club.name}</h1>
-              <JoinPolicyBadge policy={club.join_policy} labels={joinPolicyLabels} />
-              <HelpPanel
-                pageId="public-club-detail"
-                variant="inline"
-                why={t("help.why")}
-                what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-                result={[t("help.result.1"), t("help.result.2")]}
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-600">
-              {(club.city || club.district_name) && (
-                <span className="inline-flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{[club.city, club.district_name].filter(Boolean).join(" · ")}</span>
+          <div className="min-w-0 flex-1">
+            <PageHeader
+              title={
+                <>
+                  {club.name}
+                  <JoinPolicyBadge policy={club.join_policy} labels={joinPolicyLabels} />
+                </>
+              }
+              subtitle={
+                <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {(club.city || club.district_name) && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span>{[club.city, club.district_name].filter(Boolean).join(" · ")}</span>
+                    </span>
+                  )}
+                  <span className="text-ink-400">·</span>
+                  <span>{t("created_at", { date: dateFmt.format(new Date(club.created_at)) })}</span>
+                  {club.description && (
+                    <span className="mt-1 block w-full whitespace-pre-line text-sm text-ink-700">
+                      {club.description}
+                    </span>
+                  )}
                 </span>
-              )}
-              <span className="text-ink-400">·</span>
-              <span>{t("created_at", { date: dateFmt.format(new Date(club.created_at)) })}</span>
-            </div>
-            {club.description && (
-              <p className="whitespace-pre-line text-sm text-ink-700">{club.description}</p>
-            )}
-          </div>
-          <div>
-            <JoinCta
-              locale={locale}
-              clubId={club.id}
-              clubName={club.name}
-              joinPolicy={club.join_policy}
-              viewer={viewer}
+              }
+              help={
+                <HelpPanel
+                  pageId="public-club-detail"
+                  variant="inline"
+                  why={t("help.why")}
+                  what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+                  result={[t("help.result.1"), t("help.result.2")]}
+                />
+              }
+              actions={
+                <JoinCta
+                  locale={locale}
+                  clubId={club.id}
+                  clubName={club.name}
+                  joinPolicy={club.join_policy}
+                  viewer={viewer}
+                />
+              }
             />
           </div>
         </div>
-      </header>
+      </Surface>
 
       {/* STATS */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
-        <h2 className="mb-4 font-display text-lg font-semibold text-ink-900">{t("stats.title")}</h2>
+      <Surface variant="card" as="section">
+        <h2 className="mb-4 font-display text-lg font-bold text-grass-900">{t("stats.title")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatTile label={t("stats.members")} value={stats.members_total} />
           <StatTile label={t("stats.coaches")} value={stats.coaches_total} accent="ball" />
@@ -114,12 +126,12 @@ export default async function ClubPage({ params }: Props) {
           <StatTile label={t("stats.active_30d")} value={stats.active_30d} />
           <StatTile label={t("stats.tournaments")} value={stats.tournaments_total} />
         </div>
-      </section>
+      </Surface>
 
       {/* COACHES */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
+      <Surface variant="card" as="section">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
+          <h2 className="font-display text-lg font-bold text-grass-900">
             {t("coaches_section.title")}
           </h2>
           <span className="text-xs text-ink-500">{t("coaches_section.count", { n: coaches.length })}</span>
@@ -142,12 +154,12 @@ export default async function ClubPage({ params }: Props) {
             ))}
           </div>
         )}
-      </section>
+      </Surface>
 
       {/* PLAYERS */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
+      <Surface variant="card" as="section">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
+          <h2 className="font-display text-lg font-bold text-grass-900">
             {t("players_section.title")}
           </h2>
           <span className="text-xs text-ink-500">{t("players_section.count", { n: players.length })}</span>
@@ -168,11 +180,11 @@ export default async function ClubPage({ params }: Props) {
             ))}
           </div>
         )}
-      </section>
+      </Surface>
 
       {/* VENUES */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
-        <h2 className="mb-4 font-display text-lg font-semibold text-ink-900">
+      <Surface variant="card" as="section">
+        <h2 className="mb-4 font-display text-lg font-bold text-grass-900">
           {t("venues_section.title")}
         </h2>
         {venues.length === 0 ? (
@@ -183,7 +195,7 @@ export default async function ClubPage({ params }: Props) {
               <Link
                 key={v.id}
                 href={`/${locale}/venues/${v.id}`}
-                className="group flex items-start gap-3 rounded-lg border border-ink-100 bg-white p-3 transition hover:border-grass-300 hover:bg-grass-50"
+                className="surface-row lift-on-hover group flex items-start gap-3"
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-grass-50 text-grass-700">
                   <MapPin className="h-4 w-4" />
@@ -200,7 +212,7 @@ export default async function ClubPage({ params }: Props) {
             ))}
           </div>
         )}
-      </section>
+      </Surface>
     </div>
   );
 }
@@ -250,7 +262,7 @@ function RosterCard({
   return (
     <Link
       href={`/${locale}/players/${userId}`}
-      className="group flex items-center gap-3 rounded-lg border border-ink-100 bg-white p-3 transition hover:border-grass-300 hover:bg-grass-50"
+      className="surface-row lift-on-hover group flex items-center gap-3"
     >
       {avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element

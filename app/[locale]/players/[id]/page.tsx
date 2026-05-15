@@ -9,6 +9,9 @@ import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { WinRatePill } from "@/components/rating/win-rate-pill";
 import { RecentResultsStrip } from "@/components/rating/recent-results-strip";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadPublicPlayerProfile } from "../actions";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
@@ -109,7 +112,6 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
   const isGuest = !sessionUser;
   const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
-  // Build a {weekday → list of dayparts} map to render the schedule grid.
   const slotsByWeekday = new Map<string, string[]>();
   for (const s of profile.available_slots) {
     const arr = slotsByWeekday.get(s.weekday) ?? [];
@@ -120,7 +122,7 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
   const jsonLd = buildPlayerJsonLd(profile, locale);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       {/* schema.org SportsPerson — only public-safe fields, no PII */}
       <script
         type="application/ld+json"
@@ -136,7 +138,7 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
         {t("detail.back")}
       </Link>
 
-      <header className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
           {profile.avatar_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -146,75 +148,78 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-2xl font-bold text-ink-900">
-              {profile.display_name ?? "—"}
-            </h1>
-            <HelpPanel
-              pageId={`player-detail-${profile.id}`}
-              variant="inline"
-              why={t("detail.help.why")}
-              what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
-              result={[t("detail.help.result.1"), t("detail.help.result.2")]}
-            />
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-ink-600">
-            <LevelBadge elo={profile.current_elo} size="md" />
-            <WinRatePill wins={profile.stats.wins_count} losses={profile.stats.losses_count} />
-            {(profile.city || profile.district_name) && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {[profile.city, profile.district_name].filter(Boolean).join(" · ")}
+          <PageHeader
+            title={profile.display_name ?? "—"}
+            subtitle={
+              <span className="flex flex-wrap items-center gap-3">
+                <LevelBadge elo={profile.current_elo} size="md" />
+                <WinRatePill wins={profile.stats.wins_count} losses={profile.stats.losses_count} />
+                {(profile.city || profile.district_name) && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {[profile.city, profile.district_name].filter(Boolean).join(" · ")}
+                  </span>
+                )}
+                {profile.dominant_hand && (
+                  <span className="inline-flex items-center gap-1">
+                    <Hand className="h-4 w-4" />
+                    {t(`card.hand_${profile.dominant_hand}`)}
+                  </span>
+                )}
+                {profile.is_coach && (
+                  <Link
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    href={`/coaches/${profile.id}` as any}
+                    className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-700 hover:bg-grass-200"
+                  >
+                    <Award className="h-3 w-3" />
+                    {t("card.is_coach")}
+                  </Link>
+                )}
+                {profile.external_rating && (
+                  <a
+                    href={profile.external_rating.external_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-full border border-ball-300 bg-ball-50 px-2 py-0.5 font-mono text-xs text-ball-800 hover:bg-ball-100"
+                    title="Liga Tennisa"
+                  >
+                    LT · {profile.external_rating.display_tier}
+                  </a>
+                )}
               </span>
-            )}
-            {profile.dominant_hand && (
-              <span className="inline-flex items-center gap-1">
-                <Hand className="h-4 w-4" />
-                {t(`card.hand_${profile.dominant_hand}`)}
-              </span>
-            )}
-            {profile.is_coach && (
-              <Link
-                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                href={`/coaches/${profile.id}` as any}
-                className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-700 hover:bg-grass-200"
-              >
-                <Award className="h-3 w-3" />
-                {t("card.is_coach")}
-              </Link>
-            )}
-            {profile.external_rating && (
-              <a
-                href={profile.external_rating.external_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-full border border-ball-300 bg-ball-50 px-2 py-0.5 font-mono text-xs text-ball-800 hover:bg-ball-100"
-                title="Liga Tennisa"
-              >
-                LT · {profile.external_rating.display_tier}
-              </a>
-            )}
-          </div>
+            }
+            help={
+              <HelpPanel
+                pageId={`player-detail-${profile.id}`}
+                variant="inline"
+                why={t("detail.help.why")}
+                what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
+                result={[t("detail.help.result.1"), t("detail.help.result.2")]}
+              />
+            }
+            actions={
+              isGuest ? (
+                <GuestProposeLink
+                  playerId={profile.id}
+                  label={t("card.propose_login")}
+                  surface="player_profile"
+                  className="btn btn-primary btn-sm"
+                />
+              ) : (
+                <Button asChild variant="primary" size="sm">
+                  <Link
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    href={`/me/find?focus=${profile.id}` as any}
+                  >
+                    {t("card.propose_login")}
+                  </Link>
+                </Button>
+              )
+            }
+          />
         </div>
-        <div className="ml-auto">
-          {isGuest ? (
-            <GuestProposeLink
-              playerId={profile.id}
-              label={t("card.propose_login")}
-              surface="player_profile"
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-700 px-4 text-sm font-semibold text-white transition hover:bg-grass-800"
-            />
-          ) : (
-            <Link
-              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-              href={`/me/find?focus=${profile.id}` as any}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-            >
-              {t("card.propose_login")}
-            </Link>
-          )}
-        </div>
-      </header>
+      </div>
 
       {/* Stats trio */}
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -239,24 +244,21 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
         />
       </section>
 
-      {/* Recent W/L strip — derived from `recent_matches` (newest first). The
-          strip is rendered only when there's at least one decided match; the
-          component itself returns null on empty input so we don't double-guard. */}
       {(() => {
         const recent = profile.recent_matches
           .filter((m) => m.won != null)
           .map((m) => (m.won ? "W" : "L") as "W" | "L");
         if (recent.length === 0) return null;
         return (
-          <section className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+          <Surface variant="card" as="section">
             <RecentResultsStrip results={recent} take={5} />
-          </section>
+          </Surface>
         );
       })()}
 
       {/* Schedule grid */}
-      <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-        <h2 className="inline-flex items-center gap-2 font-display text-base font-semibold text-ink-900">
+      <Surface variant="card" as="section">
+        <h2 className="inline-flex items-center gap-2 font-display text-base font-bold text-grass-900">
           <CalendarClock className="h-4 w-4 text-grass-700" />
           {t("detail.schedule.title")}
         </h2>
@@ -300,11 +302,11 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
             })}
           </div>
         )}
-      </section>
+      </Surface>
 
       {/* Recent matches */}
       <section className="space-y-3">
-        <h2 className="inline-flex items-center gap-2 font-display text-base font-semibold text-ink-900">
+        <h2 className="inline-flex items-center gap-2 font-display text-base font-bold text-grass-900">
           <Clock className="h-4 w-4 text-grass-700" />
           {t("detail.recent.title")}
         </h2>
@@ -316,7 +318,7 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2">
             {profile.recent_matches.map((m) => (
-              <li key={m.id} className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+              <li key={m.id} className="surface-row lift-on-hover">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-mono text-[10.5px] uppercase tracking-wider text-ink-500">
@@ -393,7 +395,7 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+    <div className="surface-card">
       <p className="font-mono text-[10.5px] uppercase tracking-wider text-ink-500">{label}</p>
       <p className="mt-1 font-display text-xl font-bold tabular-nums text-ink-900">{value}</p>
     </div>

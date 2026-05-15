@@ -781,7 +781,8 @@
     "menu_open": "Открыть меню",
     "menu_close": "Закрыть меню",
     "group_personal": "Личное",
-    "group_public": "Клуб"
+    "group_public": "Клуб",
+    "tab_home": "Главная"
   },
   "coachNav": {
     "dashboard": "Кабинет",
@@ -3297,6 +3298,11 @@
   },
   "footer": {
     "tagline": "Спарринг, тренер и турниры рядом. Создавай свои матчи и играй чаще.",
+    "groups": {
+      "play": "Играть",
+      "browse": "Смотреть",
+      "account": "Аккаунт"
+    },
     "links": {
       "title": "Навигация",
       "sparrings": "Спарринги",
@@ -3306,8 +3312,10 @@
       "venues": "Площадки",
       "players": "Игроки",
       "matches": "Лента матчей",
+      "leaderboard": "Рейтинг",
       "help": "Помощь",
-      "login": "Войти"
+      "login": "Войти",
+      "profile": "Мой профиль"
     },
     "contact": {
       "title": "Контакты",

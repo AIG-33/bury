@@ -3,6 +3,9 @@ import { Link } from "@/i18n/routing";
 import { Map as MapIcon, List } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { loadCoachMapPins } from "../actions";
 import { CoachMap } from "@/components/map/coach-map";
 
@@ -16,33 +19,28 @@ export default async function CoachesMapPage({ params }: Props) {
   const pins = await loadCoachMapPins();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 px-6 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">
-              {t("title")}
-            </h1>
-            <HelpPanel
-              pageId="coaches-map"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-              result={[t("help.result.1"), t("help.result.2")]}
-            />
-          </div>
-          <p className="mt-1 text-ink-600">
-            {t("subtitle", { count: pins.length })}
-          </p>
-        </div>
-        <Link
-          href="/coaches"
-          className="inline-flex h-10 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-        >
-          <List className="h-4 w-4" />
-          {t("switch_to_list")}
-        </Link>
-      </header>
+    <div className="page-shell-wide space-y-5">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle", { count: pins.length })}
+        help={
+          <HelpPanel
+            pageId="coaches-map"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+        actions={
+          <Button asChild variant="secondary" size="sm">
+            <Link href="/coaches">
+              <List className="h-4 w-4" />
+              {t("switch_to_list")}
+            </Link>
+          </Button>
+        }
+      />
 
       {pins.length === 0 ? (
         <EmptyState
@@ -50,7 +48,7 @@ export default async function CoachesMapPage({ params }: Props) {
           description={t("empty_body")}
         />
       ) : (
-        <div className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card">
+        <Surface variant="card" className="overflow-hidden p-0 md:p-0">
           <CoachMap
             locale={locale}
             pins={pins}
@@ -73,7 +71,7 @@ export default async function CoachesMapPage({ params }: Props) {
               {t("switch_to_list")}
             </Link>
           </div>
-        </div>
+        </Surface>
       )}
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Loader2, Send, CheckCircle2, Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { createInvitation } from "./actions";
 
 type Copy = {
@@ -103,11 +104,7 @@ export function InviteForm({ copy }: { copy: Copy }) {
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" /> {copy.sending}
@@ -117,7 +114,7 @@ export function InviteForm({ copy }: { copy: Copy }) {
             <Send className="h-4 w-4" /> {copy.cta}
           </>
         )}
-      </button>
+      </Button>
     </form>
   );
 }

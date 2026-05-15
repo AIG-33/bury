@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Award } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
+import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadMyCoachProfile } from "./actions";
 import { CoachProfileForm } from "./coach-profile-form";
@@ -32,27 +33,27 @@ export default async function CoachProfilePage({ params }: Props) {
   const profile = result.profile;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-      <header className="flex items-center gap-3">
-        <div className="grid h-12 w-12 place-items-center rounded-full bg-grass-100 text-grass-800">
-          <Award className="h-6 w-6" />
-        </div>
-        <div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-2xl font-bold text-ink-900">
-              {t("title")}
-            </h1>
-            <HelpPanel
-              pageId="coach-profile"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-              result={[t("help.result.1"), t("help.result.2")]}
-            />
-          </div>
-          <p className="text-sm text-ink-600">{t("subtitle")}</p>
-        </div>
-      </header>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-800">
+              <Award className="h-5 w-5" />
+            </span>
+            {t("title")}
+          </span>
+        }
+        subtitle={t("subtitle")}
+        help={
+          <HelpPanel
+            pageId="coach-profile"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+      />
 
       <CoachProfileForm initial={profile} />
 

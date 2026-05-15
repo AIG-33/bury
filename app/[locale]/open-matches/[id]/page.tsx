@@ -4,6 +4,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, Building2, CalendarClock, MapPin, Search, Trophy, Users } from "lucide-react";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { Surface } from "@/components/ui/surface";
 import { loadOpenMatch } from "../actions";
 import { ApplyControls } from "./apply-controls";
 
@@ -41,15 +42,13 @@ export default async function OpenMatchDetailPage({ params }: Props) {
   const { match, isCreator, myApplication, applications } = detail;
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "full", timeStyle: "short" });
 
-  // Status banner — surfaces filled/cancelled/expired so the page never feels
-  // misleadingly active when it isn't.
   let banner: { tone: "ink" | "clay"; text: string } | null = null;
   if (match.status === "filled") banner = { tone: "ink", text: tDetail("filled_banner") };
   else if (match.status === "cancelled") banner = { tone: "clay", text: tDetail("cancelled_banner") };
   else if (match.status === "expired") banner = { tone: "ink", text: tDetail("expired_banner") };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
         href="/open-matches"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"
@@ -71,11 +70,8 @@ export default async function OpenMatchDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Looking-for banner — the headline of the page. Earlier the
-          creator's own level badge sat next to the name, which made the page
-          read as if the host themselves was the "expert". Now the desired
-          opponent level is the prominent, unambiguous message. */}
-      <section className="overflow-hidden rounded-xl2 border border-grass-200 bg-white shadow-card">
+      {/* Looking-for banner */}
+      <Surface variant="card" className="overflow-hidden border-grass-200 p-0 md:p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-grass-100 bg-grass-50/70 px-5 py-3">
           <span className="inline-flex items-center gap-2">
             <Search className="h-5 w-5 text-grass-700" />
@@ -104,8 +100,7 @@ export default async function OpenMatchDetailPage({ params }: Props) {
           </span>
         </div>
 
-        {/* Host strip — clearly labelled, so the host's level chip can't be
-            mistaken for the desired opponent level. */}
+        {/* Host strip */}
         <div className="flex flex-wrap items-center gap-4 px-5 py-4">
           <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
             {match.creator_avatar ? (
@@ -134,10 +129,10 @@ export default async function OpenMatchDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
-      </section>
+      </Surface>
 
       {/* Match details */}
-      <section className="grid gap-3 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card sm:grid-cols-2">
+      <Surface variant="card" as="section" className="grid gap-3 sm:grid-cols-2">
         <div className="flex items-center gap-2 text-sm text-ink-700">
           <CalendarClock className="h-4 w-4 text-ink-400" />
           <span>{dateFmt.format(new Date(match.starts_at))}</span>
@@ -177,7 +172,7 @@ export default async function OpenMatchDetailPage({ params }: Props) {
             {match.notes}
           </p>
         )}
-      </section>
+      </Surface>
 
       {isCreator && (
         <p className="rounded-lg border border-grass-200 bg-grass-50 px-3 py-2 text-sm text-grass-800">
@@ -185,7 +180,6 @@ export default async function OpenMatchDetailPage({ params }: Props) {
         </p>
       )}
 
-      {/* Apply / withdraw / decide controls */}
       <ApplyControls
         locale={locale}
         matchId={match.id}

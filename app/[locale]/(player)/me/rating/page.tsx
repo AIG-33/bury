@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import {
   ArrowDown,
   ArrowUp,
@@ -96,12 +96,10 @@ export default async function MyRatingPage({ params }: Props) {
 
             <Link
               href={`/${locale}/onboarding/quiz`}
-              className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 self-stretch rounded-full bg-grass-700 px-6 font-mono text-[12.5px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_18px_40px_-16px_rgba(21,94,54,0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-grass-800 sm:self-auto"
+              className="btn btn-primary self-stretch sm:self-auto"
             >
               {t("quiz_cta.cta")}
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5">
-                <ArrowRight className="h-3.5 w-3.5" />
-              </span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </section>
@@ -184,7 +182,7 @@ export default async function MyRatingPage({ params }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <section className="surface-card lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold text-ink-900">
+            <h2 className="section-title">
               {t("history.title")}
             </h2>
             <span className="text-xs text-ink-500">
@@ -209,7 +207,7 @@ export default async function MyRatingPage({ params }: Props) {
         <section className="surface-card overflow-hidden bg-gradient-to-br from-ball-50 via-white to-white">
           <div className="mb-2 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-ball-700" />
-            <h2 className="font-display text-lg font-semibold text-ink-900">{t("race.title")}</h2>
+            <h2 className="section-title">{t("race.title")}</h2>
           </div>
           {season ? (
             <>
@@ -241,7 +239,7 @@ export default async function MyRatingPage({ params }: Props) {
       {/* My recent matches with Elo deltas */}
       <section className="surface-card">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink-900">{t("matches.title")}</h2>
+          <h2 className="section-title">{t("matches.title")}</h2>
           <p className="text-xs text-ink-500">
             {t("matches.subtitle", { n: recentMatches.length })}
           </p>
@@ -341,7 +339,7 @@ function MatchListRow({
   });
 
   return (
-    <li className="relative overflow-hidden rounded-xl border border-ink-100 bg-white p-3 shadow-sm">
+    <li className="surface-row lift-on-hover relative overflow-hidden">
       <div className="flex flex-wrap items-center gap-3">
         {/* Avatar */}
         <Avatar url={m.opponent.avatar_url} name={m.opponent.display_name ?? "?"} />

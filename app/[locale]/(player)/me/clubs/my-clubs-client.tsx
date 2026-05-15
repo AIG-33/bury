@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Star, LogOut, XCircle, Crown, Shield, Loader2 } from "lucide-react";
+import { Surface } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
 import { ClubLogo } from "@/components/clubs/club-logo";
 import { JoinPolicyBadge } from "@/components/clubs/join-policy-badge";
 import type {
@@ -125,9 +127,7 @@ export function MyClubsClient({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-ink-500">
-        {title}
-      </h2>
+      <p className="label-eyebrow mb-3">{title}</p>
       {children}
     </section>
   );
@@ -148,7 +148,7 @@ function MembershipCard({
   const isApproved = membership.status === "approved";
 
   return (
-    <div className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+    <Surface variant="card">
       <div className="flex items-start gap-3">
         <ClubLogo url={membership.club_logo_url} name={membership.club_name} size="md" />
         <div className="min-w-0 flex-1">
@@ -199,8 +199,9 @@ function MembershipCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {isApproved && (
-          <button
-            type="button"
+          <Button
+            variant={membership.is_primary ? "accent" : "secondary"}
+            size="sm"
             disabled={isPending}
             onClick={() =>
               startTransition(async () => {
@@ -209,21 +210,17 @@ function MembershipCard({
               })
             }
             title={labels.primary_help}
-            className={`inline-flex h-8 items-center gap-1 rounded-lg border px-3 text-xs font-medium transition ${
-              membership.is_primary
-                ? "border-ball-200 bg-ball-50 text-ball-800 hover:bg-ball-100"
-                : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50"
-            } disabled:cursor-not-allowed disabled:opacity-60`}
           >
             {isPending && <Loader2 className="h-3 w-3 animate-spin" />}
             <Star className="h-3 w-3" />
             {membership.is_primary ? labels.primary_clear : labels.primary_set}
-          </button>
+          </Button>
         )}
 
         {isApproved && !membership.is_owner && (
-          <button
-            type="button"
+          <Button
+            variant="danger"
+            size="sm"
             disabled={isPending}
             onClick={() => {
               if (!confirm(labels.leave_confirm)) return;
@@ -232,16 +229,16 @@ function MembershipCard({
                 router.refresh();
               });
             }}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-xs font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogOut className="h-3 w-3" />
             {labels.leave}
-          </button>
+          </Button>
         )}
 
         {membership.status === "pending" && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             disabled={isPending}
             onClick={() => {
               const message = labels.cancel_application_confirm_template.replace(
@@ -254,14 +251,13 @@ function MembershipCard({
                 router.refresh();
               });
             }}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-xs font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <XCircle className="h-3 w-3" />
             {labels.cancel_application}
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Surface>
   );
 }
 
@@ -284,7 +280,7 @@ function OwnershipOfferCard({
   const expiresText = labels.expires_template.replace("{date}", offer.expires_label);
 
   return (
-    <div className="rounded-xl2 border border-ball-200 bg-ball-50 p-4 shadow-card">
+    <Surface variant="soft" className="border-ball-200/60 bg-ball-50/60">
       <div className="flex items-start gap-3">
         <ClubLogo url={offer.club_logo_url} name={offer.club_name} size="md" />
         <div className="min-w-0 flex-1 space-y-1">
@@ -302,8 +298,9 @@ function OwnershipOfferCard({
         </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           disabled={isPending}
           onClick={() =>
             startTransition(async () => {
@@ -317,12 +314,11 @@ function OwnershipOfferCard({
               }
             })
           }
-          className="inline-flex h-9 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           {isPending ? labels.accepting : labels.accept}
-        </button>
+        </Button>
       </div>
-    </div>
+    </Surface>
   );
 }

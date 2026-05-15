@@ -1,8 +1,10 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { ArrowLeft, CheckCircle2, FileText } from "lucide-react";
+import { ChevronLeft, CheckCircle2, FileText } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Chip } from "@/components/ui/surface";
 import { loadRatingConfigDetail } from "../actions";
 import { RatingEditor } from "./rating-editor";
 import type { AlgorithmConfig } from "@/lib/quiz/schema";
@@ -25,19 +27,26 @@ export default async function AdminRatingDetailPage({ params }: Props) {
   const { row } = result;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-8">
       <Link
         href="/admin/rating"
-        className="inline-flex items-center gap-1 text-sm text-ink-600 hover:text-ink-900"
+        className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500 transition hover:text-grass-700"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> {t("back_to_list")}
+        <ChevronLeft className="h-3.5 w-3.5" /> {t("back_to_list")}
       </Link>
 
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            v{row.version}
-          </h1>
+      <PageHeader
+        eyebrow="Admin · Rating"
+        title={`v${row.version}`}
+        subtitle={
+          row.notes ? (
+            <span className="inline-flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              {row.notes}
+            </span>
+          ) : undefined
+        }
+        help={
           <HelpPanel
             pageId="admin-rating-detail"
             variant="inline"
@@ -50,23 +59,17 @@ export default async function AdminRatingDetailPage({ params }: Props) {
             ]}
             result={[t("editor.help.result.1"), t("editor.help.result.2")]}
           />
-          {row.is_active ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-800">
+        }
+        actions={
+          row.is_active ? (
+            <Chip tone="grass" className="inline-flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> {t("status_active")}
-            </span>
+            </Chip>
           ) : (
-            <span className="inline-flex rounded-full bg-ink-100 px-2 py-0.5 text-xs text-ink-700">
-              {t("status_draft")}
-            </span>
-          )}
-        </div>
-        {row.notes && (
-          <p className="inline-flex items-start gap-1.5 text-sm text-ink-600">
-            <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            {row.notes}
-          </p>
-        )}
-      </header>
+            <Chip tone="neutral">{t("status_draft")}</Chip>
+          )
+        }
+      />
 
       <RatingEditor
         id={row.id}

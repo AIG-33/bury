@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Plus, MapPin, Building2, Trash2, Pencil, ArrowRight, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { EmptyState } from "@/components/help/empty-state";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { deleteVenue, type DistrictOption, type VenueRow } from "./actions";
@@ -71,13 +73,9 @@ export function VenuesClient({
   return (
     <>
       <div className="mb-4 flex items-center justify-end">
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
-        >
+        <Button type="button" variant="primary" size="sm" onClick={openCreate}>
           <Plus className="h-4 w-4" /> {copy.add}
-        </button>
+        </Button>
       </div>
 
       {venues.length === 0 ? (
@@ -85,22 +83,15 @@ export function VenuesClient({
           title={copy.empty_title}
           description={copy.empty_description}
           action={
-            <button
-              type="button"
-              onClick={openCreate}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
-            >
+            <Button type="button" variant="primary" size="sm" onClick={openCreate}>
               <Plus className="h-4 w-4" /> {copy.empty_cta}
-            </button>
+            </Button>
           }
         />
       ) : (
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {venues.map((v) => (
-            <li
-              key={v.id}
-              className="hover:shadow-pop flex flex-col rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition"
-            >
+            <Surface key={v.id} as="li" variant="row" className="lift-on-hover flex flex-col">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="font-display text-lg font-semibold text-ink-900">{v.name}</h3>
@@ -140,18 +131,20 @@ export function VenuesClient({
                   {tList("courts", { n: v.courts_count })}
                 </span>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => openEdit(v)}
-                    className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
                   >
                     <Pencil className="h-3 w-3" /> {copy.edit}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="danger"
+                    size="sm"
                     onClick={() => onDelete(v.id)}
                     disabled={pending && deletingId === v.id}
-                    className="inline-flex h-8 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
                   >
                     {pending && deletingId === v.id ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
@@ -159,17 +152,19 @@ export function VenuesClient({
                       <Trash2 className="h-3 w-3" />
                     )}
                     {pending && deletingId === v.id ? copy.deleting : copy.delete}
-                  </button>
-                  <Link
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={`/${locale}/admin/venues/${v.id}` as any}
-                    className="inline-flex h-8 items-center gap-1 rounded-md bg-ink-900 px-3 text-xs font-semibold text-white transition hover:bg-ink-700"
-                  >
-                    {copy.open} <ArrowRight className="h-3 w-3" />
-                  </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={`/${locale}/admin/venues/${v.id}` as any}
+                      className="inline-flex items-center gap-1"
+                    >
+                      {copy.open} <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </Button>
                 </div>
               </div>
-            </li>
+            </Surface>
           ))}
         </ul>
       )}

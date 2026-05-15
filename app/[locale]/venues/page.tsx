@@ -17,6 +17,7 @@ import {
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
+import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   COURT_SURFACES,
@@ -60,8 +61,6 @@ const AMENITY_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   indoor: Building2,
   outdoor: Sun,
   lights: Lightbulb,
-  // Aliases used in seed data: floodlights → lights, showers → shower,
-  // indoor_courts → indoor, pro_shop → shop. We map them through.
   floodlights: Lightbulb,
   shower: ShowerHead,
   showers: ShowerHead,
@@ -75,11 +74,12 @@ const AMENITY_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   indoor_courts: Building2,
 };
 
+// Hard courts use atp-cobalt (a deeper, on-brand blue) instead of stock sky.
 const SURFACE_DOT: Record<CourtSurface, string> = {
-  hard: "bg-sky-500",
+  hard: "bg-hard-cobalt",
   clay: "bg-clay-500",
   grass: "bg-grass-500",
-  carpet: "bg-ink-500",
+  carpet: "bg-carpet-500",
 };
 
 export default async function VenuesCatalogPage({ params }: Props) {
@@ -139,7 +139,6 @@ export default async function VenuesCatalogPage({ params }: Props) {
   const totalCourts = cards.reduce((sum, c) => sum + c.courts.length, 0);
 
   function amenityLabel(key: string): string {
-    // Aliases that aren't in messages — map to canonical key first.
     const alias: Record<string, string> = {
       floodlights: "lights",
       showers: "shower",
@@ -155,10 +154,11 @@ export default async function VenuesCatalogPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell-wide space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle", { venues: cards.length, courts: totalCourts })}
+        help={
           <HelpPanel
             pageId="venues-catalog"
             variant="inline"
@@ -166,11 +166,8 @@ export default async function VenuesCatalogPage({ params }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">
-          {t("subtitle", { venues: cards.length, courts: totalCourts })}
-        </p>
-      </header>
+        }
+      />
 
       {cards.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} />
@@ -188,7 +185,7 @@ export default async function VenuesCatalogPage({ params }: Props) {
             return (
               <li
                 key={v.id}
-                className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card"
+                className="surface-row lift-on-hover overflow-hidden p-0 md:p-0"
               >
                 <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
                   <div className="min-w-0 flex-1 space-y-2">

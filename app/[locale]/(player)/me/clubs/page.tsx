@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Plus, FolderTree } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadMyMemberships } from "./actions";
@@ -37,38 +39,36 @@ export default async function MyClubsPage({ params }: Props) {
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
-            <HelpPanel
-              pageId="me-clubs"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-              result={[t("help.result.1"), t("help.result.2")]}
-            />
-          </div>
-          <p className="text-ink-600">{t("subtitle")}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/${locale}/me/clubs/owned`}
-            className="inline-flex h-10 items-center gap-1 rounded-lg border border-ink-200 bg-white px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-          >
-            <FolderTree className="h-4 w-4" />
-            {t("owned_link")}
-          </Link>
-          <Link
-            href={`/${locale}/me/clubs/owned?create=1`}
-            className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-          >
-            <Plus className="h-4 w-4" />
-            {t("create_cta")}
-          </Link>
-        </div>
-      </header>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
+          <HelpPanel
+            pageId="me-clubs"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+        actions={
+          <>
+            <Button asChild variant="secondary" size="sm">
+              <Link href={`/${locale}/me/clubs/owned` as never}>
+                <FolderTree className="h-4 w-4" />
+                {t("owned_link")}
+              </Link>
+            </Button>
+            <Button asChild variant="primary" size="sm">
+              <Link href={`/${locale}/me/clubs/owned?create=1` as never}>
+                <Plus className="h-4 w-4" />
+                {t("create_cta")}
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {memberships.length === 0 && pendingOwnershipOffers.length === 0 ? (
         <EmptyState
@@ -138,3 +138,4 @@ export default async function MyClubsPage({ params }: Props) {
     </div>
   );
 }
+

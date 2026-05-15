@@ -3,6 +3,8 @@ import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, CalendarDays, Clock, Coins, MapPin, Trophy, Eye } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Chip } from "@/components/ui/surface";
 import {
   loadGroupStandings,
   loadRoundRobinStandings,
@@ -21,7 +23,7 @@ import {
   MatchOutcomeInputs,
   type TournamentFormat,
   type TournamentStatus,
-  type Surface,
+  type Surface as CourtSurface,
   type SeedingMethod,
   type MatchOutcomeInput,
 } from "@/lib/tournaments/schema";
@@ -52,7 +54,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     TOURNAMENT_STATUSES.map((s) => [s, t(`statuses.${s}`)]),
   ) as Record<TournamentStatus, string>;
   const surfaceLabels = Object.fromEntries(SURFACES.map((s) => [s, t(`surfaces.${s}`)])) as Record<
-    Surface,
+    CourtSurface,
     string
   >;
   const drawMethodLabels = Object.fromEntries(
@@ -158,54 +160,44 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
 
   const locked = tournament.status === "in_progress" || tournament.status === "finished";
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <div>
-        <Link
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          href={"/me/tournaments/organized" as any}
-          className="inline-flex items-center gap-1 text-xs font-medium text-ink-600 hover:text-ink-900"
-        >
-          <ArrowLeft className="h-3 w-3" /> {t("detail.back")}
-        </Link>
-      </div>
+  const statusTone = (
+    tournament.status === "draft" ? "ink"
+    : tournament.status === "registration" ? "ball"
+    : tournament.status === "in_progress" ? "grass"
+    : tournament.status === "finished" ? "grass"
+    : "clay"
+  ) as "ink" | "ball" | "grass" | "clay";
 
-      <header className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="font-display text-2xl font-bold text-ink-900">{tournament.name}</h1>
-              <HelpPanel
-                pageId="me-tournaments-organized-detail"
-                variant="inline"
-                why={t("detail.help.why")}
-                what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
-                result={[t("detail.help.result.1"), t("detail.help.result.2")]}
-              />
-            </div>
-            <p className="mt-1 inline-flex items-center gap-1 text-sm text-ink-600">
-              <Trophy className="h-3.5 w-3.5" />
-              {formatLabels[tournament.format]}
-              {tournament.surface && ` · ${surfaceLabels[tournament.surface]}`}
-            </p>
-          </div>
-          <span
-            className={
-              "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wider " +
-              (tournament.status === "draft"
-                ? "bg-ink-100 text-ink-700"
-                : tournament.status === "registration"
-                  ? "bg-ball-100 text-ball-800"
-                  : tournament.status === "in_progress"
-                    ? "bg-grass-100 text-grass-800"
-                    : tournament.status === "finished"
-                      ? "bg-grass-200 text-grass-900"
-                      : "bg-clay-100 text-clay-800")
-            }
-          >
-            {statusLabels[tournament.status]}
-          </span>
-        </div>
+  return (
+    <div className="page-shell space-y-6">
+      <Link
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        href={"/me/tournaments/organized" as any}
+        className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"
+      >
+        <ArrowLeft className="h-4 w-4" /> {t("detail.back")}
+      </Link>
+
+      <PageHeader
+        title={tournament.name}
+        help={
+          <HelpPanel
+            pageId="me-tournaments-organized-detail"
+            variant="inline"
+            why={t("detail.help.why")}
+            what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
+            result={[t("detail.help.result.1"), t("detail.help.result.2")]}
+          />
+        }
+        actions={<Chip tone={statusTone}>{statusLabels[tournament.status]}</Chip>}
+      />
+
+      <div className="surface-card">
+        <p className="inline-flex items-center gap-1 text-sm text-ink-600">
+          <Trophy className="h-3.5 w-3.5" />
+          {formatLabels[tournament.format]}
+          {tournament.surface && ` · ${surfaceLabels[tournament.surface]}`}
+        </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
           <span className="inline-flex items-center gap-1">
@@ -251,7 +243,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         {tournament.description && (
           <p className="mt-3 text-sm text-ink-700">{tournament.description}</p>
         )}
-      </header>
+      </div>
 
       <PrivacyControl
         tournamentId={tournament.id}

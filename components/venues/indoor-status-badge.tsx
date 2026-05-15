@@ -18,7 +18,7 @@ const STYLES: Record<
     Icon: CloudSun,
   },
   mixed: {
-    className: "bg-sky-100 text-sky-800 ring-1 ring-sky-200",
+    className: "bg-carpet-50 text-carpet-900 ring-1 ring-carpet-500/30",
     Icon: Layers,
   },
   unknown: {

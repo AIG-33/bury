@@ -5,13 +5,22 @@ import { InstallAppCard } from "./install-app-card";
 
 type Props = { authed: boolean };
 
+/**
+ * Compact, logically-grouped footer.
+ *
+ * Layout (desktop): brand + tagline | Discover | Catalog | Install/help
+ * Layout (mobile):  stacked, with a slim install-row at the top so the
+ * footer never grows past ~3 screens on small devices.
+ *
+ * Reserves bottom safe-area for the mobile bottom tab bar.
+ */
 export async function Footer({ authed }: Props) {
   const t = await getTranslations("footer");
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 border-t border-ink-100 bg-white/60 backdrop-blur-md">
-      <div className="mx-auto w-full max-w-[1200px] space-y-8 px-5 py-10 md:px-10 md:py-12">
+    <footer className="mt-16 border-t border-ink-100/80 bg-white/70 backdrop-blur-md pb-mobile-nav">
+      <div className="page-shell !py-10 md:!py-12">
         <InstallAppCard
           labels={{
             title: t("install.title"),
@@ -32,65 +41,55 @@ export async function Footer({ authed }: Props) {
           }}
         />
 
-        <div className="grid gap-8 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-3">
-              <span className="inline-flex h-12 w-12 items-center justify-center">
-                <TennisBall className="h-11 w-11 text-ball-500 drop-shadow-[0_2px_8px_rgba(31,138,76,0.3)]" />
+        <div className="court-line my-8 md:my-10" aria-hidden />
+
+        <div className="grid gap-10 md:grid-cols-12 md:gap-8">
+          <div className="md:col-span-5">
+            <Link href="/" className="group inline-flex items-center gap-3">
+              <span className="relative inline-flex h-11 w-11 items-center justify-center">
+                <span
+                  aria-hidden
+                  className="absolute inset-0 rounded-full bg-grass-100/0 blur-md transition-colors duration-500 group-hover:bg-grass-200/60"
+                />
+                <TennisBall className="ease-followthrough relative h-10 w-10 text-ball-500 drop-shadow-[0_2px_8px_rgba(31,138,76,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]" />
               </span>
               <span className="font-display text-[22px] font-extrabold tracking-tight text-grass-900">
                 PlayTennis.by
               </span>
             </Link>
-            <p className="mt-3 max-w-md text-sm text-ink-600">{t("tagline")}</p>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">
+              {t("tagline")}
+            </p>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">
+              {t("contact.body")}
+            </p>
           </div>
 
-          <div>
-            <h4 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500">
-              {t("links.title")}
-            </h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <FooterLink href="/open-matches">{t("links.sparrings")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/tournaments">{t("links.tournaments")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/coaches">{t("links.coaches")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/clubs">{t("links.clubs")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/venues">{t("links.venues")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/players">{t("links.players")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/matches">{t("links.matches")}</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/help">{t("links.help")}</FooterLink>
-              </li>
-              {!authed && (
-                <li>
-                  <FooterLink href="/login">{t("links.login")}</FooterLink>
-                </li>
-              )}
-            </ul>
-          </div>
+          <FooterColumn title={t("groups.play")}>
+            <FooterLink href="/open-matches">{t("links.sparrings")}</FooterLink>
+            <FooterLink href="/tournaments">{t("links.tournaments")}</FooterLink>
+            <FooterLink href="/coaches">{t("links.coaches")}</FooterLink>
+            <FooterLink href="/clubs">{t("links.clubs")}</FooterLink>
+          </FooterColumn>
 
-          <div>
-            <h4 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500">
-              {t("contact.title")}
-            </h4>
-            <p className="text-sm text-ink-600">{t("contact.body")}</p>
-          </div>
+          <FooterColumn title={t("groups.browse")}>
+            <FooterLink href="/venues">{t("links.venues")}</FooterLink>
+            <FooterLink href="/players">{t("links.players")}</FooterLink>
+            <FooterLink href="/matches">{t("links.matches")}</FooterLink>
+            <FooterLink href="/leaderboard">{t("links.leaderboard")}</FooterLink>
+          </FooterColumn>
+
+          <FooterColumn title={t("groups.account")}>
+            <FooterLink href="/help">{t("links.help")}</FooterLink>
+            {authed ? (
+              <FooterLink href="/me/profile">{t("links.profile")}</FooterLink>
+            ) : (
+              <FooterLink href="/login">{t("links.login")}</FooterLink>
+            )}
+          </FooterColumn>
         </div>
 
-        <div className="flex flex-col items-start justify-between gap-2 border-t border-ink-100 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
+        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-ink-100/80 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
           <span>© {year} PlayTennis.by · Минск</span>
           <span>v1.0 · MVP</span>
         </div>
@@ -99,14 +98,39 @@ export async function Footer({ authed }: Props) {
   );
 }
 
-function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+function FooterColumn({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Link
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      href={href as any}
-      className="text-ink-700 transition hover:text-grass-700"
-    >
-      {children}
-    </Link>
+    <div className="md:col-span-2">
+      <h4 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500">
+        {title}
+      </h4>
+      <ul className="space-y-2 text-sm">{children}</ul>
+    </div>
+  );
+}
+
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li>
+      <Link
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        href={href as any}
+        className="text-ink-700 transition-colors hover:text-grass-700"
+      >
+        {children}
+      </Link>
+    </li>
   );
 }

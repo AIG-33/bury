@@ -1,8 +1,8 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import {
-  ArrowLeft,
+  ChevronLeft,
   MapPin,
   Wifi,
   Lock,
@@ -16,6 +16,8 @@ import {
   Building2,
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface, Chip } from "@/components/ui/surface";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { loadVenueDetail } from "../actions";
 import { CourtsManager, type CourtsManagerCopy } from "./courts-manager";
@@ -91,18 +93,25 @@ export default async function VenueDetailPage({ params }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-8">
       <Link
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        href={`/${locale}/admin/venues` as any}
-        className="inline-flex items-center gap-1 text-sm text-ink-500 transition hover:text-grass-700"
+        href="/admin/venues"
+        className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500 transition hover:text-grass-700"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> {t("detail.back")}
+        <ChevronLeft className="h-3.5 w-3.5" /> {t("detail.back")}
       </Link>
 
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{venue.name}</h1>
+      <PageHeader
+        eyebrow="Admin · Venues"
+        title={venue.name}
+        subtitle={
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5" />
+            {[venue.city, venue.district_name].filter(Boolean).join(" · ") || t("list.no_district")}
+            {venue.address ? ` · ${venue.address}` : ""}
+          </span>
+        }
+        help={
           <HelpPanel
             pageId="admin-venue-detail"
             variant="inline"
@@ -110,35 +119,33 @@ export default async function VenueDetailPage({ params }: Props) {
             what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
             result={[t("detail.help.result.1"), t("detail.help.result.2")]}
           />
+        }
+        actions={
           <IndoorStatusBadge
             status={venue.indoor_status}
             label={t(`list.${venue.indoor_status}`)}
           />
-        </div>
-        <p className="inline-flex items-center gap-1 text-sm text-ink-600">
-          <MapPin className="h-3.5 w-3.5" />
-          {[venue.city, venue.district_name].filter(Boolean).join(" · ") || t("list.no_district")}
-        </p>
-        {venue.address && <p className="text-sm text-ink-500">{venue.address}</p>}
-      </header>
+        }
+      />
 
       {venue.amenities.length > 0 && (
-        <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+        <Surface variant="flat" as="section">
           <h2 className="mb-3 font-display text-base font-semibold text-ink-900">
             {t("detail.amenities_title")}
           </h2>
           <div className="flex flex-wrap gap-2">
             {venue.amenities.map((a) => (
-              <span
+              <Chip
                 key={a}
-                className="inline-flex items-center gap-1.5 rounded-full bg-grass-50 px-3 py-1 text-xs font-medium text-grass-800 ring-1 ring-grass-200"
+                tone="grass"
+                className="inline-flex items-center gap-1.5"
               >
                 {AMENITY_ICONS[a]}
                 {t(`amenities.${a}`)}
-              </span>
+              </Chip>
             ))}
           </div>
-        </section>
+        </Surface>
       )}
 
       <CourtsManager venueId={venue.id} initialCourts={courts} copy={courtsCopy} />

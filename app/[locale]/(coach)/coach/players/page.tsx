@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import {
   ArrowDown,
   ArrowUp,
@@ -13,6 +12,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HelpPanel } from "@/components/help/help-panel";
 import { HelpTooltip } from "@/components/help/help-tooltip";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
+import { Link } from "@/i18n/routing";
 import { InviteForm } from "./invite-form";
 import { loadCoachLeaderboard } from "../leaderboard/actions";
 import { LeaderboardTabs } from "../leaderboard/leaderboard-tabs";
@@ -185,10 +187,11 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell-wide space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="coach-players"
             variant="inline"
@@ -196,16 +199,13 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div className="space-y-1">
-            <h2 className="font-display text-lg font-semibold text-ink-900">
-              {t("club.title")}
-            </h2>
+            <SectionTitle>{t("club.title")}</SectionTitle>
             <p className="text-sm text-ink-600">{t("club.subtitle")}</p>
           </div>
           <span className="font-mono text-sm tabular-nums text-ink-700">
@@ -219,7 +219,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
             description={t("club.empty_description")}
           />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white">
+          <Surface variant="card" className="overflow-x-auto p-0">
             <table className="w-full text-sm">
               <thead className="bg-ink-50 text-ink-600">
                 <tr>
@@ -252,7 +252,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                   >
                     <td className="px-3 py-2 sm:px-4">
                       <Link
-                        href={`/${locale}/coach/players/${p.id}`}
+                        href={`/coach/players/${p.id}`}
                         className="flex items-center gap-3 focus:outline-none"
                       >
                         <Avatar src={p.avatar_url} name={p.display_name || p.email || "?"} />
@@ -286,14 +286,10 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                     <td className="whitespace-nowrap px-3 py-2 sm:px-4">
                       <div className="flex flex-wrap gap-1">
                         {p.invited && (
-                          <span className="inline-flex rounded-full bg-leaf-100 px-2 py-0.5 text-xs font-medium text-leaf-800">
-                            {t("club.source_invited")}
-                          </span>
+                          <Chip tone="grass">{t("club.source_invited")}</Chip>
                         )}
                         {p.booked && (
-                          <span className="inline-flex rounded-full bg-grass-100 px-2 py-0.5 text-xs font-medium text-grass-800">
-                            {t("club.source_booked")}
-                          </span>
+                          <Chip tone="grass">{t("club.source_booked")}</Chip>
                         )}
                       </div>
                     </td>
@@ -317,15 +313,13 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                 ))}
               </tbody>
             </table>
-          </div>
+          </Surface>
         )}
       </section>
 
       <section className="space-y-3">
         <div className="space-y-1">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {tLb("title")}
-          </h2>
+          <SectionTitle>{tLb("title")}</SectionTitle>
           <p className="text-sm text-ink-600">{tLb("subtitle")}</p>
         </div>
 
@@ -351,7 +345,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
             }
           />
         ) : (
-          <div className="overflow-x-auto rounded-xl2 border border-ink-100 bg-white shadow-card">
+          <Surface variant="card" className="overflow-x-auto p-0">
             <table className="w-full min-w-[420px] text-sm">
               <thead className="bg-grass-50 text-xs uppercase tracking-wider text-grass-800">
                 <tr>
@@ -380,7 +374,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                     </td>
                     <td className="py-3 align-middle">
                       <Link
-                        href={`/${locale}/coach/players/${r.id}`}
+                        href={`/coach/players/${r.id}`}
                         className="flex min-w-0 items-center gap-2 hover:opacity-80"
                       >
                         {r.avatar_url ? (
@@ -399,9 +393,9 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                           <p className="truncate font-medium text-ink-900">
                             {r.display_name ?? "—"}
                             {r.is_my_player && (
-                              <span className="ml-1.5 inline-flex items-center rounded-full bg-grass-100 px-1.5 py-0 text-[9px] font-semibold uppercase text-grass-800">
+                              <Chip tone="grass" className="ml-1.5 align-middle">
                                 {tLb("my_player_badge")}
-                              </span>
+                              </Chip>
                             )}
                           </p>
                           {(r.city || r.district_name) && (
@@ -436,12 +430,12 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                 ))}
               </tbody>
             </table>
-          </div>
+          </Surface>
         )}
       </section>
 
-      <section className="rounded-xl2 border border-ink-100 bg-white p-6 shadow-card">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
+      <Surface variant="card" as="section">
+        <h2 className="font-display text-lg font-bold text-grass-900">
           {t("invite.title")}
         </h2>
         <p className="mt-1 text-sm text-ink-600">{t("invite.subtitle")}</p>
@@ -459,12 +453,10 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
             }}
           />
         </div>
-      </section>
+      </Surface>
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
-          {t("recent.title")}
-        </h2>
+        <SectionTitle>{t("recent.title")}</SectionTitle>
 
         {!invites || invites.length === 0 ? (
           <EmptyState
@@ -472,7 +464,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
             description={t("recent.empty_description")}
           />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white">
+          <Surface variant="card" className="overflow-x-auto p-0">
             <table className="w-full text-sm">
               <thead className="bg-ink-50 text-ink-600">
                 <tr>
@@ -500,7 +492,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                 ))}
               </tbody>
             </table>
-          </div>
+          </Surface>
         )}
       </section>
     </div>
@@ -578,14 +570,14 @@ function StatusBadge({
   status: "pending" | "accepted" | "expired" | "revoked";
   labels: Record<"pending" | "accepted" | "expired" | "revoked", string>;
 }) {
-  const palette: Record<typeof status, string> = {
-    pending: "bg-ball-100 text-ball-900",
-    accepted: "bg-grass-100 text-grass-800",
-    expired: "bg-ink-100 text-ink-600",
-    revoked: "bg-clay-100 text-clay-800",
+  const toneMap: Record<typeof status, string> = {
+    pending: "chip chip-ball",
+    accepted: "chip chip-grass",
+    expired: "chip chip-ink",
+    revoked: "chip chip-clay",
   };
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${palette[status]}`}>
+    <span className={toneMap[status]}>
       {labels[status]}
     </span>
   );

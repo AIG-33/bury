@@ -14,25 +14,13 @@ import {
   Users,
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // =============================================================================
 // Public matches feed.
-//
-// Backed by the `public_matches_feed` SQL view (see
-// supabase/migrations/20260423000000_public_matches_feed_with_venue.sql).
-// The view exposes only PII-safe player data plus a resolved
-// venue_id / venue_name so we can offer a venue filter without joins
-// here.
-//
-// Filters supported:
-//   * tournament    — exact tournament_id
-//   * venue         — exact venue_id
-//   * q             — case-insensitive ILIKE on either player's name
-//
-// Card design (2026-04-23): big, bold, modern. Tournament/Friendly/
-// Doubles tags ride on top, players are larger and the score block uses
-// tabular numbers in a chunky display font.
 // =============================================================================
 
 const PAGE_SIZE = 30;
@@ -112,8 +100,6 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
 
   const supabase = await createSupabaseServerClient();
 
-  // Tournament dropdown options — only public tournaments since
-  // anything else is filtered out of the feed anyway.
   const [{ data: tournamentRows }, { data: venueRows }] = await Promise.all([
     supabase
       .from("tournaments")
@@ -147,7 +133,6 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
     query = query.eq("venue_id", venueFilter);
   }
   if (playerSearch) {
-    // Match against either side; PostgREST `or` filter syntax.
     const escaped = playerSearch.replace(/[\\%_]/g, (m) => `\\${m}`);
     query = query.or(
       `p1_name.ilike.%${escaped}%,p2_name.ilike.%${escaped}%,p1_partner_name.ilike.%${escaped}%,p2_partner_name.ilike.%${escaped}%`,
@@ -173,12 +158,11 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
   const filtersActive = !!(tournamentFilter || venueFilter || playerSearch);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex items-center gap-2">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-900">
-            {t("title")}
-          </h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="public-matches"
             variant="inline"
@@ -186,93 +170,90 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
-      <form
-        action={`/${locale}/matches`}
-        method="get"
-        className="grid gap-3 rounded-2xl border border-ink-100 bg-white px-4 py-4 shadow-card sm:grid-cols-[1fr_220px_220px_auto]"
-      >
-        <label className="block text-xs font-semibold text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filter.player")}
-          </span>
-          <span className="relative block">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400"
-              aria-hidden
-            />
-            <input
-              type="search"
-              name="q"
-              defaultValue={playerSearch ?? ""}
-              placeholder={t("filter.player_placeholder")}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
-            />
-          </span>
-        </label>
-        <label className="block text-xs font-semibold text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filter.tournament")}
-          </span>
-          <select
-            name="tournament"
-            defaultValue={tournamentFilter ?? ""}
-            className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
-          >
-            <option value="">{t("filter.all_tournaments")}</option>
-            {tournaments.map((tt) => (
-              <option key={tt.id} value={tt.id}>
-                {tt.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-xs font-semibold text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filter.venue")}
-          </span>
-          <select
-            name="venue"
-            defaultValue={venueFilter ?? ""}
-            className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
-          >
-            <option value="">{t("filter.all_venues")}</option>
-            {venues.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-                {v.city ? ` · ${v.city}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="flex items-end gap-2">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center rounded-lg bg-grass-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-grass-700"
-          >
-            {t("filter.apply")}
-          </button>
-          {(filtersActive || page > 1) && (
-            <Link
-              href="/matches"
-              className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 hover:bg-ink-50"
-            >
-              {t("filter.reset")}
-            </Link>
-          )}
-        </div>
-        <div className="flex items-center justify-between text-xs text-ink-500 sm:col-span-4">
-          <span>{t("count_summary", { count: totalCount })}</span>
-          {filtersActive && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 font-medium text-ink-600">
-              {t("filter.active")}
+      <Surface variant="flat">
+        <form
+          action={`/${locale}/matches`}
+          method="get"
+          className="grid gap-3 sm:grid-cols-[1fr_220px_220px_auto]"
+        >
+          <label className="block text-xs font-semibold text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filter.player")}
             </span>
-          )}
-        </div>
-      </form>
+            <span className="relative block">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400"
+                aria-hidden
+              />
+              <input
+                type="search"
+                name="q"
+                defaultValue={playerSearch ?? ""}
+                placeholder={t("filter.player_placeholder")}
+                className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
+              />
+            </span>
+          </label>
+          <label className="block text-xs font-semibold text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filter.tournament")}
+            </span>
+            <select
+              name="tournament"
+              defaultValue={tournamentFilter ?? ""}
+              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
+            >
+              <option value="">{t("filter.all_tournaments")}</option>
+              {tournaments.map((tt) => (
+                <option key={tt.id} value={tt.id}>
+                  {tt.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-xs font-semibold text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filter.venue")}
+            </span>
+            <select
+              name="venue"
+              defaultValue={venueFilter ?? ""}
+              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
+            >
+              <option value="">{t("filter.all_venues")}</option>
+              {venues.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                  {v.city ? ` · ${v.city}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-end gap-2">
+            <Button type="submit" variant="primary" size="sm">
+              {t("filter.apply")}
+            </Button>
+            {(filtersActive || page > 1) && (
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/matches">
+                  {t("filter.reset")}
+                </Link>
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center justify-between text-xs text-ink-500 sm:col-span-4">
+            <span>{t("count_summary", { count: totalCount })}</span>
+            {filtersActive && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 font-medium text-ink-600">
+                {t("filter.active")}
+              </span>
+            )}
+          </div>
+        </form>
+      </Surface>
 
       {rows.length === 0 ? (
         <EmptyHowTo locale={locale} t={t} filtersActive={filtersActive} />
@@ -328,9 +309,6 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
   );
 }
 
-// Rich, actionable empty state. Same three pathways as before, plus a
-// dedicated "filters too narrow" sub-state when the user just over-
-// filtered.
 function EmptyHowTo({
   locale,
   t,
@@ -390,7 +368,7 @@ function EmptyHowTo({
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+    <Surface variant="card" className="space-y-4">
       <div className="flex items-start gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink-100 text-ink-700">
           <Eye className="h-4 w-4" />
@@ -414,7 +392,7 @@ function EmptyHowTo({
               <a
                 key={c.title}
                 href={c.href}
-                className={`hover:shadow-pop group flex flex-col gap-2 rounded-2xl border p-4 transition hover:-translate-y-0.5 ${tone.wrap}`}
+                className={`group lift-on-hover flex flex-col gap-2 rounded-2xl border p-4 ${tone.wrap}`}
               >
                 <span className={`grid h-8 w-8 place-items-center rounded-full ${tone.icon}`}>
                   <Icon className="h-4 w-4" />
@@ -432,7 +410,7 @@ function EmptyHowTo({
           })}
         </div>
       )}
-    </div>
+    </Surface>
   );
 }
 
@@ -487,7 +465,7 @@ function PaginationLink({
 }
 
 // =============================================================================
-// Match card — bold, modern, large.
+// Match card
 // =============================================================================
 function MatchRowItem({
   m,
@@ -511,13 +489,12 @@ function MatchRowItem({
   const dateIso = m.played_at ?? m.scheduled_at;
   const dateLabel = dateIso ? dateFmt.format(new Date(dateIso)) : labels.tba;
 
-  // Header chip color: tournament = ball (yellow), friendly = grass.
   const isTournament = !!m.tournament_id;
 
   return (
     <li
       className={
-        "hover:shadow-pop group relative overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition " +
+        "surface-row lift-on-hover relative overflow-hidden " +
         (isTournament ? "hover:border-ball-200" : "hover:border-grass-200")
       }
     >
@@ -529,7 +506,7 @@ function MatchRowItem({
         }
       />
 
-      <div className="space-y-3 p-5 pl-7">
+      <div className="space-y-3 pl-7">
         {/* Top row: meta */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-wider">
           <span className="inline-flex items-center gap-1 text-ink-500">
@@ -763,7 +740,6 @@ function PlayerSide({
       </Link>
     );
   }
-  // Suppress unused locale (kept for future per-player profile route).
   void locale;
   return (
     <div className={"min-w-0 " + (align === "right" ? "justify-self-end" : "justify-self-start")}>

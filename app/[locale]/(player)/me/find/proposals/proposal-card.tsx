@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { respondToProposal, type ProposalRow } from "../actions";
 import { whatsappLink } from "@/lib/contact/whatsapp";
+import { Button } from "@/components/ui/button";
+import { Surface, Chip } from "@/components/ui/surface";
 
 export type ProposalCardCopy = {
   accept: string;
@@ -80,7 +82,7 @@ export function ProposalCard({
   });
 
   return (
-    <li className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+    <Surface as="li" variant="row" className="lift-on-hover">
       <div className="flex flex-wrap items-start gap-3">
         {/* Avatar */}
         {row.other.avatar_url ? (
@@ -151,38 +153,26 @@ export function ProposalCard({
 
           {kind === "incoming" && (
             <>
-              <button
-                type="button"
-                onClick={() => setOpen("accept")}
-                className="inline-flex h-9 items-center gap-1 rounded-lg bg-grass-500 px-3 text-xs font-semibold text-white transition hover:bg-grass-600"
-              >
+              <Button variant="primary" size="sm" onClick={() => setOpen("accept")}>
                 <Check className="h-3.5 w-3.5" /> {copy.accept}
-              </button>
-              <button
-                type="button"
-                onClick={() => setOpen("decline")}
-                className="inline-flex h-9 items-center gap-1 rounded-lg border border-clay-300 bg-clay-50 px-3 text-xs font-semibold text-clay-800 transition hover:bg-clay-100"
-              >
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => setOpen("decline")}>
                 <X className="h-3.5 w-3.5" /> {copy.decline}
-              </button>
+              </Button>
             </>
           )}
 
           {kind === "sent" && (
-            <button
-              type="button"
-              onClick={() => setOpen("cancel")}
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-300 bg-white px-3 text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
-            >
+            <Button variant="secondary" size="sm" onClick={() => setOpen("cancel")}>
               <Ban className="h-3.5 w-3.5" /> {copy.cancel}
-            </button>
+            </Button>
           )}
         </div>
       )}
 
       {/* Drawer for note */}
       {open && (
-        <div className="mt-3 rounded-lg border border-ink-100 bg-ink-50/50 p-3">
+        <Surface variant="flat" className="mt-3 !p-3">
           <label className="mb-1.5 block text-xs font-medium text-ink-700">
             {copy.optional_note}
           </label>
@@ -197,21 +187,18 @@ export function ProposalCard({
             <p className="mt-1.5 text-[11px] text-clay-700">{errMsg}</p>
           )}
           <div className="mt-2 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(null);
-                setNote("");
-              }}
-              className="inline-flex h-7 items-center gap-1 rounded-md border border-ink-200 bg-white px-2 text-[11px] font-medium text-ink-600 transition hover:bg-ink-50"
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setOpen(null); setNote(""); }}
             >
               <X className="h-3 w-3" /> {copy.cancel}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => respond(open)}
               disabled={pending}
-              className="inline-flex h-7 items-center gap-1 rounded-md bg-grass-500 px-3 text-[11px] font-semibold text-white transition hover:bg-grass-600 disabled:opacity-50"
             >
               {pending ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -219,11 +206,11 @@ export function ProposalCard({
                 <Check className="h-3 w-3" />
               )}
               {pending ? copy.sending : copy.confirm}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Surface>
       )}
-    </li>
+    </Surface>
   );
 }
 
@@ -236,23 +223,23 @@ function StatusPill({
 }) {
   if (outcome === "scheduled") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-grass-800 ring-1 ring-grass-200">
+      <Chip tone="grass">
         <Calendar className="h-3 w-3" /> {copy.scheduled}
-      </span>
+      </Chip>
     );
   }
   if (outcome === "cancelled") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-600">
+      <Chip tone="ink">
         <X className="h-3 w-3" /> {copy.cancelled}
-      </span>
+      </Chip>
     );
   }
   if (outcome === "proposed") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-ball-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ball-800 ring-1 ring-ball-200">
+      <Chip tone="ball">
         <CheckCircle2 className="h-3 w-3" /> ⏳
-      </span>
+      </Chip>
     );
   }
   return null;

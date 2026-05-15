@@ -5,6 +5,9 @@ import { Trophy, Calendar, Clock, Coins, MapPin, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   loadPublicTournaments,
@@ -12,7 +15,7 @@ import {
   type PublicTournamentRow,
   type PublicTournamentStatusFilter,
 } from "./actions";
-import type { Surface, TournamentFormat } from "@/lib/tournaments/schema";
+import type { Surface as CourtSurface, TournamentFormat } from "@/lib/tournaments/schema";
 
 const TOURNAMENT_FORMATS: TournamentFormat[] = [
   "single_elimination",
@@ -22,7 +25,7 @@ const TOURNAMENT_FORMATS: TournamentFormat[] = [
   "swiss",
   "compass",
 ];
-const SURFACES: Surface[] = ["hard", "clay", "grass", "carpet"];
+const SURFACES: CourtSurface[] = ["hard", "clay", "grass", "carpet"];
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -57,9 +60,6 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsPublic");
 
-  // "all" is the default — the page splits results into three sections in
-  // visual priority order (registration → upcoming → finished). The explicit
-  // tabs let users zoom into a single status.
   const filter: PublicTournamentStatusFilter = (
     ["all", "registration", "upcoming", "in_progress", "finished"] as const
   ).includes(sp.status as PublicTournamentStatusFilter)
@@ -68,7 +68,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
   const format = TOURNAMENT_FORMATS.includes(sp.format as TournamentFormat)
     ? (sp.format as TournamentFormat)
     : null;
-  const surface = SURFACES.includes(sp.surface as Surface) ? (sp.surface as Surface) : null;
+  const surface = SURFACES.includes(sp.surface as CourtSurface) ? (sp.surface as CourtSurface) : null;
   const fee = sp.fee === "free" || sp.fee === "paid" ? sp.fee : null;
   const city = sp.city && sp.city.trim().length > 0 ? sp.city.trim() : null;
 
@@ -88,10 +88,11 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
   const hasFilter = Boolean(format || surface || fee || city);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="public-tournaments"
             variant="inline"
@@ -99,9 +100,8 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <GuestNextStepBanner isGuest={isGuest} current="tournaments" />
 
@@ -120,7 +120,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
               href={`/${locale}/tournaments?${params.toString()}`}
               className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition ${
                 filter === s
-                  ? "border-leaf-700 text-leaf-700"
+                  ? "border-grass-700 text-grass-700"
                   : "border-transparent text-ink-500 hover:text-ink-900"
               }`}
             >
@@ -131,102 +131,100 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
       </nav>
 
       {/* Filter row — URL-driven so SSR + shareable links work. */}
-      <form
-        action={`/${locale}/tournaments`}
-        method="get"
-        className="grid gap-3 rounded-xl2 border border-ink-100 bg-white p-4 shadow-card sm:grid-cols-2 lg:grid-cols-4"
-      >
-        <input type="hidden" name="status" value={filter} />
+      <Surface variant="flat">
+        <form
+          action={`/${locale}/tournaments`}
+          method="get"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          <input type="hidden" name="status" value={filter} />
 
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filters.city")}
-          </span>
-          <select
-            name="city"
-            defaultValue={city ?? ""}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("filters.any_city")}</option>
-            {cities.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filters.format_label")}
-          </span>
-          <select
-            name="format"
-            defaultValue={format ?? ""}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("filters.any_format")}</option>
-            {TOURNAMENT_FORMATS.map((f) => (
-              <option key={f} value={f}>
-                {t(`format.${f}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filters.surface")}
-          </span>
-          <select
-            name="surface"
-            defaultValue={surface ?? ""}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("filters.any_surface")}</option>
-            {SURFACES.map((s) => (
-              <option key={s} value={s}>
-                {t(`surfaces.${s}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filters.fee")}
-          </span>
-          <select
-            name="fee"
-            defaultValue={fee ?? ""}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("filters.fee_options.any")}</option>
-            <option value="free">{t("filters.fee_options.free")}</option>
-            <option value="paid">{t("filters.fee_options.paid")}</option>
-          </select>
-        </label>
-
-        <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-4 lg:justify-end">
-          <span className="mr-auto text-xs tabular-nums text-ink-500">
-            {t("filters.results_count", { count: tournaments.length })}
-          </span>
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-          >
-            {t("filters.apply")}
-          </button>
-          {hasFilter && (
-            <Link
-              href={`/${locale}/tournaments?status=${filter}`}
-              className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filters.city")}
+            </span>
+            <select
+              name="city"
+              defaultValue={city ?? ""}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
-              {t("filters.reset")}
-            </Link>
-          )}
-        </div>
-      </form>
+              <option value="">{t("filters.any_city")}</option>
+              {cities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filters.format_label")}
+            </span>
+            <select
+              name="format"
+              defaultValue={format ?? ""}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("filters.any_format")}</option>
+              {TOURNAMENT_FORMATS.map((f) => (
+                <option key={f} value={f}>
+                  {t(`format.${f}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filters.surface")}
+            </span>
+            <select
+              name="surface"
+              defaultValue={surface ?? ""}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("filters.any_surface")}</option>
+              {SURFACES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`surfaces.${s}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filters.fee")}
+            </span>
+            <select
+              name="fee"
+              defaultValue={fee ?? ""}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("filters.fee_options.any")}</option>
+              <option value="free">{t("filters.fee_options.free")}</option>
+              <option value="paid">{t("filters.fee_options.paid")}</option>
+            </select>
+          </label>
+
+          <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-4 lg:justify-end">
+            <span className="mr-auto text-xs tabular-nums text-ink-500">
+              {t("filters.results_count", { count: tournaments.length })}
+            </span>
+            <Button type="submit" variant="primary" size="sm">
+              {t("filters.apply")}
+            </Button>
+            {hasFilter && (
+              <Button asChild variant="secondary" size="sm">
+                <Link href={`/${locale}/tournaments?status=${filter}`}>
+                  {t("filters.reset")}
+                </Link>
+              </Button>
+            )}
+          </div>
+        </form>
+      </Surface>
 
       {tournaments.length === 0 ? (
         hasFilter ? (
@@ -258,8 +256,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
 }
 
 // =============================================================================
-// Sectioned list ("All" tab) — registration first, then upcoming, then
-// finished. Each section is hidden if empty so the page stays compact.
+// Sectioned list ("All" tab) — registration first, then upcoming, then finished.
 // =============================================================================
 
 function SectionedList({
@@ -292,7 +289,7 @@ function SectionedList({
       />
       <SectionedGroup
         title={t("sections.upcoming")}
-        accent="leaf"
+        accent="ball"
         items={[...inProgress, ...draft]}
         locale={locale}
         t={t}
@@ -319,7 +316,7 @@ function SectionedGroup({
   fmtDate,
 }: {
   title: string;
-  accent: "grass" | "leaf" | "ink";
+  accent: "grass" | "ball" | "ink";
   items: PublicTournamentRow[];
   locale: string;
   t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
@@ -329,14 +326,14 @@ function SectionedGroup({
   const dotCls =
     accent === "grass"
       ? "bg-grass-500"
-      : accent === "leaf"
-        ? "bg-leaf-500"
+      : accent === "ball"
+        ? "bg-ball-500"
         : "bg-ink-300";
   return (
     <section>
       <header className="mb-3 flex items-center gap-2">
         <span className={`inline-block h-2 w-2 rounded-full ${dotCls}`} />
-        <h2 className="font-display text-lg font-semibold text-ink-900">{title}</h2>
+        <h2 className="font-display text-lg font-bold text-grass-900">{title}</h2>
         <span className="text-xs tabular-nums text-ink-500">·&nbsp;{items.length}</span>
       </header>
       <ul className="grid gap-4 sm:grid-cols-2">
@@ -360,13 +357,13 @@ function TournamentCard({
   fmtDate: Intl.DateTimeFormat;
 }) {
   return (
-    <li className="hover:border-leaf-300 group rounded-xl2 border border-ink-100 bg-white p-5 shadow-card transition hover:shadow-md">
+    <li className="surface-row lift-on-hover group hover:border-grass-300">
       <Link href={`/${locale}/tournaments/${tn.id}`} className="flex items-start gap-3">
-        <div className="bg-leaf-100 text-leaf-700 flex h-11 w-11 items-center justify-center rounded-full">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-grass-100 text-grass-700">
           <Trophy className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <h3 className="group-hover:text-leaf-700 font-display text-lg font-semibold text-ink-900">
+          <h3 className="font-display text-lg font-semibold text-ink-900 group-hover:text-grass-700">
             {tn.name}
           </h3>
           {tn.description && (
@@ -396,9 +393,9 @@ function TournamentCard({
             </div>
             {tn.venues.length > 0 && (
               <div className="col-span-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-ink-600">
-                <MapPin className="text-leaf-700 h-3.5 w-3.5" />
+                <MapPin className="h-3.5 w-3.5 text-grass-700" />
                 {tn.venues.map((v) => (
-                  <span key={v.id} className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5">
+                  <span key={v.id} className="rounded-full bg-grass-50 px-2 py-0.5 text-grass-700">
                     {v.name}
                     {v.city && <span className="text-ink-500">· {v.city}</span>}
                   </span>
@@ -406,15 +403,15 @@ function TournamentCard({
               </div>
             )}
             <div className="col-span-2 mt-1 inline-flex items-center gap-2">
-              <span className="bg-leaf-50 text-leaf-700 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase">
+              <span className="chip chip-grass text-[10px] font-medium uppercase">
                 {t(`format.${tn.format}`)}
               </span>
               {tn.surface && (
-                <span className="rounded-full bg-clay-50 px-2 py-0.5 text-[10px] font-medium uppercase text-clay-700">
+                <span className="chip chip-clay text-[10px] font-medium uppercase">
                   {tn.surface}
                 </span>
               )}
-              <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-600">
+              <span className="chip chip-ink text-[10px] font-medium uppercase">
                 {t(`status.${tn.status}`)}
               </span>
             </div>

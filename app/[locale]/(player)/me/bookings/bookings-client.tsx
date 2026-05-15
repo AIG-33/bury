@@ -18,6 +18,8 @@ import {
   MessageCircle,
   Inbox,
 } from "lucide-react";
+import { Surface, SectionTitle } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
 import {
   searchAvailableSlots,
   bookSlot,
@@ -109,11 +111,11 @@ export function BookingsClient({
     <div className="space-y-8">
       {/* My bookings */}
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">{copy.upcoming_title}</h2>
+        <SectionTitle>{copy.upcoming_title}</SectionTitle>
         {upcoming.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
-            {copy.no_upcoming}
-          </p>
+          <Surface variant="soft" className="py-6 text-center">
+            <p className="text-sm text-ink-600">{copy.no_upcoming}</p>
+          </Surface>
         ) : (
           <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {upcoming.map((b) => (
@@ -124,13 +126,13 @@ export function BookingsClient({
       </section>
 
       {/* Search */}
-      <section className="space-y-3 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+      <Surface variant="card" as="section" className="space-y-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-ink-900">
+          <h2 className="inline-flex items-center gap-2 section-title">
             <Search className="h-5 w-5 text-grass-700" />
             {copy.search.title}
           </h2>
-          <p className="mt-0.5 text-sm text-ink-600">{copy.search.intro}</p>
+          <p className="mt-1 text-sm text-ink-600">{copy.search.intro}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
@@ -171,12 +173,7 @@ export function BookingsClient({
               ))}
             </select>
           </div>
-          <button
-            type="button"
-            onClick={onSearch}
-            disabled={isSearching}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
-          >
+          <Button variant="primary" size="sm" onClick={onSearch} disabled={isSearching}>
             {isSearching ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" /> {copy.search.searching}
@@ -186,7 +183,7 @@ export function BookingsClient({
                 <Search className="h-4 w-4" /> {copy.search.submit}
               </>
             )}
-          </button>
+          </Button>
         </div>
 
         {searchError && (
@@ -196,14 +193,14 @@ export function BookingsClient({
         )}
 
         {results === null ? (
-          <div className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
+          <Surface variant="soft" className="py-6 text-center">
             <Inbox className="mx-auto mb-1 h-5 w-5 text-ink-400" />
-            {copy.search.empty_description}
-          </div>
+            <p className="mt-1 text-sm text-ink-600">{copy.search.empty_description}</p>
+          </Surface>
         ) : results.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
-            {copy.search.no_results}
-          </p>
+          <Surface variant="soft" className="py-5 text-center">
+            <p className="text-sm text-ink-600">{copy.search.no_results}</p>
+          </Surface>
         ) : (
           <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {results.map((s) => (
@@ -211,17 +208,17 @@ export function BookingsClient({
             ))}
           </ul>
         )}
-      </section>
+      </Surface>
 
       {/* Past — show every past or cancelled booking so the player has the
            full history at hand. Card list scales fine into the hundreds; if
            it ever stops doing so we'll add a paginator. */}
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">{copy.past_title}</h2>
+        <SectionTitle>{copy.past_title}</SectionTitle>
         {past.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-sm text-ink-500">
-            {copy.no_past}
-          </p>
+          <Surface variant="soft" className="py-6 text-center">
+            <p className="text-sm text-ink-600">{copy.no_past}</p>
+          </Surface>
         ) : (
           <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {past.map((b) => (
@@ -271,7 +268,7 @@ function SlotCard({
   }
 
   return (
-    <li className="hover:shadow-pop rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition">
+    <li className="surface-row lift-on-hover">
       <SlotMeta slot={slot} copy={copy} />
       <div className="mt-3 flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-grass-800">
@@ -293,18 +290,13 @@ function SlotCard({
               className="w-full rounded-md border border-ink-200 px-2 py-1 text-xs outline-none focus:border-grass-500"
             />
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-8 items-center rounded-md border border-ink-200 px-2 text-xs"
-              >
-                ×
-              </button>
-              <button
-                type="button"
+              <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>×</Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="flex-1"
                 onClick={onConfirm}
                 disabled={pending}
-                className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-md bg-grass-500 px-3 text-xs font-medium text-white transition hover:bg-grass-600 disabled:opacity-50"
               >
                 {pending ? (
                   <>
@@ -313,7 +305,7 @@ function SlotCard({
                 ) : (
                   copy.card.book
                 )}
-              </button>
+              </Button>
             </div>
             {status === "error" && errCode && (
               <p className="text-[11px] text-clay-700">
@@ -322,13 +314,9 @@ function SlotCard({
             )}
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex h-9 items-center gap-1 rounded-lg bg-grass-500 px-3 text-xs font-medium text-white shadow-card transition hover:bg-grass-600"
-          >
+          <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
             <Calendar className="h-3.5 w-3.5" /> {copy.card.book}
-          </button>
+          </Button>
         )}
       </div>
     </li>
@@ -362,12 +350,7 @@ function BookingCard({
   }
 
   return (
-    <li
-      className={
-        "rounded-xl2 border border-ink-100 bg-white p-4 shadow-card " +
-        (archived ? "opacity-70" : "")
-      }
-    >
+    <li className={"surface-row " + (archived ? "opacity-70" : "lift-on-hover")}>
       <SlotMeta slot={slot} copy={copy} />
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
         <span
@@ -398,11 +381,12 @@ function BookingCard({
             </span>
           )}
           {booking.status !== "cancelled" && (
-            <button
-              type="button"
+            <Button
+              variant="danger"
+              size="sm"
+              className="ml-auto"
               onClick={onCancel}
               disabled={pending}
-              className="ml-auto inline-flex h-8 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
             >
               {pending ? (
                 <>
@@ -413,7 +397,7 @@ function BookingCard({
                   <XCircle className="h-3 w-3" /> {copy.card.cancel}
                 </>
               )}
-            </button>
+            </Button>
           )}
         </div>
       )}

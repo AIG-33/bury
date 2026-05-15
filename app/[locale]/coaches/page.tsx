@@ -5,6 +5,9 @@ import { Award, MapPin, Star, Trophy, Map as MapIcon } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadCoaches, loadVenueOptions, loadDistrictOptionsForCoaches } from "./actions";
 import { loadPrimaryClubsForUsers } from "@/lib/clubs/primary";
@@ -124,34 +127,33 @@ export default async function CoachesPage({ params, searchParams }: Props) {
   const hasFilter = Boolean(venueId || districtId || verifiedOnly);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
-            <HelpPanel
-              pageId="coaches-public"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-              result={[t("help.result.1"), t("help.result.2")]}
-            />
-          </div>
-          <p className="mt-1 text-ink-600">{t("subtitle")}</p>
-        </div>
-        <Link
-          href="/coaches/map"
-          className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-3 text-sm font-medium text-white transition hover:bg-grass-600"
-        >
-          <MapIcon className="h-4 w-4" />
-          {t("view_map")}
-        </Link>
-      </header>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
+          <HelpPanel
+            pageId="coaches-public"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+        actions={
+          <Button asChild variant="primary" size="sm">
+            <Link href="/coaches/map">
+              <MapIcon className="h-4 w-4" />
+              {t("view_map")}
+            </Link>
+          </Button>
+        }
+      />
 
       <GuestNextStepBanner isGuest={isGuest} current="coaches" />
 
       {top3.length > 0 && (
-        <section className="rounded-xl2 border border-ball-200 bg-gradient-to-br from-ball-50 to-white p-5 shadow-card">
+        <Surface variant="card" className="border-ball-200 bg-gradient-to-br from-ball-50 to-white" as="section">
           <h2 className="inline-flex items-center gap-2 font-display text-base font-semibold text-ink-900">
             <Trophy className="h-5 w-5 text-ball-500" />
             {t("podium.title")}
@@ -211,12 +213,12 @@ export default async function CoachesPage({ params, searchParams }: Props) {
               );
             })}
           </ol>
-        </section>
+        </Surface>
       )}
 
-      <div className="space-y-3 rounded-xl2 border border-ink-100 bg-white px-4 py-3 shadow-card">
+      <Surface variant="flat" className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+          <span className="label-eyebrow">
             {t("controls.sort_by")}
           </span>
           {SORT_KEYS.map((k) => (
@@ -259,7 +261,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
           className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
         >
           <label className="text-xs font-medium text-ink-700">
-            <span className="mb-1 block uppercase tracking-wider text-ink-500">
+            <span className="mb-1 block label-eyebrow">
               {t("controls.venue")}
             </span>
             <select
@@ -277,7 +279,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
             </select>
           </label>
           <label className="text-xs font-medium text-ink-700">
-            <span className="mb-1 block uppercase tracking-wider text-ink-500">
+            <span className="mb-1 block label-eyebrow">
               {t("controls.district")}
             </span>
             <select
@@ -297,24 +299,22 @@ export default async function CoachesPage({ params, searchParams }: Props) {
           <input type="hidden" name="sort" value={sortKey} />
           {verifiedOnly && <input type="hidden" name="verified" value="1" />}
           <div className="flex items-end gap-2">
-            <button
-              type="submit"
-              className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600"
-            >
+            <Button type="submit" variant="primary" size="sm">
               {t("controls.apply")}
-            </button>
+            </Button>
             {hasFilter && (
-              <Link
-                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                href={"/coaches" as any}
-                className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-              >
-                {t("controls.reset")}
-              </Link>
+              <Button asChild variant="secondary" size="sm">
+                <Link
+                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                  href={"/coaches" as any}
+                >
+                  {t("controls.reset")}
+                </Link>
+              </Button>
             )}
           </div>
         </form>
-      </div>
+      </Surface>
 
       {sorted.length === 0 ? (
         hasFilter ? (
@@ -337,8 +337,8 @@ export default async function CoachesPage({ params, searchParams }: Props) {
               <li
                 key={c.id}
                 className={
-                  "rounded-xl2 border bg-white p-4 shadow-card transition hover:shadow-ace " +
-                  (isPodium ? "border-ball-200" : "border-ink-100")
+                  "surface-row lift-on-hover " +
+                  (isPodium ? "border-ball-200" : "")
                 }
               >
                 <Link
@@ -367,7 +367,7 @@ export default async function CoachesPage({ params, searchParams }: Props) {
                           </span>
                         )}
                         {p.qualifies && (
-                          <span className="inline-flex items-center rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold text-grass-700">
+                          <span className="chip chip-grass text-[10px] font-semibold">
                             {t("badges.verified")}
                           </span>
                         )}

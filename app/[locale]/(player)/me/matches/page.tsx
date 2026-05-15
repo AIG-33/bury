@@ -8,9 +8,11 @@ import {
   Clock,
   History,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface } from "@/components/ui/surface";
 import { loadMyMatches } from "./actions";
 import { MatchCard } from "./match-card";
 import { QuickRegisterButton } from "./quick-register-button";
@@ -29,30 +31,26 @@ export default async function MyMatchesPage({ params }: Props) {
   const whatsappPrefill = t("whatsapp_prefill", { name: "{name}" });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">
-              {t("title")}
-            </h1>
-            <HelpPanel
-              pageId="me-matches"
-              variant="inline"
-              why={t("help.why")}
-              what={[
-                t("help.what.1"),
-                t("help.what.2"),
-                t("help.what.3"),
-                t("help.what.4"),
-              ]}
-              result={[t("help.result.1"), t("help.result.2")]}
-            />
-          </div>
-          <p className="mt-1 text-ink-600">{t("subtitle")}</p>
-        </div>
-        <QuickRegisterButton />
-      </header>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
+          <HelpPanel
+            pageId="me-matches"
+            variant="inline"
+            why={t("help.why")}
+            what={[
+              t("help.what.1"),
+              t("help.what.2"),
+              t("help.what.3"),
+              t("help.what.4"),
+            ]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+        actions={<QuickRegisterButton />}
+      />
 
       <Section
         icon={<AlertTriangle className="h-4 w-4 text-ball-700" />}
@@ -149,8 +147,8 @@ export default async function MyMatchesPage({ params }: Props) {
 
       {/* History link — full match history with Elo deltas now lives on /me/rating */}
       <Link
-        href={`/${locale}/me/rating#matches`}
-        className="group flex items-center justify-between gap-3 rounded-xl border border-ink-100 bg-white p-4 shadow-sm transition hover:border-grass-200 hover:bg-grass-50/40"
+        href={`/${locale}/me/rating#matches` as never}
+        className="group surface-row lift-on-hover flex items-center justify-between gap-3"
       >
         <span className="inline-flex items-center gap-3">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-700">
@@ -171,13 +169,13 @@ export default async function MyMatchesPage({ params }: Props) {
       {data.scheduled.length === 0 &&
         data.awaitingMyConfirmation.length === 0 &&
         data.awaitingTheirConfirmation.length === 0 && (
-          <div className="rounded-xl2 border border-dashed border-ink-200 bg-white p-8 text-center">
+          <Surface variant="soft" className="py-8 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-grass-400" />
-            <p className="mt-2 font-display text-lg text-ink-900">
+            <p className="mt-2 font-display text-base font-bold text-grass-900">
               {t("empty.everything_title")}
             </p>
-            <p className="text-sm text-ink-600">{t("empty.everything_body")}</p>
-          </div>
+            <p className="mt-1 text-sm text-ink-600">{t("empty.everything_body")}</p>
+          </Surface>
         )}
     </div>
   );
@@ -198,10 +196,8 @@ function Section({
     <section className="space-y-3">
       <div className="flex items-center gap-2">
         {icon}
-        <h2 className="font-display text-lg font-semibold text-ink-900">{title}</h2>
-        <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-700">
-          {count}
-        </span>
+        <h2 className="section-title">{title}</h2>
+        <span className="chip chip-ink">{count}</span>
       </div>
       {children}
     </section>

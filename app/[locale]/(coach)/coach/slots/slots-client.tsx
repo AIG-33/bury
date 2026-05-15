@@ -13,6 +13,8 @@ import {
   Banknote,
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { cancelSlot, type CoachSlotRow, type CourtOption } from "./actions";
 import { SlotFormDialog, type SlotDialogCopy } from "./slot-form-dialog";
 import type { SlotType, IsoWeekday } from "@/lib/slots/schema";
@@ -83,13 +85,9 @@ export function SlotsClient({
   return (
     <>
       <div className="mb-4 flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
-        >
+        <Button size="sm" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4" /> {copy.add}
-        </button>
+        </Button>
       </div>
 
       {grouped.length === 0 ? (
@@ -97,77 +95,76 @@ export function SlotsClient({
           title={copy.empty_title}
           description={copy.empty_description}
           action={
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
-            >
+            <Button size="sm" onClick={() => setOpen(true)}>
               <Plus className="h-4 w-4" /> {copy.empty_cta}
-            </button>
+            </Button>
           }
         />
       ) : (
         <div className="space-y-6">
           {grouped.map((day) => (
             <section key={day.dateLabel}>
-              <h3 className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-ink-700">
+              <h3 className="mb-2 inline-flex items-center gap-2 font-display text-lg font-bold text-grass-900">
                 <Calendar className="h-4 w-4 text-grass-700" />
                 {day.dateLabel}
               </h3>
-              <ul className="divide-y divide-ink-100 overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card">
-                {day.slots.map((s) => (
-                  <li
-                    key={s.id}
-                    className={
-                      "flex flex-wrap items-center gap-3 px-4 py-3 text-sm " +
-                      (s.status === "cancelled" ? "opacity-50" : "")
-                    }
-                  >
-                    <span className="inline-flex h-9 min-w-[88px] items-center justify-center rounded-md bg-grass-50 px-2 font-mono font-semibold text-grass-800">
-                      {formatTimeRange(s, copy.locale)}
-                    </span>
-                    <span className="text-ink-700">
-                      {s.venue_name} · {s.court_label}
-                    </span>
-                    <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] uppercase tracking-wider text-ink-700">
-                      {copy.slot_type_options[s.slot_type]}
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-xs text-ink-600">
-                      <Users className="h-3 w-3" />
-                      {s.bookings_count}/{s.max_participants}
-                      <span className="ml-1 text-[10px] text-ink-400">
-                        {s.bookings_count >= s.max_participants ? copy.full : copy.free}
+              <Surface variant="card" className="overflow-hidden p-0">
+                <ul className="divide-y divide-ink-100">
+                  {day.slots.map((s) => (
+                    <li
+                      key={s.id}
+                      className={
+                        "flex flex-wrap items-center gap-3 px-4 py-3 text-sm " +
+                        (s.status === "cancelled" ? "opacity-50" : "")
+                      }
+                    >
+                      <span className="inline-flex h-9 min-w-[88px] items-center justify-center rounded-md bg-grass-50 px-2 font-mono font-semibold text-grass-800">
+                        {formatTimeRange(s, copy.locale)}
                       </span>
-                    </span>
-                    {s.price_byn != null && (
+                      <span className="text-ink-700">
+                        {s.venue_name} · {s.court_label}
+                      </span>
+                      <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] uppercase tracking-wider text-ink-700">
+                        {copy.slot_type_options[s.slot_type]}
+                      </span>
                       <span className="inline-flex items-center gap-1 text-xs text-ink-600">
-                        <Banknote className="h-3 w-3" />
-                        {s.price_byn} BYN
+                        <Users className="h-3 w-3" />
+                        {s.bookings_count}/{s.max_participants}
+                        <span className="ml-1 text-[10px] text-ink-400">
+                          {s.bookings_count >= s.max_participants ? copy.full : copy.free}
+                        </span>
                       </span>
-                    )}
-                    {s.notes && <span className="text-xs text-ink-500">«{s.notes}»</span>}
-                    {s.status === "cancelled" ? (
-                      <span className="ml-auto rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-clay-700">
-                        {copy.status_options.cancelled}
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => onCancel(s)}
-                        disabled={busyId === s.id}
-                        className="ml-auto inline-flex h-8 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
-                      >
-                        {busyId === s.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-3 w-3" />
-                        )}
-                        {busyId === s.id ? copy.cancelling : copy.cancel}
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
+                      {s.price_byn != null && (
+                        <span className="inline-flex items-center gap-1 text-xs text-ink-600">
+                          <Banknote className="h-3 w-3" />
+                          {s.price_byn} BYN
+                        </span>
+                      )}
+                      {s.notes && <span className="text-xs text-ink-500">«{s.notes}»</span>}
+                      {s.status === "cancelled" ? (
+                        <span className="chip chip-clay ml-auto text-[10px] font-semibold uppercase">
+                          {copy.status_options.cancelled}
+                        </span>
+                      ) : (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => onCancel(s)}
+                          disabled={busyId === s.id}
+                          className="ml-auto"
+                        >
+                          {busyId === s.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                          {busyId === s.id ? copy.cancelling : copy.cancel}
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Surface>
             </section>
           ))}
         </div>
@@ -226,25 +223,20 @@ export function WeekNav({ fromIso, copy }: { fromIso: string; copy: SlotsListCop
   const todayIso = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="mb-4 flex items-center gap-2 text-sm">
-      <a
-        href={`?from=${prev}`}
-        className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 font-medium text-ink-700 transition hover:bg-ink-50"
-      >
-        <ChevronLeft className="h-4 w-4" /> {copy.prev_week}
-      </a>
-      <a
-        href={`?from=${todayIso}`}
-        className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-3 font-medium text-ink-700 transition hover:bg-ink-50"
-      >
-        {copy.today}
-      </a>
-      <a
-        href={`?from=${next}`}
-        className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 font-medium text-ink-700 transition hover:bg-ink-50"
-      >
-        {copy.next_week} <ChevronRight className="h-4 w-4" />
-      </a>
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      <Button variant="secondary" size="sm" asChild>
+        <a href={`?from=${prev}`}>
+          <ChevronLeft className="h-4 w-4" /> {copy.prev_week}
+        </a>
+      </Button>
+      <Button variant="secondary" size="sm" asChild>
+        <a href={`?from=${todayIso}`}>{copy.today}</a>
+      </Button>
+      <Button variant="secondary" size="sm" asChild>
+        <a href={`?from=${next}`}>
+          {copy.next_week} <ChevronRight className="h-4 w-4" />
+        </a>
+      </Button>
     </div>
   );
 }

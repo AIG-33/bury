@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import {
@@ -13,6 +12,9 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
+import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
 type Props = { params: Promise<{ locale: string; playerId: string }> };
@@ -146,97 +148,91 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
   const isInClub = Boolean(acceptedInvite) || bookings.length > 0;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
-        href={`/${locale}/coach/players`}
+        href="/coach/players"
         className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-700"
       >
         <ArrowLeft className="h-4 w-4" />
         {t("back")}
       </Link>
 
-      <header className="flex flex-wrap items-center gap-4 rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-        <Avatar src={player.avatar_url} name={player.display_name ?? "?"} size={64} />
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-2xl font-bold text-ink-900">
-              {player.display_name ?? t("unknown_name")}
-            </h1>
-            <HelpPanel
-              pageId="coach-player-detail"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-              result={[t("help.result.1"), t("help.result.2")]}
+      <PageHeader
+        title={player.display_name ?? t("unknown_name")}
+        subtitle={
+          acceptedInvite?.email ? (
+            <span className="text-xs text-ink-500">{acceptedInvite.email}</span>
+          ) : undefined
+        }
+        help={
+          <HelpPanel
+            pageId="coach-player-detail"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+      />
+
+      {/* Player identity card */}
+      <Surface variant="card">
+        <div className="flex flex-wrap items-center gap-4">
+          <Avatar src={player.avatar_url} name={player.display_name ?? "?"} size={64} />
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-ink-600">
+              {(player.city || player.district_name) && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {[player.city, player.district_name].filter(Boolean).join(" · ")}
+                </span>
+              )}
+              {acceptedInvite && (
+                <Chip tone="grass">{t("badge_invited")}</Chip>
+              )}
+              {bookings.length > 0 && (
+                <Chip tone="grass">{t("badge_booked")}</Chip>
+              )}
+              {!isInClub && (
+                <Chip tone="ink">{t("badge_not_in_club")}</Chip>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <Stat
+              label={t("stat_elo")}
+              value={player.current_elo?.toString() ?? "—"}
+              hint={
+                player.elo_status === "provisional" ? t("elo_provisional") : undefined
+              }
+            />
+            <Stat
+              label={t("stat_matches")}
+              value={(player.rated_matches_count ?? 0).toString()}
+            />
+            <Stat
+              label={t("stat_bookings")}
+              value={`${bookingsActive}/${bookings.length}`}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-ink-600">
-            {(player.city || player.district_name) && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {[player.city, player.district_name].filter(Boolean).join(" · ")}
-              </span>
-            )}
-            {acceptedInvite && (
-              <span className="inline-flex rounded-full bg-leaf-100 px-2 py-0.5 text-[11px] font-medium text-leaf-800">
-                {t("badge_invited")}
-              </span>
-            )}
-            {bookings.length > 0 && (
-              <span className="inline-flex rounded-full bg-grass-100 px-2 py-0.5 text-[11px] font-medium text-grass-800">
-                {t("badge_booked")}
-              </span>
-            )}
-            {!isInClub && (
-              <span className="inline-flex rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium text-ink-600">
-                {t("badge_not_in_club")}
-              </span>
-            )}
-          </div>
-          {acceptedInvite?.email && (
-            <p className="text-xs text-ink-500">{acceptedInvite.email}</p>
-          )}
         </div>
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <Stat
-            label={t("stat_elo")}
-            value={player.current_elo?.toString() ?? "—"}
-            hint={
-              player.elo_status === "provisional" ? t("elo_provisional") : undefined
-            }
-          />
-          <Stat
-            label={t("stat_matches")}
-            value={(player.rated_matches_count ?? 0).toString()}
-          />
-          <Stat
-            label={t("stat_bookings")}
-            value={`${bookingsActive}/${bookings.length}`}
-          />
-        </div>
-      </header>
+      </Surface>
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {t("rating.title")}
-          </h2>
+          <SectionTitle>{t("rating.title")}</SectionTitle>
           <span className="text-xs text-ink-500">{t("rating.subtitle_30d")}</span>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-white p-4">
+        <Surface variant="card">
           <div className="flex flex-wrap items-end gap-6">
             <div>
-              <div className="text-xs uppercase tracking-wider text-ink-500">
-                {t("rating.current")}
-              </div>
+              <div className="label-eyebrow">{t("rating.current")}</div>
               <div className="font-mono text-3xl font-bold tabular-nums text-ink-900">
                 {player.current_elo ?? "—"}
               </div>
             </div>
             <div>
-              <div className="text-xs uppercase tracking-wider text-ink-500">
-                {t("rating.delta_30d")}
-              </div>
+              <div className="label-eyebrow">{t("rating.delta_30d")}</div>
               <DeltaPill value={delta30d} large />
             </div>
           </div>
@@ -261,93 +257,83 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
               ))}
             </ul>
           )}
-        </div>
+        </Surface>
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
-          {t("matches.title")}
-        </h2>
+        <SectionTitle>{t("matches.title")}</SectionTitle>
         {matches.length === 0 ? (
           <EmptyState
             title={t("matches.empty_title")}
             description={t("matches.empty_description")}
           />
         ) : (
-          <ul className="divide-y divide-ink-100 rounded-xl border border-ink-100 bg-white">
-            {matches.map((m) => {
-              const isP1 = m.p1_id === playerId;
-              const won =
-                (isP1 && m.winner_side === "p1") ||
-                (!isP1 && m.winner_side === "p2");
-              const lost =
-                m.winner_side &&
-                ((isP1 && m.winner_side === "p2") ||
-                  (!isP1 && m.winner_side === "p1"));
-              const date = m.played_at ?? m.scheduled_at;
-              return (
-                <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2 text-sm text-ink-700">
-                      <Trophy className="h-3.5 w-3.5 text-ink-400" />
-                      {m.tournament_id ? t("matches.in_tournament") : t("matches.friendly")}
-                      {m.is_doubles && (
-                        <span className="rounded-full bg-ink-100 px-1.5 text-[10px] uppercase tracking-wider text-ink-600">
-                          {t("matches.doubles")}
-                        </span>
-                      )}
+          <Surface variant="card" className="p-0">
+            <ul className="divide-y divide-ink-100">
+              {matches.map((m) => {
+                const isP1 = m.p1_id === playerId;
+                const won =
+                  (isP1 && m.winner_side === "p1") ||
+                  (!isP1 && m.winner_side === "p2");
+                const lost =
+                  m.winner_side &&
+                  ((isP1 && m.winner_side === "p2") ||
+                    (!isP1 && m.winner_side === "p1"));
+                const date = m.played_at ?? m.scheduled_at;
+                return (
+                  <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2 text-sm text-ink-700">
+                        <Trophy className="h-3.5 w-3.5 text-ink-400" />
+                        {m.tournament_id ? t("matches.in_tournament") : t("matches.friendly")}
+                        {m.is_doubles && (
+                          <Chip tone="ink">{t("matches.doubles")}</Chip>
+                        )}
+                      </div>
+                      <div className="text-xs text-ink-500">
+                        {date ? dateTimeFmt.format(new Date(date)) : t("matches.no_date")} ·{" "}
+                        {t(`matches.outcome.${m.outcome}`)}
+                      </div>
                     </div>
-                    <div className="text-xs text-ink-500">
-                      {date ? dateTimeFmt.format(new Date(date)) : t("matches.no_date")} ·{" "}
-                      {t(`matches.outcome.${m.outcome}`)}
-                    </div>
-                  </div>
-                  {won && (
-                    <span className="rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-800">
-                      {t("matches.win")}
-                    </span>
-                  )}
-                  {lost && (
-                    <span className="rounded-full bg-clay-100 px-2 py-0.5 text-xs font-semibold text-clay-800">
-                      {t("matches.loss")}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                    {won && <Chip tone="grass">{t("matches.win")}</Chip>}
+                    {lost && <Chip tone="clay">{t("matches.loss")}</Chip>}
+                  </li>
+                );
+              })}
+            </ul>
+          </Surface>
         )}
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
-          {t("bookings.title")}
-        </h2>
+        <SectionTitle>{t("bookings.title")}</SectionTitle>
         {bookings.length === 0 ? (
           <EmptyState
             title={t("bookings.empty_title")}
             description={t("bookings.empty_description")}
           />
         ) : (
-          <ul className="divide-y divide-ink-100 rounded-xl border border-ink-100 bg-white">
-            {bookings.map((b) => (
-              <li key={b.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0 space-y-0.5">
-                  <div className="flex items-center gap-2 text-sm text-ink-700">
-                    <Calendar className="h-3.5 w-3.5 text-ink-400" />
-                    {b.slots?.starts_at
-                      ? dateTimeFmt.format(new Date(b.slots.starts_at))
-                      : dateTimeFmt.format(new Date(b.created_at))}
+          <Surface variant="card" className="p-0">
+            <ul className="divide-y divide-ink-100">
+              {bookings.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2 text-sm text-ink-700">
+                      <Calendar className="h-3.5 w-3.5 text-ink-400" />
+                      {b.slots?.starts_at
+                        ? dateTimeFmt.format(new Date(b.slots.starts_at))
+                        : dateTimeFmt.format(new Date(b.created_at))}
+                    </div>
+                    <div className="text-xs text-ink-500">
+                      {t(`bookings.status.${b.status}`)} ·{" "}
+                      {t(`bookings.paid.${b.paid_status}`)}
+                    </div>
                   </div>
-                  <div className="text-xs text-ink-500">
-                    {t(`bookings.status.${b.status}`)} ·{" "}
-                    {t(`bookings.paid.${b.paid_status}`)}
-                  </div>
-                </div>
-                <BookingStatusBadge status={b.status} t={t} />
-              </li>
-            ))}
-          </ul>
+                  <BookingStatusBadge status={b.status} t={t} />
+                </li>
+              ))}
+            </ul>
+          </Surface>
         )}
       </section>
     </div>
@@ -401,10 +387,8 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2 text-center">
-      <div className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-        {label}
-      </div>
+    <div className="surface-soft px-3 py-2 text-center">
+      <div className="label-eyebrow">{label}</div>
       <div className="font-mono text-lg font-bold tabular-nums text-ink-900">
         {value}
       </div>
@@ -446,17 +430,15 @@ function BookingStatusBadge({
   status: "pending" | "confirmed" | "cancelled" | "attended" | "no_show";
   t: (k: string) => string;
 }) {
-  const palette: Record<typeof status, string> = {
-    pending: "bg-ball-100 text-ball-900",
-    confirmed: "bg-leaf-100 text-leaf-800",
-    cancelled: "bg-ink-100 text-ink-600",
-    attended: "bg-grass-100 text-grass-800",
-    no_show: "bg-clay-100 text-clay-800",
+  const toneMap: Record<typeof status, string> = {
+    pending: "chip chip-ball",
+    confirmed: "chip chip-grass",
+    cancelled: "chip chip-ink",
+    attended: "chip chip-grass",
+    no_show: "chip chip-clay",
   };
   return (
-    <span
-      className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${palette[status]}`}
-    >
+    <span className={`whitespace-nowrap ${toneMap[status]}`}>
       {t(`bookings.status.${status}`)}
     </span>
   );

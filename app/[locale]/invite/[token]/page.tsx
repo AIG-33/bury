@@ -7,6 +7,9 @@ import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { HelpPanel } from "@/components/help/help-panel";
 import { acceptInvitationAction } from "./actions";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
 
 type Props = { params: Promise<{ locale: string; token: string }> };
 
@@ -70,35 +73,32 @@ export default async function InvitePage({ params }: Props) {
   const loginHref = `/login?next=${encodeURIComponent(`/invite/${token}`)}`;
 
   return (
-    <div className="mx-auto max-w-xl space-y-5 px-6 py-10">
-      <div className="rounded-xl2 border border-grass-100 bg-white p-8 shadow-card">
-        <div className="mb-4 flex items-center gap-3">
-          <TennisBall className="h-10 w-10 text-ball-500" />
-          <div>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="font-display text-2xl font-bold text-ink-900">
-                {t("title", { coach: coachName })}
-              </h1>
-              <HelpPanel
-                pageId="invite-page"
-                variant="inline"
-                why={t("help.why")}
-                what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-                result={[t("help.result.1"), t("help.result.2")]}
-              />
-            </div>
-            <p className="text-sm text-ink-600">{t("for", { email: inv.email })}</p>
+    <div className="page-shell">
+      <div className="mx-auto max-w-xl">
+        <Surface variant="card" className="space-y-5">
+          <div className="flex items-start gap-3">
+            <TennisBall className="mt-1 h-10 w-10 shrink-0 text-ball-500" />
+            <PageHeader
+              title={t("title", { coach: coachName })}
+              subtitle={t("for", { email: inv.email })}
+              help={
+                <HelpPanel
+                  pageId="invite-page"
+                  variant="inline"
+                  why={t("help.why")}
+                  what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+                  result={[t("help.result.1"), t("help.result.2")]}
+                />
+              }
+            />
           </div>
-        </div>
 
-        <p className="mb-5 text-sm text-ink-700">{t("body")}</p>
+          <p className="text-sm text-ink-700">{t("body")}</p>
 
-        <Link
-          href={loginHref}
-          className="inline-flex h-11 items-center justify-center rounded-lg bg-grass-500 px-6 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
-        >
-          {t("cta")}
-        </Link>
+          <Button variant="primary" asChild>
+            <Link href={loginHref}>{t("cta")}</Link>
+          </Button>
+        </Surface>
       </div>
     </div>
   );
@@ -106,9 +106,8 @@ export default async function InvitePage({ params }: Props) {
 
 function InviteError({ title, body }: { title: string; body: string }) {
   return (
-    <div className="mx-auto max-w-xl px-6 py-12 text-center">
-      <h1 className="font-display text-2xl font-bold text-clay-700">{title}</h1>
-      <p className="mt-2 text-ink-600">{body}</p>
+    <div className="page-shell text-center">
+      <PageHeader title={<span className="text-clay-700">{title}</span>} subtitle={body} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
 import { loadOrganizedTournaments, loadVenueOptions } from "./actions";
 import { OrganizedTournamentsClient, type OrganizedTournamentsCopy } from "./organized-client";
 import {
@@ -132,20 +133,19 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <div>
-        <Link
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          href={"/me/tournaments" as any}
-          className="inline-flex items-center gap-1 text-xs font-medium text-ink-600 hover:text-ink-900"
-        >
-          <ArrowLeft className="h-3 w-3" /> {t("back_to_player_tournaments")}
-        </Link>
-      </div>
+    <div className="page-shell space-y-6">
+      <Link
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        href={"/me/tournaments" as any}
+        className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"
+      >
+        <ArrowLeft className="h-4 w-4" /> {t("back_to_player_tournaments")}
+      </Link>
 
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="me-tournaments-organized"
             variant="inline"
@@ -153,9 +153,8 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <OrganizedTournamentsClient
         locale={locale}

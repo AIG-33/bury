@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOwnedClubs } from "./actions";
 import { loadDistrictOptionsForClubs } from "../../../../clubs/actions";
@@ -40,30 +41,28 @@ export default async function OwnedClubsPage({ params, searchParams }: Props) {
   const { clubs } = res;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
-        href={`/${locale}/me/clubs`}
+        href={`/${locale}/me/clubs` as never}
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"
       >
         <ArrowLeft className="h-4 w-4" />
         {t("back")}
       </Link>
 
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
-            <HelpPanel
-              pageId="me-clubs-owned"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
-              result={[t("help.result.1"), t("help.result.2"), t("help.result.3")]}
-            />
-          </div>
-          <p className="text-ink-600">{t("subtitle")}</p>
-        </div>
-      </header>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
+          <HelpPanel
+            pageId="me-clubs-owned"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3"), t("help.what.4")]}
+            result={[t("help.result.1"), t("help.result.2"), t("help.result.3")]}
+          />
+        }
+      />
 
       {clubs.length === 0 ? (
         <EmptyState

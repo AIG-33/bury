@@ -16,6 +16,8 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { BridgePanel } from "@/components/help/bridge-panel";
 import { LevelBadge } from "@/components/rating/level-badge";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOpenMatches } from "./actions";
 import {
@@ -78,10 +80,11 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="open-matches-list"
             variant="inline"
@@ -89,22 +92,24 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+        actions={
+          <Button asChild variant="primary" size="sm">
+            <Link
+              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+              href={(isGuest ? "/login" : "/open-matches/new") as any}
+            >
+              <Plus className="h-4 w-4" />
+              {isGuest ? t("guest_cta") : t("create_cta")}
+            </Link>
+          </Button>
+        }
+      />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-ink-500">
           {t("filters.results_count", { count: rows.length })}
         </span>
-        <Link
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          href={(isGuest ? "/login" : "/open-matches/new") as any}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-        >
-          <Plus className="h-4 w-4" />
-          {isGuest ? t("guest_cta") : t("create_cta")}
-        </Link>
       </div>
 
       <BridgePanel
@@ -144,16 +149,14 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
             return (
               <li
                 key={m.id}
-                className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card transition hover:border-grass-200"
+                className="surface-row lift-on-hover overflow-hidden p-0 md:p-0"
               >
                 <Link
                   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                   href={`/open-matches/${m.id}` as any}
                   className="block"
                 >
-                  {/* Looking-for banner — the primary message of the card.
-                      Highlights WHO the host wants to play against so the
-                      desired level is never confused with the host's level. */}
+                  {/* Looking-for banner */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-grass-100 bg-grass-50/60 px-4 py-2.5">
                     <span className="inline-flex items-center gap-2">
                       <Search className="h-4 w-4 text-grass-700" />
@@ -191,9 +194,6 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
                     </div>
 
                     <div className="min-w-0 flex-1 space-y-2">
-                      {/* Host info — labelled so it cannot be mistaken for the
-                          desired level. The host's own level chip sits AFTER
-                          their elo, not as a free-floating tag. */}
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
                           {t("host_label")}:

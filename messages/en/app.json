@@ -781,7 +781,8 @@
     "menu_open": "Open menu",
     "menu_close": "Close menu",
     "group_personal": "Your zone",
-    "group_public": "Club"
+    "group_public": "Club",
+    "tab_home": "Home"
   },
   "coachNav": {
     "dashboard": "Dashboard",
@@ -3294,6 +3295,11 @@
   },
   "footer": {
     "tagline": "Find a sparring partner, a coach or a tournament — and host your own. Tennis in your pocket.",
+    "groups": {
+      "play": "Play",
+      "browse": "Browse",
+      "account": "Account"
+    },
     "links": {
       "title": "Navigation",
       "sparrings": "Sparrings",
@@ -3303,8 +3309,10 @@
       "venues": "Venues",
       "players": "Players",
       "matches": "Matches feed",
+      "leaderboard": "Leaderboard",
       "help": "Help",
-      "login": "Sign in"
+      "login": "Sign in",
+      "profile": "My profile"
     },
     "contact": {
       "title": "Contact",

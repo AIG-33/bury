@@ -1,8 +1,10 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { ArrowLeft, CheckCircle2, FileText } from "lucide-react";
+import { ChevronLeft, CheckCircle2, FileText } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { Chip } from "@/components/ui/surface";
 import { loadQuizVersionDetail } from "../actions";
 import { QuestionsClient } from "./questions-client";
 
@@ -23,17 +25,26 @@ export default async function AdminQuizVersionPage({ params }: Props) {
   const { version, questions } = result;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-8">
       <Link
         href="/admin/quiz"
-        className="inline-flex items-center gap-1 text-sm text-ink-600 hover:text-ink-900"
+        className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500 transition hover:text-grass-700"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> {t("back_to_versions")}
+        <ChevronLeft className="h-3.5 w-3.5" /> {t("back_to_versions")}
       </Link>
 
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-display text-3xl font-bold text-ink-900">v{version.version}</h1>
+      <PageHeader
+        eyebrow="Admin · Quiz"
+        title={`v${version.version}`}
+        subtitle={
+          version.notes ? (
+            <span className="inline-flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              {version.notes}
+            </span>
+          ) : undefined
+        }
+        help={
           <HelpPanel
             pageId="admin-quiz-version"
             variant="inline"
@@ -46,23 +57,17 @@ export default async function AdminQuizVersionPage({ params }: Props) {
             ]}
             result={[t("detail.help.result.1"), t("detail.help.result.2")]}
           />
-          {version.is_active ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-800">
+        }
+        actions={
+          version.is_active ? (
+            <Chip tone="grass" className="inline-flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> {t("status_active")}
-            </span>
+            </Chip>
           ) : (
-            <span className="inline-flex rounded-full bg-ink-100 px-2 py-0.5 text-xs text-ink-700">
-              {t("status_draft")}
-            </span>
-          )}
-        </div>
-        {version.notes && (
-          <p className="inline-flex items-start gap-1.5 text-sm text-ink-600">
-            <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            {version.notes}
-          </p>
-        )}
-      </header>
+            <Chip tone="neutral">{t("status_draft")}</Chip>
+          )
+        }
+      />
 
       <QuestionsClient locale={locale as "ru" | "en"} version={version} questions={questions} />
     </div>

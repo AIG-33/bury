@@ -13,6 +13,8 @@ import {
   Copy,
   HelpCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Surface, Chip } from "@/components/ui/surface";
 import {
   createQuizVersion,
   activateQuizVersion,
@@ -94,29 +96,30 @@ export function QuizVersionsClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-ink-600">{t("list_subtitle")}</p>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => setShowCreate(true)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-clay-500 px-3 text-sm font-medium text-white shadow-card transition hover:bg-clay-600"
         >
           <Plus className="h-4 w-4" />
           {t("new_version")}
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <p className="rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-800">
+        <Surface variant="soft" className="border border-clay-200 px-3 py-2 text-sm text-clay-800">
           {tErr(t, error)}
-        </p>
+        </Surface>
       )}
 
       {initialVersions.length === 0 ? (
-        <div className="rounded-xl2 border border-dashed border-ink-200 bg-white p-8 text-center">
+        <Surface variant="soft" className="p-8 text-center">
           <HelpCircle className="mx-auto h-10 w-10 text-ink-400" />
           <p className="mt-2 font-display text-lg text-ink-900">{t("empty_title")}</p>
           <p className="text-sm text-ink-600">{t("empty_body")}</p>
-        </div>
+        </Surface>
       ) : (
-        <div className="overflow-x-auto rounded-xl2 border border-ink-100 bg-white shadow-card">
+        <div className="overflow-x-auto surface-card-flat">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-clay-50 text-xs uppercase tracking-wider text-clay-800">
               <tr>
@@ -142,13 +145,11 @@ export function QuizVersionsClient({
                   </td>
                   <td className="py-3 align-middle">
                     {v.is_active ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-xs font-semibold text-grass-800">
+                      <Chip tone="grass" className="inline-flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" /> {t("status_active")}
-                      </span>
+                      </Chip>
                     ) : (
-                      <span className="inline-flex rounded-full bg-ink-100 px-2 py-0.5 text-xs text-ink-700">
-                        {t("status_draft")}
-                      </span>
+                      <Chip tone="neutral">{t("status_draft")}</Chip>
                     )}
                   </td>
                   <td className="py-3 text-right align-middle text-ink-700">
@@ -160,32 +161,36 @@ export function QuizVersionsClient({
                   <td className="py-3 pr-4 text-right align-middle">
                     <div className="inline-flex items-center gap-1.5">
                       {!v.is_active && v.question_count > 0 && (
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handleActivate(v.id)}
                           disabled={pending}
                           title={t("activate")}
-                          className="rounded-md border border-grass-200 px-2 py-1 text-xs font-medium text-grass-700 hover:bg-grass-50 disabled:opacity-50"
                         >
                           {t("activate")}
-                        </button>
+                        </Button>
                       )}
                       {!v.is_active && v.answer_count === 0 && (
-                        <button
+                        <Button
+                          variant="danger"
+                          size="sm"
                           onClick={() => handleDelete(v.id)}
                           disabled={pending}
                           title={t("delete")}
-                          className="rounded-md border border-clay-200 px-2 py-1 text-xs font-medium text-clay-700 hover:bg-clay-50 disabled:opacity-50"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       )}
-                      <Link
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        href={`/admin/quiz/${v.id}` as any}
-                        className="inline-flex items-center gap-1 rounded-md bg-ink-100 px-2 py-1 text-xs font-medium text-ink-800 hover:bg-ink-200"
-                      >
-                        {t("open")} <ArrowRight className="h-3 w-3" />
-                      </Link>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          href={`/admin/quiz/${v.id}` as any}
+                          className="inline-flex items-center gap-1"
+                        >
+                          {t("open")} <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -201,7 +206,7 @@ export function QuizVersionsClient({
           onClick={() => !pending && setShowCreate(false)}
         >
           <div
-            className="w-full max-w-md space-y-4 rounded-xl2 bg-white p-5 shadow-ace"
+            className="surface-card w-full max-w-md space-y-4 p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <header>
@@ -246,21 +251,23 @@ export function QuizVersionsClient({
             </label>
 
             <div className="flex justify-end gap-2">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setShowCreate(false)}
                 disabled={pending}
-                className="h-9 rounded-lg border border-ink-200 px-3 text-sm font-medium text-ink-700 hover:bg-ink-50 disabled:opacity-50"
               >
                 {t("cancel")}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={handleCreate}
                 disabled={pending}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-clay-500 px-3 text-sm font-medium text-white shadow-card hover:bg-clay-600 disabled:opacity-50"
               >
                 {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {t("create")}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -154,6 +154,18 @@
   .surface-card-flat {
     @apply rounded-xl3 border border-ink-200/70 bg-white p-6 md:p-8;
   }
+  /* Soft tinted surface — for secondary blocks (empty states, info panels). */
+  .surface-soft {
+    @apply rounded-xl3 border border-grass-200/50 bg-grass-50/40 p-6 md:p-8;
+  }
+  /* Glass surface — for floating panels over hero/aura backgrounds. */
+  .surface-glass {
+    @apply rounded-xl3 border border-white/60 bg-white/70 p-6 shadow-[0_18px_60px_-30px_rgba(15,27,20,0.18)] backdrop-blur-md md:p-8;
+  }
+  /* Compact card for dense lists. */
+  .surface-row {
+    @apply rounded-xl2 border border-ink-200/70 bg-white p-4 transition-shadow duration-300 hover:shadow-[0_8px_24px_-14px_rgba(15,27,20,0.18)] md:p-5;
+  }
 
   /* Page header type scale aligned with landing typography. */
   .page-title {
@@ -161,6 +173,117 @@
   }
   .page-subtitle {
     @apply mt-2 max-w-2xl text-base leading-relaxed text-ink-600 md:text-lg;
+  }
+  /* Section title — secondary hierarchy inside pages. */
+  .section-title {
+    @apply font-display text-xl font-bold tracking-tight text-grass-900 md:text-2xl;
+  }
+
+  /* ------------------------------------------------------------------
+     Buttons — pill recipe matching the landing hero CTA.
+     Use .btn + variant. Sizes: .btn-md (default), .btn-sm.
+     ------------------------------------------------------------------ */
+  .btn {
+    @apply ease-followthrough inline-flex h-11 select-none items-center justify-center gap-2 rounded-full px-5 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] transition-all duration-300 disabled:pointer-events-none disabled:opacity-60;
+  }
+  .btn-sm {
+    @apply h-9 px-4 text-[11.5px] tracking-[0.14em];
+  }
+  .btn-lg {
+    @apply h-12 px-6 text-[13px];
+  }
+  .btn-primary {
+    @apply bg-grass-700 text-white shadow-[0_14px_34px_-14px_rgba(21,94,54,0.6)] hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_22px_50px_-16px_rgba(21,94,54,0.7)];
+  }
+  .btn-secondary {
+    @apply border border-ink-200/80 bg-white/70 text-ink-800 backdrop-blur-sm hover:-translate-y-0.5 hover:border-grass-400 hover:bg-white hover:text-grass-800;
+  }
+  .btn-ghost {
+    @apply border border-transparent bg-transparent text-ink-700 hover:bg-grass-50 hover:text-grass-800;
+  }
+  .btn-accent {
+    @apply bg-ball-500 text-grass-900 shadow-[0_14px_34px_-14px_rgba(143,163,3,0.55)] hover:-translate-y-0.5 hover:bg-ball-400 hover:shadow-[0_22px_50px_-16px_rgba(143,163,3,0.65)];
+  }
+  .btn-danger {
+    @apply border border-clay-200 bg-white text-clay-700 hover:-translate-y-0.5 hover:border-clay-400 hover:bg-clay-50 hover:text-clay-800;
+  }
+
+  /* Chips and pills — for tags, filters, status badges. */
+  .chip {
+    @apply inline-flex h-7 items-center gap-1 rounded-full border border-ink-200/70 bg-white px-2.5 text-[11.5px] font-medium tracking-tight text-ink-700;
+  }
+  .chip-grass {
+    @apply border-grass-200 bg-grass-50 text-grass-800;
+  }
+  .chip-ball {
+    @apply border-ball-200 bg-ball-50 text-grass-900;
+  }
+  .chip-clay {
+    @apply border-clay-200 bg-clay-50 text-clay-800;
+  }
+  .chip-ink {
+    @apply border-ink-200 bg-ink-50 text-ink-700;
+  }
+
+  /* Subtle hover-lift used on catalog cards and list rows. */
+  .lift-on-hover {
+    @apply ease-followthrough transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-22px_rgba(15,27,20,0.18)];
+  }
+
+  /* Soft sunny gradient background — apply to page sections that need a
+     gentle warm wash (e.g. hero strips inside catalog pages). */
+  .bg-sun-wash {
+    background-image:
+      radial-gradient(60% 50% at 100% 0%, rgba(226, 246, 68, 0.18) 0%, transparent 65%),
+      radial-gradient(50% 60% at 0% 100%, rgba(166, 224, 181, 0.28) 0%, transparent 60%),
+      linear-gradient(180deg, #f8fcf3 0%, #f3f9ec 100%);
+  }
+  /* Cool grass-to-white wash — interior page background when needed. */
+  .bg-grass-wash {
+    background-image:
+      radial-gradient(60% 60% at 50% 0%, rgba(166, 224, 181, 0.32) 0%, transparent 65%),
+      linear-gradient(180deg, #fbfdf8 0%, #f3f9ec 100%);
+  }
+
+  /* Court line — decorative horizontal hairline with subtle ball-tinted glow.
+     Use as a section separator instead of plain hr. */
+  .court-line {
+    @apply h-px w-full;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(31, 138, 76, 0.18) 20%,
+      rgba(215, 242, 5, 0.32) 50%,
+      rgba(31, 138, 76, 0.18) 80%,
+      transparent 100%
+    );
+  }
+
+  /* Net-line — vertical equivalent for sidebar dividers. */
+  .net-line {
+    @apply h-full w-px;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(31, 138, 76, 0.16) 20%,
+      rgba(31, 138, 76, 0.22) 50%,
+      rgba(31, 138, 76, 0.16) 80%,
+      transparent 100%
+    );
+  }
+
+  /* Section eyebrow with a small ball dot — tennis-themed micro-cap. */
+  .label-ball {
+    @apply inline-flex items-center gap-2 font-mono text-[11.5px] font-semibold uppercase tracking-[0.2em] text-grass-700;
+  }
+  .label-ball::before {
+    content: "";
+    @apply inline-block h-2 w-2 rounded-full bg-ball-500 ring-2 ring-ball-200/60;
+  }
+
+  /* Reserve safe space for the mobile bottom tab bar (added globally). */
+  .pb-mobile-nav {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
   }
 }
 
@@ -173,5 +296,18 @@
   .animate-bounceBall,
   .animate-breathe {
     animation: none !important;
+  }
+  .lift-on-hover {
+    transition: none !important;
+  }
+  .lift-on-hover:hover {
+    transform: none !important;
+  }
+}
+
+/* Hide bottom tab bar safe-space on routes that shouldn't reserve it. */
+@media (min-width: 768px) {
+  .pb-mobile-nav {
+    padding-bottom: 0;
   }
 }

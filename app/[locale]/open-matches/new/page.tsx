@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { OPEN_MATCH_LEVEL_BANDS } from "@/lib/open-matches/schema";
 import { CreateOpenMatchForm } from "./create-form";
@@ -27,7 +28,6 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login?next=/${locale}/open-matches/new`);
 
-  // Load venues + districts for the picker. Districts are scoped to "BY".
   const [venuesRes, districtsRes] = await Promise.all([
     supabase.from("venues").select("id, name, city").order("name", { ascending: true }),
     supabase
@@ -42,18 +42,15 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
   const districts =
     (districtsRes.data as Array<{ id: string; name: string; city: string }> | null) ?? [];
 
-  // Pre-select the venue from query (deep link from venue page).
   const initialVenueId = venues.some((v) => v.id === sp.venue) ? sp.venue : undefined;
 
-  // Build localized labels for level bands. We pass them down to the client
-  // so the form doesn't need its own translations namespace round-trip.
   const levelOptions = OPEN_MATCH_LEVEL_BANDS.map((id) => ({
     id,
     label: id === "any" ? t("level_any") : tLevels(id),
   }));
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
         href="/open-matches"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"
@@ -62,9 +59,10 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
         {tCreate("back")}
       </Link>
 
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-2xl font-bold text-ink-900">{tCreate("title")}</h1>
+      <PageHeader
+        title={tCreate("title")}
+        subtitle={tCreate("subtitle")}
+        help={
           <HelpPanel
             pageId="open-matches-new"
             variant="inline"
@@ -72,9 +70,8 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
             what={[tCreate("help.what.1"), tCreate("help.what.2"), tCreate("help.what.3")]}
             result={[tCreate("help.result.1"), tCreate("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{tCreate("subtitle")}</p>
-      </header>
+        }
+      />
 
       <CreateOpenMatchForm
         locale={locale}

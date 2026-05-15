@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadAdminReviews } from "@/app/[locale]/coaches/actions";
 import { ReviewsModerationClient } from "./reviews-client";
@@ -21,12 +22,12 @@ export default async function AdminReviewsPage({ params, searchParams }: Props) 
   if (rows === null) redirect(`/${locale}/login?next=/admin/reviews`);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-2xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+    <div className="page-shell space-y-8">
+      <PageHeader
+        eyebrow="Admin · Reviews"
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="admin-reviews"
             variant="inline"
@@ -34,9 +35,8 @@ export default async function AdminReviewsPage({ params, searchParams }: Props) 
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="mt-1 text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       {rows!.length === 0 ? (
         <EmptyState

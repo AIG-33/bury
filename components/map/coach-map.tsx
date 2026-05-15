@@ -141,14 +141,14 @@ function renderPopup(p: CoachPin, locale: string, labels: Labels): string {
   const city = escapeHtml(p.city ?? "");
   const rating =
     p.coach_avg_rating != null
-      ? `<span class="text-amber-600 font-semibold">★ ${p.coach_avg_rating.toFixed(2)}</span>
-         <span class="text-xs text-gray-500 ml-1">${escapeHtml(
+      ? `<span class="text-ball-700 font-semibold">★ ${p.coach_avg_rating.toFixed(2)}</span>
+         <span class="text-xs text-ink-500 ml-1">${escapeHtml(
            labels.reviews_count.replace("{count}", String(p.coach_reviews_count)),
          )}</span>`
-      : `<span class="text-xs text-gray-500">${escapeHtml(labels.no_reviews)}</span>`;
+      : `<span class="text-xs text-ink-500">${escapeHtml(labels.no_reviews)}</span>`;
   const rate =
     p.coach_hourly_rate_byn != null
-      ? `<div class="text-xs text-gray-600 mt-1">${escapeHtml(
+      ? `<div class="text-xs text-ink-600 mt-1">${escapeHtml(
           labels.hourly_rate.replace("{amount}", String(p.coach_hourly_rate_byn)),
         )}</div>`
       : "";

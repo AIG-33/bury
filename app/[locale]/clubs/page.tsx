@@ -4,6 +4,9 @@ import Link from "next/link";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { ClubCard } from "@/components/clubs/club-card";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JoinPolicy } from "@/lib/clubs/schema";
 import {
@@ -64,87 +67,84 @@ export default async function ClubsPage({ params, searchParams }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
-            <HelpPanel
-              pageId="public-clubs"
-              variant="inline"
-              why={t("help.why")}
-              what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-              result={[t("help.result.1"), t("help.result.2")]}
-            />
-          </div>
-          <p className="max-w-2xl text-ink-600">{t("subtitle")}</p>
-        </div>
-        <Link
-          href={`/${locale}/${isAuthenticated ? "me/clubs/owned" : "login"}`}
-          className="inline-flex h-10 items-center rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-        >
-          {isAuthenticated ? t("create_cta") : t("login_to_create")}
-        </Link>
-      </header>
-
-      <form
-        action={`/${locale}/clubs`}
-        method="get"
-        className="grid gap-3 rounded-xl2 border border-ink-100 bg-white p-4 shadow-card sm:grid-cols-3"
-      >
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filters.city_label")}
-          </span>
-          <select
-            name="city"
-            defaultValue={city ?? ""}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("filters.any_city")}</option>
-            {cities.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-xs font-medium text-ink-700">
-          <span className="mb-1 block uppercase tracking-wider text-ink-500">
-            {t("filters.district_label")}
-          </span>
-          <select
-            name="district"
-            defaultValue={districtId ?? ""}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
-          >
-            <option value="">{t("filters.any_district")}</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} ({d.city})
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="flex items-end gap-2">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-          >
-            {t("filters.apply")}
-          </button>
-          {hasFilter && (
-            <Link
-              href={`/${locale}/clubs`}
-              className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
-            >
-              {t("filters.reset")}
+    <div className="page-shell-wide space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
+          <HelpPanel
+            pageId="public-clubs"
+            variant="inline"
+            why={t("help.why")}
+            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+            result={[t("help.result.1"), t("help.result.2")]}
+          />
+        }
+        actions={
+          <Button asChild variant="primary" size="sm">
+            <Link href={`/${locale}/${isAuthenticated ? "me/clubs/owned" : "login"}`}>
+              {isAuthenticated ? t("create_cta") : t("login_to_create")}
             </Link>
-          )}
-        </div>
-      </form>
+          </Button>
+        }
+      />
+
+      <Surface variant="flat">
+        <form
+          action={`/${locale}/clubs`}
+          method="get"
+          className="grid gap-3 sm:grid-cols-3"
+        >
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filters.city_label")}
+            </span>
+            <select
+              name="city"
+              defaultValue={city ?? ""}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("filters.any_city")}</option>
+              {cities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("filters.district_label")}
+            </span>
+            <select
+              name="district"
+              defaultValue={districtId ?? ""}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("filters.any_district")}</option>
+              {districts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} ({d.city})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="flex items-end gap-2">
+            <Button type="submit" variant="primary" size="sm">
+              {t("filters.apply")}
+            </Button>
+            {hasFilter && (
+              <Button asChild variant="secondary" size="sm">
+                <Link href={`/${locale}/clubs`}>
+                  {t("filters.reset")}
+                </Link>
+              </Button>
+            )}
+          </div>
+        </form>
+      </Surface>
 
       {clubs.length === 0 ? (
         hasFilter ? (

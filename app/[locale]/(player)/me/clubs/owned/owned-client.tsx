@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Crown, Shield, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ClubLogo } from "@/components/clubs/club-logo";
 import { JoinPolicyBadge } from "@/components/clubs/join-policy-badge";
 import { ClubFormDialog } from "./club-form-dialog";
@@ -46,14 +47,10 @@ export function OwnedClubsClient({
   return (
     <>
       <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setCreateOpen(true)}
-          className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
-        >
+        <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" />
           {clubs.length === 0 ? labels.empty_cta : labels.create_cta}
-        </button>
+        </Button>
       </div>
 
       {clubs.length > 0 && (
@@ -88,7 +85,7 @@ function ClubAdminCard({
   return (
     <Link
       href={`/${locale}/me/clubs/owned/${club.id}`}
-      className="group block rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-grass-200 hover:shadow-ace"
+      className="group block surface-card lift-on-hover"
     >
       <div className="flex items-start gap-3">
         <ClubLogo url={club.logo_url} name={club.name} size="md" />

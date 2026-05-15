@@ -13,6 +13,8 @@ import {
   User as UserIcon,
   XCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Surface, Chip } from "@/components/ui/surface";
 import {
   decideCoachApplication,
   getApplicationAttachmentUrls,
@@ -165,10 +167,7 @@ export function CoachApplicationsClient({
         {initialRows.map((r) => {
           const files = filesByApp[r.id];
           return (
-            <li
-              key={r.id}
-              className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card"
-            >
+            <Surface key={r.id} as="li" variant="row">
               <div className="flex flex-wrap items-start gap-3">
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-grass-100 text-grass-800">
                   {r.player.avatar_url ? (
@@ -210,13 +209,12 @@ export function CoachApplicationsClient({
                   )}
                 </div>
 
-                <a
-                  href={`/admin/db/profiles/${r.player.id}`}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  {copy.actions.open_player}
-                </a>
+                <Button variant="secondary" size="sm" asChild>
+                  <a href={`/admin/db/profiles/${r.player.id}`} className="inline-flex items-center gap-1">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    {copy.actions.open_player}
+                  </a>
+                </Button>
               </div>
 
               <div className="mt-3 space-y-3">
@@ -242,10 +240,11 @@ export function CoachApplicationsClient({
 
                 {r.attachments.length > 0 && (
                   <div className="space-y-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => toggleFiles(r.id)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
                     >
                       <Paperclip className="h-3.5 w-3.5" />
                       {Array.isArray(files)
@@ -254,7 +253,7 @@ export function CoachApplicationsClient({
                       <span className="ml-1 rounded-full bg-ink-100 px-1.5 text-[10px] font-mono tabular-nums text-ink-700">
                         {r.attachments.length}
                       </span>
-                    </button>
+                    </Button>
                     {files === "loading" && (
                       <p className="text-xs text-ink-500">{copy.files_loading}</p>
                     )}
@@ -281,15 +280,17 @@ export function CoachApplicationsClient({
                                 {(a.size / 1024).toFixed(0)} KB
                               </span>
                               {file && (
-                                <a
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex shrink-0 items-center gap-1 rounded-md bg-grass-500 px-2 py-1 text-xs font-medium text-white transition hover:bg-grass-600"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  {copy.actions.open_file}
-                                </a>
+                                <Button variant="primary" size="sm" asChild>
+                                  <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    {copy.actions.open_file}
+                                  </a>
+                                </Button>
                               )}
                             </li>
                           );
@@ -302,27 +303,29 @@ export function CoachApplicationsClient({
 
               {r.status === "pending" && (
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
+                    size="sm"
                     disabled={pending && busyId === r.id}
                     onClick={() => openDialog(r.id, "approved")}
-                    className="inline-flex items-center gap-1 rounded-lg bg-grass-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-grass-600 disabled:opacity-60"
                   >
                     <ThumbsUp className="h-3.5 w-3.5" />
                     {copy.actions.approve}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="danger"
+                    size="sm"
                     disabled={pending && busyId === r.id}
                     onClick={() => openDialog(r.id, "rejected")}
-                    className="inline-flex items-center gap-1 rounded-lg bg-clay-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-clay-600 disabled:opacity-60"
                   >
                     <ThumbsDown className="h-3.5 w-3.5" />
                     {copy.actions.reject}
-                  </button>
+                  </Button>
                 </div>
               )}
-            </li>
+            </Surface>
           );
         })}
       </ul>
@@ -333,7 +336,7 @@ export function CoachApplicationsClient({
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-lg rounded-xl2 bg-white p-5 shadow-ace">
+          <div className="surface-card w-full max-w-lg p-5">
             <h3 className="font-display text-lg font-semibold text-ink-900">
               {dialog.decision === "approved"
                 ? copy.dialog.approve_title
@@ -352,33 +355,30 @@ export function CoachApplicationsClient({
               className="mt-1 block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             />
             {error && (
-              <p className="mt-2 inline-flex items-center gap-2 rounded-lg bg-clay-50 px-3 py-2 text-sm text-clay-700">
+              <Surface variant="soft" className="mt-2 inline-flex items-center gap-2 px-3 py-2 text-sm text-clay-700 border border-clay-200">
                 <AlertCircle className="h-4 w-4" />
                 {error}
-              </p>
+              </Surface>
             )}
             <div className="mt-4 flex items-center justify-end gap-2">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => setDialog(null)}
                 disabled={pending}
-                className="rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
               >
                 {copy.dialog.cancel}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={dialog.decision === "approved" ? "primary" : "danger"}
+                size="sm"
                 disabled={pending}
                 onClick={confirmDecision}
-                className={
-                  "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-white transition disabled:opacity-60 " +
-                  (dialog.decision === "approved"
-                    ? "bg-grass-500 hover:bg-grass-600"
-                    : "bg-clay-500 hover:bg-clay-600")
-                }
               >
                 {pending ? copy.dialog.confirming : copy.dialog.confirm}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -397,18 +397,14 @@ function FilterButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant={active ? "primary" : "secondary"}
+      size="sm"
       onClick={onClick}
-      className={
-        "rounded-lg px-3 py-1.5 text-sm font-medium " +
-        (active
-          ? "bg-clay-500 text-white"
-          : "bg-white text-ink-600 ring-1 ring-ink-200 hover:bg-ink-50")
-      }
     >
       {label}
-    </button>
+    </Button>
   );
 }
 
@@ -419,23 +415,14 @@ function StatusBadge({
   status: CoachApplicationStatus;
   label: string;
 }) {
-  const cls =
-    status === "approved"
-      ? "bg-grass-100 text-grass-800"
-      : status === "rejected"
-        ? "bg-clay-100 text-clay-700"
-        : "bg-ball-100 text-clay-700";
+  const tone =
+    status === "approved" ? "grass" : status === "rejected" ? "clay" : "ball";
   const Icon =
     status === "approved" ? CheckCircle2 : status === "rejected" ? XCircle : Clock;
   return (
-    <span
-      className={
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
-        cls
-      }
-    >
+    <Chip tone={tone} className="inline-flex items-center gap-1">
       <Icon className="h-3 w-3" />
       {label}
-    </span>
+    </Chip>
   );
 }

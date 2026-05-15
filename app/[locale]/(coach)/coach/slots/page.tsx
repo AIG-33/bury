@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
+import { PageHeader } from "@/components/layout/page-header";
 import { loadCoachSlots } from "./actions";
 import { SlotsClient, WeekNav, type SlotsListCopy } from "./slots-client";
 import { SLOT_TYPES, ISO_WEEKDAYS, type SlotType, type IsoWeekday } from "@/lib/slots/schema";
@@ -65,7 +66,6 @@ export default async function CoachSlotsPage({ params, searchParams }: Props) {
     no_courts_description: t("no_courts_description"),
     no_courts_cta: t("no_courts_cta"),
     weekday_short: weekdayShort,
-    locale,
     dialog: {
       title: t("dialog.title"),
       intro: t("dialog.intro"),
@@ -113,15 +113,17 @@ export default async function CoachSlotsPage({ params, searchParams }: Props) {
       error: t("dialog.error"),
       no_courts: t("dialog.no_courts"),
     },
+    locale,
   };
 
   const fromIsoForNav = fromDate.toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="coach-slots"
             variant="inline"
@@ -129,9 +131,8 @@ export default async function CoachSlotsPage({ params, searchParams }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <WeekNav fromIso={fromIsoForNav} copy={copy} />
       <p className="text-xs text-ink-500">

@@ -4,6 +4,9 @@ import { Link } from "@/i18n/routing";
 import { Award, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { Surface, SectionTitle } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
 import { loadMyCoachApplications } from "./actions";
 import { COACH_APPLICATION_LIMITS } from "@/lib/coach-applications/schema";
 import { BecomeCoachForm, type BecomeCoachCopy } from "./form";
@@ -69,15 +72,12 @@ export default async function BecomeCoachPage({ params }: Props) {
   // 3. No application yet OR last is rejected → show form (+ rejection note)
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-      <header className="space-y-1">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-grass-700">
-          {t("eyebrow")}
-        </p>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900">
-            {t("title")}
-          </h1>
+    <div className="page-shell space-y-6">
+      <PageHeader
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="me-become-coach"
             variant="inline"
@@ -85,32 +85,30 @@ export default async function BecomeCoachPage({ params }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       {is_already_coach ? (
-        <div className="rounded-xl2 border border-grass-200 bg-grass-50 p-5">
+        <Surface variant="soft">
           <div className="flex items-start gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-700">
               <Award className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="font-display text-lg font-semibold text-grass-900">
+              <h2 className="font-display text-lg font-bold text-grass-900">
                 {t("already_coach.title")}
               </h2>
               <p className="mt-1 text-sm text-grass-800">
                 {t("already_coach.body")}
               </p>
-              <Link
-                href="/coach/dashboard"
-                className="mt-3 inline-flex items-center gap-1 rounded-lg bg-grass-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-grass-700"
-              >
-                {t("already_coach.cta")}
-              </Link>
+              <Button asChild variant="primary" size="sm" className="mt-3">
+                <Link href="/coach/dashboard">
+                  {t("already_coach.cta")}
+                </Link>
+              </Button>
             </div>
           </div>
-        </div>
+        </Surface>
       ) : head?.status === "pending" ? (
         <PendingCard
           submittedAt={dateFmt.format(new Date(head.created_at))}
@@ -150,15 +148,10 @@ export default async function BecomeCoachPage({ params }: Props) {
 
       {history.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {t("history.title")}
-          </h2>
+          <SectionTitle>{t("history.title")}</SectionTitle>
           <ul className="space-y-3">
             {history.map((app) => (
-              <li
-                key={app.id}
-                className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card"
-              >
+              <Surface as="li" variant="row" key={app.id}>
                 <div className="flex items-center gap-2 text-xs">
                   <StatusBadge
                     status={app.status}
@@ -179,7 +172,7 @@ export default async function BecomeCoachPage({ params }: Props) {
                     {app.admin_comment}
                   </p>
                 )}
-              </li>
+              </Surface>
             ))}
           </ul>
         </section>
@@ -213,13 +206,13 @@ function PendingCard({
   };
 }) {
   return (
-    <div className="rounded-xl2 border border-ball-200 bg-ball-50 p-5">
+    <Surface variant="soft" className="border-ball-200/60 bg-ball-50/50">
       <div className="flex items-start gap-3">
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ball-100 text-clay-700">
           <Clock className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
+          <h2 className="font-display text-lg font-bold text-ink-900">
             {copy.title}
           </h2>
           <p className="mt-1 text-sm text-ink-700">{copy.body}</p>
@@ -237,7 +230,7 @@ function PendingCard({
           </details>
         </div>
       </div>
-    </div>
+    </Surface>
   );
 }
 

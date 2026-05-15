@@ -15,6 +15,9 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CourtSurface } from "@/lib/venues/schema";
 import { loadVenueDetail } from "./actions";
@@ -23,10 +26,10 @@ import { VenueTabs } from "./venue-tabs";
 type Props = { params: Promise<{ locale: string; id: string }> };
 
 const SURFACE_DOT: Record<CourtSurface, string> = {
-  hard: "bg-sky-500",
+  hard: "bg-hard-cobalt",
   clay: "bg-clay-500",
   grass: "bg-grass-500",
-  carpet: "bg-ink-500",
+  carpet: "bg-carpet-500",
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -63,7 +66,6 @@ export default async function VenueDetailPage({ params }: Props) {
   const venue = await loadVenueDetail(id);
   if (!venue) notFound();
 
-  // Auth state drives "Sign in to create" vs "Create" CTAs in empty states.
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -82,13 +84,12 @@ export default async function VenueDetailPage({ params }: Props) {
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   // -------------------------------------------------------------------------
-  // Tab content blocks. Each is a server-rendered ReactNode passed to the
-  // small client `VenueTabs` wrapper.
+  // Tab content blocks.
   // -------------------------------------------------------------------------
 
   const courtsTab = (
-    <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-      <h2 className="font-display text-lg font-semibold text-ink-900">
+    <Surface variant="card" as="section">
+      <h2 className="font-display text-lg font-bold text-grass-900">
         {tDetail("courts.title")}
       </h2>
       {venue.courts.length === 0 ? (
@@ -137,26 +138,25 @@ export default async function VenueDetailPage({ params }: Props) {
           })}
         </ul>
       )}
-    </section>
+    </Surface>
   );
 
-  // Open Matches at this venue — pulled from open_matches_feed (status=open,
-  // starts in the future). Empty state prompts the user to be the first.
   const openMatchesTab = (
-    <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
+    <Surface variant="card" as="section">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-lg font-semibold text-ink-900">
+        <h2 className="font-display text-lg font-bold text-grass-900">
           {tDetail("open_matches.title")}
         </h2>
-        <Link
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          href={(isGuest ? "/login" : `/open-matches/new?venue=${venue.id}`) as any}
-          className="inline-flex h-9 items-center rounded-md bg-grass-500 px-3 text-xs font-semibold text-white hover:bg-grass-600"
-        >
-          {isGuest
-            ? tDetail("open_matches.empty_cta_guest")
-            : tDetail("open_matches.empty_cta_authed")}
-        </Link>
+        <Button asChild variant="primary" size="sm">
+          <Link
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            href={(isGuest ? "/login" : `/open-matches/new?venue=${venue.id}`) as any}
+          >
+            {isGuest
+              ? tDetail("open_matches.empty_cta_guest")
+              : tDetail("open_matches.empty_cta_authed")}
+          </Link>
+        </Button>
       </div>
       {venue.open_matches.length === 0 ? (
         <div className="mt-3">
@@ -176,7 +176,7 @@ export default async function VenueDetailPage({ params }: Props) {
           {venue.open_matches.map((om) => (
             <li
               key={om.id}
-              className="rounded-lg border border-ink-100 bg-white p-3 transition hover:border-grass-200"
+              className="surface-row lift-on-hover"
             >
               <Link
                 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -211,12 +211,12 @@ export default async function VenueDetailPage({ params }: Props) {
           ))}
         </ul>
       )}
-    </section>
+    </Surface>
   );
 
   const tournamentsTab = (
-    <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-      <h2 className="font-display text-lg font-semibold text-ink-900">
+    <Surface variant="card" as="section">
+      <h2 className="font-display text-lg font-bold text-grass-900">
         {tDetail("tournaments.title")}
       </h2>
       {venue.tournaments.length === 0 ? (
@@ -268,19 +268,20 @@ export default async function VenueDetailPage({ params }: Props) {
                     <span>{tDetail("tournaments.format_label", { format: formatLabel })}</span>
                   </p>
                 </div>
-                <Link
-                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                  href={`/tournaments/${tnm.id}` as any}
-                  className="inline-flex h-9 items-center justify-center rounded-md border border-ink-200 px-3 text-sm font-medium text-ink-700 hover:bg-ink-50"
-                >
-                  {tDetail("tournaments.open_tournament")}
-                </Link>
+                <Button asChild variant="secondary" size="sm">
+                  <Link
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    href={`/tournaments/${tnm.id}` as any}
+                  >
+                    {tDetail("tournaments.open_tournament")}
+                  </Link>
+                </Button>
               </li>
             );
           })}
         </ul>
       )}
-    </section>
+    </Surface>
   );
 
   const tabs = [
@@ -300,7 +301,7 @@ export default async function VenueDetailPage({ params }: Props) {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
+    <div className="page-shell space-y-6">
       <Link
         href="/venues"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"
@@ -309,59 +310,67 @@ export default async function VenueDetailPage({ params }: Props) {
         {tDetail("back")}
       </Link>
 
-      <header className="flex flex-wrap items-start gap-4">
+      <div className="flex flex-wrap items-start gap-4">
         <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-xl bg-grass-100 text-grass-800">
           <Building2 className="h-7 w-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <h1 className="font-display text-2xl font-bold text-ink-900">{venue.name}</h1>
-            <IndoorStatusBadge
-              status={venue.indoor_status}
-              label={t(venue.indoor_status as never)}
-            />
-          </div>
-          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-600">
-            {(venue.city || venue.district_name) && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-ink-400" />
-                {[venue.city, venue.district_name].filter(Boolean).join(" · ")}
-              </span>
-            )}
-            {venue.address && <span className="text-ink-500">{venue.address}</span>}
-            {mapsHref && (
-              <a
-                href={mapsHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-grass-700 hover:underline"
-              >
-                {t("open_in_maps")}
-              </a>
-            )}
-          </p>
-          <p className="mt-2 inline-flex items-center gap-2 text-xs text-ink-500">
-            <Sparkles className="h-3 w-3" />
-            {tDetail("courts_count", { n: venue.courts.length })}
-            {venue.tournaments.length > 0 && (
+          <PageHeader
+            title={
               <>
-                <span aria-hidden>·</span>
-                <span className="inline-flex items-center gap-1">
-                  <Trophy className="h-3 w-3" />
-                  {venue.tournaments.length}
-                </span>
+                {venue.name}
+                <IndoorStatusBadge
+                  status={venue.indoor_status}
+                  label={t(venue.indoor_status as never)}
+                />
               </>
-            )}
-          </p>
+            }
+            subtitle={
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {(venue.city || venue.district_name) && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-ink-400" />
+                    {[venue.city, venue.district_name].filter(Boolean).join(" · ")}
+                  </span>
+                )}
+                {venue.address && <span className="text-ink-500">{venue.address}</span>}
+                {mapsHref && (
+                  <a
+                    href={mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-grass-700 hover:underline"
+                  >
+                    {t("open_in_maps")}
+                  </a>
+                )}
+                <span className="inline-flex items-center gap-2 text-xs text-ink-500">
+                  <Sparkles className="h-3 w-3" />
+                  {tDetail("courts_count", { n: venue.courts.length })}
+                  {venue.tournaments.length > 0 && (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Trophy className="h-3 w-3" />
+                        {venue.tournaments.length}
+                      </span>
+                    </>
+                  )}
+                </span>
+              </span>
+            }
+            help={
+              <HelpPanel
+                pageId={`venue-detail-${venue.id}`}
+                variant="inline"
+                why={t("help.why")}
+                what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+                result={[t("help.result.1"), t("help.result.2")]}
+              />
+            }
+          />
         </div>
-        <HelpPanel
-          pageId={`venue-detail-${venue.id}`}
-          variant="inline"
-          why={t("help.why")}
-          what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-          result={[t("help.result.1"), t("help.result.2")]}
-        />
-      </header>
+      </div>
 
       <VenueTabs defaultTab="courts" tabs={tabs} />
     </div>

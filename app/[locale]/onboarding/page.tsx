@@ -5,6 +5,7 @@ import { Sparkles, Trophy, ArrowRight, ExternalLink } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HelpPanel } from "@/components/help/help-panel";
 import { LT_BASE_URL } from "@/lib/rating/external/liga-tennisa";
+import { PageHeader } from "@/components/layout/page-header";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -43,10 +44,11 @@ export default async function OnboardingHomePage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-6 py-10">
-      <header className="space-y-2 text-center">
-        <div className="flex items-center justify-center gap-x-2">
-          <h1 className="font-display text-4xl font-bold text-ink-900">{t("title")}</h1>
+    <div className="page-shell space-y-8">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        help={
           <HelpPanel
             pageId="onboarding-home"
             variant="inline"
@@ -54,22 +56,21 @@ export default async function OnboardingHomePage({ params }: Props) {
             what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
             result={[t("help.result.1"), t("help.result.2")]}
           />
-        </div>
-        <p className="mx-auto max-w-xl text-base text-ink-600">{t("subtitle")}</p>
-      </header>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Quiz */}
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           href={`/${locale}/onboarding/quiz` as any}
-          className="hover:shadow-pop group flex flex-col gap-4 rounded-2xl border-2 border-ink-100 bg-white p-6 shadow-card transition hover:-translate-y-0.5 hover:border-grass-300"
+          className="surface-card lift-on-hover group flex flex-col gap-4"
         >
           <div className="grid h-12 w-12 place-items-center rounded-xl bg-grass-100 text-grass-700">
             <Sparkles className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h2 className="font-display text-xl font-bold text-ink-900">{t("quiz.title")}</h2>
+            <h2 className="font-display text-xl font-bold text-grass-900">{t("quiz.title")}</h2>
             <p className="text-sm text-ink-600">{t("quiz.body")}</p>
           </div>
           <ul className="space-y-1.5 text-xs text-ink-700">
@@ -96,7 +97,7 @@ export default async function OnboardingHomePage({ params }: Props) {
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           href={`/${locale}/onboarding/import-lt` as any}
-          className="hover:shadow-pop group flex flex-col gap-4 rounded-2xl border-2 border-grass-200 bg-grass-50/60 p-6 shadow-card transition hover:-translate-y-0.5 hover:border-grass-400"
+          className="surface-soft lift-on-hover group flex flex-col gap-4"
         >
           <div className="grid h-12 w-12 place-items-center rounded-xl bg-grass-200 text-grass-800">
             <Trophy className="h-6 w-6" />

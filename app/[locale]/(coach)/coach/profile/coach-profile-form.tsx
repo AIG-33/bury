@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Loader2, AlertCircle, CheckCircle2, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { saveMyCoachProfile, type CoachProfileSnapshot } from "./actions";
 
 type Props = { initial: CoachProfileSnapshot };
@@ -48,8 +50,8 @@ export function CoachProfileForm({ initial }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <section className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
-        <h2 className="font-display text-base font-semibold text-ink-900">
+      <Surface as="section" variant="card">
+        <h2 className="font-display text-base font-semibold text-grass-900">
           {t("section.public_card")}
         </h2>
         <p className="mt-1 text-xs text-ink-500">
@@ -95,7 +97,7 @@ export function CoachProfileForm({ initial }: Props) {
         <p className="mt-4 rounded-lg border border-ink-100 bg-ink-50 px-3 py-2 text-xs text-ink-500">
           {t("hint.location_via_slots")}
         </p>
-      </section>
+      </Surface>
 
       {error && (
         <p className="inline-flex items-center gap-2 rounded-lg bg-clay-50 px-3 py-2 text-sm text-clay-700">
@@ -105,14 +107,10 @@ export function CoachProfileForm({ initial }: Props) {
       )}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white transition hover:bg-grass-600 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={pending}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {pending ? t("saving") : t("save")}
-        </button>
+        </Button>
         {savedAt !== null && !pending && (
           <span className="inline-flex items-center gap-1 text-sm text-grass-700">
             <CheckCircle2 className="h-4 w-4" />

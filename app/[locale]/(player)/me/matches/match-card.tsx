@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Trophy,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { whatsappLink } from "@/lib/contact/whatsapp";
 import {
   cancelScheduledMatch,
@@ -109,7 +110,7 @@ export function MatchCard({
   }
 
   return (
-    <li className="rounded-xl2 border border-ink-100 bg-white p-4 shadow-card">
+    <li className="surface-row lift-on-hover">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -190,53 +191,34 @@ export function MatchCard({
 
       {variant === "awaiting_my_confirmation" && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            onClick={handleConfirm}
-            disabled={pending}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-3 text-sm font-medium text-white hover:bg-grass-600 disabled:opacity-50"
-          >
+          <Button variant="primary" size="sm" onClick={handleConfirm} disabled={pending}>
             {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             <CheckCircle2 className="h-3.5 w-3.5" />
             {t("confirm_and_apply")}
-          </button>
-          <button
-            onClick={handleDispute}
-            disabled={pending}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-clay-300 bg-white px-3 text-sm font-medium text-clay-800 hover:bg-clay-50 disabled:opacity-50"
-          >
+          </Button>
+          <Button variant="danger" size="sm" onClick={handleDispute} disabled={pending}>
             {t("dispute")}
-          </button>
+          </Button>
         </div>
       )}
 
       {variant === "awaiting_their_confirmation" && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            onClick={handleDispute}
-            disabled={pending}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 text-sm font-medium text-ink-800 hover:bg-ink-50 disabled:opacity-50"
-          >
+          <Button variant="secondary" size="sm" onClick={handleDispute} disabled={pending}>
             {t("rewrite_result")}
-          </button>
+          </Button>
         </div>
       )}
 
       {variant === "scheduled" && !showReport && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            onClick={() => setShowReport(true)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-3 text-sm font-medium text-white hover:bg-grass-600"
-          >
+          <Button variant="primary" size="sm" onClick={() => setShowReport(true)}>
             <Trophy className="h-3.5 w-3.5" />
             {t("report_result")}
-          </button>
-          <button
-            onClick={handleCancel}
-            disabled={pending}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-clay-200 bg-white px-3 text-sm font-medium text-clay-700 hover:bg-clay-50 disabled:opacity-50"
-          >
+          </Button>
+          <Button variant="danger" size="sm" onClick={handleCancel} disabled={pending}>
             {t("cancel_match")}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -342,21 +324,13 @@ function ReportInline({
       </div>
       <p className="mt-2 text-xs text-ink-600">{t("two_party_warning_inline")}</p>
       <div className="mt-3 flex justify-end gap-2">
-        <button
-          onClick={onCancel}
-          disabled={pending}
-          className="h-9 rounded-lg border border-ink-200 px-3 text-sm font-medium text-ink-700 hover:bg-ink-50 disabled:opacity-50"
-        >
+        <Button variant="secondary" size="sm" onClick={onCancel} disabled={pending}>
           {t("cancel_inline")}
-        </button>
-        <button
-          onClick={onSubmit}
-          disabled={pending}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-3 text-sm font-medium text-white hover:bg-grass-600 disabled:opacity-50"
-        >
+        </Button>
+        <Button variant="primary" size="sm" onClick={onSubmit} disabled={pending}>
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {t("submit_report")}
-        </button>
+        </Button>
       </div>
     </div>
   );
