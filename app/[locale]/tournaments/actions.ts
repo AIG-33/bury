@@ -234,14 +234,19 @@ export type PublicTournamentDetail = {
     id: string;
     round: number | null;
     bracket_position: number | null;
-    p1_name: string | null;
-    p2_name: string | null;
-    winner_id: string | null;
     p1_id: string | null;
     p2_id: string | null;
+    p1_name: string | null;
+    p2_name: string | null;
+    p1_avatar: string | null;
+    p2_avatar: string | null;
+    p1_is_coach: boolean | null;
+    p2_is_coach: boolean | null;
+    winner_id: string | null;
     sets: Array<{ p1: number; p2: number; tb_p1?: number | null; tb_p2?: number | null }> | null;
     outcome: string;
     scheduled_at: string | null;
+    played_at: string | null;
   }>;
 };
 
@@ -324,7 +329,9 @@ export async function loadPublicTournamentDetail(
     }>,
     supabase
       .from("matches")
-      .select("id, round, bracket_slot, p1_id, p2_id, winner_side, sets, outcome, scheduled_at")
+      .select(
+        "id, round, bracket_slot, p1_id, p2_id, winner_side, sets, outcome, scheduled_at, played_at",
+      )
       .eq("tournament_id", tournamentId)
       .order("round", { ascending: true })
       .order("bracket_slot", { ascending: true }) as unknown as Promise<{
@@ -347,6 +354,7 @@ export async function loadPublicTournamentDetail(
         }> | null;
         outcome: string;
         scheduled_at: string | null;
+        played_at: string | null;
       }> | null;
     }>,
   ]);
@@ -364,6 +372,8 @@ export async function loadPublicTournamentDetail(
     id: string;
     display_name: string | null;
     current_elo: number | null;
+    avatar_url: string | null;
+    is_coach: boolean | null;
   };
   let basicById = new Map<string, Basic>();
   const extByPlayer = new Map<string, PublicTournamentDetail["participants"][number]["external_rating"]>();
@@ -371,7 +381,7 @@ export async function loadPublicTournamentDetail(
     const [{ data: basics }, { data: extRows }] = await Promise.all([
       supabase
         .from("public_player_basic")
-        .select("id, display_name, current_elo")
+        .select("id, display_name, current_elo, avatar_url, is_coach")
         .in("id", playerIds) as unknown as Promise<{ data: Basic[] | null }>,
       supabase
         .from("external_ratings")
@@ -423,18 +433,25 @@ export async function loadPublicTournamentDetail(
             tb_p1: (s.tb_p1 ?? s.tiebreak_p1 ?? null) as number | null,
             tb_p2: (s.tb_p2 ?? s.tiebreak_p2 ?? null) as number | null,
           }));
+    const p1 = m.p1_id ? basicById.get(m.p1_id) : undefined;
+    const p2 = m.p2_id ? basicById.get(m.p2_id) : undefined;
     return {
       id: m.id,
       round: m.round,
       bracket_position: m.bracket_slot,
       p1_id: m.p1_id,
       p2_id: m.p2_id,
-      p1_name: m.p1_id ? (basicById.get(m.p1_id)?.display_name ?? null) : null,
-      p2_name: m.p2_id ? (basicById.get(m.p2_id)?.display_name ?? null) : null,
+      p1_name: p1?.display_name ?? null,
+      p2_name: p2?.display_name ?? null,
+      p1_avatar: p1?.avatar_url ?? null,
+      p2_avatar: p2?.avatar_url ?? null,
+      p1_is_coach: p1?.is_coach ?? null,
+      p2_is_coach: p2?.is_coach ?? null,
       winner_id,
       sets,
       outcome: m.outcome,
       scheduled_at: m.scheduled_at,
+      played_at: m.played_at,
     };
   });
 

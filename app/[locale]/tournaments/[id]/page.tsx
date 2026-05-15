@@ -2,10 +2,20 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, Coins, MapPin, Users, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Calendar,
+  Clock,
+  Coins,
+  MapPin,
+  Users,
+  Trophy,
+} from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { RatingDisplay } from "@/components/rating/rating-display";
+import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
 import { Surface } from "@/components/ui/surface";
 import { Chip } from "@/components/ui/surface";
 import { loadPublicTournamentDetail } from "../actions";
@@ -196,7 +206,8 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         )}
       </Surface>
 
-      {/* Matches */}
+      {/* Matches — same scorecard look as /matches; grouped by round so a
+          long bracket reads top → down by stage. */}
       <Surface variant="card" as="section">
         <h2 className="mb-3 font-display text-lg font-bold text-grass-900">
           {t("detail.matches_title")}
@@ -204,43 +215,164 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         {matches.length === 0 ? (
           <p className="text-sm text-ink-500">{t("detail.matches_empty")}</p>
         ) : (
-          <ul className="space-y-2">
-            {matches.map((m) => {
-              const winnerLabel =
-                m.winner_id === m.p1_id ? "p1" : m.winner_id === m.p2_id ? "p2" : null;
-              const score =
-                m.sets && m.sets.length > 0
-                  ? m.sets.map((s) => `${s.p1}-${s.p2}`).join(" · ")
-                  : m.outcome === "scheduled"
-                    ? t("detail.scheduled")
-                    : "—";
-              return (
-                <li
-                  key={m.id}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md border border-ink-100 px-3 py-2 text-sm"
-                >
-                  <Chip tone="grass" className="text-[10px] font-medium uppercase">
-                    R{m.round ?? "?"}
-                  </Chip>
-                  <div className="min-w-0">
-                    <div
-                      className={`truncate ${winnerLabel === "p1" ? "font-semibold text-ink-900" : "text-ink-700"}`}
-                    >
-                      {m.p1_name ?? "—"}
-                    </div>
-                    <div
-                      className={`truncate ${winnerLabel === "p2" ? "font-semibold text-ink-900" : "text-ink-700"}`}
-                    >
-                      {m.p2_name ?? "—"}
-                    </div>
-                  </div>
-                  <span className="font-mono text-xs tabular-nums text-ink-700">{score}</span>
-                </li>
-              );
-            })}
-          </ul>
+          <TournamentMatchesByRound
+            matches={matches}
+            locale={locale}
+            labels={{
+              round_short: t("detail.round_short"),
+              scheduled: t("detail.scheduled"),
+              winner: t("detail.winner"),
+              count: t("detail.matches_count"),
+              tba: t("detail.tba"),
+            }}
+          />
         )}
       </Surface>
+    </div>
+  );
+}
+
+// =============================================================================
+// Tournament-page rendering of matches.
+//
+// Same compact scorecard as /matches (shared component), wrapped in a
+// per-round <details> shutter so the bracket reads stage-by-stage.
+// =============================================================================
+function TournamentMatchesByRound({
+  matches,
+  locale,
+  labels,
+}: {
+  matches: NonNullable<
+    Awaited<ReturnType<typeof loadPublicTournamentDetail>>
+  >["matches"];
+  locale: string;
+  labels: {
+    round_short: string;
+    scheduled: string;
+    winner: string;
+    count: string;
+    tba: string;
+  };
+}) {
+  const dateFmt = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Minsk",
+  });
+
+  // Preserve the upstream order (round asc, bracket_slot asc).
+  const order: Array<number | "_no_round"> = [];
+  const groups = new Map<
+    number | "_no_round",
+    { matches: typeof matches }
+  >();
+  for (const m of matches) {
+    const k: number | "_no_round" = m.round ?? "_no_round";
+    if (!groups.has(k)) {
+      order.push(k);
+      groups.set(k, { matches: [] });
+    }
+    groups.get(k)!.matches.push(m);
+  }
+
+  return (
+    <div className="space-y-3">
+      {order.map((roundKey, idx) => {
+        const g = groups.get(roundKey)!;
+        const headerLabel =
+          roundKey === "_no_round"
+            ? labels.tba
+            : `${labels.round_short}${roundKey}`;
+        const defaultOpen = idx === 0 || g.matches.length <= 4;
+
+        return (
+          <details
+            key={String(roundKey)}
+            open={defaultOpen}
+            className="group/g rounded-xl3 border border-ball-100 bg-white shadow-[0_8px_30px_-22px_rgba(15,27,20,0.08)]"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl3 px-4 py-3 transition hover:bg-ink-50/60 [&::-webkit-details-marker]:hidden">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ball-100 font-mono text-[10.5px] font-bold text-ball-800">
+                  {roundKey === "_no_round" ? "—" : roundKey}
+                </span>
+                <span className="truncate font-display text-[15px] font-bold text-ball-900">
+                  {headerLabel}
+                </span>
+                <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-600">
+                  {labels.count.replace("{n}", String(g.matches.length))}
+                </span>
+              </div>
+            </summary>
+
+            <ul className="grid gap-3 px-4 pb-4 md:grid-cols-2">
+              {g.matches.map((m) => {
+                const dateIso = m.played_at ?? m.scheduled_at;
+                const sets: ScorecardSet[][] = (m.sets ?? []).reduce(
+                  (acc: ScorecardSet[][], s) => {
+                    acc[0].push({
+                      my: s.p1,
+                      their: s.p2,
+                      tb: s.tb_p1 ?? null,
+                    });
+                    acc[1].push({
+                      my: s.p2,
+                      their: s.p1,
+                      tb: s.tb_p2 ?? null,
+                    });
+                    return acc;
+                  },
+                  [[], []],
+                );
+
+                return (
+                  <MatchScorecard
+                    key={m.id}
+                    accent="tournament"
+                    winnerLabel={labels.winner}
+                    noScoreLabel={
+                      m.outcome === "scheduled" ? labels.scheduled : "—"
+                    }
+                    meta={
+                      <>
+                        {dateIso ? (
+                          <span className="inline-flex items-center gap-1 text-ink-500">
+                            <CalendarDays className="h-3 w-3" />
+                            <span className="text-ink-700 normal-case tracking-normal">
+                              {dateFmt.format(new Date(dateIso))}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-ink-600">
+                            {labels.tba}
+                          </span>
+                        )}
+                      </>
+                    }
+                    p1={{
+                      id: m.p1_id,
+                      name: m.p1_name,
+                      avatarUrl: m.p1_avatar,
+                      isCoach: m.p1_is_coach,
+                      isWinner: m.winner_id != null && m.winner_id === m.p1_id,
+                      sets: sets[0],
+                    }}
+                    p2={{
+                      id: m.p2_id,
+                      name: m.p2_name,
+                      avatarUrl: m.p2_avatar,
+                      isCoach: m.p2_is_coach,
+                      isWinner: m.winner_id != null && m.winner_id === m.p2_id,
+                      sets: sets[1],
+                    }}
+                  />
+                );
+              })}
+            </ul>
+          </details>
+        );
+      })}
     </div>
   );
 }

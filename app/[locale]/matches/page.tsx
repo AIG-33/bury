@@ -3,10 +3,12 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import {
   CalendarDays,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Eye,
   Globe2,
+  Handshake,
   MapPin,
   Search,
   Send,
@@ -15,6 +17,7 @@ import {
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
+import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -258,25 +261,23 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
       {rows.length === 0 ? (
         <EmptyHowTo locale={locale} t={t} filtersActive={filtersActive} />
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2">
-          {rows.map((m) => (
-            <MatchRowItem
-              key={m.id}
-              m={m}
-              locale={locale}
-              dateFmt={dateFmt}
-              labels={{
-                tournament: t("badge.tournament"),
-                friendly: t("badge.friendly"),
-                doubles: t("badge.doubles"),
-                tba: t("no_date"),
-                no_score: t("no_score"),
-                winner: t("winner"),
-                set: t("set_short"),
-              }}
-            />
-          ))}
-        </ul>
+        <MatchGroups
+          rows={rows}
+          locale={locale}
+          dateFmt={dateFmt}
+          labels={{
+            tournament: t("badge.tournament"),
+            friendly: t("badge.friendly"),
+            friendly_group: t("group.friendly"),
+            count: t("group.count"),
+            open_tournament: t("group.open_tournament"),
+            doubles: t("badge.doubles"),
+            tba: t("no_date"),
+            no_score: t("no_score"),
+            winner: t("winner"),
+            set: t("set_short"),
+          }}
+        />
       )}
 
       {totalPages > 1 && (
@@ -465,23 +466,168 @@ function PaginationLink({
 }
 
 // =============================================================================
-// Match card — compact scorecard layout (ATP/WTA style).
-//
-// Layout:
-//   [date · tournament/friendly · venue]                    ← meta row
-//   ──────────────────────────────────────────────────────
-//   [avatar]  Player 1 (winner)         | 6 | 4 | 10 |
-//   [avatar]  Player 2                  | 3 | 6 |  6 |
-//
-// Names are stacked (фамилия под фамилией). The set scores form a small grid
-// on the right where each column is one set. Two cards fit per row on
-// desktop (md:grid-cols-2 in the parent ul).
+// Group matches by tournament (friendly matches → "Товарищеские" group).
+// Each group is a native <details> shutter — accessible, no JS needed,
+// preserved across navigation by the browser when set as default-open.
+// =============================================================================
+
+type GroupKey = string; // tournament_id or the sentinel "_friendly"
+
+type GroupLabels = {
+  tournament: string;
+  friendly: string;
+  friendly_group: string;
+  count: string;
+  open_tournament: string;
+  doubles: string;
+  tba: string;
+  no_score: string;
+  winner: string;
+  set: string;
+};
+
+function MatchGroups({
+  rows,
+  locale,
+  dateFmt,
+  labels,
+}: {
+  rows: MatchRow[];
+  locale: string;
+  dateFmt: Intl.DateTimeFormat;
+  labels: GroupLabels;
+}) {
+  // Group preserving the chronological order of `rows` (already sorted DESC
+  // by played_at on the server). Earliest-touched groups render first —
+  // this matches what the user expects ("recent tournament on top").
+  const groupOrder: GroupKey[] = [];
+  const groups = new Map<
+    GroupKey,
+    { key: GroupKey; tournamentId: string | null; name: string; matches: MatchRow[] }
+  >();
+  for (const row of rows) {
+    const key: GroupKey = row.tournament_id ?? "_friendly";
+    if (!groups.has(key)) {
+      groupOrder.push(key);
+      groups.set(key, {
+        key,
+        tournamentId: row.tournament_id,
+        name: row.tournament_id
+          ? row.tournament_name ?? labels.tournament
+          : labels.friendly_group,
+        matches: [],
+      });
+    }
+    groups.get(key)!.matches.push(row);
+  }
+
+  // Default-open behaviour:
+  //   - the first group on the page (most recent activity)
+  //   - any small group (≤ 4 matches) so short groups don't hide
+  // The user can collapse / expand others freely.
+  return (
+    <div className="space-y-3">
+      {groupOrder.map((key, index) => {
+        const g = groups.get(key)!;
+        const isFriendly = key === "_friendly";
+        const defaultOpen = index === 0 || g.matches.length <= 4;
+
+        return (
+          <details
+            key={key}
+            open={defaultOpen}
+            className={
+              "group/g rounded-xl3 border bg-white shadow-[0_8px_30px_-22px_rgba(15,27,20,0.08)] " +
+              (isFriendly ? "border-grass-100" : "border-ball-100")
+            }
+          >
+            <summary
+              className={
+                "flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl3 px-4 py-3 transition hover:bg-ink-50/60 " +
+                "[&::-webkit-details-marker]:hidden"
+              }
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <ChevronDown
+                  aria-hidden
+                  className="h-4 w-4 shrink-0 text-ink-500 transition-transform duration-200 group-open/g:rotate-0 -rotate-90"
+                />
+                <span
+                  className={
+                    "grid h-7 w-7 shrink-0 place-items-center rounded-full " +
+                    (isFriendly
+                      ? "bg-grass-100 text-grass-700"
+                      : "bg-ball-100 text-ball-700")
+                  }
+                  aria-hidden
+                >
+                  {isFriendly ? (
+                    <Handshake className="h-3.5 w-3.5" />
+                  ) : (
+                    <Trophy className="h-3.5 w-3.5" />
+                  )}
+                </span>
+                <span
+                  className={
+                    "truncate font-display text-[15px] font-bold " +
+                    (isFriendly ? "text-grass-900" : "text-ball-900")
+                  }
+                  title={g.name}
+                >
+                  {g.name}
+                </span>
+                <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-600">
+                  {labels.count.replace("{n}", String(g.matches.length))}
+                </span>
+              </div>
+
+              {!isFriendly && g.tournamentId && (
+                <Link
+                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                  href={`/tournaments/${g.tournamentId}` as any}
+                  // The summary itself is a click target for toggling; this
+                  // inner Link needs to stop the toggle when the user clicks
+                  // it, which is the default browser behaviour for nested
+                  // anchors as long as we don't preventDefault elsewhere.
+                  className="hidden shrink-0 items-center gap-1 rounded-full border border-ball-200 bg-white px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ball-800 hover:bg-ball-50 sm:inline-flex"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {labels.open_tournament}
+                  <ChevronRight className="h-3 w-3" />
+                </Link>
+              )}
+            </summary>
+
+            <ul className="grid gap-3 px-4 pb-4 md:grid-cols-2">
+              {g.matches.map((m) => (
+                <MatchRowItem
+                  key={m.id}
+                  m={m}
+                  locale={locale}
+                  dateFmt={dateFmt}
+                  hideTournamentBadge
+                  labels={labels}
+                />
+              ))}
+            </ul>
+          </details>
+        );
+      })}
+    </div>
+  );
+}
+
+// =============================================================================
+// Adapter: turns a MatchRow from `public_matches_feed` into the props the
+// shared <MatchScorecard> expects. Visual logic lives in the component;
+// this function only shapes data + builds the meta chips for this page.
 // =============================================================================
 function MatchRowItem({
   m,
   locale,
   dateFmt,
   labels,
+  hideTournamentBadge = false,
 }: {
   m: MatchRow;
   locale: string;
@@ -495,237 +641,93 @@ function MatchRowItem({
     winner: string;
     set: string;
   };
+  /** True when the card is rendered inside a tournament group — the group
+   *  header already shows the tournament name, so we don't repeat it. */
+  hideTournamentBadge?: boolean;
 }) {
+  void locale;
   const dateIso = m.played_at ?? m.scheduled_at;
   const dateLabel = dateIso ? dateFmt.format(new Date(dateIso)) : labels.tba;
   const isTournament = !!m.tournament_id;
   const sets = m.sets ?? [];
 
-  return (
-    <li
-      className={
-        "surface-row lift-on-hover relative h-full overflow-hidden " +
-        (isTournament ? "hover:border-ball-200" : "hover:border-grass-200")
-      }
-    >
-      {/* Accent stripe by match type */}
-      <span
-        aria-hidden
-        className={
-          "absolute inset-y-0 left-0 w-1 " + (isTournament ? "bg-ball-400" : "bg-grass-400")
-        }
-      />
+  // Per-side set arrays (the shared component is side-agnostic).
+  const p1Sets: ScorecardSet[] = sets.map((s) => ({
+    my: s.p1_games,
+    their: s.p2_games,
+    tb: s.tiebreak_p1 ?? null,
+  }));
+  const p2Sets: ScorecardSet[] = sets.map((s) => ({
+    my: s.p2_games,
+    their: s.p1_games,
+    tb: s.tiebreak_p2 ?? null,
+  }));
 
-      <div className="space-y-2 pl-4">
-        {/* Top row: compact meta */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] font-semibold uppercase tracking-wider">
-          <span className="inline-flex items-center gap-1 text-ink-500">
-            <CalendarDays className="h-3 w-3" />
-            <span className="text-ink-700 normal-case tracking-normal">{dateLabel}</span>
-          </span>
-          {isTournament ? (
-            <Link
-              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-              href={`/tournaments/${m.tournament_id}` as any}
-              className="inline-flex max-w-[180px] items-center gap-1 truncate rounded-full bg-ball-100 px-2 py-0.5 text-ball-900 ring-1 ring-ball-200 transition hover:bg-ball-200"
-            >
-              <Trophy className="h-3 w-3 shrink-0" />
-              <span className="truncate font-bold normal-case tracking-normal">
-                {m.tournament_name ?? labels.tournament}
-              </span>
-            </Link>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-grass-900 ring-1 ring-grass-200">
-              {labels.friendly}
-            </span>
-          )}
-          {m.is_doubles && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-ink-700">
-              <Users className="h-3 w-3" />
-              {labels.doubles}
-            </span>
-          )}
-          {m.venue_name && (
-            <span className="inline-flex min-w-0 items-center gap-1 text-ink-500">
-              <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate font-medium normal-case tracking-normal text-ink-700">
-                {m.venue_name}
-                {m.venue_city ? ` · ${m.venue_city}` : ""}
-              </span>
-            </span>
-          )}
-        </div>
-
-        {/* Stacked players + per-set scores */}
-        <div className="rounded-xl border border-ink-100/70 bg-white">
-          <PlayerScoreLine
-            position="top"
-            id={m.p1_id}
-            name={m.p1_name}
-            avatar={m.p1_avatar}
-            isCoach={m.p1_is_coach}
-            partnerName={m.p1_partner_name}
-            isWinner={m.winner_side === "p1"}
-            sideKey="p1"
-            sets={sets}
-            winnerLabel={labels.winner}
-            locale={locale}
-          />
-          <PlayerScoreLine
-            position="bottom"
-            id={m.p2_id}
-            name={m.p2_name}
-            avatar={m.p2_avatar}
-            isCoach={m.p2_is_coach}
-            partnerName={m.p2_partner_name}
-            isWinner={m.winner_side === "p2"}
-            sideKey="p2"
-            sets={sets}
-            winnerLabel={labels.winner}
-            locale={locale}
-          />
-          {sets.length === 0 && (
-            <p className="border-t border-ink-100/60 px-3 py-1.5 text-center text-[11px] font-medium text-ink-400">
-              {labels.no_score}
-            </p>
-          )}
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/**
- * One player row inside the scorecard. Avatar + name on the left, set
- * scores in fixed-width columns on the right. Designed so that two of
- * these stack pixel-perfectly and the score columns line up vertically.
- */
-function PlayerScoreLine({
-  position,
-  id,
-  name,
-  avatar,
-  isCoach,
-  partnerName,
-  isWinner,
-  sideKey,
-  sets,
-  winnerLabel,
-  locale,
-}: {
-  position: "top" | "bottom";
-  id: string;
-  name: string | null;
-  avatar: string | null;
-  isCoach: boolean | null;
-  partnerName: string | null;
-  isWinner: boolean;
-  sideKey: "p1" | "p2";
-  sets: NonNullable<MatchRow["sets"]>;
-  winnerLabel: string;
-  locale: string;
-}) {
-  void locale;
-  const display = name ?? "—";
-  const initial = display.slice(0, 1).toUpperCase();
-
-  const avatarBlock = avatar ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={avatar}
-      alt=""
-      className={
-        "h-7 w-7 shrink-0 rounded-full object-cover ring-2 " +
-        (isWinner ? "ring-grass-400" : "ring-white")
-      }
-    />
-  ) : (
-    <span
-      className={
-        "grid h-7 w-7 shrink-0 place-items-center rounded-full font-display text-[11px] font-bold ring-2 " +
-        (isWinner
-          ? "bg-grass-100 text-grass-900 ring-grass-400"
-          : "bg-ink-100 text-ink-700 ring-white")
-      }
-    >
-      {initial}
-    </span>
-  );
-
-  const NameInner = (
-    <span className="flex min-w-0 flex-col leading-tight">
-      <span className="flex items-center gap-1.5">
-        <span
-          className={
-            "truncate font-display text-[13.5px] font-bold leading-tight " +
-            (isWinner ? "text-grass-900" : "text-ink-900")
-          }
-          title={display}
-        >
-          {display}
-        </span>
-        {isWinner && (
-          <Trophy
-            className="h-3 w-3 shrink-0 text-grass-600"
-            aria-label={winnerLabel}
-          />
-        )}
+  const meta = (
+    <>
+      <span className="inline-flex items-center gap-1 text-ink-500">
+        <CalendarDays className="h-3 w-3" />
+        <span className="text-ink-700 normal-case tracking-normal">{dateLabel}</span>
       </span>
-      {partnerName && (
-        <span className="truncate text-[11px] font-medium text-ink-500" title={`+ ${partnerName}`}>
-          + {partnerName}
+      {!hideTournamentBadge && isTournament && (
+        <Link
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          href={`/tournaments/${m.tournament_id}` as any}
+          className="inline-flex max-w-[180px] items-center gap-1 truncate rounded-full bg-ball-100 px-2 py-0.5 text-ball-900 ring-1 ring-ball-200 transition hover:bg-ball-200"
+        >
+          <Trophy className="h-3 w-3 shrink-0" />
+          <span className="truncate font-bold normal-case tracking-normal">
+            {m.tournament_name ?? labels.tournament}
+          </span>
+        </Link>
+      )}
+      {!hideTournamentBadge && !isTournament && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-grass-900 ring-1 ring-grass-200">
+          {labels.friendly}
         </span>
       )}
-    </span>
-  );
-
-  const nameBlock = isCoach ? (
-    <Link
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      href={`/coaches/${id}` as any}
-      className="min-w-0 flex-1 transition hover:opacity-80"
-    >
-      {NameInner}
-    </Link>
-  ) : (
-    <div className="min-w-0 flex-1">{NameInner}</div>
+      {m.is_doubles && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-ink-700">
+          <Users className="h-3 w-3" />
+          {labels.doubles}
+        </span>
+      )}
+      {m.venue_name && (
+        <span className="inline-flex min-w-0 items-center gap-1 text-ink-500">
+          <MapPin className="h-3 w-3 shrink-0" />
+          <span className="truncate font-medium normal-case tracking-normal text-ink-700">
+            {m.venue_name}
+            {m.venue_city ? ` · ${m.venue_city}` : ""}
+          </span>
+        </span>
+      )}
+    </>
   );
 
   return (
-    <div
-      className={
-        "flex items-center gap-2.5 px-2.5 py-1.5 " +
-        (position === "top" ? "border-b border-ink-100/60" : "")
-      }
-    >
-      {avatarBlock}
-      {nameBlock}
-
-      {/* Set columns. Fixed width so the two rows stack with aligned digits. */}
-      <div className="flex shrink-0 items-center gap-1">
-        {sets.map((s, i) => {
-          const my = sideKey === "p1" ? s.p1_games : s.p2_games;
-          const their = sideKey === "p1" ? s.p2_games : s.p1_games;
-          const myTb = sideKey === "p1" ? s.tiebreak_p1 : s.tiebreak_p2;
-          const wonSet = my > their;
-          return (
-            <span
-              key={i}
-              className={
-                "inline-flex h-7 min-w-[28px] items-center justify-center rounded-md px-1.5 font-mono text-[14px] font-bold tabular-nums leading-none " +
-                (wonSet
-                  ? "bg-grass-50 text-grass-800 ring-1 ring-grass-200"
-                  : "bg-ink-50 text-ink-500 ring-1 ring-ink-100")
-              }
-            >
-              {my}
-              {myTb != null && (
-                <sup className="ml-0.5 text-[9px] font-bold opacity-80">{myTb}</sup>
-              )}
-            </span>
-          );
-        })}
-      </div>
-    </div>
+    <MatchScorecard
+      accent={isTournament ? "tournament" : "friendly"}
+      meta={meta}
+      noScoreLabel={labels.no_score}
+      winnerLabel={labels.winner}
+      p1={{
+        id: m.p1_id,
+        name: m.p1_name,
+        avatarUrl: m.p1_avatar,
+        isCoach: m.p1_is_coach,
+        partnerName: m.p1_partner_name,
+        isWinner: m.winner_side === "p1",
+        sets: p1Sets,
+      }}
+      p2={{
+        id: m.p2_id,
+        name: m.p2_name,
+        avatarUrl: m.p2_avatar,
+        isCoach: m.p2_is_coach,
+        partnerName: m.p2_partner_name,
+        isWinner: m.winner_side === "p2",
+        sets: p2Sets,
+      }}
+    />
   );
 }

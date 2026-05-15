@@ -184,6 +184,11 @@
       "friendly": "Friendly",
       "doubles": "Doubles"
     },
+    "group": {
+      "friendly": "Friendly matches",
+      "count": "{n}",
+      "open_tournament": "Open tournament"
+    },
     "empty": {
       "title": "No public matches yet",
       "description": "Finished matches will appear here: confirmed friendlies and tournament games whose tournament is set to public visibility. Below are the three ways they end up in this feed.",
@@ -3311,6 +3316,10 @@
       "participants_empty": "No participants yet.",
       "matches_title": "Matches",
       "matches_empty": "Bracket not generated yet.",
+      "matches_count": "{n}",
+      "round_short": "R",
+      "tba": "TBD",
+      "winner": "Winner",
       "scheduled": "scheduled",
       "help": {
         "why": "A read-only public view of one tournament — players, bracket, scores, results.",
