@@ -277,37 +277,38 @@ function TournamentMatchesByRound({
     groups.get(k)!.matches.push(m);
   }
 
+  // All rounds collapsed by default — user picks the round they care
+  // about. Keeps the initial bracket index compact.
   return (
-    <div className="space-y-3">
-      {order.map((roundKey, idx) => {
+    <div className="space-y-2">
+      {order.map((roundKey) => {
         const g = groups.get(roundKey)!;
         const headerLabel =
           roundKey === "_no_round"
             ? labels.tba
             : `${labels.round_short}${roundKey}`;
-        const defaultOpen = idx === 0 || g.matches.length <= 4;
 
         return (
           <details
             key={String(roundKey)}
-            open={defaultOpen}
-            className="group/g rounded-xl3 border border-ball-100 bg-white shadow-[0_8px_30px_-22px_rgba(15,27,20,0.08)]"
+            open={false}
+            className="group/g rounded-2xl border border-ball-100 bg-white shadow-[0_4px_18px_-14px_rgba(15,27,20,0.1)]"
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl3 px-4 py-3 transition hover:bg-ink-50/60 [&::-webkit-details-marker]:hidden">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ball-100 font-mono text-[10.5px] font-bold text-ball-800">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 py-2 transition hover:bg-ink-50/60 [&::-webkit-details-marker]:hidden">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ball-100 font-mono text-[10px] font-bold text-ball-800">
                   {roundKey === "_no_round" ? "—" : roundKey}
                 </span>
-                <span className="truncate font-display text-[15px] font-bold text-ball-900">
+                <span className="truncate font-display text-[14px] font-bold text-ball-900">
                   {headerLabel}
                 </span>
-                <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-600">
+                <span className="shrink-0 rounded-full bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-600">
                   {labels.countLabel(g.matches.length)}
                 </span>
               </div>
             </summary>
 
-            <ul className="grid gap-3 px-4 pb-4 md:grid-cols-2">
+            <ul className="grid gap-2 px-3 pb-3 md:grid-cols-2">
               {g.matches.map((m) => {
                 const dateIso = m.played_at ?? m.scheduled_at;
                 const sets: ScorecardSet[][] = (m.sets ?? []).reduce(

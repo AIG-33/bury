@@ -75,7 +75,7 @@ export function MatchScorecard({
   return (
     <li
       className={[
-        "surface-row lift-on-hover relative h-full overflow-hidden",
+        "lift-on-hover relative h-full overflow-hidden rounded-xl2 border border-ink-200/70 bg-white p-2 transition-shadow duration-300 hover:shadow-[0_8px_24px_-14px_rgba(15,27,20,0.18)]",
         accent === "tournament"
           ? "hover:border-ball-200"
           : "hover:border-grass-200",
@@ -85,23 +85,23 @@ export function MatchScorecard({
       <span
         aria-hidden
         className={
-          "absolute inset-y-0 left-0 w-1 " +
+          "absolute inset-y-0 left-0 w-[3px] " +
           (accent === "tournament" ? "bg-ball-400" : "bg-grass-400")
         }
       />
 
-      <div className="space-y-2 pl-4">
+      <div className="space-y-1.5 pl-2">
         {meta && (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] font-semibold uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 px-0.5 text-[10px] font-semibold uppercase tracking-wider">
             {meta}
           </div>
         )}
 
-        <div className="rounded-xl border border-ink-100/70 bg-white">
+        <div className="rounded-lg border border-ink-100/70 bg-white">
           <PlayerRow position="top" player={p1} winnerLabel={winnerLabel} />
           <PlayerRow position="bottom" player={p2} winnerLabel={winnerLabel} />
           {showNoScore && (
-            <p className="border-t border-ink-100/60 px-3 py-1.5 text-center text-[11px] font-medium text-ink-400">
+            <p className="border-t border-ink-100/60 px-2 py-1 text-center text-[10.5px] font-medium text-ink-400">
               {noScoreLabel}
             </p>
           )}
@@ -134,19 +134,19 @@ function PlayerRow({
       src={player.avatarUrl}
       alt={display}
       className={
-        "h-14 w-14 shrink-0 rounded-full object-cover ring-2 transition group-hover/row:scale-[1.04] " +
+        "h-9 w-9 shrink-0 rounded-full object-cover ring-2 transition group-hover/row:scale-[1.04] " +
         (player.isWinner
-          ? "ring-grass-400 shadow-[0_6px_18px_-8px_rgba(31,138,76,0.55)]"
-          : "ring-white shadow-[0_4px_14px_-8px_rgba(15,27,20,0.25)]")
+          ? "ring-grass-400 shadow-[0_4px_12px_-6px_rgba(31,138,76,0.55)]"
+          : "ring-white shadow-[0_3px_10px_-6px_rgba(15,27,20,0.25)]")
       }
     />
   ) : (
     <span
       className={
-        "grid h-14 w-14 shrink-0 place-items-center rounded-full font-display text-lg font-bold ring-2 transition group-hover/row:scale-[1.04] " +
+        "grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-sm font-bold ring-2 transition group-hover/row:scale-[1.04] " +
         (player.isWinner
-          ? "bg-grass-100 text-grass-900 ring-grass-400 shadow-[0_6px_18px_-8px_rgba(31,138,76,0.55)]"
-          : "bg-ink-100 text-ink-700 ring-white shadow-[0_4px_14px_-8px_rgba(15,27,20,0.25)]")
+          ? "bg-grass-100 text-grass-900 ring-grass-400 shadow-[0_4px_12px_-6px_rgba(31,138,76,0.55)]"
+          : "bg-ink-100 text-ink-700 ring-white shadow-[0_3px_10px_-6px_rgba(15,27,20,0.25)]")
       }
     >
       {initial}
@@ -155,10 +155,10 @@ function PlayerRow({
 
   const nameBlock = (
     <span className="flex min-w-0 flex-col leading-tight">
-      <span className="flex items-center gap-1.5">
+      <span className="flex items-center gap-1">
         <span
           className={
-            "truncate font-display text-[14px] font-bold leading-tight transition-colors group-hover/row:text-grass-700 " +
+            "truncate font-display text-[13px] font-bold leading-tight transition-colors group-hover/row:text-grass-700 " +
             (player.isWinner ? "text-grass-900" : "text-ink-900")
           }
           title={display}
@@ -174,7 +174,7 @@ function PlayerRow({
       </span>
       {player.partnerName && (
         <span
-          className="truncate text-[11px] font-medium text-ink-500"
+          className="truncate text-[10.5px] font-medium text-ink-500"
           title={`+ ${player.partnerName}`}
         >
           + {player.partnerName}
@@ -193,7 +193,7 @@ function PlayerRow({
   return (
     <div
       className={
-        "flex items-center gap-3 px-2.5 py-2 " +
+        "flex items-center gap-2 px-2 py-1.5 " +
         (position === "top" ? "border-b border-ink-100/60" : "")
       }
     >
@@ -201,24 +201,24 @@ function PlayerRow({
         <Link
           /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           href={profileHref as any}
-          className="group/row flex min-w-0 flex-1 items-center gap-3 rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-grass-300"
+          className="group/row flex min-w-0 flex-1 items-center gap-2 rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-grass-300"
         >
           {inner}
         </Link>
       ) : (
-        <div className="group/row flex min-w-0 flex-1 items-center gap-3">
+        <div className="group/row flex min-w-0 flex-1 items-center gap-2">
           {inner}
         </div>
       )}
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-0.5">
         {player.sets.map((s, i) => {
           const wonSet = s.my > s.their;
           return (
             <span
               key={i}
               className={
-                "inline-flex h-8 min-w-[30px] items-center justify-center rounded-md px-1.5 font-mono text-[15px] font-bold tabular-nums leading-none " +
+                "inline-flex h-7 min-w-[24px] items-center justify-center rounded px-1 font-mono text-[13px] font-bold tabular-nums leading-none " +
                 (wonSet
                   ? "bg-grass-50 text-grass-800 ring-1 ring-grass-200"
                   : "bg-ink-50 text-ink-500 ring-1 ring-ink-100")
@@ -226,7 +226,7 @@ function PlayerRow({
             >
               {s.my}
               {s.tb != null && (
-                <sup className="ml-0.5 text-[9px] font-bold opacity-80">{s.tb}</sup>
+                <sup className="ml-0.5 text-[8.5px] font-bold opacity-80">{s.tb}</sup>
               )}
             </span>
           );

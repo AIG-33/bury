@@ -522,40 +522,40 @@ function MatchGroups({
     groups.get(key)!.matches.push(row);
   }
 
-  // Default-open behaviour:
-  //   - the first group on the page (most recent activity)
-  //   - any small group (≤ 4 matches) so short groups don't hide
-  // The user can collapse / expand others freely.
+  // All groups are collapsed by default — the page is a long index of
+  // tournaments + a "Friendly matches" bucket. The user opens what they
+  // want; this keeps the initial viewport short and lets the eye scan
+  // tournament names instead of a wall of cards.
   return (
-    <div className="space-y-3">
-      {groupOrder.map((key, index) => {
+    <div className="space-y-2">
+      {groupOrder.map((key) => {
         const g = groups.get(key)!;
         const isFriendly = key === "_friendly";
-        const defaultOpen = index === 0 || g.matches.length <= 4;
+        const defaultOpen = false;
 
         return (
           <details
             key={key}
             open={defaultOpen}
             className={
-              "group/g rounded-xl3 border bg-white shadow-[0_8px_30px_-22px_rgba(15,27,20,0.08)] " +
+              "group/g rounded-2xl border bg-white shadow-[0_4px_18px_-14px_rgba(15,27,20,0.1)] " +
               (isFriendly ? "border-grass-100" : "border-ball-100")
             }
           >
             <summary
               className={
-                "flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl3 px-4 py-3 transition hover:bg-ink-50/60 " +
+                "flex cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 py-2 transition hover:bg-ink-50/60 " +
                 "[&::-webkit-details-marker]:hidden"
               }
             >
-              <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex min-w-0 items-center gap-2">
                 <ChevronDown
                   aria-hidden
-                  className="h-4 w-4 shrink-0 text-ink-500 transition-transform duration-200 group-open/g:rotate-0 -rotate-90"
+                  className="h-3.5 w-3.5 shrink-0 text-ink-500 transition-transform duration-200 group-open/g:rotate-0 -rotate-90"
                 />
                 <span
                   className={
-                    "grid h-7 w-7 shrink-0 place-items-center rounded-full " +
+                    "grid h-6 w-6 shrink-0 place-items-center rounded-full " +
                     (isFriendly
                       ? "bg-grass-100 text-grass-700"
                       : "bg-ball-100 text-ball-700")
@@ -563,21 +563,21 @@ function MatchGroups({
                   aria-hidden
                 >
                   {isFriendly ? (
-                    <Handshake className="h-3.5 w-3.5" />
+                    <Handshake className="h-3 w-3" />
                   ) : (
-                    <Trophy className="h-3.5 w-3.5" />
+                    <Trophy className="h-3 w-3" />
                   )}
                 </span>
                 <span
                   className={
-                    "truncate font-display text-[15px] font-bold " +
+                    "truncate font-display text-[14px] font-bold " +
                     (isFriendly ? "text-grass-900" : "text-ball-900")
                   }
                   title={g.name}
                 >
                   {g.name}
                 </span>
-                <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-600">
+                <span className="shrink-0 rounded-full bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-600">
                   {labels.countLabel(g.matches.length)}
                 </span>
               </div>
@@ -591,7 +591,7 @@ function MatchGroups({
                   // not visible. Avoiding onClick keeps this a pure server
                   // component (Server Components can't pass functions as
                   // props to Client Components like <Link>).
-                  className="hidden shrink-0 items-center gap-1 rounded-full border border-ball-200 bg-white px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ball-800 hover:bg-ball-50 sm:inline-flex"
+                  className="hidden shrink-0 items-center gap-1 rounded-full border border-ball-200 bg-white px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-ball-800 hover:bg-ball-50 sm:inline-flex"
                 >
                   {labels.open_tournament}
                   <ChevronRight className="h-3 w-3" />
@@ -599,7 +599,7 @@ function MatchGroups({
               )}
             </summary>
 
-            <ul className="grid gap-3 px-4 pb-4 md:grid-cols-2">
+            <ul className="grid gap-2 px-3 pb-3 md:grid-cols-2">
               {g.matches.map((m) => (
                 <MatchRowItem
                   key={m.id}
