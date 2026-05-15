@@ -127,7 +127,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     regenerate_warning: t("groups.regenerate_warning"),
     not_enough_players: t("groups.not_enough_players"),
     empty: t("groups.empty"),
-    group_label: (name: string) => t("groups.group_label", { name }),
+    group_label: t("groups.group_label", { name: "{name}" }),
     move_to: t("groups.move_to"),
     cannot_move_after_start: t("groups.cannot_move_after_start"),
     member_count: t("groups.member_count"),

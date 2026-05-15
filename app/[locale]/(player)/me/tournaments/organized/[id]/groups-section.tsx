@@ -32,7 +32,9 @@ export type GroupsCopy = {
   regenerate_warning: string;
   not_enough_players: string;
   empty: string;
-  group_label: (name: string) => string;
+  // Template string with the literal "{name}" placeholder. Functions
+  // can't cross the server→client component boundary in Next.js 15.
+  group_label: string;
   move_to: string;
   cannot_move_after_start: string;
   member_count: string;
@@ -168,7 +170,7 @@ export function GroupsSection({
               <li key={g.id} className="rounded-lg border border-ink-100 bg-grass-50/30 p-4">
                 <header className="mb-3 flex items-center justify-between gap-2">
                   <h3 className="font-display text-base font-semibold text-ink-900">
-                    {copy.group_label(g.name)}
+                    {copy.group_label.replace("{name}", g.name)}
                   </h3>
                   <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold text-grass-800">
                     <Users className="h-3 w-3" />
