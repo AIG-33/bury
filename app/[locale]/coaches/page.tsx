@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
 import { Award, MapPin, Star, Trophy, Map as MapIcon } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
@@ -62,14 +63,12 @@ function buildHref(
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "coachesPublic" });
-  return {
+  return buildPageMetadata({
+    locale,
+    path: "/coaches",
     title: t("title"),
     description: t("subtitle"),
-    alternates: {
-      canonical: `/${locale}/coaches`,
-      languages: { ru: "/ru/coaches", en: "/en/coaches" },
-    },
-  };
+  });
 }
 
 export default async function CoachesPage({ params, searchParams }: Props) {

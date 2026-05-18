@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "PlayTennis.by",
     description:
       "Открытая платформа любительского тенниса в Беларуси: находи соперника, выбирай тренера, записывайся в турниры или создавай свои.",
-    start_url: "/",
+    start_url: "/ru",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

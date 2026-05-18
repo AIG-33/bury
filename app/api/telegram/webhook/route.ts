@@ -39,7 +39,7 @@ const REPLIES = {
     bad_token:
       "Не получилось привязать аккаунт. Открой ссылку «Подключить Telegram» в своём профиле PlayTennis.by ещё раз.",
     hello:
-      "Привет! Это бот PlayTennis.by — он шлёт уведомления о матчах. Чтобы подключить, открой свой профиль на playtennis.by и нажми «Подключить Telegram».",
+      "Привет! Это бот PlayTennis.by — он шлёт уведомления о матчах. Чтобы подключить, открой свой профиль на www.playtennis.by и нажми «Подключить Telegram».",
   },
   en: {
     linked:
@@ -47,7 +47,7 @@ const REPLIES = {
     bad_token:
       "Couldn't link the account. Open the 'Connect Telegram' link in your PlayTennis.by profile again.",
     hello:
-      "Hi! This is the PlayTennis.by bot — it sends match notifications. Open your profile on playtennis.by and click 'Connect Telegram' to link.",
+      "Hi! This is the PlayTennis.by bot — it sends match notifications. Open your profile on www.playtennis.by and click 'Connect Telegram' to link.",
   },
 } as const;
 

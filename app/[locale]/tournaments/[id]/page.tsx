@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { buildTournamentEventJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -25,20 +28,17 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
   const detail = await loadPublicTournamentDetail(id);
-  if (!detail) return { title: "Tournament" };
+  if (!detail) return { title: "Tournament", robots: { index: false } };
   const description =
     detail.tournament.description ??
     `${detail.tournament.format} · ${detail.tournament.participants_count} participants`;
-  return {
+  return buildPageMetadata({
+    locale,
+    path: `/tournaments/${id}`,
     title: detail.tournament.name,
     description,
-    alternates: { canonical: `/${locale}/tournaments/${id}` },
-    openGraph: {
-      title: detail.tournament.name,
-      description,
-      type: "article",
-    },
-  };
+    ogType: "article",
+  });
 }
 
 export default async function PublicTournamentDetailPage({ params }: Props) {
@@ -54,8 +54,21 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
     dateStyle: "full",
   });
 
+  const city = tournament.venues[0]?.city ?? null;
+  const jsonLd = buildTournamentEventJsonLd({
+    id,
+    locale,
+    name: tournament.name,
+    description: tournament.description,
+    startsOn: tournament.starts_on,
+    startTime: tournament.start_time,
+    city,
+    status: tournament.status,
+  });
+
   return (
     <div className="page-shell space-y-6">
+      <JsonLdScript data={jsonLd} />
       <Link
         href={`/${locale}/tournaments`}
         className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900"

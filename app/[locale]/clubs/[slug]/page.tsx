@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { buildClubJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { ArrowLeft, MapPin, Award, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
@@ -24,14 +27,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!res.ok) {
     return { title: t("not_found.title") };
   }
-  return {
+  return buildPageMetadata({
+    locale,
+    path: `/clubs/${slug}`,
     title: res.club.name,
-    description: res.club.description ?? undefined,
-    alternates: {
-      canonical: `/${locale}/clubs/${slug}`,
-      languages: { ru: `/ru/clubs/${slug}`, en: `/en/clubs/${slug}` },
-    },
-  };
+    description:
+      res.club.description ??
+      (locale === "en"
+        ? "Amateur tennis club in Belarus on PlayTennis.by"
+        : "Любительский теннис-клуб в Беларуси на PlayTennis.by"),
+  });
 }
 
 export default async function ClubPage({ params }: Props) {
@@ -53,8 +58,18 @@ export default async function ClubPage({ params }: Props) {
 
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
+  const jsonLd = buildClubJsonLd({
+    slug,
+    locale,
+    name: club.name,
+    description: club.description,
+    city: club.city,
+    logoUrl: club.logo_url,
+  });
+
   return (
     <div className="page-shell space-y-6">
+      <JsonLdScript data={jsonLd} />
       <Link
         href={`/${locale}/clubs`}
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"

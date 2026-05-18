@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
@@ -23,14 +24,12 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "clubsCatalog" });
-  return {
+  return buildPageMetadata({
+    locale,
+    path: "/clubs",
     title: t("title"),
     description: t("subtitle"),
-    alternates: {
-      canonical: `/${locale}/clubs`,
-      languages: { ru: "/ru/clubs", en: "/en/clubs" },
-    },
-  };
+  });
 }
 
 export default async function ClubsPage({ params, searchParams }: Props) {

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { buildVenueJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
 import {
   ArrowLeft,
@@ -37,17 +40,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const venue = await loadVenueDetail(id);
   if (!venue) return { title: "—", robots: { index: false } };
   const t = await getTranslations({ locale, namespace: "venuesCatalog" });
-  return {
+  return buildPageMetadata({
+    locale,
+    path: `/venues/${id}`,
     title: venue.name,
     description: t("subtitle", { venues: 1, courts: venue.courts.length }),
-    alternates: {
-      canonical: `/${locale}/venues/${id}`,
-      languages: {
-        ru: `/ru/venues/${id}`,
-        en: `/en/venues/${id}`,
-      },
-    },
-  };
+  });
 }
 
 export default async function VenueDetailPage({ params }: Props) {
@@ -82,6 +80,16 @@ export default async function VenueDetailPage({ params }: Props) {
         : null;
 
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
+
+  const jsonLd = buildVenueJsonLd({
+    id,
+    locale,
+    name: venue.name,
+    address: venue.address,
+    city: venue.city,
+    lat: venue.lat,
+    lng: venue.lng,
+  });
 
   // -------------------------------------------------------------------------
   // Tab content blocks.
@@ -302,6 +310,7 @@ export default async function VenueDetailPage({ params }: Props) {
 
   return (
     <div className="page-shell space-y-6">
+      <JsonLdScript data={jsonLd} />
       <Link
         href="/venues"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"

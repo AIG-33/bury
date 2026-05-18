@@ -3912,5 +3912,19 @@
         "3": "Closed clubs only open via the invite link you control."
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "Find a sparring partner, coach and tournament in Belarus",
+      "description": "Open amateur tennis platform in Belarus: sparring by level and district, coaches with reviews, tournaments in 6 formats — Minsk, Grodno, Brest and more."
+    },
+    "venues": {
+      "title": "Tennis courts and venues in Belarus",
+      "description": "Directory of tennis venues and courts in Minsk and across Belarus: addresses, surfaces, indoor and outdoor courts."
+    },
+    "og": {
+      "headline": "Amateur tennis in Belarus",
+      "tagline": "Sparring · coaches · tournaments · ratings"
+    }
   }
 }

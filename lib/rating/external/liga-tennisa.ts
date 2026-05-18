@@ -37,7 +37,7 @@ import {
 export const LT_BASE_URL = "https://www.ligatennisa.com";
 export const LT_API_PLAYERS = `${LT_BASE_URL}/api/players`;
 export const LT_PROFILE_URL_PREFIX = `${LT_BASE_URL}/players`;
-export const LT_USER_AGENT = "PlayTennisBY/1.0 (+https://playtennis.by)";
+export const LT_USER_AGENT = "PlayTennisBY/1.0 (+https://www.playtennis.by)";
 
 /** Soft TTL for the in-process cache of the full player list (10 minutes). */
 const LIST_CACHE_TTL_MS = 10 * 60 * 1000;

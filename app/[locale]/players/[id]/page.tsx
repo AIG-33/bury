@@ -14,10 +14,9 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SITE_URL } from "@/lib/seo/site";
 import { loadPublicPlayerProfile } from "../actions";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 

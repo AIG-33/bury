@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
 import { Award, CalendarClock, Clock, Hand, MapPin, Sparkles, Trophy } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
@@ -33,14 +34,12 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "playersPublic" });
-  return {
+  return buildPageMetadata({
+    locale,
+    path: "/players",
     title: t("title"),
     description: t("subtitle"),
-    alternates: {
-      canonical: `/${locale}/players`,
-      languages: { ru: "/ru/players", en: "/en/players" },
-    },
-  };
+  });
 }
 
 function isLevelBucket(v: string | undefined): v is LevelBucket {

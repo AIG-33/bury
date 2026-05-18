@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
 import {
   Building2,
@@ -35,17 +36,12 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "openMatches" });
-  return {
+  return buildPageMetadata({
+    locale,
+    path: "/open-matches",
     title: t("title"),
     description: t("subtitle"),
-    alternates: {
-      canonical: `/${locale}/open-matches`,
-      languages: {
-        ru: "/ru/open-matches",
-        en: "/en/open-matches",
-      },
-    },
-  };
+  });
 }
 
 const FORMATS: OpenMatchFormat[] = ["singles", "doubles"];

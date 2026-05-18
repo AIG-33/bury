@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
 import {
   ArrowRight,
@@ -28,6 +30,17 @@ import {
 } from "@/lib/venues/schema";
 
 type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "seo.venues" });
+  return buildPageMetadata({
+    locale,
+    path: "/venues",
+    title: t("title"),
+    description: t("description"),
+  });
+}
 
 type VenueRow = {
   id: string;

@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { buildCoachJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Award, MapPin, Star, MessageCircle, CalendarClock } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
@@ -11,6 +15,25 @@ import { CoachSlotsBookable } from "./coach-slots";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, id } = await params;
+  const coach = await loadCoachProfile(id);
+  if (!coach) return { title: "—", robots: { index: false } };
+  const t = await getTranslations({ locale, namespace: "coachesPublic" });
+  const name = coach.display_name ?? t("title");
+  const description =
+    coach.coach_bio?.slice(0, 160) ??
+    (locale === "en"
+      ? `Tennis coach in Belarus — book a session on PlayTennis.by`
+      : `Тренер по теннису в Беларуси — запись на PlayTennis.by`);
+  return buildPageMetadata({
+    locale,
+    path: `/coaches/${id}`,
+    title: name,
+    description,
+  });
+}
 
 export default async function CoachProfilePage({ params }: Props) {
   const { locale, id } = await params;
@@ -26,8 +49,18 @@ export default async function CoachProfilePage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const jsonLd = buildCoachJsonLd({
+    id,
+    locale,
+    name: coach.display_name ?? "—",
+    bio: coach.coach_bio,
+    image: coach.avatar_url,
+    city: coach.city,
+  });
+
   return (
     <div className="page-shell space-y-6">
+      <JsonLdScript data={jsonLd} />
       {/* Hero: large portrait on the left spans PageHeader + bio on desktop.
           Without a bio it just spans the header. Mobile stacks naturally. */}
       <section className="grid gap-4 md:grid-cols-[minmax(240px,280px)_1fr] md:items-start">

@@ -1,32 +1,12 @@
 import type { MetadataRoute } from "next";
+import { loadSitemapEntries } from "@/lib/seo/sitemap-data";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const LOCALES = ["ru", "en"] as const;
-
-const PUBLIC_PATHS = [
-  "",
-  "/coaches",
-  "/coaches/map",
-  "/tournaments",
-  "/tournaments?status=upcoming",
-  "/tournaments?status=in_progress",
-  "/tournaments?status=finished",
-  "/help",
-  "/login",
-];
-
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-  const entries: MetadataRoute.Sitemap = [];
-  for (const locale of LOCALES) {
-    for (const path of PUBLIC_PATHS) {
-      entries.push({
-        url: `${SITE}/${locale}${path}`,
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: path === "" ? 1.0 : 0.6,
-      });
-    }
-  }
-  return entries;
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const entries = await loadSitemapEntries();
+  return entries.map((e) => ({
+    url: e.url,
+    lastModified: e.lastModified,
+    changeFrequency: e.changeFrequency,
+    priority: e.priority,
+  }));
 }

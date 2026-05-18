@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { BenefitsSection } from "@/components/landing/benefits-section";
 import { HowItWorks } from "@/components/landing/how-it-works";
@@ -7,6 +11,17 @@ import { CoachCta } from "@/components/landing/coach-cta";
 import { FinalCta } from "@/components/landing/final-cta";
 
 type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "seo.home" });
+  return buildPageMetadata({
+    locale,
+    path: "/",
+    title: t("title"),
+    description: t("description"),
+  });
+}
 
 type LandingHrefs = {
   primary: string;
@@ -76,6 +91,7 @@ export default async function LandingPage({ params }: Props) {
 
   return (
     <>
+      <JsonLdScript data={[buildOrganizationJsonLd(), buildWebSiteJsonLd(locale)]} />
       <LandingHero
         primaryCtaHref={hrefs.primary}
         primaryCtaLabel={t(`hero.${hrefs.primaryLabelKey}`)}

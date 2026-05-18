@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import { Trophy, Calendar, Clock, Coins, MapPin, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
@@ -41,17 +42,12 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "tournamentsPublic" });
-  return {
+  return buildPageMetadata({
+    locale,
+    path: "/tournaments",
     title: t("title"),
     description: t("subtitle"),
-    alternates: {
-      canonical: `/${locale}/tournaments`,
-      languages: {
-        ru: "/ru/tournaments",
-        en: "/en/tournaments",
-      },
-    },
-  };
+  });
 }
 
 export default async function PublicTournamentsPage({ params, searchParams }: Props) {
