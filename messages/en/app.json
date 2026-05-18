@@ -3429,8 +3429,8 @@
     "title": "Players",
     "subtitle": "Real amateur players in Belarus. Pick the right level and district — and propose a sparring.",
     "guest_banner": {
-      "title": "Sign in to propose a match",
-      "body": "The directory is public — see who plays in your area. To message someone or share WhatsApp you need a free account.",
+      "title": "Sign in to browse players",
+      "body": "The directory is only available to registered users — this keeps the community from casual scraping.",
       "cta": "Sign in / register"
     },
     "controls": {

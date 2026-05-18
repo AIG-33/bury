@@ -12,7 +12,6 @@ const STATIC_PUBLIC_PATHS: Array<{ path: string; priority: number; changeFrequen
   { path: "", priority: 1.0, changeFrequency: "daily" },
   { path: "/open-matches", priority: 0.95, changeFrequency: "hourly" },
   { path: "/tournaments", priority: 0.95, changeFrequency: "daily" },
-  { path: "/players", priority: 0.9, changeFrequency: "daily" },
   { path: "/coaches", priority: 0.9, changeFrequency: "weekly" },
   { path: "/coaches/map", priority: 0.75, changeFrequency: "weekly" },
   { path: "/venues", priority: 0.9, changeFrequency: "weekly" },
@@ -53,7 +52,6 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
       venuesRes,
       clubsRes,
       coachesRes,
-      playersRes,
       openMatchesRes,
     ] = await Promise.all([
       supabase
@@ -65,7 +63,6 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
       supabase.from("venues").select("id, updated_at").eq("country", "BY").limit(500),
       supabase.from("clubs").select("slug, updated_at").limit(500),
       supabase.from("public_coach_directory").select("id").limit(500),
-      supabase.from("public_player_directory").select("id").limit(3000),
       supabase
         .from("open_matches")
         .select("id, updated_at")
@@ -95,7 +92,6 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
     const venuePaths = ((venuesRes.data ?? []) as IdRow[]).map((r) => `/venues/${r.id}`);
     const clubPaths = ((clubsRes.data ?? []) as SlugRow[]).map((r) => `/clubs/${r.slug}`);
     const coachPaths = ((coachesRes.data ?? []) as IdRow[]).map((r) => `/coaches/${r.id}`);
-    const playerPaths = ((playersRes.data ?? []) as IdRow[]).map((r) => `/players/${r.id}`);
     const openMatchPaths = ((openMatchesRes.data ?? []) as IdRow[]).map(
       (r) => `/open-matches/${r.id}`,
     );
@@ -104,7 +100,6 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
     pushPaths(venuePaths, 0.7, "monthly");
     pushPaths(clubPaths, 0.7, "weekly");
     pushPaths(coachPaths, 0.65, "weekly");
-    pushPaths(playerPaths, 0.6, "weekly");
     pushPaths(openMatchPaths, 0.7, "daily");
   } catch {
     // Sitemap still returns static routes if Supabase is unavailable at build time.

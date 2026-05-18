@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, Award, CalendarClock, Clock, Hand, MapPin, Trophy, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
-import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { WinRatePill } from "@/components/rating/win-rate-pill";
@@ -71,6 +70,13 @@ function buildPlayerJsonLd(
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { title: "—", robots: { index: false, follow: false } };
+  }
   const profile = await loadPublicPlayerProfile(id);
   if (!profile) {
     return {
@@ -82,6 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: profile.display_name ?? t("title"),
     description: t("subtitle"),
+    robots: { index: false, follow: false },
     alternates: {
       canonical: `/${locale}/players/${id}`,
       languages: {
@@ -95,21 +102,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PublicPlayerProfilePage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("playersPublic");
 
-  const [profile, sessionUser] = await Promise.all([
-    loadPublicPlayerProfile(id),
-    (async () => {
-      const supabase = await createSupabaseServerClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    })(),
-  ]);
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(`/${locale}/login?next=/${locale}/players/${id}`);
+  }
+
+  const t = await getTranslations("playersPublic");
+  const profile = await loadPublicPlayerProfile(id);
   if (!profile) notFound();
 
-  const isGuest = !sessionUser;
   const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   const slotsByWeekday = new Map<string, string[]>();
@@ -220,23 +225,14 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
               />
             }
             actions={
-              isGuest ? (
-                <GuestProposeLink
-                  playerId={profile.id}
-                  label={t("card.propose_login")}
-                  surface="player_profile"
-                  className="btn btn-primary btn-sm"
-                />
-              ) : (
-                <Button asChild variant="primary" size="sm">
-                  <Link
-                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                    href={`/me/find?focus=${profile.id}` as any}
-                  >
-                    {t("card.propose_login")}
-                  </Link>
-                </Button>
-              )
+              <Button asChild variant="primary" size="sm">
+                <Link
+                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                  href={`/me/find?focus=${profile.id}` as any}
+                >
+                  {t("card.propose_login")}
+                </Link>
+              </Button>
             }
           />
         </div>

@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           "/open-matches/new",
           "/help-demo",
           "/clubs/join/",
+          "/players",
         ],
       },
     ],

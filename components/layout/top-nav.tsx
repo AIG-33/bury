@@ -109,7 +109,6 @@ export async function TopNav() {
         { group: "public", href: "/coaches", label: t("coaches") },
         { group: "public", href: "/clubs", label: t("clubs") },
         { group: "public", href: "/venues", label: t("venues") },
-        { group: "public", href: "/players", label: t("players") },
         { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/help", label: t("help") },
       ];

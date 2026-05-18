@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { requireSessionUser } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
 import type { DayPart, Weekday } from "@/lib/matching/find-player";
@@ -40,9 +41,9 @@ export type PublicPlayerProfile = PublicPlayerCard & {
 };
 
 // =============================================================================
-// Public players catalogue.
+// Players catalogue (authenticated `/players` only).
 //
-// This file powers the anonymous `/players` page. It deliberately reads from
+// This file powers the `/players` page. It deliberately reads from
 // the RLS-bypassing `public_player_directory` view (see migration
 // `20260511010000_public_player_directory.sql`) — never from `profiles`
 // directly — so we cannot accidentally leak phone numbers, social links,
@@ -95,6 +96,7 @@ export type PublicPlayersResult = {
 export type PublicDistrictOption = { id: string; name: string; city: string };
 
 export async function loadPublicDistrictOptions(): Promise<PublicDistrictOption[]> {
+  await requireSessionUser();
   const supabase = await createSupabaseServerClient();
   const { data } = (await supabase
     .from("districts")
@@ -114,6 +116,7 @@ export async function loadPublicDistrictOptions(): Promise<PublicDistrictOption[
 const PAGE_LIMIT = 60;
 
 export async function loadPublicPlayers(input: PublicFiltersInput): Promise<PublicPlayersResult> {
+  await requireSessionUser();
   const filters = PublicFiltersSchema.parse(input);
   const range = LEVEL_RANGES[filters.level];
 
@@ -247,6 +250,7 @@ const RECENT_MATCHES_LIMIT = 12;
 export async function loadPublicPlayerProfile(
   playerId: string,
 ): Promise<PublicPlayerProfile | null> {
+  await requireSessionUser();
   const supabase = await createSupabaseServerClient();
 
   const { data: row } = (await supabase

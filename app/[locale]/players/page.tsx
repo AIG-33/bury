@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
@@ -8,8 +9,6 @@ import { LevelBadge } from "@/components/rating/level-badge";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { WinRatePill } from "@/components/rating/win-rate-pill";
 import { EmptyState } from "@/components/help/empty-state";
-import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
-import { GuestProposeLink } from "@/components/analytics/guest-propose-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
@@ -39,6 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: "/players",
     title: t("title"),
     description: t("subtitle"),
+    index: false,
   });
 }
 
@@ -50,6 +50,15 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(`/${locale}/login?next=/${locale}/players`);
+  }
+
   const t = await getTranslations("playersPublic");
 
   const level: LevelBucket = isLevelBucket(sp.level) ? sp.level : "any";
@@ -63,7 +72,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
     : "";
   const slotApplied = Boolean(weekday) && Boolean(daypart);
 
-  const [{ results, total, truncated }, districts, sessionUser] = await Promise.all([
+  const [{ results, total, truncated }, districts] = await Promise.all([
     loadPublicPlayers({
       level,
       districtId: districtId || undefined,
@@ -72,16 +81,8 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
       daypart: slotApplied ? daypart : "",
     }),
     loadPublicDistrictOptions(),
-    (async () => {
-      const supabase = await createSupabaseServerClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    })(),
   ]);
 
-  const isGuest = !sessionUser;
   const hasFilter = level !== "any" || Boolean(districtId) || hand !== "both" || slotApplied;
 
   const primaryClubByUserId = await (async () => {
@@ -108,8 +109,6 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
           />
         }
       />
-
-      <GuestNextStepBanner isGuest={isGuest} current="players" />
 
       {/* Filter bar — URL-driven so SSR & shareable links work. */}
       <Surface variant="flat">
@@ -243,8 +242,6 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
           <EmptyState
             title={t("no_filter_empty_title")}
             description={t("no_filter_empty_body")}
-            ctaLabel={isGuest ? t("guest_banner.cta") : undefined}
-            ctaHref={isGuest ? `/${locale}/login` : undefined}
           />
         )
       ) : (
@@ -370,23 +367,14 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                 </div>
 
                 <div className="mt-auto pt-1">
-                  {isGuest ? (
-                    <GuestProposeLink
-                      playerId={p.id}
-                      label={t("card.propose_login")}
-                      surface="players_list"
-                      className="btn btn-primary w-full justify-center"
-                    />
-                  ) : (
-                    <Button asChild variant="primary" className="w-full justify-center">
-                      <Link
-                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                        href={`/me/find?focus=${p.id}` as any}
-                      >
-                        {t("card.propose_login")}
-                      </Link>
-                    </Button>
-                  )}
+                  <Button asChild variant="primary" className="w-full justify-center">
+                    <Link
+                      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                      href={`/me/find?focus=${p.id}` as any}
+                    >
+                      {t("card.propose_login")}
+                    </Link>
+                  </Button>
                 </div>
               </li>
             );
