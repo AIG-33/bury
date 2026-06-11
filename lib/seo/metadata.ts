@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { getOgImageAlt } from "./og-image";
 import {
   BELARUS_CITY_KEYWORDS_EN,
   BELARUS_CITY_KEYWORDS_RU,
   COUNTRY_CODE,
   DEFAULT_OG_IMAGE,
+  localeOgImagePath,
   LOCALES,
   SITE_NAME,
   SITE_URL,
@@ -89,7 +91,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
   const path = input.path.startsWith("/") ? input.path : `/${input.path}`;
   const pagePath = path === "/" ? "" : path;
   const url = `${SITE_URL}/${locale}${pagePath}`;
-  const ogImage = input.ogImage ?? DEFAULT_OG_IMAGE;
+  const ogImage = input.ogImage ?? localeOgImagePath(locale);
   const ogImageUrl = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`;
   const keywords = [...belarusTennisKeywords(locale), ...(input.keywords ?? [])];
   const index = input.index !== false;
@@ -111,7 +113,14 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
       siteName: SITE_NAME,
       locale: ogLocale,
       alternateLocale: ogAlternate,
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: SITE_NAME }],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: input.ogImage ? SITE_NAME : getOgImageAlt(locale),
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",

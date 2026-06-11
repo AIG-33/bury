@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { getOgImageAlt } from "@/lib/seo/og-image";
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { belarusTennisKeywords } from "@/lib/seo/metadata";
 
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
         url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: SITE_NAME,
+        alt: getOgImageAlt("ru"),
       },
     ],
   },

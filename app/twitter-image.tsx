@@ -4,6 +4,6 @@ export const alt = getOgImageAlt("ru");
 export const size = OG_IMAGE_SIZE;
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+export default function TwitterImage() {
   return createPlayTennisOgImage("ru");
 }

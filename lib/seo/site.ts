@@ -17,6 +17,11 @@ export const TIMEZONE = "Europe/Minsk";
 
 export const DEFAULT_OG_IMAGE = "/opengraph-image";
 
+/** Locale-aware OG image path (1200×630 branded card). */
+export function localeOgImagePath(locale: string): string {
+  return locale === "en" || locale === "ru" ? `/${locale}/opengraph-image` : DEFAULT_OG_IMAGE;
+}
+
 /** Belarus cities commonly searched for amateur tennis. */
 export const BELARUS_CITY_KEYWORDS_RU = [
   "Минск",
