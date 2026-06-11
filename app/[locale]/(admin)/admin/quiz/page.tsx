@@ -21,7 +21,7 @@ export default async function AdminQuizPage({ params }: Props) {
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Quiz"
+        eyebrow={t("eyebrow")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={

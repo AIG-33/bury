@@ -164,7 +164,10 @@ export async function drainOutbox(
     });
     if (result.ok) {
       stats.sent++;
-      await markStatus(supabase, row.id, "sent", row.attempts + 1, null);
+      await markStatus(supabase, row.id, "sent", row.attempts + 1, null, {
+        // Stored so the Resend webhook can correlate bounce/complaint events.
+        providerMessageId: result.mode === "resend" ? result.id : null,
+      });
     } else {
       stats.failed++;
       await markStatus(supabase, row.id, "failed", row.attempts + 1, result.error);
@@ -191,6 +194,7 @@ async function markStatus(
   status: "sent" | "failed" | "cancelled",
   attempts: number,
   lastError: string | null,
+  extra: { providerMessageId?: string | null } = {},
 ): Promise<void> {
   const patch: Record<string, unknown> = {
     status,
@@ -198,6 +202,7 @@ async function markStatus(
     last_error: lastError,
   };
   if (status === "sent") patch.sent_at = new Date().toISOString();
+  if (extra.providerMessageId) patch.provider_message_id = extra.providerMessageId;
   // failed rows that haven't hit MAX_ATTEMPTS go back to pending so cron retries.
   if (status === "failed" && attempts < MAX_ATTEMPTS) {
     patch.status = "pending";

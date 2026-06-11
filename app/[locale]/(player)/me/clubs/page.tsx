@@ -27,7 +27,7 @@ export default async function MyClubsPage({ params }: Props) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/${locale}/login?redirect=/${locale}/me/clubs`);
+  if (!user) redirect(`/${locale}/login?next=${encodeURIComponent("/me/clubs")}`);
 
   const t = await getTranslations("myClubs");
   const tCommon = await getTranslations("clubsCommon");

@@ -32,11 +32,17 @@ export type LoginLabels = {
   forgot_sent_body: string;
   back: string;
   password_min_hint: string;
+  show_password: string;
+  hide_password: string;
+  auth_error_missing_token: string;
+  auth_error_missing_code: string;
+  auth_error_no_session: string;
+  auth_error_generic: string;
 };
 
 type Mode = "password" | "signup" | "magic" | "forgot";
 
-export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
+export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: string }) {
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,6 +53,20 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
 
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
+
+  // /api/auth/callback and /api/auth/confirm bounce back here with
+  // ?error=<code> when a link is broken or expired. Known codes get a
+  // specific message; anything else (e.g. raw Supabase error text) falls
+  // back to the generic "link invalid or expired".
+  const authErrorParam = searchParams.get("error");
+  const knownAuthErrors: Record<string, string> = {
+    missing_token: labels.auth_error_missing_token,
+    missing_code: labels.auth_error_missing_code,
+    no_session: labels.auth_error_no_session,
+  };
+  const authErrorMsg = authErrorParam
+    ? (knownAuthErrors[authErrorParam] ?? labels.auth_error_generic)
+    : null;
 
   // Client-side auth flows MUST use window.location.origin, not
   // NEXT_PUBLIC_SITE_URL, because the env var is baked at build time and
@@ -102,7 +122,9 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: confirmRedirectUrl() },
+      // `locale` lands in raw_user_meta_data so the handle_new_user trigger
+      // seeds profiles.locale with the language the user signed up in.
+      options: { emailRedirectTo: confirmRedirectUrl(), data: { locale } },
     });
     setBusy(false);
     if (error) {
@@ -166,6 +188,14 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
 
   return (
     <div className="space-y-4">
+      {authErrorMsg && (
+        <p
+          role="alert"
+          className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700"
+        >
+          {authErrorMsg}
+        </p>
+      )}
       <div
         role="tablist"
         aria-label="Login mode"
@@ -234,6 +264,8 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
             toggleVisible={() => setShowPwd((v) => !v)}
             autoComplete="new-password"
             minHint={labels.password_min_hint}
+            showLabel={labels.show_password}
+            hideLabel={labels.hide_password}
           />
           <ErrorNote show={!!errMsg} prefix={labels.error} message={errMsg} />
           <PrimaryButton busy={busy} sendingLabel={labels.sending}>
@@ -250,6 +282,8 @@ export function LoginForm({ labels }: { labels: LoginLabels; locale: string }) {
             visible={showPwd}
             toggleVisible={() => setShowPwd((v) => !v)}
             autoComplete="current-password"
+            showLabel={labels.show_password}
+            hideLabel={labels.hide_password}
           />
           <ErrorNote show={!!errMsg} prefix={labels.error} message={errMsg} />
           <PrimaryButton busy={busy} sendingLabel={labels.sending}>
@@ -348,6 +382,8 @@ function PasswordField({
   toggleVisible,
   autoComplete,
   minHint,
+  showLabel,
+  hideLabel,
 }: {
   label: string;
   value: string;
@@ -356,6 +392,8 @@ function PasswordField({
   toggleVisible: () => void;
   autoComplete: "new-password" | "current-password";
   minHint?: string;
+  showLabel: string;
+  hideLabel: string;
 }) {
   return (
     <label className="block">
@@ -378,7 +416,7 @@ function PasswordField({
           type="button"
           onClick={toggleVisible}
           className="text-ink-400 hover:text-ink-700"
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? hideLabel : showLabel}
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

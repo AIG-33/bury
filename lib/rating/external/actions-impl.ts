@@ -304,13 +304,14 @@ export async function confirmImportFromLt(
   let { data: existingProfile } = (await service
     .from("profiles")
     .select(
-      "current_elo, first_name, last_name, avatar_url, dominant_hand, " +
-        "backhand_style, date_of_birth, city, social_links",
+      "current_elo, onboarding_completed_at, first_name, last_name, avatar_url, " +
+        "dominant_hand, backhand_style, date_of_birth, city, social_links",
     )
     .eq("id", user.id)
     .maybeSingle()) as {
     data: {
       current_elo: number | null;
+      onboarding_completed_at: string | null;
       first_name: string | null;
       last_name: string | null;
       avatar_url: string | null;
@@ -352,8 +353,8 @@ export async function confirmImportFromLt(
     const { data: created } = (await service
       .from("profiles")
       .select(
-        "current_elo, first_name, last_name, avatar_url, dominant_hand, " +
-          "backhand_style, date_of_birth, city, social_links",
+        "current_elo, onboarding_completed_at, first_name, last_name, avatar_url, " +
+          "dominant_hand, backhand_style, date_of_birth, city, social_links",
       )
       .eq("id", user.id)
       .maybeSingle()) as { data: typeof existingProfile };
@@ -474,8 +475,7 @@ export async function confirmImportFromLt(
   // Re-importing or refreshing must never overwrite it. See chat decision:
   // "единственное где рейтинг ЛТ влияет на рейтинг внутренний это при создании
   // пользователя".
-  const onboardingDone = !!(existingProfile as { onboarding_completed_at?: string | null } | null)
-    ?.onboarding_completed_at;
+  const onboardingDone = !!existingProfile?.onboarding_completed_at;
 
   // Build the profile patch. current_elo + onboarding_completed_at are
   // touched only on the first import; other empty-field copies happen any

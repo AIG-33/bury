@@ -56,13 +56,19 @@ export default async function LoginPage({ params }: Props) {
                   forgot_sent_body: t("forgot_sent_body"),
                   back: t("back"),
                   password_min_hint: t("password_min_hint"),
+                  show_password: t("show_password"),
+                  hide_password: t("hide_password"),
+                  auth_error_missing_token: t("auth_error_missing_token"),
+                  auth_error_missing_code: t("auth_error_missing_code"),
+                  auth_error_no_session: t("auth_error_no_session"),
+                  auth_error_generic: t("auth_error_generic"),
                 }}
               />
             </Suspense>
           </Surface>
 
           <p className="text-center font-mono text-[11.5px] uppercase tracking-[0.18em] text-ink-500">
-            PlayTennis.by · Беларусь · Любительский теннис
+            {t("footer")}
           </p>
         </div>
       </div>

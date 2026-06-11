@@ -47,6 +47,8 @@ export default async function UpdatePasswordPage({ params }: Props) {
                 mismatch: t("mismatch"),
                 no_session: t("no_session"),
                 password_min_hint: t("password_min_hint"),
+                show_password: t("show_password"),
+                hide_password: t("hide_password"),
               }}
             />
           </Surface>

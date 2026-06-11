@@ -138,7 +138,7 @@ export default async function CoachDashboardPage({ params }: Props) {
             { k: "players", v: data.kpi.players_active_30d, href: "/coach/players" },
             { k: "tournaments", v: data.kpi.tournaments_active, href: "/coach/tournaments" },
             { k: "bookings", v: data.kpi.bookings_next_7d, href: "/coach/slots" },
-            { k: "pending", v: data.kpi.pending_match_confirmations, href: "/coach/matches" },
+            { k: "pending", v: data.kpi.pending_match_confirmations, href: "/me/matches" },
           ] as const
         ).map(({ k, v, href }) => (
           <Link
@@ -174,7 +174,7 @@ export default async function CoachDashboardPage({ params }: Props) {
                     <span className="font-mono tabular-nums text-ink-900">
                       {fmtTime.format(new Date(b.starts_at))}–{fmtTime.format(new Date(b.ends_at))}
                     </span>{" "}
-                    <span className="text-ink-700">— {b.player_name ?? "Player"}</span>
+                    <span className="text-ink-700">— {b.player_name ?? t("today.player_fallback")}</span>
                   </div>
                   <span className="text-xs text-ink-500">
                     {b.venue} · {b.court}

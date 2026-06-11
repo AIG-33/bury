@@ -22,6 +22,18 @@ export default async function OnboardingQuizPage({ params }: Props) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login`);
 
+  // Onboarding is one-shot: redoing the quiz would overwrite an Elo that
+  // already evolved through matches. Mirrors the guard in ../page.tsx.
+  const { data: profile } = (await supabase
+    .from("profiles")
+    .select("onboarding_completed_at")
+    .eq("id", user.id)
+    .single()) as { data: { onboarding_completed_at: string | null } | null };
+
+  if (profile?.onboarding_completed_at) {
+    redirect(`/${locale}/me/rating`);
+  }
+
   const { version, questions } = await loadActiveQuiz();
 
   return (

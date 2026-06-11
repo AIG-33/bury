@@ -102,7 +102,7 @@ export default async function VenueDetailPage({ params }: Props) {
       </Link>
 
       <PageHeader
-        eyebrow="Admin · Venues"
+        eyebrow={t("eyebrow")}
         title={venue.name}
         subtitle={
           <span className="inline-flex items-center gap-1">

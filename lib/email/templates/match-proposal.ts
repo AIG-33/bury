@@ -6,6 +6,7 @@ const COPY: Record<
     subject: (initiator: string) => string;
     title: (initiator: string) => string;
     intro: (initiator: string, elo: number) => string;
+    badge: string;
     note_label: string;
     cta: string;
     whatsapp_hint: string;
@@ -13,6 +14,7 @@ const COPY: Record<
   }
 > = {
   en: {
+    badge: "🎾 Match proposal",
     subject: (n) => `${n} wants to play a tennis match with you`,
     title: (n) => `${n} proposed a match`,
     intro: (n, elo) =>
@@ -24,6 +26,7 @@ const COPY: Record<
     footer: "PlayTennis.by — find a sparring partner, a coach or a tournament for amateur tennis in Belarus.",
   },
   ru: {
+    badge: "🎾 Предложение матча",
     subject: (n) => `${n} предлагает сыграть теннисный матч`,
     title: (n) => `${n} предлагает матч`,
     intro: (n, elo) =>
@@ -61,7 +64,7 @@ export function buildMatchProposalEmail(opts: {
     <tr><td align="center" style="padding:24px;">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;box-shadow:0 8px 24px rgba(15,27,20,.08);overflow:hidden;">
         <tr><td style="padding:32px 32px 0 32px;">
-          <div style="display:inline-block;background:#FEF6CC;color:#7A5C00;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;">🎾 Match proposal</div>
+          <div style="display:inline-block;background:#FEF6CC;color:#7A5C00;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;">${escapeHtml(c.badge)}</div>
           <h1 style="margin:16px 0 8px 0;font-size:24px;font-weight:700;color:#0f1b14;">${escapeHtml(c.title(opts.initiatorName))}</h1>
           <p style="margin:0;font-size:15px;line-height:1.55;color:#445048;">${escapeHtml(c.intro(opts.initiatorName, opts.initiatorElo))}</p>
           ${messageBlock}

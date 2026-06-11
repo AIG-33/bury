@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Lock, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
@@ -18,6 +17,8 @@ type Labels = {
   mismatch: string;
   no_session: string;
   password_min_hint: string;
+  show_password: string;
+  hide_password: string;
 };
 
 export function UpdatePasswordForm({
@@ -34,7 +35,6 @@ export function UpdatePasswordForm({
   const [done, setDone] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -67,8 +67,9 @@ export function UpdatePasswordForm({
     }
     setDone(true);
     setTimeout(() => {
-      router.push(`/${locale}`);
-      router.refresh();
+      // Hard navigate through the post-login resolver so not-yet-onboarded
+      // users land on /onboarding and everyone else on their home page.
+      window.location.assign("/api/auth/post-login");
     }, 1500);
   }
 
@@ -116,6 +117,8 @@ export function UpdatePasswordForm({
         toggleVisible={() => setShow((v) => !v)}
         autoComplete="new-password"
         minHint={labels.password_min_hint}
+        showLabel={labels.show_password}
+        hideLabel={labels.hide_password}
       />
       <PwdField
         label={labels.confirm}
@@ -124,6 +127,8 @@ export function UpdatePasswordForm({
         visible={show}
         toggleVisible={() => setShow((v) => !v)}
         autoComplete="new-password"
+        showLabel={labels.show_password}
+        hideLabel={labels.hide_password}
       />
 
       {errMsg && (
@@ -157,6 +162,8 @@ function PwdField({
   toggleVisible,
   autoComplete,
   minHint,
+  showLabel,
+  hideLabel,
 }: {
   label: string;
   value: string;
@@ -165,6 +172,8 @@ function PwdField({
   toggleVisible: () => void;
   autoComplete: "new-password" | "current-password";
   minHint?: string;
+  showLabel: string;
+  hideLabel: string;
 }) {
   return (
     <label className="block">
@@ -187,7 +196,7 @@ function PwdField({
           type="button"
           onClick={toggleVisible}
           className="text-ink-400 hover:text-ink-700"
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? hideLabel : showLabel}
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

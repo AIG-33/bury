@@ -16,6 +16,7 @@ import {
   eloStatusFor,
   type MatchKind,
 } from "./elo";
+import { loadActiveRatingConfig } from "./config";
 
 // We deliberately keep the type loose; the call-sites already use the typed
 // Database client and we don't want a cyclic dep on the Database type here.
@@ -128,7 +129,9 @@ export async function recalcMatchElo(
   const p2 = (profiles ?? []).find((p) => p.id === match.p2_id);
   if (!p1 || !p2) return { ok: false, error: "profile_not_found" };
 
-  // 4. Compute the update.
+  // 4. Compute the update with the admin-activated config (falls back to
+  //    DEFAULT_RATING_CONFIG when no active row exists / parsing fails).
+  const cfg = await loadActiveRatingConfig(supabase);
   const kind = await classifyKind(supabase, match);
   const update = computeMatchEloDelta({
     p1Elo: p1.current_elo,
@@ -137,6 +140,7 @@ export async function recalcMatchElo(
     p2Matches: p2.rated_matches_count,
     winnerSide: match.winner_side,
     kind,
+    cfg,
   });
 
   const ts = match.played_at ?? new Date().toISOString();
@@ -155,7 +159,7 @@ export async function recalcMatchElo(
     .update({
       current_elo: update.p1NewElo,
       rated_matches_count: newP1Matches,
-      elo_status: eloStatusFor(newP1Matches),
+      elo_status: eloStatusFor(newP1Matches, cfg),
     } as never)
     .eq("id", p1.id);
   if (p1Err) return { ok: false, error: p1Err.message };
@@ -165,7 +169,7 @@ export async function recalcMatchElo(
     .update({
       current_elo: update.p2NewElo,
       rated_matches_count: newP2Matches,
-      elo_status: eloStatusFor(newP2Matches),
+      elo_status: eloStatusFor(newP2Matches, cfg),
     } as never)
     .eq("id", p2.id);
   if (p2Err) return { ok: false, error: p2Err.message };

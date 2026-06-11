@@ -82,7 +82,7 @@ export default async function AdminCoachApplicationsPage({
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Coach Applications"
+        eyebrow={t("eyebrow")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={
@@ -103,7 +103,12 @@ export default async function AdminCoachApplicationsPage({
             initialFilter={filter}
             copy={copy}
           />
-          <EmptyState title={t("empty_title")} description={t("empty_body")} />
+          <EmptyState
+            title={t("empty_title")}
+            description={t("empty_body")}
+            ctaLabel={t("empty_cta")}
+            ctaHref={`/${locale}/coaches`}
+          />
         </>
       ) : (
         <CoachApplicationsClient

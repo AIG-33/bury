@@ -79,7 +79,7 @@ export default async function AdminDbTablePage({ params, searchParams }: Props) 
       </div>
 
       <PageHeader
-        eyebrow={`Admin · DB · ${tbl.name}`}
+        eyebrow={t("eyebrow", { table: tbl.name })}
         title={tbl.label}
         subtitle={tbl.description}
         help={

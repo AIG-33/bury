@@ -20,6 +20,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 import { deleteTournament, type TournamentRow, type VenueOption } from "./actions";
 import {
   TournamentFormDialog,
@@ -68,6 +69,7 @@ export function OrganizedTournamentsClient({
   copy: OrganizedTournamentsCopy;
 }) {
   const t = useTranslations("tournamentsOrganized");
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<TournamentDialogMode>("create");
   const [editing, setEditing] = useState<TournamentRow | null>(null);
@@ -135,7 +137,7 @@ export function OrganizedTournamentsClient({
       const r = await deleteTournament(id);
       setDeletingId(null);
       if (r.ok) router.refresh();
-      else alert(r.error);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 

@@ -78,7 +78,7 @@ export default async function AdminVenuesPage({ params }: Props) {
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Venues"
+        eyebrow={t("eyebrow")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={

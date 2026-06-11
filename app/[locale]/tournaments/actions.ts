@@ -60,9 +60,9 @@ export type PublicTournamentRow = {
  * View filter for the public tournament catalogue.
  *
  *   "all"           → render the page as 3 sections (registration → upcoming → finished),
- *                     no DB-level status filter
+ *                     no DB-level status filter (drafts always excluded)
  *   "registration"  → only open-for-registration ones
- *   "upcoming"      → draft + registration (legacy single-tab view)
+ *   "upcoming"      → registration (legacy single-tab view)
  *   "in_progress"   → currently running
  *   "finished"      → finished
  */
@@ -93,12 +93,15 @@ export async function loadPublicTournaments(opts: {
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
     )
     .eq("privacy", "public")
+    // Drafts are organizer-private working copies — never list them publicly,
+    // regardless of the tab/filter.
+    .neq("status", "draft")
     .order("starts_on", { ascending: true });
 
   if (opts.status === "registration") {
     query = query.eq("status", "registration");
   } else if (opts.status === "upcoming") {
-    query = query.in("status", ["draft", "registration"]);
+    query = query.eq("status", "registration");
   } else if (opts.status === "in_progress") {
     query = query.eq("status", "in_progress");
   } else if (opts.status === "finished") {

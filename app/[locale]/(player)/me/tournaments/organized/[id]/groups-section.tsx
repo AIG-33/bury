@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 import { Loader2, Shuffle, Users, Trophy, ArrowRightLeft, FlagTriangleRight } from "lucide-react";
 import {
   generateGroups,
@@ -91,6 +93,7 @@ export function GroupsSection({
   matchRules: MatchRules;
 }) {
   const router = useRouter();
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const [pending, startT] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -149,7 +152,7 @@ export function GroupsSection({
                     method: "rating",
                   });
                   if (r.ok) router.refresh();
-                  else alert(`${copy.error}: ${r.error}`);
+                  else alert(localizeActionError(tErrors, r.error));
                 });
               }}
               disabled={pending}
@@ -315,6 +318,7 @@ function SetupGroupsCard({
   startT: (cb: () => void) => void;
   onSaved: () => void;
 }) {
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const maxGroups = Math.max(2, Math.floor(approvedCount / 2));
   const defaultCount = approvedCount >= 8 ? 4 : approvedCount >= 6 ? 3 : 2;
   const [groupsCount, setGroupsCount] = useState<number>(Math.min(defaultCount, maxGroups));
@@ -373,7 +377,7 @@ function SetupGroupsCard({
                   method,
                 });
                 if (r.ok) onSaved();
-                else alert(`${copy.error}: ${r.error}`);
+                else alert(localizeActionError(tErrors, r.error));
               });
             }}
             className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-grass-500 px-3 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
@@ -404,6 +408,7 @@ function MoveSelector({
   startT: (cb: () => void) => void;
   onMoved: () => void;
 }) {
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   return (
     <select
       value={currentGroupId}
@@ -417,7 +422,7 @@ function MoveSelector({
             group_id: newId,
           });
           if (r.ok) onMoved();
-          else alert(`${copy.error}: ${r.error}`);
+          else alert(localizeActionError(tErrors, r.error));
         });
       }}
       className="h-7 rounded-md border border-ink-200 bg-white px-1 text-[11px] text-ink-700"
@@ -451,6 +456,7 @@ function CloseGroupsCard({
   startT: (cb: () => void) => void;
   onSaved: () => void;
 }) {
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const [advanceN, setAdvanceN] = useState<number>(2);
   const qualifiers = groupsCount * advanceN;
   const suggested = PLAYOFF_SIZES.find((s) => s >= qualifiers) ?? 32;
@@ -518,7 +524,7 @@ function CloseGroupsCard({
                     playoff_size: playoffSize,
                   });
                   if (r.ok) onSaved();
-                  else alert(`${copy.error}: ${r.error}`);
+                  else alert(localizeActionError(tErrors, r.error));
                 });
               }}
               className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-clay-600 px-3 text-sm font-semibold text-white transition hover:bg-clay-700 disabled:opacity-60"

@@ -24,7 +24,7 @@ export default async function AdminReviewsPage({ params, searchParams }: Props) 
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Reviews"
+        eyebrow={t("eyebrow")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={
@@ -42,6 +42,8 @@ export default async function AdminReviewsPage({ params, searchParams }: Props) 
         <EmptyState
           title={t("empty_title")}
           description={t("empty_body")}
+          ctaLabel={t("empty_cta")}
+          ctaHref={`/${locale}/coaches`}
         />
       ) : (
         <ReviewsModerationClient initialRows={rows!} initialFilter={filter} />

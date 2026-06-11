@@ -52,7 +52,7 @@ export default async function InvitePage({ params }: Props) {
     .eq("id", inv.coach_id)
     .single()) as { data: { display_name: string | null } | null };
 
-  const coachName = coach?.display_name ?? "Your coach";
+  const coachName = coach?.display_name ?? t("coach_fallback");
 
   // If already authenticated, accept and redirect
   const supabase = await createSupabaseServerClient();
@@ -63,8 +63,17 @@ export default async function InvitePage({ params }: Props) {
   if (user) {
     const result = await acceptInvitationAction(token);
     if (result.ok) {
-      // Send to onboarding chooser (quiz vs. Liga Tennisa import).
+      // Send to onboarding chooser (quiz vs. Liga Tennisa import). For
+      // already-onboarded players the chooser bounces to /me/rating itself.
       redirect(`/${locale}/onboarding`);
+    }
+    if (result.error === "email_mismatch") {
+      return (
+        <InviteError
+          title={t("error.email_mismatch.title")}
+          body={t("error.email_mismatch.body", { email: inv.email })}
+        />
+      );
     }
     return <InviteError title={t("error.invalid.title")} body={t("error.invalid.body")} />;
   }

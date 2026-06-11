@@ -201,12 +201,12 @@
           "cta": "Open My matches"
         },
         "tournament_score": {
-          "title": "2. Coach: enter scores in your tournament",
-          "body": "Open your tournament under /coach/tournaments, click Score on a match card in the bracket and fill in the sets — the match flips to Completed and shows up in the public feed.",
+          "title": "2. Organizer: enter scores in your tournament",
+          "body": "Open your tournament under /me/tournaments/organized, click Score on a match card in the bracket and fill in the sets — the match flips to Completed and shows up in the public feed.",
           "cta": "Go to tournaments"
         },
         "tournament_publish": {
-          "title": "3. Coach: flip visibility to Public",
+          "title": "3. Organizer: flip visibility to Public",
           "body": "On the tournament page, set Visibility to Public (the big green Publish results button). Only then do completed matches show up here and on the public tournament page.",
           "cta": "Publish a tournament"
         }
@@ -407,6 +407,8 @@
   "adminCoachApplications": {
     "title": "Coach applications",
     "subtitle": "Players submit applications with documents here. Approval grants coach status and the coach workspace.",
+    "eyebrow": "Admin · Coach Applications",
+    "empty_cta": "View coach profiles",
     "help": {
       "why": "Coaches are added manually after document review — so the monetization tool is not handed to random people and quality stays high.",
       "what": {
@@ -465,6 +467,7 @@
   },
   "adminDb": {
     "title": "Database",
+    "eyebrow_index": "Admin · Database",
     "subtitle": "Direct CRUD access to every core table. Use with care — there is no soft delete.",
     "help": {
       "why": "Sometimes you need to fix a row, backfill a value or clean up test data without writing SQL. This screen exposes every main table with the same controls: filter, sort, edit, delete.",
@@ -526,11 +529,38 @@
         "1": "Players, coaches and other consumers of {table} will see the change on their next page load.",
         "2": "Foreign-key relations are still enforced — deletes that would break references will be rejected."
       }
+    },
+    "eyebrow": "Admin · DB · {table}",
+    "empty_cta": "Create the first row",
+    "new_row_help": {
+      "why": "This form inserts a brand-new row into the “{table}” table, bypassing the regular app flows. Use it for backfills and fixes that have no dedicated screen.",
+      "what": {
+        "1": "Fill in every field marked with an asterisk — they are NOT NULL in the database.",
+        "2": "Leave a field empty to store NULL instead of an empty string.",
+        "3": "Press “Create row” to commit; validation errors from Postgres are shown inline."
+      },
+      "result": {
+        "1": "The row is committed to Postgres immediately — no draft state.",
+        "2": "Players and coaches will see the new data on their next page load wherever {table} is used."
+      }
+    },
+    "edit_row_help": {
+      "why": "This form edits one existing row of the “{table}” table directly. It is the raw fallback when no dedicated admin screen covers the field you need to fix.",
+      "what": {
+        "1": "Change any editable field — system fields (id, timestamps) are locked.",
+        "2": "Clear a field to store NULL instead of an empty string.",
+        "3": "Press “Save changes” to commit; foreign-key and check constraints still apply."
+      },
+      "result": {
+        "1": "The change is committed to Postgres immediately and is visible in the table list.",
+        "2": "Players and coaches will see the updated data on their next page load wherever {table} is used."
+      }
     }
   },
   "adminOverview": {
     "title": "Admin",
     "subtitle": "Configure the platform and watch its pulse.",
+    "eyebrow": "Admin · Overview",
     "stat_players": "Players",
     "stat_coaches": "Coaches",
     "stat_tournaments": "Tournaments",
@@ -583,6 +613,8 @@
     "delete": "Delete",
     "open": "Open",
     "confirm_delete": "Delete this draft? This cannot be undone.",
+    "confirm_activate": "Activate quiz v{version}? The very next signup will get this questionnaire; the currently active version is deactivated. Answers already collected stay attached to their version.",
+    "eyebrow": "Admin · Quiz",
     "empty_title": "No quiz versions yet",
     "empty_body": "Create your first draft to start collecting starting-Elo answers.",
     "dialog_create_title": "New quiz version",
@@ -680,6 +712,8 @@
     "activate": "Activate",
     "open": "Open",
     "confirm_delete": "Delete this draft?",
+    "confirm_activate": "Activate rating config v{version}? All matches confirmed from now on will be rated with this config; the currently active config is deactivated. Past Elo history is not recalculated.",
+    "eyebrow": "Admin · Rating",
     "empty_title": "No rating configs yet",
     "empty_body": "Create the first draft to define K-factors, multipliers and seasonal scoring.",
     "dialog_create_title": "New rating config",
@@ -797,7 +831,9 @@
     "slots": "Slots",
     "tournaments": "Tournaments",
     "leaderboard": "Leaderboard",
-    "profile": "Public profile"
+    "profile": "Public profile",
+    "forbidden_title": "Coaches only",
+    "forbidden_body": "You do not have permission to view the coach area. Apply to become a coach from your profile."
   },
   "coachLeaderboard": {
     "title": "Player leaderboard",
@@ -973,7 +1009,14 @@
     "forgot_sent_title": "Check your inbox",
     "forgot_sent_body": "We sent a password reset link. Click it to set a new password.",
     "back": "Back to sign in",
-    "password_min_hint": "Minimum 8 characters."
+    "password_min_hint": "Minimum 8 characters.",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "footer": "PlayTennis.by · Belarus · Amateur tennis",
+    "auth_error_missing_token": "The sign-in link is incomplete. Request a new one below.",
+    "auth_error_missing_code": "The sign-in link is invalid. Request a new one below.",
+    "auth_error_no_session": "Could not start a session. Please sign in again.",
+    "auth_error_generic": "The link is invalid or has expired. Request a new one below."
   },
   "updatePassword": {
     "title": "Set a new password",
@@ -988,7 +1031,9 @@
     "error": "Failed",
     "mismatch": "Passwords don't match.",
     "no_session": "The link expired or is invalid. Please request a new reset link from the sign-in page.",
-    "password_min_hint": "Minimum 8 characters."
+    "password_min_hint": "Minimum 8 characters.",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "coachDashboard": {
     "title": "Coach dashboard",
@@ -1014,7 +1059,8 @@
     "today": {
       "title": "Today's sessions",
       "see_all": "See all slots →",
-      "empty": "No sessions today. Time for a coffee ☕"
+      "empty": "No sessions today. Time for a coffee ☕",
+      "player_fallback": "Player"
     },
     "week": {
       "title": "Next 7 days",
@@ -1432,6 +1478,7 @@
   },
   "invite": {
     "title": "{coach} invites you",
+    "coach_fallback": "Your coach",
     "for": "For: {email}",
     "body": "After signing in you'll go through a 2-minute quiz to set your starting Elo, then to your player dashboard.",
     "cta": "Sign in & accept",
@@ -1456,6 +1503,10 @@
       "already": {
         "title": "Invitation already accepted",
         "body": "Sign in normally from the login page."
+      },
+      "email_mismatch": {
+        "title": "Invitation is for a different email",
+        "body": "This invitation was sent to {email}. Sign in with that email address to accept it."
       }
     }
   },
@@ -1901,6 +1952,7 @@
   "venues": {
     "title": "Venues & courts",
     "subtitle": "Manage the locations and courts where you teach. They are reused later when you publish training slots and schedule tournaments.",
+    "eyebrow": "Admin · Venues",
     "help": {
       "why": "A venue is a club or facility where you teach. Each venue has one or more courts. You'll attach training slots and tournament matches to specific courts, so this is the foundation of your schedule.",
       "what": {
@@ -2262,6 +2314,55 @@
       "visible_results_body": "Every match marked Completed shows up in the global /matches feed and on the public tournament page right away. Just enter the score with the Score button on each match card.",
       "view_public": "Open public page"
     },
+    "status_control": {
+      "draft_title": "This tournament is a draft",
+      "draft_body": "Players can't apply yet and the tournament doesn't show up in the public catalogue. Open registration once everything is ready.",
+      "open_registration": "Open registration",
+      "opening": "Opening…",
+      "registration_title": "Registration is open",
+      "registration_body": "Players can apply, and a public tournament is listed in the catalogue. Generating the draw will automatically move the tournament to In progress.",
+      "revert_to_draft": "Revert to draft",
+      "reverting": "Reverting…",
+      "revert_confirm": "Revert this tournament to draft? It will disappear from the public catalogue and players won't be able to submit new applications. Existing applications are kept."
+    },
+    "errors": {
+      "generic": "Something went wrong ({code}). Please try again.",
+      "not_authenticated": "You need to sign in.",
+      "not_found": "Tournament not found.",
+      "tournament_not_found": "Tournament not found.",
+      "not_owner": "Only the tournament organizer can do this.",
+      "invalid": "The submitted data failed validation.",
+      "invalid_transition": "That status change isn't allowed: manually you can only open registration or revert to draft.",
+      "locked_in_progress": "The tournament is already in progress or finished: format, match rules and seeding can't be changed.",
+      "delete_locked_in_progress": "You can't delete a tournament that's in progress. Finish or cancel it first.",
+      "tournament_locked": "The tournament is already in progress or finished — the participant list is locked.",
+      "tournament_full": "The participant limit has been reached — no seats left.",
+      "already_started": "The bracket has already been generated — the tournament is in progress.",
+      "already_finished": "The tournament has already finished.",
+      "need_at_least_2_players": "At least 2 approved participants are required.",
+      "need_at_least_2_players_per_group": "At least 2 approved players are required per group.",
+      "format_not_supported_yet": "Draw generation isn't supported for this format yet.",
+      "format_not_group_playoff": "This action is only available for the Groups + playoff format.",
+      "groups_not_generated": "Generate the groups first.",
+      "group_matches_pending": "Not all group-stage matches have been played.",
+      "group_matches_already_started": "Group results already exist — players can't be moved anymore.",
+      "group_not_in_tournament": "That group doesn't belong to this tournament.",
+      "playoff_size_too_small": "The playoff size is smaller than the number of qualifiers.",
+      "not_enough_qualifiers": "Not enough players qualify for the playoff.",
+      "participant_not_found": "Participant not found.",
+      "participant_not_approved": "The participant isn't approved or has withdrawn.",
+      "match_not_found": "Match not found.",
+      "not_a_bracket_match": "This isn't a bracket match.",
+      "match_not_ready": "This match's opponents haven't been decided yet.",
+      "tied_score": "A tie isn't possible — the score must produce a winner.",
+      "invalid_privacy": "Invalid visibility value.",
+      "score_too_few_sets": "Fewer sets than needed to win under the match rules.",
+      "score_too_many_sets": "More sets than the match rules allow.",
+      "score_extra_sets": "Extra set: the match was already decided in the previous sets.",
+      "score_set_tie": "A set can't end in a tie — every set needs a winner.",
+      "score_invalid_set": "Implausible set score. Valid examples: 6-4, 7-5, 7-6.",
+      "score_invalid_super_tiebreak": "The deciding super tiebreak is played to 10 points with a margin of at least 2 (e.g. 10-8)."
+    },
     "match_rule_kinds": {
       "best_of_3": "Best of 3 sets",
       "best_of_5": "Best of 5 sets",
@@ -2483,6 +2584,15 @@
     "open_organizer": "Manage",
     "seats": "{n}/{max, plural, =0 {∞} other {#}} seats",
     "error": "Error",
+    "errors": {
+      "generic": "Something went wrong ({code}). Please try again.",
+      "not_authenticated": "You need to sign in.",
+      "not_found": "Tournament not found.",
+      "cant_apply_to_own_tournament": "You can't apply to your own tournament.",
+      "registration_closed": "Registration for this tournament is currently closed.",
+      "deadline_passed": "The application deadline has passed.",
+      "full": "All seats are taken — the tournament is full."
+    },
     "formats": {
       "single_elimination": "Single elimination",
       "double_elimination": "Double elimination",
@@ -2684,6 +2794,10 @@
   "adminReviews": {
     "title": "Coach reviews moderation",
     "subtitle": "Keep the reputation system honest. Hide spam, flag disputes, remove abuse.",
+    "eyebrow": "Admin · Reviews",
+    "empty_cta": "View coach profiles",
+    "confirm_publish": "Publish this review? It will become visible to everyone on the coach's public profile, and the coach's average rating will be recalculated.",
+    "confirm_hide": "Hide this review? It will disappear from the coach's public profile (the text is kept, not deleted), and the coach's average rating will be recalculated.",
     "help": {
       "why": "Reviews carry a coach's reputation — moderation prevents abuse from both sides.",
       "what": {
@@ -3360,6 +3474,14 @@
       "title": "Contact",
       "body": "Questions, feedback or a bug? Drop us a line — we reply within 24 h."
     },
+    "telegram": {
+      "link_label": "We're on Telegram",
+      "headline": "PlayTennis.by is a free project",
+      "body": "The platform is completely free. Got an idea to make it better, or something isn't working? Message us on Telegram — we read everything.",
+      "cta": "Message us on Telegram",
+      "dismiss": "Later",
+      "open_aria": "Message us on Telegram"
+    },
     "install": {
       "title": "Install the app on your phone",
       "title_short": "Install as app",
@@ -3924,7 +4046,12 @@
     },
     "og": {
       "headline": "Amateur tennis in Belarus",
-      "tagline": "Sparring · coaches · tournaments · ratings"
+      "tagline": "Sparring · tournaments · coaches — one platform",
+      "pillars": {
+        "sparring": { "title": "Sparring", "body": "Open matches — find a partner by level and district" },
+        "tournaments": { "title": "Tournaments", "body": "Run your own event or join open ones" },
+        "coaches": { "title": "Coaches", "body": "Verified reviews — book a court in a few taps" }
+      }
     }
   }
 }

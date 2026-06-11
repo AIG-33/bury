@@ -42,7 +42,7 @@ export default async function AdminOverviewPage({ params }: Props) {
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Overview"
+        eyebrow={t("eyebrow")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={

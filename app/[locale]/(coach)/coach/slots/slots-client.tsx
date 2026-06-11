@@ -56,7 +56,7 @@ export function SlotsClient({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [_, startT] = useTransition();
+  const [, startT] = useTransition();
 
   const grouped = useMemo(() => groupByDay(initialSlots, copy.locale), [initialSlots, copy.locale]);
 

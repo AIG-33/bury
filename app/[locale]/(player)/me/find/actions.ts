@@ -548,7 +548,8 @@ export async function proposeMatch(input: unknown): Promise<ProposeResult> {
   // Outbox row + best-effort send (email primary; WhatsApp will be Phase 2).
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const proposalUrl = `${siteUrl}/${opponent.locale}/me/find/proposals`;
-  const initiatorName = me?.display_name ?? "A tennis player";
+  const initiatorName =
+    me?.display_name ?? (opponent.locale === "ru" ? "Игрок в теннис" : "A tennis player");
   const tpl = buildMatchProposalEmail({
     initiatorName,
     initiatorElo: me?.current_elo ?? 1000,

@@ -267,7 +267,16 @@ export function TableClient({
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + 1} className="px-4 py-10 text-center text-ink-500">
-                  {t("empty_rows")}
+                  <p>{t("empty_rows")}</p>
+                  {!table.disableInsert && (
+                    <Link
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      href={`/${locale}/admin/db/${table.name}/new` as any}
+                      className="mt-3 inline-flex h-9 items-center rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600"
+                    >
+                      {t("empty_cta")}
+                    </Link>
+                  )}
                 </td>
               </tr>
             ) : (

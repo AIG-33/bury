@@ -36,7 +36,7 @@ export default async function AdminRatingDetailPage({ params }: Props) {
       </Link>
 
       <PageHeader
-        eyebrow="Admin · Rating"
+        eyebrow={t("eyebrow")}
         title={`v${row.version}`}
         subtitle={
           row.notes ? (

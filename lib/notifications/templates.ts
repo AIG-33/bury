@@ -79,7 +79,13 @@ function fmtDate(iso: string, locale: Locale): string {
 // ---------------------------------------------------------------------------
 
 type Strings = {
-  invitation_created: { subject: string; intro: string; cta: string; ps: string };
+  invitation_created: {
+    subject: string;
+    intro: string;
+    cta: string;
+    ps: string;
+    coach_fallback: string;
+  };
   booking_confirmed: { subject: string; intro: string; venue: string; cta: string; ps: string };
   booking_cancelled: { subject: string; intro: string; rescheduleCta: string };
   booking_reminder_24h: { subject: string; intro: string; venue: string };
@@ -110,6 +116,7 @@ const COPY: Record<Locale, Strings> = {
         "Coach {coach} invited you to their club on PlayTennis.by — the open amateur-tennis platform of Belarus. Click below to create your account and start booking matches, coaches and tournaments.",
       cta: "Accept invitation",
       ps: "Link expires in 14 days. Ignore this email if it was sent by mistake.",
+      coach_fallback: "Coach",
     },
     booking_confirmed: {
       subject: "Booking confirmed ✅",
@@ -224,6 +231,7 @@ const COPY: Record<Locale, Strings> = {
         "Тренер {coach} пригласил тебя в свой клуб на PlayTennis.by — открытой платформе для любителей тенниса в Беларуси. Жми кнопку ниже — создай аккаунт, и сразу можно искать спарринг, записываться к тренеру или в турнир.",
       cta: "Принять приглашение",
       ps: "Ссылка действительна 14 дней. Если письмо пришло по ошибке — игнорируй.",
+      coach_fallback: "Тренер",
     },
     booking_confirmed: {
       subject: "Запись подтверждена ✅",
@@ -413,7 +421,7 @@ export function renderTemplate(
   switch (code) {
     case "invitation_created": {
       const t = L.invitation_created;
-      const vars = { coach: String(payload.coach_name ?? "Coach") };
+      const vars = { coach: String(payload.coach_name ?? t.coach_fallback) };
       const url = String(payload.accept_url ?? `${SITE}/`);
       const subject = fill(t.subject, vars);
       const html = shell(

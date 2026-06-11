@@ -266,8 +266,9 @@ function SectionedList({
   t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
   fmtDate: Intl.DateTimeFormat;
 }) {
+  // Drafts are filtered out server-side (loadPublicTournaments) and never
+  // reach the public catalogue.
   const registration = tournaments.filter((r) => r.status === "registration");
-  const draft = tournaments.filter((r) => r.status === "draft");
   const inProgress = tournaments.filter((r) => r.status === "in_progress");
   const finished = tournaments
     .filter((r) => r.status === "finished")
@@ -286,7 +287,7 @@ function SectionedList({
       <SectionedGroup
         title={t("sections.upcoming")}
         accent="ball"
-        items={[...inProgress, ...draft]}
+        items={inProgress}
         locale={locale}
         t={t}
         fmtDate={fmtDate}

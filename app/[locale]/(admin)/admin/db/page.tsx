@@ -24,7 +24,7 @@ export default async function AdminDbIndexPage({ params }: Props) {
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Database"
+        eyebrow={t("eyebrow_index")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={

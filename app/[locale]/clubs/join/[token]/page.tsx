@@ -27,7 +27,7 @@ export default async function ClubJoinByTokenPage({ params }: Props) {
       <ResultShell title={t("errors.not_authenticated")} variant="error">
         <Button asChild variant="primary" size="sm">
           <Link
-            href={`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/clubs/join/${token}`)}`}
+            href={`/${locale}/login?next=${encodeURIComponent(`/clubs/join/${token}`)}`}
           >
             {t("cta_login")}
           </Link>

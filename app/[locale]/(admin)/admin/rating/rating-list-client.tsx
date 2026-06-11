@@ -55,7 +55,8 @@ export function RatingListClient({
     });
   }
 
-  function handleActivate(id: string) {
+  function handleActivate(id: string, version: number) {
+    if (!confirm(t("confirm_activate", { version }))) return;
     setError(null);
     start(async () => {
       const res = await activateRatingConfig(id);
@@ -105,6 +106,15 @@ export function RatingListClient({
           <Sliders className="mx-auto h-10 w-10 text-ink-400" />
           <p className="mt-2 font-display text-lg text-ink-900">{t("empty_title")}</p>
           <p className="text-sm text-ink-600">{t("empty_body")}</p>
+          <Button
+            variant="primary"
+            size="sm"
+            className="mt-4"
+            onClick={() => setShowCreate(true)}
+          >
+            <Plus className="h-4 w-4" />
+            {t("new_version")}
+          </Button>
         </Surface>
       ) : (
         <div className="overflow-x-auto surface-card-flat">
@@ -153,7 +163,7 @@ export function RatingListClient({
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => handleActivate(row.id)}
+                          onClick={() => handleActivate(row.id, row.version)}
                           disabled={pending}
                         >
                           {t("activate")}

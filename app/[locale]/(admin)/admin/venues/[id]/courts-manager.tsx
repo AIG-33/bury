@@ -215,7 +215,7 @@ function CourtRowEditor({
   const [isIndoor, setIsIndoor] = useState<boolean>(court.is_indoor);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
-  const [_, startT] = useTransition();
+  const [, startT] = useTransition();
 
   const dirty =
     number !== court.number ||

@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Globe2, Loader2, Lock } from "lucide-react";
 import { setTournamentPrivacy } from "../actions";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 import type { Privacy } from "@/lib/tournaments/schema";
 
 export type PrivacyControlCopy = {
@@ -35,6 +37,7 @@ export function PrivacyControl({
   copy: PrivacyControlCopy;
 }) {
   const router = useRouter();
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const [privacy, setPrivacy] = useState<Privacy>(initialPrivacy);
   const [pending, startT] = useTransition();
 
@@ -42,7 +45,7 @@ export function PrivacyControl({
     startT(async () => {
       const r = await setTournamentPrivacy(tournamentId, next);
       if (!r.ok) {
-        alert(`${copy.error_prefix}: ${r.error}`);
+        alert(localizeActionError(tErrors, r.error));
         return;
       }
       setPrivacy(next);

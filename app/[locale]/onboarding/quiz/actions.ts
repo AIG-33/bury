@@ -68,6 +68,17 @@ export async function submitQuiz(input: unknown): Promise<SubmitResult> {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "not_authenticated" };
 
+  // Onboarding is one-shot: a second submit would overwrite an Elo that
+  // already evolved through matches.
+  const { data: profileRow } = (await supabase
+    .from("profiles")
+    .select("onboarding_completed_at")
+    .eq("id", user.id)
+    .single()) as { data: { onboarding_completed_at: string | null } | null };
+  if (profileRow?.onboarding_completed_at) {
+    return { ok: false, error: "already_onboarded" };
+  }
+
   const { data: questions } = (await supabase
     .from("quiz_questions")
     .select("id, version_id, position, code, type, question, options, weight_formula, required")

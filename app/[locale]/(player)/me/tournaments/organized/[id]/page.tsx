@@ -15,6 +15,7 @@ import { BracketSection, type BracketCopy } from "./bracket-section";
 import { GroupsSection, type GroupsCopy } from "./groups-section";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
 import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
+import { StatusControl, type StatusControlCopy } from "./status-control";
 import {
   TOURNAMENT_FORMATS,
   TOURNAMENT_STATUSES,
@@ -244,6 +245,24 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
           <p className="mt-3 text-sm text-ink-700">{tournament.description}</p>
         )}
       </div>
+
+      <StatusControl
+        tournamentId={tournament.id}
+        status={tournament.status}
+        copy={
+          {
+            draft_title: t("status_control.draft_title"),
+            draft_body: t("status_control.draft_body"),
+            open_registration: t("status_control.open_registration"),
+            opening: t("status_control.opening"),
+            registration_title: t("status_control.registration_title"),
+            registration_body: t("status_control.registration_body"),
+            revert_to_draft: t("status_control.revert_to_draft"),
+            reverting: t("status_control.reverting"),
+            revert_confirm: t("status_control.revert_confirm"),
+          } satisfies StatusControlCopy
+        }
+      />
 
       <PrivacyControl
         tournamentId={tournament.id}

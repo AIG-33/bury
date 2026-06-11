@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2, Trophy, Shuffle } from "lucide-react";
 import { generateBracket, setMatchScore, type MatchRow } from "../actions";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 import {
   type SeedingMethod,
   SEEDING_METHODS,
@@ -61,6 +62,7 @@ export function BracketSection({
   matchRules: MatchRules;
 }) {
   const t = useTranslations("tournamentsOrganized.bracket");
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
   const [method, setMethod] = useState<SeedingMethod>(initialMethod);
@@ -101,7 +103,7 @@ export function BracketSection({
     startT(async () => {
       const r = await generateBracket(tournamentId, { method });
       if (r.ok) router.refresh();
-      else alert(`${copy.error}: ${r.error}`);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 
@@ -233,6 +235,7 @@ export function MatchCard({
   pending: boolean;
   startT: (cb: () => void) => void;
 }) {
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const isEditing = editingId === match.id;
   const winner = match.winner_side;
   const p1Cls =
@@ -306,7 +309,7 @@ export function MatchCard({
                     setEditingId(null);
                     onSaved();
                   } else {
-                    alert(`${copy.error}: ${r.error}`);
+                    alert(localizeActionError(tErrors, r.error));
                   }
                 });
               }}

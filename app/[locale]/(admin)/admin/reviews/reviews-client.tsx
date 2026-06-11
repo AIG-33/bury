@@ -138,7 +138,9 @@ export function ReviewsModerationClient({ initialRows, initialFilter }: Props) {
               <button
                 type="button"
                 disabled={pending && busyId === r.id}
-                onClick={() => action(r.id, "publish")}
+                onClick={() => {
+                  if (confirm(t("confirm_publish"))) action(r.id, "publish");
+                }}
                 className="inline-flex items-center gap-1 rounded-lg bg-grass-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-grass-600 disabled:opacity-60"
               >
                 <Eye className="h-3.5 w-3.5" />
@@ -147,7 +149,9 @@ export function ReviewsModerationClient({ initialRows, initialFilter }: Props) {
               <button
                 type="button"
                 disabled={pending && busyId === r.id}
-                onClick={() => action(r.id, "hide")}
+                onClick={() => {
+                  if (confirm(t("confirm_hide"))) action(r.id, "hide");
+                }}
                 className="inline-flex items-center gap-1 rounded-lg bg-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-300 disabled:opacity-60"
               >
                 <EyeOff className="h-3.5 w-3.5" />

@@ -22,7 +22,7 @@ export default async function AdminRatingPage({ params }: Props) {
   return (
     <div className="page-shell space-y-8">
       <PageHeader
-        eyebrow="Admin · Rating"
+        eyebrow={t("eyebrow")}
         title={t("title")}
         subtitle={t("subtitle")}
         help={

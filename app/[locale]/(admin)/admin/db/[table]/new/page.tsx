@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { getTable } from "@/lib/admin/tables";
 import { RowForm } from "../row-form";
@@ -28,9 +29,25 @@ export default async function AdminDbNewRowPage({ params }: Props) {
       </Link>
 
       <PageHeader
-        eyebrow={`Admin · DB · ${tbl.name}`}
+        eyebrow={t("eyebrow", { table: tbl.name })}
         title={t("new_row_title", { table: tbl.label })}
         subtitle={t("new_row_subtitle")}
+        help={
+          <HelpPanel
+            pageId={`admin-db-${tbl.name}-new`}
+            variant="inline"
+            why={t("new_row_help.why", { table: tbl.label })}
+            what={[
+              t("new_row_help.what.1"),
+              t("new_row_help.what.2"),
+              t("new_row_help.what.3"),
+            ]}
+            result={[
+              t("new_row_help.result.1"),
+              t("new_row_help.result.2", { table: tbl.label }),
+            ]}
+          />
+        }
       />
 
       <div className="surface-card">

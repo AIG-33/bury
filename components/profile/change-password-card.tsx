@@ -93,8 +93,12 @@ export function ChangePasswordCard({
     // Use window.location.origin so the password-reset email always points
     // back to the host the user is currently on, regardless of whether
     // NEXT_PUBLIC_SITE_URL is up to date for the deployment.
+    //
+    // Route through /api/auth/confirm (token_hash flow) — same as the
+    // login form's "forgot password". Unlike /api/auth/callback (PKCE),
+    // the link works even when opened in a different browser/device.
     const siteBase = window.location.origin;
-    const cb = new URL(`${siteBase}/api/auth/callback`);
+    const cb = new URL(`${siteBase}/api/auth/confirm`);
     cb.searchParams.set("next", "/auth/update-password");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: cb.toString(),

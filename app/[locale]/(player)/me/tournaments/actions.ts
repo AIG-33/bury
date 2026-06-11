@@ -57,7 +57,7 @@ async function requireUser() {
 }
 
 // =============================================================================
-// Open registrations — public + draft/registration tournaments not yet started.
+// Open registrations — public tournaments with registration open.
 // =============================================================================
 
 export async function loadOpenTournaments(): Promise<
@@ -75,7 +75,7 @@ export async function loadOpenTournaments(): Promise<
         "max_participants, privacy, status, match_rules",
     )
     .eq("privacy", "public")
-    .in("status", ["draft", "registration"])
+    .eq("status", "registration")
     .order("starts_on", { ascending: true })) as {
     data: Array<
       Omit<
@@ -324,7 +324,9 @@ export async function applyToTournament(
   };
   if (!t) return { ok: false, error: "not_found" };
   if (t.owner_id === userId) return { ok: false, error: "cant_apply_to_own_tournament" };
-  if (t.status !== "draft" && t.status !== "registration") {
+  // Drafts are organizer-private: applications open only once the organizer
+  // explicitly flips the tournament to "registration".
+  if (t.status !== "registration") {
     return { ok: false, error: "registration_closed" };
   }
   if (t.registration_deadline && new Date(t.registration_deadline) < new Date()) {

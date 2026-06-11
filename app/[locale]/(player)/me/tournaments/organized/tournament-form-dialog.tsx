@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, X, MapPin } from "lucide-react";
@@ -22,6 +23,7 @@ import {
   type MatchRuleKind,
 } from "@/lib/tournaments/schema";
 import { createTournament, updateTournament, type VenueOption } from "./actions";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 
 export type TournamentDialogCopy = {
   create_title: string;
@@ -107,6 +109,7 @@ export function TournamentFormDialog({
   copy,
   onSaved,
 }: Props) {
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const [pending, startT] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -157,7 +160,7 @@ export function TournamentFormDialog({
           ? await updateTournament(initial.id, values)
           : await createTournament(values);
       if (r.ok) onSaved(r.id);
-      else setError(r.error);
+      else setError(localizeActionError(tErrors, r.error));
     });
   }
 

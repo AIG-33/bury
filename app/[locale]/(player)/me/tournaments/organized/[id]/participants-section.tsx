@@ -22,6 +22,7 @@ import {
   type ParticipantRow,
   type PlayerOption,
 } from "../actions";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 
 export type ParticipantsCopy = {
   title: string;
@@ -63,6 +64,7 @@ export function ParticipantsSection({
   locked: boolean;
 }) {
   const t = useTranslations("tournamentsOrganized.participants");
+  const tErrors = useTranslations("tournamentsOrganized.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
   const [search, setSearch] = useState("");
@@ -94,7 +96,7 @@ export function ParticipantsSection({
       const r = await addParticipant({ tournament_id: tournamentId, player_id: playerId });
       setBusyId(null);
       if (r.ok) router.refresh();
-      else alert(r.error);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 
@@ -105,7 +107,7 @@ export function ParticipantsSection({
       const r = await setParticipantStatus(tournamentId, participantId, status);
       setBusyId(null);
       if (r.ok) router.refresh();
-      else alert(r.error);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 
@@ -116,7 +118,7 @@ export function ParticipantsSection({
       const r = await removeParticipant(tournamentId, participantId);
       setBusyId(null);
       if (r.ok) router.refresh();
-      else alert(r.error);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 

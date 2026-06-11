@@ -20,7 +20,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/${locale}/login?redirect=/${locale}/me/clubs/owned/${id}`);
+  if (!user) redirect(`/${locale}/login?next=${encodeURIComponent(`/me/clubs/owned/${id}`)}`);
 
   const t = await getTranslations("clubsOwned");
 

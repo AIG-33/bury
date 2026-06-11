@@ -27,6 +27,7 @@ import {
   type MyTournamentRow,
 } from "./actions";
 import type { TournamentRow as OrganizedTournamentRow } from "./organized/actions";
+import { localizeActionError } from "@/lib/tournaments/action-errors";
 import type { TournamentFormat, TournamentStatus, Surface } from "@/lib/tournaments/schema";
 
 export type PlayerTournamentsCopy = {
@@ -228,6 +229,7 @@ function OpenTournamentCard({
   copy: PlayerTournamentsCopy;
 }) {
   const t = useTranslations("tournamentsPlayer");
+  const tErrors = useTranslations("tournamentsPlayer.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
 
@@ -235,7 +237,7 @@ function OpenTournamentCard({
     startT(async () => {
       const r = await applyToTournament(tournament.id);
       if (r.ok) router.refresh();
-      else alert(`${copy.error}: ${r.error}`);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 
@@ -244,7 +246,7 @@ function OpenTournamentCard({
     startT(async () => {
       const r = await withdrawFromTournament(tournament.id);
       if (r.ok) router.refresh();
-      else alert(`${copy.error}: ${r.error}`);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 
@@ -350,6 +352,7 @@ function MyTournamentCard({
   tournament: MyTournamentRow;
   copy: PlayerTournamentsCopy;
 }) {
+  const tErrors = useTranslations("tournamentsPlayer.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
 
@@ -358,7 +361,7 @@ function MyTournamentCard({
     startT(async () => {
       const r = await withdrawFromTournament(tournament.id);
       if (r.ok) router.refresh();
-      else alert(`${copy.error}: ${r.error}`);
+      else alert(localizeActionError(tErrors, r.error));
     });
   }
 

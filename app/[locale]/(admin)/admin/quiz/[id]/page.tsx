@@ -34,7 +34,7 @@ export default async function AdminQuizVersionPage({ params }: Props) {
       </Link>
 
       <PageHeader
-        eyebrow="Admin · Quiz"
+        eyebrow={t("eyebrow")}
         title={`v${version.version}`}
         subtitle={
           version.notes ? (
