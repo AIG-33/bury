@@ -40,36 +40,20 @@ type TgUpdate = {
   message?: TgMessage;
 };
 
+// Product decision: the bot speaks Russian only — the audience is Belarus,
+// and a single voice keeps the copy maintainable.
 const REPLIES = {
-  ru: {
-    linked:
-      "🎾 Готово! PlayTennis.by теперь будет писать сюда об уведомлениях: новые предложения матчей и принятия. Изменить можно в профиле.",
-    bad_token:
-      "Не получилось привязать аккаунт. Открой ссылку «Подключить Telegram» в своём профиле PlayTennis.by ещё раз.",
-    hello:
-      "Привет! Это бот PlayTennis.by — бесплатной платформы любительского тенниса в Беларуси.\n\n" +
-      "🔔 Уведомления о матчах: открой свой профиль на www.playtennis.by и нажми «Подключить Telegram».\n\n" +
-      "💬 Проект бесплатный и развивается на вашей обратной связи: пиши прямо сюда предложения, что сделать лучше, или сообщай, если что-то не работает, — мы читаем всё.",
-    feedback_thanks:
-      "Спасибо! Сообщение получено 🎾 Мы читаем всё и учитываем при развитии проекта.",
-  },
-  en: {
-    linked:
-      "🎾 Done! PlayTennis.by will now send notifications here — match proposals and acceptances. You can change this in your profile.",
-    bad_token:
-      "Couldn't link the account. Open the 'Connect Telegram' link in your PlayTennis.by profile again.",
-    hello:
-      "Hi! This is the bot of PlayTennis.by — a free amateur tennis platform in Belarus.\n\n" +
-      "🔔 Match notifications: open your profile on www.playtennis.by and click 'Connect Telegram'.\n\n" +
-      "💬 The project is free and grows on your feedback: send your ideas or report anything broken right here — we read everything.",
-    feedback_thanks:
-      "Thanks! Message received 🎾 We read everything and use it to improve the project.",
-  },
+  linked:
+    "🎾 Готово! PlayTennis.by теперь будет писать сюда об уведомлениях: новые предложения матчей и принятия. Изменить можно в профиле.",
+  bad_token:
+    "Не получилось привязать аккаунт. Открой ссылку «Подключить Telegram» в своём профиле PlayTennis.by ещё раз.",
+  hello:
+    "Привет! Это бот PlayTennis.by — бесплатной платформы любительского тенниса в Беларуси.\n\n" +
+    "🔔 Уведомления о матчах: открой свой профиль на www.playtennis.by и нажми «Подключить Telegram».\n\n" +
+    "💬 Проект бесплатный и развивается на вашей обратной связи: пиши прямо сюда предложения, что сделать лучше, или сообщай, если что-то не работает, — мы читаем всё.",
+  feedback_thanks:
+    "Спасибо! Сообщение получено 🎾 Мы читаем всё и учитываем при развитии проекта.",
 } as const;
-
-function pickLocale(code?: string): "ru" | "en" {
-  return code && code.startsWith("ru") ? "ru" : "en";
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
@@ -94,18 +78,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!msg) return NextResponse.json({ ok: true });
 
   const chatId = msg.chat.id;
-  const locale = pickLocale(msg.from?.language_code);
 
   const text = (msg.text ?? "").trim();
   if (text.startsWith("/start")) {
     const arg = text.slice("/start".length).trim();
     if (!arg) {
-      await sendTelegramMessage({ chatId, text: REPLIES[locale].hello });
+      await sendTelegramMessage({ chatId, text: REPLIES.hello });
       return NextResponse.json({ ok: true });
     }
     const userId = verifyTelegramLinkToken(arg);
     if (!userId) {
-      await sendTelegramMessage({ chatId, text: REPLIES[locale].bad_token });
+      await sendTelegramMessage({ chatId, text: REPLIES.bad_token });
       return NextResponse.json({ ok: true });
     }
 
@@ -128,7 +111,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     await sendTelegramMessage({
       chatId,
-      text: error ? REPLIES[locale].bad_token : REPLIES[locale].linked,
+      text: error ? REPLIES.bad_token : REPLIES.linked,
     });
     return NextResponse.json({ ok: true });
   }
@@ -142,12 +125,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       : (msg.from?.first_name ?? `chat ${chatId}`);
     await sendTelegramMessage({
       chatId: feedbackChatId,
-      text: `💬 Feedback от ${sender} (chat_id ${chatId}):\n\n${text}`,
+      text: `💬 Фидбек от ${sender} (chat_id ${chatId}):\n\n${text}`,
     });
-    await sendTelegramMessage({ chatId, text: REPLIES[locale].feedback_thanks });
+    await sendTelegramMessage({ chatId, text: REPLIES.feedback_thanks });
     return NextResponse.json({ ok: true });
   }
 
-  await sendTelegramMessage({ chatId, text: REPLIES[locale].hello });
+  await sendTelegramMessage({ chatId, text: REPLIES.hello });
   return NextResponse.json({ ok: true });
 }
