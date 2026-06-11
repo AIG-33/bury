@@ -5,7 +5,10 @@
  *   - `/start <token>` — verifies the HMAC, binds the chat to the user's
  *     profile via `telegram_links` (upsert by `player_id`), and posts a
  *     short confirmation back to the chat.
- *   - everything else — quick "what is this bot" reply, no DB writes.
+ *   - everything else — treated as user feedback: forwarded to the
+ *     `TELEGRAM_FEEDBACK_CHAT_ID` chat (if configured) and acknowledged.
+ *     Without that env we fall back to the "what is this bot" reply so
+ *     feedback is never silently swallowed.
  *
  * Security: Telegram lets you set a `secret_token` when registering the
  * webhook (`setWebhook?secret_token=...`). Telegram sends it back to us in
@@ -22,7 +25,12 @@ export const runtime = "nodejs";
 
 type TgMessage = {
   message_id: number;
-  from?: { id: number; language_code?: string };
+  from?: {
+    id: number;
+    language_code?: string;
+    username?: string;
+    first_name?: string;
+  };
   chat: { id: number };
   text?: string;
 };
@@ -39,7 +47,11 @@ const REPLIES = {
     bad_token:
       "Не получилось привязать аккаунт. Открой ссылку «Подключить Telegram» в своём профиле PlayTennis.by ещё раз.",
     hello:
-      "Привет! Это бот PlayTennis.by — он шлёт уведомления о матчах. Чтобы подключить, открой свой профиль на www.playtennis.by и нажми «Подключить Telegram».",
+      "Привет! Это бот PlayTennis.by — бесплатной платформы любительского тенниса в Беларуси.\n\n" +
+      "🔔 Уведомления о матчах: открой свой профиль на www.playtennis.by и нажми «Подключить Telegram».\n\n" +
+      "💬 Проект бесплатный и развивается на вашей обратной связи: пиши прямо сюда предложения, что сделать лучше, или сообщай, если что-то не работает, — мы читаем всё.",
+    feedback_thanks:
+      "Спасибо! Сообщение получено 🎾 Мы читаем всё и учитываем при развитии проекта.",
   },
   en: {
     linked:
@@ -47,7 +59,11 @@ const REPLIES = {
     bad_token:
       "Couldn't link the account. Open the 'Connect Telegram' link in your PlayTennis.by profile again.",
     hello:
-      "Hi! This is the PlayTennis.by bot — it sends match notifications. Open your profile on www.playtennis.by and click 'Connect Telegram' to link.",
+      "Hi! This is the bot of PlayTennis.by — a free amateur tennis platform in Belarus.\n\n" +
+      "🔔 Match notifications: open your profile on www.playtennis.by and click 'Connect Telegram'.\n\n" +
+      "💬 The project is free and grows on your feedback: send your ideas or report anything broken right here — we read everything.",
+    feedback_thanks:
+      "Thanks! Message received 🎾 We read everything and use it to improve the project.",
   },
 } as const;
 
@@ -58,9 +74,15 @@ function pickLocale(code?: string): "ru" | "en" {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
   if (!secret) {
-    // Webhook accidentally hit without server-side wiring — pretend OK so
-    // Telegram doesn't keep retrying.
-    return NextResponse.json({ ok: true });
+    // Fail closed: without the shared secret we cannot authenticate Telegram,
+    // so we must not process updates that mutate telegram_links/profiles.
+    console.error(
+      "[telegram/webhook] TELEGRAM_WEBHOOK_SECRET is not configured — rejecting update",
+    );
+    return NextResponse.json(
+      { ok: false, error: "webhook_not_configured" },
+      { status: 503 },
+    );
   }
   const incoming = req.headers.get("x-telegram-bot-api-secret-token");
   if (incoming !== secret) {
@@ -108,6 +130,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       chatId,
       text: error ? REPLIES[locale].bad_token : REPLIES[locale].linked,
     });
+    return NextResponse.json({ ok: true });
+  }
+
+  // Any other text message = user feedback (ideas, bug reports). Forward it
+  // to the maintainers' chat when configured, otherwise explain the bot.
+  const feedbackChatId = Number(process.env.TELEGRAM_FEEDBACK_CHAT_ID ?? "");
+  if (text && Number.isFinite(feedbackChatId) && feedbackChatId !== 0) {
+    const sender = msg.from?.username
+      ? `@${msg.from.username}`
+      : (msg.from?.first_name ?? `chat ${chatId}`);
+    await sendTelegramMessage({
+      chatId: feedbackChatId,
+      text: `💬 Feedback от ${sender} (chat_id ${chatId}):\n\n${text}`,
+    });
+    await sendTelegramMessage({ chatId, text: REPLIES[locale].feedback_thanks });
     return NextResponse.json({ ok: true });
   }
 

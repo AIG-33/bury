@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
+import { TelegramIcon } from "@/components/icons/telegram";
 import { InstallAppIcons } from "./install-app-card";
+import { telegramBotUrl } from "@/lib/telegram/bot-link";
 
 type Props = { authed: boolean };
 
@@ -18,6 +20,7 @@ type Props = { authed: boolean };
 export async function Footer({ authed }: Props) {
   const t = await getTranslations("footer");
   const year = new Date().getFullYear();
+  const botUrl = telegramBotUrl();
 
   return (
     <footer className="mt-16 border-t border-ink-100/80 bg-white/70 backdrop-blur-md pb-mobile-nav">
@@ -42,6 +45,17 @@ export async function Footer({ authed }: Props) {
             <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">
               {t("contact.body")}
             </p>
+            {botUrl && (
+              <a
+                href={botUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#229ED9] transition-colors hover:text-[#1d8bc0]"
+              >
+                <TelegramIcon className="h-4 w-4" />
+                {t("telegram.link_label")}
+              </a>
+            )}
           </div>
 
           <FooterColumn title={t("groups.play")}>

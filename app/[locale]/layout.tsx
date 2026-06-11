@@ -13,8 +13,10 @@ import {
   InstallAppProvider,
   InstallAppPrompt,
 } from "@/components/layout/install-app-card";
+import { TelegramWidget } from "@/components/layout/telegram-widget";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { telegramBotUrl } from "@/lib/telegram/bot-link";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -98,6 +100,14 @@ export default async function LocaleLayout({ children, params }: Props) {
     prompt_dismiss: tFooter("install.prompt_dismiss"),
   };
 
+  const telegramLabels = {
+    headline: tFooter("telegram.headline"),
+    body: tFooter("telegram.body"),
+    cta: tFooter("telegram.cta"),
+    dismiss: tFooter("telegram.dismiss"),
+    open_aria: tFooter("telegram.open_aria"),
+  };
+
   return (
     <NextIntlClientProvider messages={messages} locale={locale} timeZone="Europe/Minsk">
       <Suspense fallback={null}>
@@ -110,6 +120,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               <BottomTabBar items={bottomTabs} />
             </div>
             <InstallAppPrompt labels={installPromptLabels} />
+            <TelegramWidget href={telegramBotUrl()} labels={telegramLabels} />
           </InstallAppProvider>
         </PostHogProvider>
       </Suspense>
