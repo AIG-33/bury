@@ -15,8 +15,9 @@ alter table quiz_questions           add column if not exists updated_at timesta
 alter table quiz_answers             add column if not exists updated_at timestamptz not null default now();
 alter table rating_algorithm_config  add column if not exists updated_at timestamptz not null default now();
 alter table notifications_outbox     add column if not exists updated_at timestamptz not null default now();
-alter table telegram_links           add column if not exists updated_at timestamptz not null default now();
-alter table audit_log                add column if not exists updated_at timestamptz not null default now();
+-- telegram_links / audit_log intentionally absent: both were dropped by
+-- 20260514000100_db_audit_drop_dead_objects.sql; telegram_links is re-created
+-- (with updated_at built in) by 20260611000300_restore_telegram_links.sql.
 alter table open_match_applications  add column if not exists updated_at timestamptz not null default now();
 alter table tournament_venues        add column if not exists updated_at timestamptz not null default now();
 alter table external_rating_history  add column if not exists updated_at timestamptz not null default now();
@@ -41,12 +42,6 @@ create trigger trg_rating_algorithm_config_updated before update on rating_algor
 
 drop trigger if exists trg_notifications_outbox_updated on notifications_outbox;
 create trigger trg_notifications_outbox_updated before update on notifications_outbox for each row execute function set_updated_at();
-
-drop trigger if exists trg_telegram_links_updated on telegram_links;
-create trigger trg_telegram_links_updated before update on telegram_links for each row execute function set_updated_at();
-
-drop trigger if exists trg_audit_log_updated on audit_log;
-create trigger trg_audit_log_updated before update on audit_log for each row execute function set_updated_at();
 
 drop trigger if exists trg_open_match_applications_updated on open_match_applications;
 create trigger trg_open_match_applications_updated before update on open_match_applications for each row execute function set_updated_at();
