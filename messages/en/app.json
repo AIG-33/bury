@@ -2331,6 +2331,7 @@
       "not_found": "Tournament not found.",
       "tournament_not_found": "Tournament not found.",
       "not_owner": "Only the tournament organizer can do this.",
+      "not_club_admin": "You can only link a tournament to a club you own or co-administer.",
       "invalid": "The submitted data failed validation.",
       "invalid_transition": "That status change isn't allowed: manually you can only open registration or revert to draft.",
       "locked_in_progress": "The tournament is already in progress or finished: format, match rules and seeding can't be changed.",
@@ -2390,6 +2391,7 @@
         "entry_fee": "Entry fee",
         "entry_fee_currency": "BYN",
         "venues": "Venues",
+        "club": "Club",
         "privacy": "Visibility",
         "draw_method": "Default seeding",
         "prizes": "Prizes",
@@ -2410,7 +2412,8 @@
         "start_time": "Local time, Europe/Minsk. Leave empty if the start time is still TBD.",
         "entry_fee": "How much each player pays to enter. Leave empty or 0 to mark the tournament as free.",
         "venues": "Pick one or more venues — e.g. group stage at venue A, finals at venue B. The catalogue is curated by the club admin.",
-        "venues_empty_catalogue": "No venues in the catalogue yet. Ask your admin to add at least one."
+        "venues_empty_catalogue": "No venues in the catalogue yet. Ask your admin to add at least one.",
+        "club": "Link this tournament to a club you run — its matches will feed that club's internal rating."
       },
       "save": "Save",
       "saving": "Saving…",
@@ -3811,6 +3814,42 @@
       "cta": "Back to clubs"
     }
   },
+  "clubRating": {
+    "title": "Club rating",
+    "subtitle": "Internal standings of «{club}» — separate from the site-wide Elo.",
+    "meta_description": "Internal player rating of the «{club}» tennis club on PlayTennis.by.",
+    "see_full": "Full table",
+    "empty": "No rated matches yet. The rating fills up as the club plays tournaments and friendlies.",
+    "disabled": "This club does not keep an internal rating.",
+    "tournaments_title": "Club tournaments",
+    "table": {
+      "rank": "#",
+      "player": "Player",
+      "rating": "Rating",
+      "matches": "Matches",
+      "record": "W–L",
+      "provisional": "new"
+    },
+    "status": {
+      "draft": "Draft",
+      "registration": "Registration",
+      "in_progress": "In progress",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "help": {
+      "why": "This is the club's own ladder. It runs on the same Elo engine as the site but with the rules the club owner chose, and it never affects a player's site-wide rating.",
+      "what": {
+        "1": "See who tops the club ladder and each player's record.",
+        "2": "Open a player's profile from the table.",
+        "3": "Follow the club tournaments that feed the rating."
+      },
+      "result": {
+        "1": "Win club tournament or friendly matches and you climb the club table.",
+        "2": "Your global PlayTennis.by Elo stays untouched."
+      }
+    }
+  },
   "clubJoin": {
     "accepting": "Accepting the invite…",
     "success": {
@@ -4018,6 +4057,77 @@
         "pending_expires": "Expires in 14 days from the offer date.",
         "cancel": "Cancel offer",
         "cancelling": "Cancelling…"
+      },
+      "page": {
+        "title": "Public page",
+        "subtitle": "Customize how your club page looks to visitors.",
+        "brand_color": "Accent color",
+        "brand_color_hint": "Tints the header and the leaders in the rating table.",
+        "brand_color_clear": "No color",
+        "cover": "Cover image",
+        "cover_upload": "Upload cover",
+        "cover_uploading": "Uploading…",
+        "cover_remove": "Remove cover",
+        "cover_hint": "Wide JPEG / PNG / WebP up to 2 MB.",
+        "blocks_title": "Page sections",
+        "blocks_hint": "Choose what visitors see on the club page.",
+        "block_rating": "Rating table",
+        "block_tournaments": "Tournaments",
+        "block_roster": "Coaches & players",
+        "block_venues": "Venues",
+        "save": "Save page",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Could not save — please try again."
+      },
+      "rating": {
+        "title": "Club rating",
+        "subtitle": "Your club runs its own Elo, separate from the site-wide rating.",
+        "enabled": "Keep an internal rating",
+        "enabled_hint": "When off, the rating block is hidden from the club page.",
+        "label_field": "Rating name",
+        "label_placeholder": "e.g. «Club ladder 2026»",
+        "defaults_note": "Defaults match the site-wide formula — tune them to fit your club.",
+        "start_rating": "Starting rating",
+        "floor": "Rating floor",
+        "k_title": "K-factors",
+        "k_provisional": "K · new players",
+        "k_intermediate": "K · regular",
+        "k_established": "K · veterans",
+        "k_provisional_until": "Matches as «new»",
+        "k_intermediate_until": "Matches until «veteran»",
+        "mult_title": "Match weight",
+        "mult_friendly": "Friendly",
+        "mult_tournament": "Tournament",
+        "mult_final": "Tournament final",
+        "save": "Save rating settings",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Could not save — check the values.",
+        "sim_title": "Simulator",
+        "sim_hint": "Preview how a result changes ratings — nothing is saved.",
+        "sim_p1": "Player A rating",
+        "sim_p2": "Player B rating",
+        "sim_p1_matches": "A · matches played",
+        "sim_p2_matches": "B · matches played",
+        "sim_winner": "Winner",
+        "sim_winner_p1": "Player A",
+        "sim_winner_p2": "Player B",
+        "sim_kind": "Match type",
+        "sim_kind_friendly": "Friendly",
+        "sim_kind_tournament": "Tournament",
+        "sim_kind_final": "Final",
+        "sim_run": "Calculate",
+        "sim_result": "A: {p1}  ·  B: {p2}",
+        "adjust_title": "Manual adjustment",
+        "adjust_hint": "Set a player's rating by hand — every change is logged.",
+        "adjust_new": "New rating",
+        "adjust_note_placeholder": "Reason (optional)",
+        "adjust_save": "Apply",
+        "adjust_saving": "Applying…",
+        "adjust_empty": "No members yet.",
+        "adjust_current": "Now: {rating}",
+        "adjust_unrated": "unrated"
       }
     },
     "help": {

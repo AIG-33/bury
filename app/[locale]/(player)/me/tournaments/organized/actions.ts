@@ -32,6 +32,7 @@ import {
   type GroupQualifier,
 } from "@/lib/tournaments/draw";
 import { recalcMatchElo } from "@/lib/rating/recalc";
+import { recalcClubRatingsForMatch } from "@/lib/rating/club-recalc";
 import { validateScoreAgainstRules } from "@/lib/tournaments/score-validation";
 
 // =============================================================================
@@ -57,6 +58,7 @@ export type TournamentRow = {
   max_participants: number | null;
   entry_fee_byn: number | null;
   privacy: Privacy;
+  club_id: string | null;
   status: TournamentStatus;
   draw_method: SeedingMethod | null;
   prizes_description: string | null;
@@ -152,7 +154,7 @@ export async function loadOrganizedTournaments(): Promise<
     .from("tournaments")
     .select(
       "id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
+        "registration_deadline, max_participants, entry_fee_byn, privacy, club_id, status, " +
         "draw_method, prizes_description, match_rules, created_at, " +
         "groups_count, advance_per_group, playoff_size, third_place_match",
     )
@@ -227,6 +229,40 @@ export async function loadVenueOptions(): Promise<VenueOption[]> {
   return data ?? [];
 }
 
+export type ClubOption = { id: string; name: string };
+
+/**
+ * Clubs the current user owns or co-administers — used to optionally link a
+ * tournament to a club (which feeds that club's internal rating).
+ */
+export async function loadAdministrableClubs(): Promise<ClubOption[]> {
+  const auth = await requireUser();
+  if (!auth.ok) return [];
+  const { supabase, userId } = auth;
+
+  const { data: owned } = (await supabase
+    .from("clubs")
+    .select("id, name")
+    .eq("owner_id", userId)) as { data: ClubOption[] | null };
+
+  const { data: adminRows } = (await supabase
+    .from("club_members")
+    .select("clubs!inner(id, name)")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .eq("status", "approved")) as {
+    data: Array<{ clubs: ClubOption | ClubOption[] }> | null;
+  };
+
+  const byId = new Map<string, ClubOption>();
+  for (const c of owned ?? []) byId.set(c.id, c);
+  for (const r of adminRows ?? []) {
+    const c = Array.isArray(r.clubs) ? r.clubs[0] : r.clubs;
+    if (c) byId.set(c.id, c);
+  }
+  return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export async function loadTournamentDetail(tournamentId: string): Promise<
   | {
       ok: true;
@@ -246,7 +282,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     .from("tournaments")
     .select(
       "id, owner_id, name, description, format, surface, starts_on, start_time, " +
-        "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
+        "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, club_id, status, " +
         "draw_method, prizes_description, match_rules, created_at, " +
         "groups_count, advance_per_group, playoff_size, third_place_match",
     )
@@ -390,6 +426,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       max_participants: t.max_participants,
       entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
+      club_id: t.club_id ?? null,
       status: t.status,
       draw_method: t.draw_method,
       prizes_description: t.prizes_description,
@@ -439,6 +476,34 @@ async function syncTournamentVenues(
   return { ok: true };
 }
 
+/**
+ * True when the user owns the club or is an approved co-admin of it. Used to
+ * gate linking a tournament to a club.
+ */
+async function userAdministersClub(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  clubId: string,
+): Promise<boolean> {
+  const { data: club } = (await supabase
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", clubId)
+    .maybeSingle()) as { data: { owner_id: string } | null };
+  if (!club) return false;
+  if (club.owner_id === userId) return true;
+  const { data: member } = (await supabase
+    .from("club_members")
+    .select("id")
+    .eq("club_id", clubId)
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .eq("status", "approved")
+    .maybeSingle()) as { data: { id: string } | null };
+  return !!member;
+}
+
 export async function createTournament(input: unknown): Promise<SaveResult> {
   const auth = await requireUser();
   if (!auth.ok) return { ok: false, error: auth.error };
@@ -449,6 +514,10 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "invalid" };
   }
   const v = parsed.data;
+
+  if (v.club_id && !(await userAdministersClub(supabase, userId, v.club_id))) {
+    return { ok: false, error: "not_club_admin" };
+  }
 
   const { data, error } = (await supabase
     .from("tournaments")
@@ -467,6 +536,7 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
       max_participants: v.max_participants,
       entry_fee_byn: v.entry_fee_byn,
       privacy: v.privacy,
+      club_id: v.club_id,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
@@ -528,6 +598,10 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
   if (!current) return { ok: false, error: "not_found" };
   if (current.owner_id !== userId) return { ok: false, error: "not_owner" };
 
+  if (v.club_id && !(await userAdministersClub(supabase, userId, v.club_id))) {
+    return { ok: false, error: "not_club_admin" };
+  }
+
   // Once the draw exists (in_progress) or the tournament is over, changing
   // the format / seeding / match rules would silently invalidate played
   // matches and the bracket. Harmless edits (description, dates, fee,
@@ -561,6 +635,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       max_participants: v.max_participants,
       entry_fee_byn: v.entry_fee_byn,
       privacy: v.privacy,
+      club_id: v.club_id,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
@@ -1701,6 +1776,10 @@ export async function setMatchScore(
     eloP1Delta = recalc.p1Delta;
     eloP2Delta = recalc.p2Delta;
   }
+
+  // Per-club rating: a club tournament's matches feed that club's ladder.
+  // Service role (club rating tables deny non-admin writes); idempotent.
+  await recalcClubRatingsForMatch(createSupabaseServiceClient(), v.match_id);
 
   // ── ROUND-ROBIN (pure RR tournaments and group-stage matches inside a hybrid)
   if (isRoundRobin) {

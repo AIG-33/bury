@@ -22,7 +22,7 @@ import {
   type Surface,
   type MatchRuleKind,
 } from "@/lib/tournaments/schema";
-import { createTournament, updateTournament, type VenueOption } from "./actions";
+import { createTournament, updateTournament, type VenueOption, type ClubOption } from "./actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
 
 export type TournamentDialogCopy = {
@@ -44,6 +44,7 @@ export type TournamentDialogCopy = {
     entry_fee: string;
     entry_fee_currency: string;
     venues: string;
+    club: string;
     privacy: string;
     draw_method: string;
     prizes: string;
@@ -65,6 +66,7 @@ export type TournamentDialogCopy = {
     entry_fee: string;
     venues: string;
     venues_empty_catalogue: string;
+    club: string;
   };
   format_labels: Record<TournamentFormat, string>;
   surface_labels: Record<Surface, string>;
@@ -95,6 +97,7 @@ type Props = {
   prefill?: TournamentForm | null;
   mode?: TournamentDialogMode;
   venueOptions: VenueOption[];
+  clubOptions: ClubOption[];
   copy: TournamentDialogCopy;
   onSaved: (id: string) => void;
 };
@@ -106,6 +109,7 @@ export function TournamentFormDialog({
   prefill,
   mode = initial ? "edit" : "create",
   venueOptions,
+  clubOptions,
   copy,
   onSaved,
 }: Props) {
@@ -128,6 +132,7 @@ export function TournamentFormDialog({
         max_participants: null,
         entry_fee_byn: null,
         privacy: "club",
+        club_id: null,
         draw_method: "rating",
         prizes_description: null,
         match_rules: DEFAULT_MATCH_RULES,
@@ -309,6 +314,33 @@ export function TournamentFormDialog({
               />
               <p className="mt-1 text-[11px] text-ink-500">{copy.hints.privacy}</p>
             </div>
+
+            {clubOptions.length > 0 && (
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-ink-700">
+                  {copy.fields.club}
+                </label>
+                <Controller
+                  control={form.control}
+                  name="club_id"
+                  render={({ field }) => (
+                    <select
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
+                      className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    >
+                      <option value="">{copy.none}</option>
+                      {clubOptions.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                <p className="mt-1 text-[11px] text-ink-500">{copy.hints.club}</p>
+              </div>
+            )}
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-ink-700">

@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ApplyToClubSchema, type JoinPolicy, type MemberRole, type MemberStatus } from "@/lib/clubs/schema";
 import { hashInviteToken } from "@/lib/clubs/token";
+import {
+  clubPageBlocksFromRow,
+  type ClubPageBlocks,
+} from "@/lib/clubs/rating-schema";
 
 // =============================================================================
 // Types exposed to the UI
@@ -35,6 +39,9 @@ export type ClubDetail = {
   join_policy: JoinPolicy;
   owner_id: string;
   created_at: string;
+  brand_color: string | null;
+  cover_url: string | null;
+  page_blocks: ClubPageBlocks;
 };
 
 export type ClubRosterEntry = {
@@ -229,12 +236,15 @@ export async function loadClubBySlug(slug: string): Promise<
   const { data: club } = (await supabase
     .from("clubs")
     .select(
-      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, created_at",
+      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, created_at, brand_color, cover_url, page_blocks",
     )
     .eq("slug", slug)
     .maybeSingle()) as {
     data:
-      | (Omit<ClubDetail, "district_name"> & { district_id: string | null })
+      | (Omit<ClubDetail, "district_name" | "page_blocks"> & {
+          district_id: string | null;
+          page_blocks: unknown;
+        })
       | null;
   };
 
@@ -401,6 +411,9 @@ export async function loadClubBySlug(slug: string): Promise<
       join_policy: club.join_policy,
       owner_id: club.owner_id,
       created_at: club.created_at,
+      brand_color: club.brand_color,
+      cover_url: club.cover_url,
+      page_blocks: clubPageBlocksFromRow(club.page_blocks),
     },
     stats,
     coaches,
@@ -408,6 +421,96 @@ export async function loadClubBySlug(slug: string): Promise<
     venues,
     viewer,
   };
+}
+
+// =============================================================================
+// Public club rating + tournaments (for the club page & /clubs/[slug]/rating)
+// =============================================================================
+
+export type ClubStandingRow = {
+  player_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  rating: number;
+  rating_status: "provisional" | "established";
+  rated_matches_count: number;
+  wins: number;
+  losses: number;
+};
+
+export type ClubRatingBoard = {
+  enabled: boolean;
+  label: string | null;
+  standings: ClubStandingRow[];
+};
+
+/** Public, read-only club standings (club_member_ratings is world-readable). */
+export async function loadClubRatingBoard(clubId: string): Promise<ClubRatingBoard> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: settings } = (await supabase
+    .from("club_rating_settings")
+    .select("enabled, label")
+    .eq("club_id", clubId)
+    .maybeSingle()) as { data: { enabled: boolean; label: string | null } | null };
+
+  const enabled = settings ? settings.enabled : true;
+  if (!enabled) return { enabled: false, label: settings?.label ?? null, standings: [] };
+
+  const { data: rows } = (await supabase
+    .from("club_member_ratings")
+    .select("player_id, rating, rating_status, rated_matches_count, wins, losses")
+    .eq("club_id", clubId)
+    .order("rating", { ascending: false })) as {
+    data: Array<Omit<ClubStandingRow, "display_name" | "avatar_url">> | null;
+  };
+  const list = rows ?? [];
+  if (list.length === 0) {
+    return { enabled: true, label: settings?.label ?? null, standings: [] };
+  }
+
+  const { data: people } = (await supabase
+    .from("public_player_basic")
+    .select("id, display_name, avatar_url")
+    .in(
+      "id",
+      list.map((r) => r.player_id),
+    )) as {
+    data: Array<{ id: string; display_name: string | null; avatar_url: string | null }> | null;
+  };
+  const byId = new Map((people ?? []).map((p) => [p.id, p]));
+
+  return {
+    enabled: true,
+    label: settings?.label ?? null,
+    standings: list.map((r) => ({
+      ...r,
+      display_name: byId.get(r.player_id)?.display_name ?? null,
+      avatar_url: byId.get(r.player_id)?.avatar_url ?? null,
+    })),
+  };
+}
+
+export type ClubTournamentRow = {
+  id: string;
+  name: string;
+  status: string;
+  format: string;
+  starts_on: string;
+  privacy: string;
+};
+
+/** Public tournaments linked to a club (drafts/club-private hidden from outsiders). */
+export async function loadClubTournaments(clubId: string): Promise<ClubTournamentRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = (await supabase
+    .from("tournaments")
+    .select("id, name, status, format, starts_on, privacy")
+    .eq("club_id", clubId)
+    .neq("status", "draft")
+    .order("starts_on", { ascending: false })
+    .limit(50)) as { data: ClubTournamentRow[] | null };
+  return data ?? [];
 }
 
 // =============================================================================

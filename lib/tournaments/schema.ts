@@ -171,6 +171,11 @@ export const TournamentFormSchema = z.object({
   max_participants: optionalIntInRange(2, 128),
   entry_fee_byn: optionalIntInRange(0, 100000),
   privacy: z.enum(PRIVACY_OPTIONS).default("club"),
+  // Optional link to a club the organiser owns/administers. Club tournaments
+  // feed that club's internal rating. Empty = a standalone tournament.
+  club_id: z
+    .preprocess((v) => (v == null || v === "" ? null : v), z.string().uuid().nullable())
+    .default(null),
   draw_method: z.enum(SEEDING_METHODS).default("rating"),
   prizes_description: optionalText,
   match_rules: MatchRulesSchema.default(DEFAULT_MATCH_RULES),

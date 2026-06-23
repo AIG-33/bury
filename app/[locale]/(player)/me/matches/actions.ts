@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { recalcMatchElo } from "@/lib/rating/recalc";
+import { recalcClubRatingsForMatch } from "@/lib/rating/club-recalc";
 import { inferWinnerFromSets as inferWinner } from "@/lib/matches/score";
 
 // =============================================================================
@@ -291,6 +292,10 @@ export async function confirmFriendlyResult(
   if (recalc.ok && !recalc.skipped) {
     eloDelta = isP1 ? recalc.p1Delta : recalc.p2Delta;
   }
+
+  // Per-club rating: a friendly feeds every club where both players are
+  // approved members and the club rating is enabled. Best-effort, idempotent.
+  await recalcClubRatingsForMatch(service, matchId);
 
   revalidatePath("/me/matches");
   revalidatePath("/me/rating");

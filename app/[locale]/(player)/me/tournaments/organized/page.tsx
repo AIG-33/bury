@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
-import { loadOrganizedTournaments, loadVenueOptions } from "./actions";
+import { loadOrganizedTournaments, loadVenueOptions, loadAdministrableClubs } from "./actions";
 import { OrganizedTournamentsClient, type OrganizedTournamentsCopy } from "./organized-client";
 import {
   TOURNAMENT_FORMATS,
@@ -28,9 +28,10 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsOrganized");
 
-  const [result, venueOptions] = await Promise.all([
+  const [result, venueOptions, clubOptions] = await Promise.all([
     loadOrganizedTournaments(),
     loadVenueOptions(),
+    loadAdministrableClubs(),
   ]);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
@@ -97,6 +98,7 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
         entry_fee: t("dialog.fields.entry_fee"),
         entry_fee_currency: t("dialog.fields.entry_fee_currency"),
         venues: t("dialog.fields.venues"),
+        club: t("dialog.fields.club"),
         privacy: t("dialog.fields.privacy"),
         draw_method: t("dialog.fields.draw_method"),
         prizes: t("dialog.fields.prizes"),
@@ -118,6 +120,7 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
         entry_fee: t("dialog.hints.entry_fee"),
         venues: t("dialog.hints.venues"),
         venues_empty_catalogue: t("dialog.hints.venues_empty_catalogue"),
+        club: t("dialog.hints.club"),
       },
       format_labels: formatLabels,
       surface_labels: surfaceLabels,
@@ -160,6 +163,7 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
         locale={locale}
         tournaments={result.tournaments}
         venueOptions={venueOptions}
+        clubOptions={clubOptions}
         copy={copy}
       />
     </div>

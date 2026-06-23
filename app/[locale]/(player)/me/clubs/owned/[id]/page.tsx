@@ -7,8 +7,14 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOwnedClubDetail } from "../actions";
+import {
+  loadClubPageSettings,
+  loadClubRatingSettings,
+  loadClubStandings,
+} from "../rating-actions";
 import { loadDistrictOptionsForClubs } from "../../../../../clubs/actions";
 import { OwnerPanel } from "./owner-panel";
+import { ClubCustomizationSections } from "./customization-sections";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -24,7 +30,13 @@ export default async function OwnedClubDetailPage({ params }: Props) {
 
   const t = await getTranslations("clubsOwned");
 
-  const [res, districts] = await Promise.all([loadOwnedClubDetail(id), loadDistrictOptionsForClubs()]);
+  const [res, districts, pageSettings, ratingSettings, standings] = await Promise.all([
+    loadOwnedClubDetail(id),
+    loadDistrictOptionsForClubs(),
+    loadClubPageSettings(id),
+    loadClubRatingSettings(id),
+    loadClubStandings(id),
+  ]);
   if (!res.ok) {
     if (res.error === "not_found") notFound();
     redirect(`/${locale}/me/clubs/owned`);
@@ -68,6 +80,14 @@ export default async function OwnedClubDetailPage({ params }: Props) {
       />
 
       <OwnerPanel locale={locale} club={club} pending={pending} members={members} districts={districts} />
+
+      <ClubCustomizationSections
+        clubId={club.id}
+        pageSettings={pageSettings}
+        ratingSettings={ratingSettings}
+        standings={standings}
+        members={members}
+      />
     </div>
   );
 }

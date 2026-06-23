@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
-import { deleteTournament, type TournamentRow, type VenueOption } from "./actions";
+import { deleteTournament, type TournamentRow, type VenueOption, type ClubOption } from "./actions";
 import {
   TournamentFormDialog,
   type TournamentDialogCopy,
@@ -61,11 +61,13 @@ export function OrganizedTournamentsClient({
   locale,
   tournaments,
   venueOptions,
+  clubOptions,
   copy,
 }: {
   locale: string;
   tournaments: TournamentRow[];
   venueOptions: VenueOption[];
+  clubOptions: ClubOption[];
   copy: OrganizedTournamentsCopy;
 }) {
   const t = useTranslations("tournamentsOrganized");
@@ -93,6 +95,7 @@ export function OrganizedTournamentsClient({
       max_participants: t.max_participants,
       entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
+      club_id: t.club_id ?? null,
       draw_method: t.draw_method ?? "rating",
       prizes_description: t.prizes_description,
       match_rules: t.match_rules as MatchRules,
@@ -299,6 +302,7 @@ export function OrganizedTournamentsClient({
         prefill={prefill}
         mode={mode}
         venueOptions={venueOptions}
+        clubOptions={clubOptions}
         copy={copy.dialog}
         onSaved={(id) => {
           setOpen(false);

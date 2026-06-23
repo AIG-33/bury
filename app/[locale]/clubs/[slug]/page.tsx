@@ -5,14 +5,15 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { buildClubJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
-import { ArrowLeft, MapPin, Award, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Users, Trophy, TrendingUp } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { ClubLogo } from "@/components/clubs/club-logo";
 import { JoinPolicyBadge } from "@/components/clubs/join-policy-badge";
+import { ClubRatingTable } from "@/components/clubs/club-rating-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { Surface } from "@/components/ui/surface";
-import { loadClubBySlug } from "../actions";
+import { loadClubBySlug, loadClubRatingBoard, loadClubTournaments } from "../actions";
 import type { JoinPolicy } from "@/lib/clubs/schema";
 import { JoinCta } from "./join-cta";
 
@@ -49,6 +50,23 @@ export default async function ClubPage({ params }: Props) {
   const res = await loadClubBySlug(slug);
   if (!res.ok) notFound();
   const { club, stats, coaches, players, venues, viewer } = res;
+  const blocks = club.page_blocks;
+
+  const [ratingBoard, clubTournaments] = await Promise.all([
+    blocks.rating ? loadClubRatingBoard(club.id) : Promise.resolve(null),
+    blocks.tournaments ? loadClubTournaments(club.id) : Promise.resolve([]),
+  ]);
+
+  const tRating = await getTranslations("clubRating");
+
+  const ratingTableLabels = {
+    rank: tRating("table.rank"),
+    player: tRating("table.player"),
+    rating: tRating("table.rating"),
+    matches: tRating("table.matches"),
+    record: tRating("table.record"),
+    provisional: tRating("table.provisional"),
+  };
 
   const joinPolicyLabels: Record<JoinPolicy, string> = {
     approval: tCommon("join_policy.approval"),
@@ -57,6 +75,7 @@ export default async function ClubPage({ params }: Props) {
   };
 
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
+  const accent = club.brand_color ?? null;
 
   const jsonLd = buildClubJsonLd({
     slug,
@@ -78,8 +97,24 @@ export default async function ClubPage({ params }: Props) {
         {t("back")}
       </Link>
 
+      {/* COVER */}
+      {club.cover_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={club.cover_url}
+          alt=""
+          className="h-40 w-full rounded-2xl border border-ink-100 object-cover sm:h-56"
+        />
+      )}
+
       {/* HEADER */}
       <Surface variant="card">
+        {accent && (
+          <div
+            className="mb-4 -mt-1 h-1.5 w-16 rounded-full"
+            style={{ backgroundColor: accent }}
+          />
+        )}
         <div className="flex flex-wrap items-start gap-4">
           <ClubLogo url={club.logo_url} name={club.name} size="xl" />
           <div className="min-w-0 flex-1">
@@ -143,7 +178,70 @@ export default async function ClubPage({ params }: Props) {
         </div>
       </Surface>
 
+      {/* CLUB RATING */}
+      {blocks.rating && ratingBoard && ratingBoard.enabled && (
+        <Surface variant="card" as="section">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="flex items-center gap-2 font-display text-lg font-bold text-grass-900">
+              <TrendingUp className="h-5 w-5" style={accent ? { color: accent } : undefined} />
+              {ratingBoard.label || tRating("title")}
+            </h2>
+            {ratingBoard.standings.length > 0 && (
+              <Link
+                href={`/${locale}/clubs/${slug}/rating`}
+                className="text-sm font-medium text-grass-700 hover:text-grass-900"
+              >
+                {tRating("see_full")}
+              </Link>
+            )}
+          </div>
+          {ratingBoard.standings.length === 0 ? (
+            <EmptyState title={tRating("title")} description={tRating("empty")} />
+          ) : (
+            <ClubRatingTable
+              rows={ratingBoard.standings.slice(0, 10)}
+              locale={locale}
+              labels={ratingTableLabels}
+              brandColor={accent}
+            />
+          )}
+        </Surface>
+      )}
+
+      {/* CLUB TOURNAMENTS */}
+      {blocks.tournaments && clubTournaments.length > 0 && (
+        <Surface variant="card" as="section">
+          <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-grass-900">
+            <Trophy className="h-5 w-5" style={accent ? { color: accent } : undefined} />
+            {tRating("tournaments_title")}
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {clubTournaments.map((tn) => (
+              <Link
+                key={tn.id}
+                href={`/${locale}/tournaments/${tn.id}`}
+                className="surface-row lift-on-hover group flex items-center justify-between gap-3"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-ink-900 group-hover:text-grass-800">
+                    {tn.name}
+                  </span>
+                  <span className="text-xs text-ink-500">
+                    {dateFmt.format(new Date(tn.starts_on))}
+                  </span>
+                </span>
+                <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-ink-600">
+                  {tRating(`status.${tn.status}`)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </Surface>
+      )}
+
       {/* COACHES */}
+      {blocks.roster && (
+      <>
       <Surface variant="card" as="section">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-display text-lg font-bold text-grass-900">
@@ -196,8 +294,11 @@ export default async function ClubPage({ params }: Props) {
           </div>
         )}
       </Surface>
+      </>
+      )}
 
       {/* VENUES */}
+      {blocks.venues && (
       <Surface variant="card" as="section">
         <h2 className="mb-4 font-display text-lg font-bold text-grass-900">
           {t("venues_section.title")}
@@ -228,6 +329,7 @@ export default async function ClubPage({ params }: Props) {
           </div>
         )}
       </Surface>
+      )}
     </div>
   );
 }
