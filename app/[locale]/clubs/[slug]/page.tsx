@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildClubJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { ArrowLeft, MapPin, Award, Users, Trophy, TrendingUp } from "lucide-react";
@@ -46,6 +47,8 @@ export default async function ClubPage({ params }: Props) {
 
   const t = await getTranslations("clubPublic");
   const tCommon = await getTranslations("clubsCommon");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const res = await loadClubBySlug(slug);
   if (!res.ok) notFound();
@@ -89,6 +92,14 @@ export default async function ClubPage({ params }: Props) {
   return (
     <div className="page-shell space-y-6">
       <JsonLdScript data={jsonLd} />
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("clubs"), path: "/clubs" },
+          { name: club.name, path: `/clubs/${slug}` },
+        ]}
+      />
       <Link
         href={`/${locale}/clubs`}
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"

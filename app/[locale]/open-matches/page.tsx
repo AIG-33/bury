@@ -19,6 +19,7 @@ import { BridgePanel } from "@/components/help/bridge-panel";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { PageHeader } from "@/components/layout/page-header";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOpenMatches } from "./actions";
@@ -54,6 +55,8 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
   const t = await getTranslations("openMatches");
   const tLevels = await getTranslations("levels");
   const tBridges = await getTranslations("openMatches.bridges");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const filters = {
     format: FORMATS.includes(sp.format as OpenMatchFormat)
@@ -78,6 +81,13 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
 
   return (
     <div className="page-shell space-y-6">
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("sparrings"), path: "/open-matches" },
+        ]}
+      />
       <PageHeader
         title={t("title")}
         subtitle={t("subtitle")}

@@ -7,6 +7,7 @@ import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Award, MapPin, Star, MessageCircle, CalendarClock } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { PageHeader } from "@/components/layout/page-header";
 import { Surface } from "@/components/ui/surface";
 import { loadCoachProfile, loadCoachUpcomingSlots } from "../actions";
@@ -39,6 +40,8 @@ export default async function CoachProfilePage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("coachesPublic");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const coach = await loadCoachProfile(id);
   if (!coach) notFound();
@@ -61,6 +64,14 @@ export default async function CoachProfilePage({ params }: Props) {
   return (
     <div className="page-shell space-y-6">
       <JsonLdScript data={jsonLd} />
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("coaches"), path: "/coaches" },
+          { name: coach.display_name ?? "—", path: `/coaches/${id}` },
+        ]}
+      />
       {/* Hero: large portrait on the left spans PageHeader + bio on desktop.
           Without a bio it just spans the header. Mobile stacks naturally. */}
       <section className="grid gap-4 md:grid-cols-[minmax(240px,280px)_1fr] md:items-start">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildVenueJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
@@ -54,6 +55,8 @@ export default async function VenueDetailPage({ params }: Props) {
 
   const t = await getTranslations("venuesCatalog");
   const tDetail = await getTranslations("venuesCatalog.detail");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
   const tSurfaces = await getTranslations("venues.detail.courts.surface_options");
   const tStatuses = await getTranslations("venues.detail.courts.status_options");
   const tFormats = await getTranslations("tournamentsPublic");
@@ -311,6 +314,14 @@ export default async function VenueDetailPage({ params }: Props) {
   return (
     <div className="page-shell space-y-6">
       <JsonLdScript data={jsonLd} />
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("venues"), path: "/venues" },
+          { name: venue.name, path: `/venues/${id}` },
+        ]}
+      />
       <Link
         href="/venues"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"

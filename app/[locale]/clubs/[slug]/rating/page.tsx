@@ -9,6 +9,7 @@ import { ClubLogo } from "@/components/clubs/club-logo";
 import { ClubRatingTable } from "@/components/clubs/club-rating-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { Surface } from "@/components/ui/surface";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { loadClubBySlug, loadClubRatingBoard } from "../../actions";
 
@@ -34,6 +35,8 @@ export default async function ClubRatingPage({ params }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations("clubRating");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const res = await loadClubBySlug(slug);
   if (!res.ok) notFound();
@@ -53,6 +56,15 @@ export default async function ClubRatingPage({ params }: Props) {
 
   return (
     <div className="page-shell space-y-6">
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("clubs"), path: "/clubs" },
+          { name: club.name, path: `/clubs/${slug}` },
+          { name: board.label || t("title"), path: `/clubs/${slug}/rating` },
+        ]}
+      />
       <Link
         href={`/${locale}/clubs/${slug}`}
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"

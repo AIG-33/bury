@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import { ArrowLeft, Building2, CalendarClock, MapPin, Search, Trophy, Users } from "lucide-react";
 import { LevelBadge } from "@/components/rating/level-badge";
 import { RatingDisplay } from "@/components/rating/rating-display";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Surface } from "@/components/ui/surface";
 import { loadOpenMatch } from "../actions";
 import { ApplyControls } from "./apply-controls";
@@ -39,6 +40,8 @@ export default async function OpenMatchDetailPage({ params }: Props) {
   const t = await getTranslations("openMatches");
   const tDetail = await getTranslations("openMatches.detail");
   const tLevels = await getTranslations("levels");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const { match, isCreator, myApplication, applications } = detail;
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "full", timeStyle: "short" });
@@ -50,6 +53,14 @@ export default async function OpenMatchDetailPage({ params }: Props) {
 
   return (
     <div className="page-shell space-y-6">
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("sparrings"), path: "/open-matches" },
+          { name: match.creator_name ?? "—", path: `/open-matches/${id}` },
+        ]}
+      />
       <Link
         href="/open-matches"
         className="inline-flex items-center gap-1 text-sm text-ink-600 transition hover:text-grass-700"

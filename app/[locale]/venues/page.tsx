@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -99,6 +100,8 @@ export default async function VenuesCatalogPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("venuesCatalog");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
   const tAmenities = await getTranslations("venues.amenities");
   const tSurfaces = await getTranslations("venues.detail.courts.surface_options");
   const tStatuses = await getTranslations("venues.detail.courts.status_options");
@@ -168,6 +171,13 @@ export default async function VenuesCatalogPage({ params }: Props) {
 
   return (
     <div className="page-shell-wide space-y-6">
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("venues"), path: "/venues" },
+        ]}
+      />
       <PageHeader
         title={t("title")}
         subtitle={t("subtitle", { venues: cards.length, courts: totalCourts })}

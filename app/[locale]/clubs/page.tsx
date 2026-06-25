@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { ClubCard } from "@/components/clubs/club-card";
@@ -39,6 +40,8 @@ export default async function ClubsPage({ params, searchParams }: Props) {
 
   const t = await getTranslations("clubsCatalog");
   const tCommon = await getTranslations("clubsCommon");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const city = sp.city && sp.city.trim().length > 0 ? sp.city.trim() : null;
   const districtId =
@@ -67,6 +70,13 @@ export default async function ClubsPage({ params, searchParams }: Props) {
 
   return (
     <div className="page-shell-wide space-y-6">
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("clubs"), path: "/clubs" },
+        ]}
+      />
       <PageHeader
         title={t("title")}
         subtitle={t("subtitle")}

@@ -16,6 +16,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { PageHeader } from "@/components/layout/page-header";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
@@ -45,6 +46,8 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsPublic");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const detail = await loadPublicTournamentDetail(id);
   if (!detail) notFound();
@@ -69,6 +72,14 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   return (
     <div className="page-shell space-y-6">
       <JsonLdScript data={jsonLd} />
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("tournaments"), path: "/tournaments" },
+          { name: tournament.name, path: `/tournaments/${id}` },
+        ]}
+      />
       <Link
         href={`/${locale}/tournaments`}
         className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900"

@@ -8,7 +8,11 @@ export type SitemapEntry = {
   priority?: number;
 };
 
-const STATIC_PUBLIC_PATHS: Array<{ path: string; priority: number; changeFrequency: SitemapEntry["changeFrequency"] }> = [
+const STATIC_PUBLIC_PATHS: Array<{
+  path: string;
+  priority: number;
+  changeFrequency: SitemapEntry["changeFrequency"];
+}> = [
   { path: "", priority: 1.0, changeFrequency: "daily" },
   { path: "/open-matches", priority: 0.95, changeFrequency: "hourly" },
   { path: "/tournaments", priority: 0.95, changeFrequency: "daily" },
@@ -47,13 +51,7 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
   try {
     const supabase = createSupabaseAnonClient();
 
-    const [
-      tournamentsRes,
-      venuesRes,
-      clubsRes,
-      coachesRes,
-      openMatchesRes,
-    ] = await Promise.all([
+    const [tournamentsRes, venuesRes, clubsRes, coachesRes, openMatchesRes] = await Promise.all([
       supabase
         .from("tournaments")
         .select("id, updated_at")
@@ -90,7 +88,9 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
       (r) => `/tournaments/${r.id}`,
     );
     const venuePaths = ((venuesRes.data ?? []) as IdRow[]).map((r) => `/venues/${r.id}`);
-    const clubPaths = ((clubsRes.data ?? []) as SlugRow[]).map((r) => `/clubs/${r.slug}`);
+    const clubRows = (clubsRes.data ?? []) as SlugRow[];
+    const clubPaths = clubRows.map((r) => `/clubs/${r.slug}`);
+    const clubRatingPaths = clubRows.map((r) => `/clubs/${r.slug}/rating`);
     const coachPaths = ((coachesRes.data ?? []) as IdRow[]).map((r) => `/coaches/${r.id}`);
     const openMatchPaths = ((openMatchesRes.data ?? []) as IdRow[]).map(
       (r) => `/open-matches/${r.id}`,
@@ -99,6 +99,7 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
     pushPaths(tournamentPaths, 0.75, "weekly");
     pushPaths(venuePaths, 0.7, "monthly");
     pushPaths(clubPaths, 0.7, "weekly");
+    pushPaths(clubRatingPaths, 0.6, "weekly");
     pushPaths(coachPaths, 0.65, "weekly");
     pushPaths(openMatchPaths, 0.7, "daily");
   } catch {

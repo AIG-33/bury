@@ -791,6 +791,9 @@
       "run": "Simulate"
     }
   },
+  "breadcrumbs": {
+    "home": "Home"
+  },
   "nav": {
     "leaderboard": "Leaderboard",
     "coaches": "Coaches",
@@ -4158,7 +4161,10 @@
       "headline": "Amateur tennis in Belarus",
       "tagline": "Sparring · tournaments · coaches — one platform",
       "pillars": {
-        "sparring": { "title": "Sparring", "body": "Open matches — find a partner by level and district" },
+        "sparring": {
+          "title": "Sparring",
+          "body": "Open matches — find a partner by level and district"
+        },
         "tournaments": { "title": "Tournaments", "body": "Run your own event or join open ones" },
         "coaches": { "title": "Coaches", "body": "Verified reviews — book a court in a few taps" }
       }

@@ -7,6 +7,7 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
 import { PageHeader } from "@/components/layout/page-header";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -76,6 +77,8 @@ export default async function CoachesPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("coachesPublic");
+  const tNav = await getTranslations("nav");
+  const tCrumb = await getTranslations("breadcrumbs");
 
   const sortKey: SortKey = SORT_KEYS.includes(sp.sort as SortKey)
     ? (sp.sort as SortKey)
@@ -127,6 +130,13 @@ export default async function CoachesPage({ params, searchParams }: Props) {
 
   return (
     <div className="page-shell space-y-6">
+      <Breadcrumbs
+        locale={locale}
+        items={[
+          { name: tCrumb("home"), path: "" },
+          { name: tNav("coaches"), path: "/coaches" },
+        ]}
+      />
       <PageHeader
         title={t("title")}
         subtitle={t("subtitle")}
