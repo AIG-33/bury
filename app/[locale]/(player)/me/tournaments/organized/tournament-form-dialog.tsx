@@ -29,6 +29,7 @@ export type TournamentDialogCopy = {
   create_title: string;
   edit_title: string;
   duplicate_title: string;
+  template_title: string;
   third_place_match_label: string;
   third_place_match_hint: string;
   fields: {
@@ -80,7 +81,7 @@ export type TournamentDialogCopy = {
   none: string;
 };
 
-export type TournamentDialogMode = "create" | "edit" | "duplicate";
+export type TournamentDialogMode = "create" | "edit" | "duplicate" | "template";
 
 type Props = {
   open: boolean;
@@ -174,7 +175,9 @@ export function TournamentFormDialog({
       ? copy.edit_title
       : mode === "duplicate"
         ? copy.duplicate_title
-        : copy.create_title;
+        : mode === "template"
+          ? copy.template_title
+          : copy.create_title;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 px-4 py-8">
@@ -326,7 +329,9 @@ export function TournamentFormDialog({
                   render={({ field }) => (
                     <select
                       value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "" ? null : e.target.value)
+                      }
                       className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                     >
                       <option value="">{copy.none}</option>

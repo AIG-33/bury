@@ -2375,10 +2375,38 @@
       "first_to_games": "First to N games",
       "timed": "Timed match"
     },
+    "templates": {
+      "from_template": "From template",
+      "save_button": "Save as template",
+      "save_button_short": "To template",
+      "save_dialog": {
+        "title": "Save as template",
+        "subtitle": "The template remembers the format, match rules, surface, venues, fee and seeding. Dates and participants are not saved — you'll pick them when creating a new tournament.",
+        "name_label": "Template name",
+        "club_label": "Club",
+        "club_none": "Personal template (visible only to you)",
+        "club_hint": "A club template is visible to and usable by the club's owner and co-admins.",
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel"
+      },
+      "picker": {
+        "title": "Create tournament from template",
+        "subtitle": "Pick a template — the new-tournament form opens, all that's left is to set a date.",
+        "empty_title": "No templates yet",
+        "empty_description": "Open any of your tournaments and press \"To template\" — the settings are saved and the next stage launches in a couple of clicks.",
+        "use": "Create",
+        "delete": "Delete template",
+        "delete_confirm": "Delete template \"{name}\"? Tournaments created from it are not affected.",
+        "broken": "This template is outdated and can no longer be used",
+        "max_participants": "up to {n} players"
+      }
+    },
     "dialog": {
       "create_title": "New tournament",
       "edit_title": "Edit tournament",
       "duplicate_title": "Duplicate tournament",
+      "template_title": "New tournament from template",
       "third_place_match_label": "3rd-place match",
       "third_place_match_hint": "After the semifinals, the two losing semi-finalists play an extra match for bronze. Only for the «Groups + playoff» format.",
       "fields": {
@@ -3972,6 +4000,38 @@
     "detail": {
       "title": "Club management",
       "view_public": "Open public page",
+      "tournaments": {
+        "title": "Club tournaments",
+        "subtitle": "Every tournament linked to the club, drafts included. Launch the next stage from a template in a couple of clicks.",
+        "help": {
+          "why": "This is the organizer's overview of all your club's tournaments — from drafts to finished ones. No need to hunt for tournaments across the site.",
+          "what": {
+            "1": "Create a new tournament, repeat the last one, or launch a stage from a saved template",
+            "2": "Open registration for a draft in one click",
+            "3": "See the queue of matches awaiting a score and jump straight to score entry"
+          },
+          "result": {
+            "1": "For the organizer: the next league stage is ready in a minute — format, rules and venues come from the template",
+            "2": "For players: the tournament shows up in open registrations, and entered scores update both the club rating and the site-wide rating"
+          }
+        },
+        "new_tournament": "New tournament",
+        "from_template": "From template",
+        "repeat_last": "Repeat last",
+        "copy_suffix": " (copy)",
+        "queue_title": "Matches awaiting score: {n}",
+        "queue_round": "Round {n}",
+        "queue_enter_score": "Enter score",
+        "empty_title": "The club has no tournaments yet",
+        "empty_description": "Create the club's first tournament — players apply, the draw is generated automatically, and results feed the club rating. Then save it as a template and launch the next stages in a couple of clicks.",
+        "empty_cta": "Create the first tournament",
+        "organizer": "Organizer: {name}",
+        "pending_applications": "{n} applications",
+        "pending_matches": "{n} without score",
+        "open": "Manage",
+        "open_public": "Open",
+        "open_registration": "Open registration"
+      },
       "tabs": {
         "applications": "Applications",
         "members": "Members",

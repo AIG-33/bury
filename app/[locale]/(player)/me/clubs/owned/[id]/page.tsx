@@ -7,14 +7,20 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOwnedClubDetail } from "../actions";
-import {
-  loadClubPageSettings,
-  loadClubRatingSettings,
-  loadClubStandings,
-} from "../rating-actions";
+import { loadClubPageSettings, loadClubRatingSettings, loadClubStandings } from "../rating-actions";
+import { loadClubTournamentsForAdmin } from "../tournaments-actions";
 import { loadDistrictOptionsForClubs } from "../../../../../clubs/actions";
+import { loadVenueOptions } from "../../../tournaments/organized/actions";
+import { loadClubTemplates } from "../../../tournaments/organized/template-actions";
+import {
+  buildTournamentDialogCopy,
+  buildFormatLabels,
+  buildStatusLabels,
+  buildSurfaceLabels,
+} from "../../../tournaments/organized/dialog-copy";
 import { OwnerPanel } from "./owner-panel";
 import { ClubCustomizationSections } from "./customization-sections";
+import { ClubTournamentsSection } from "./club-tournaments-section";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -29,13 +35,26 @@ export default async function OwnedClubDetailPage({ params }: Props) {
   if (!user) redirect(`/${locale}/login?next=${encodeURIComponent(`/me/clubs/owned/${id}`)}`);
 
   const t = await getTranslations("clubsOwned");
+  const tOrganized = await getTranslations("tournamentsOrganized");
 
-  const [res, districts, pageSettings, ratingSettings, standings] = await Promise.all([
+  const [
+    res,
+    districts,
+    pageSettings,
+    ratingSettings,
+    standings,
+    clubTournaments,
+    clubTemplates,
+    venueOptions,
+  ] = await Promise.all([
     loadOwnedClubDetail(id),
     loadDistrictOptionsForClubs(),
     loadClubPageSettings(id),
     loadClubRatingSettings(id),
     loadClubStandings(id),
+    loadClubTournamentsForAdmin(id),
+    loadClubTemplates(id),
+    loadVenueOptions(),
   ]);
   if (!res.ok) {
     if (res.error === "not_found") notFound();
@@ -67,11 +86,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
         }
         actions={
           <Button asChild variant="secondary" size="sm">
-            <Link
-              href={`/${locale}/clubs/${club.slug}` as never}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <Link href={`/${locale}/clubs/${club.slug}` as never} target="_blank" rel="noreferrer">
               <ExternalLink className="h-4 w-4" />
               {t("detail.view_public")}
             </Link>
@@ -79,7 +94,27 @@ export default async function OwnedClubDetailPage({ params }: Props) {
         }
       />
 
-      <OwnerPanel locale={locale} club={club} pending={pending} members={members} districts={districts} />
+      <OwnerPanel
+        locale={locale}
+        club={club}
+        pending={pending}
+        members={members}
+        districts={districts}
+      />
+
+      <ClubTournamentsSection
+        locale={locale}
+        clubId={club.id}
+        clubName={club.name}
+        tournaments={clubTournaments.ok ? clubTournaments.tournaments : []}
+        pendingScores={clubTournaments.ok ? clubTournaments.pendingScores : []}
+        templates={clubTemplates.ok ? clubTemplates.templates : []}
+        venueOptions={venueOptions}
+        dialogCopy={buildTournamentDialogCopy(tOrganized)}
+        formatLabels={buildFormatLabels(tOrganized)}
+        statusLabels={buildStatusLabels(tOrganized)}
+        surfaceLabels={buildSurfaceLabels(tOrganized)}
+      />
 
       <ClubCustomizationSections
         clubId={club.id}

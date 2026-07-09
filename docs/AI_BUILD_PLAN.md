@@ -258,6 +258,30 @@ Tasks:
 
 ---
 
+## Iteration 15 — Tournament templates + club organizer panel (multi-league onboarding, Phase A)
+
+**Goal**: an organiser of a Minsk league sets a tournament up once, then launches every next stage in two clicks — template → date → done — without leaving their club panel.
+
+**Files**:
+
+- `supabase/migrations/<ts>_tournament_templates.sql` — `tournament_templates` table (owner_id, club_id nullable, name, payload JSONB) with RLS.
+- `lib/tournaments/template-schema.ts` — Zod schema for the template payload (tournament settings minus dates/participants) + `templatePayloadFromForm` / `formFromTemplatePayload` helpers, Vitest-covered.
+- `app/[locale]/(player)/me/tournaments/organized/template-actions.ts` — Server Actions: save/list/delete template, all `{ ok, ... }`-shaped.
+- Organized tournaments list: "Save as template" on each card; "From template" next to "Create".
+- `app/[locale]/(player)/me/clubs/owned/[id]` — new "Club tournaments" section: all club tournaments incl. drafts, create "From template" / "Repeat last" / "New", pending-score matches queue, club template management.
+
+**Acceptance criteria**:
+
+- Template stores no dates and no participants; creating from a template always yields a `draft` with a fresh `starts_on`.
+- A club-linked template is visible to the club owner + approved co-admins; a personal template only to its creator (RLS-enforced).
+- Deleting a template never touches tournaments created from it.
+- Club panel shows drafts (unlike the public club page) and links each tournament to its organizer page.
+- HelpPanel on the club tournaments section; empty states with CTA; all strings in `ru` + `en`.
+
+**Do-not-do**: recurring auto-creation of stages (series/seasons — Phase B), CSV roster import (separate iteration), template sharing between clubs.
+
+---
+
 ## Install commands (used in Iteration 1)
 
 ```bash

@@ -18,10 +18,19 @@ import {
   MapPin,
   Users,
   Inbox,
+  BookmarkPlus,
+  LayoutTemplate,
 } from "lucide-react";
 import { EmptyState } from "@/components/help/empty-state";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
+import {
+  templatePayloadFromForm,
+  formFromTemplatePayload,
+  type TournamentTemplatePayload,
+} from "@/lib/tournaments/template-schema";
 import { deleteTournament, type TournamentRow, type VenueOption, type ClubOption } from "./actions";
+import type { TemplateRow } from "./template-actions";
+import { SaveTemplateDialog, TemplatePickerDialog } from "./template-dialogs";
 import {
   TournamentFormDialog,
   type TournamentDialogCopy,
@@ -62,21 +71,30 @@ export function OrganizedTournamentsClient({
   tournaments,
   venueOptions,
   clubOptions,
+  templates,
   copy,
 }: {
   locale: string;
   tournaments: TournamentRow[];
   venueOptions: VenueOption[];
   clubOptions: ClubOption[];
+  templates: TemplateRow[];
   copy: OrganizedTournamentsCopy;
 }) {
   const t = useTranslations("tournamentsOrganized");
+  const tTemplates = useTranslations("tournamentsOrganized.templates");
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<TournamentDialogMode>("create");
   const [editing, setEditing] = useState<TournamentRow | null>(null);
   const [prefill, setPrefill] = useState<TournamentForm | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [saveTplFor, setSaveTplFor] = useState<{
+    payload: TournamentTemplatePayload;
+    name: string;
+    clubId: string | null;
+  } | null>(null);
   const [pending, startT] = useTransition();
   const router = useRouter();
 
@@ -89,9 +107,7 @@ export function OrganizedTournamentsClient({
       starts_on: t.starts_on,
       start_time: t.start_time ? t.start_time.slice(0, 5) : null,
       ends_on: t.ends_on,
-      registration_deadline: t.registration_deadline
-        ? t.registration_deadline.slice(0, 10)
-        : null,
+      registration_deadline: t.registration_deadline ? t.registration_deadline.slice(0, 10) : null,
       max_participants: t.max_participants,
       entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
@@ -133,6 +149,27 @@ export function OrganizedTournamentsClient({
     });
     setOpen(true);
   }
+  function openSaveTemplate(t: TournamentRow) {
+    setSaveTplFor({
+      payload: templatePayloadFromForm(tournamentToForm(t)),
+      name: t.name,
+      clubId: t.club_id ?? null,
+    });
+  }
+  function openFromTemplate(tpl: TemplateRow) {
+    if (!tpl.payload) return;
+    setPickerOpen(false);
+    setMode("template");
+    setEditing(null);
+    setPrefill(
+      formFromTemplatePayload({
+        templateName: tpl.name,
+        payload: tpl.payload,
+        clubId: tpl.club_id,
+      }),
+    );
+    setOpen(true);
+  }
   function onDelete(id: string) {
     if (!confirm(copy.delete_confirm)) return;
     setDeletingId(id);
@@ -153,7 +190,14 @@ export function OrganizedTournamentsClient({
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-end">
+      <div className="mb-4 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-grass-300 bg-white px-4 text-sm font-medium text-grass-800 shadow-card transition hover:bg-grass-50"
+        >
+          <LayoutTemplate className="h-4 w-4" /> {tTemplates("from_template")}
+        </button>
         <button
           type="button"
           onClick={openCreate}
@@ -271,6 +315,14 @@ export function OrganizedTournamentsClient({
                   </button>
                   <button
                     type="button"
+                    onClick={() => openSaveTemplate(tour)}
+                    title={tTemplates("save_button")}
+                    className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
+                  >
+                    <BookmarkPlus className="h-3 w-3" /> {tTemplates("save_button_short")}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => onDelete(tour.id)}
                     disabled={pending && deletingId === tour.id}
                     className="inline-flex h-8 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
@@ -308,6 +360,27 @@ export function OrganizedTournamentsClient({
           setOpen(false);
           if (mode === "edit") router.refresh();
           else router.push(`/${locale}/me/tournaments/organized/${id}` as never);
+        }}
+      />
+
+      <TemplatePickerDialog
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        templates={templates}
+        formatLabels={copy.format_labels}
+        onPick={openFromTemplate}
+      />
+
+      <SaveTemplateDialog
+        open={saveTplFor != null}
+        onClose={() => setSaveTplFor(null)}
+        payload={saveTplFor?.payload ?? null}
+        defaultName={saveTplFor?.name ?? ""}
+        defaultClubId={saveTplFor?.clubId ?? null}
+        clubOptions={clubOptions}
+        onSaved={() => {
+          setSaveTplFor(null);
+          router.refresh();
         }}
       />
     </>
