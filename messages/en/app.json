@@ -2551,6 +2551,8 @@
     },
     "detail": {
       "back": "Back to my tournaments",
+      "edit": "Edit",
+      "edit_locked_hint": "The tournament is already running — you can still edit the description, dates, venues and fee, but not the format, match rules or seeding.",
       "entry_fee_free": "Free",
       "entry_fee_byn": "{n} BYN",
       "help": {
@@ -2565,6 +2567,17 @@
           "2": "A finished bracket — or round-robin standings — is a single source of truth for everyone."
         }
       }
+    },
+    "registration_link": {
+      "title": "Registration link",
+      "description": "Send this link to players — it opens the tournament page where they can apply.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "open": "Open",
+      "hint_draft": "The tournament is a draft — applications are closed. Open registration above to make the link work.",
+      "hint_club": "The tournament is club-only — the link opens only for participants and club members. Make it public to accept applications from everyone.",
+      "hint_ready": "Registration is open — players can apply via the link.",
+      "hint_closed": "Registration is closed — the link opens the tournament page in view-only mode."
     },
     "standings": {
       "title": "Standings",
@@ -3475,6 +3488,18 @@
       "tba": "TBD",
       "winner": "Winner",
       "scheduled": "scheduled",
+      "apply": {
+        "title": "Take part",
+        "cta": "Apply",
+        "applying": "Submitting…",
+        "login_cta": "Sign in to apply",
+        "login_hint": "Sign in to submit your application.",
+        "closed": "Registration is closed.",
+        "owner": "This is your tournament.",
+        "pending": "Application sent — waiting for the organizer's decision.",
+        "approved": "You're in the field.",
+        "rejected": "Your previous application was rejected. You can apply again."
+      },
       "help": {
         "why": "A read-only public view of one tournament — players, bracket, scores, results.",
         "what": {

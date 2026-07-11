@@ -23,6 +23,8 @@ import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scor
 import { Surface } from "@/components/ui/surface";
 import { Chip } from "@/components/ui/surface";
 import { loadPublicTournamentDetail } from "../actions";
+import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
+import { TournamentApplyButton, type ApplyButtonCopy } from "./apply-button";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -49,10 +51,26 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   const tNav = await getTranslations("nav");
   const tCrumb = await getTranslations("breadcrumbs");
 
-  const detail = await loadPublicTournamentDetail(id);
+  const [detail, viewer] = await Promise.all([
+    loadPublicTournamentDetail(id),
+    loadTournamentViewerState(id),
+  ]);
   if (!detail) notFound();
 
   const { tournament, participants, matches } = detail;
+
+  const applyCopy: ApplyButtonCopy = {
+    title: t("detail.apply.title"),
+    cta: t("detail.apply.cta"),
+    applying: t("detail.apply.applying"),
+    login_cta: t("detail.apply.login_cta"),
+    login_hint: t("detail.apply.login_hint"),
+    closed: t("detail.apply.closed"),
+    owner: t("detail.apply.owner"),
+    pending: t("detail.apply.pending"),
+    approved: t("detail.apply.approved"),
+    rejected: t("detail.apply.rejected"),
+  };
   const fmtDate = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
   });
@@ -185,6 +203,20 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           </Surface>
         )}
       </dl>
+
+      {/* Apply — the CTA the shareable registration link lands on. */}
+      <Surface variant="card" as="section">
+        <h2 className="mb-3 font-display text-lg font-bold text-grass-900">
+          {applyCopy.title}
+        </h2>
+        <TournamentApplyButton
+          locale={locale}
+          tournamentId={id}
+          status={tournament.status}
+          viewer={viewer}
+          copy={applyCopy}
+        />
+      </Surface>
 
       {/* Participants */}
       <Surface variant="card" as="section">
