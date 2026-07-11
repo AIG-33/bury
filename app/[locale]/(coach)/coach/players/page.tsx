@@ -514,7 +514,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
       </section>
 
       <Surface variant="card" as="section">
-        <h2 className="font-display text-lg font-bold text-grass-900">
+        <h2 className="section-title text-[18px] md:text-[20px]">
           {t("invite.title")}
         </h2>
         <p className="mt-1 text-sm text-ink-600">{t("invite.subtitle")}</p>

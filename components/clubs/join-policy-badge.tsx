@@ -8,10 +8,12 @@ type Props = {
   iconOnly?: boolean;
 };
 
+// Spec §2.2/§4.4: «По заявке» — warning yellow, «Открытый» — green,
+// closed — danger red. Borderless pills.
 const CONFIG: Record<JoinPolicy, { icon: typeof Globe2; tone: string }> = {
-  approval: { icon: ShieldCheck, tone: "bg-ball-50 text-ball-800 border-ball-200" },
-  open:     { icon: Globe2,      tone: "bg-grass-50 text-grass-800 border-grass-200" },
-  closed:   { icon: Lock,        tone: "bg-clay-50 text-clay-800 border-clay-200" },
+  approval: { icon: ShieldCheck, tone: "bg-sun-50 text-sun-600" },
+  open:     { icon: Globe2,      tone: "bg-grass-600/10 text-grass-600" },
+  closed:   { icon: Lock,        tone: "bg-clay-100 text-clay-500" },
 };
 
 /**
@@ -25,7 +27,7 @@ export function JoinPolicyBadge({ policy, labels, iconOnly = false }: Props) {
   const { icon: Icon, tone } = CONFIG[policy];
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${tone}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${tone}`}
       title={labels[policy]}
     >
       <Icon className="h-3 w-3" />

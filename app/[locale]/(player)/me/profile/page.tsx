@@ -1,14 +1,13 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { Award, ArrowRight } from "lucide-react";
+import { Award, ArrowRight, MapPin, TrendingUp, UserRound } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
-import { PageHeader } from "@/components/layout/page-header";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
 import { ExternalRatingCard } from "@/components/profile/external-rating-card";
 import { ProfileForm } from "./profile-form";
 import { TelegramLinkCard } from "./telegram-link-card";
-import { loadMyProfile, loadTelegramLinkState } from "./actions";
+import { loadMyProfile, loadMyProfileHeaderStats, loadTelegramLinkState } from "./actions";
 import { loadMyCoachApplications } from "../become-coach/actions";
 import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
 import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
@@ -27,8 +26,11 @@ export default async function ProfilePage({ params }: Props) {
   if (!result.ok) redirect(`/${locale}/login`);
 
   const { profile, districts } = result;
-  const externalRating = await loadMyExternalRating();
-  const telegramState = await loadTelegramLinkState();
+  const [externalRating, telegramState, headerStats] = await Promise.all([
+    loadMyExternalRating(),
+    loadTelegramLinkState(),
+    loadMyProfileHeaderStats(),
+  ]);
   const tTg = await getTranslations("telegramLink");
 
   // Surface the "become a coach" entry point right inside the player profile.
@@ -176,19 +178,78 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <div className="page-shell space-y-6">
-      <PageHeader
-        title={t("title")}
-        subtitle={t("hello", { name: profile.display_name ?? profile.email ?? "player" })}
-        help={
-          <HelpPanel
-            pageId="me-profile"
-            variant="inline"
-            why={t("help.why")}
-            what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
-            result={[t("help.result.1"), t("help.result.2")]}
-          />
-        }
-      />
+      {/* Dark profile header (spec §4.6): avatar in a gradient ring, name,
+          city, 4 stat tiles (ELO / matches / wins / winrate). */}
+      <section className="hero-dark p-5 md:p-8">
+        <div className="relative flex flex-wrap items-start gap-4 md:gap-6">
+          <span className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-pt-lime p-[3px] md:h-24 md:w-24">
+            {profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              <span className="grid h-full w-full place-items-center rounded-full bg-grass-900 text-ball-400">
+                <UserRound className="h-8 w-8" />
+              </span>
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h1
+                className="font-display font-extrabold text-white"
+                style={{ fontSize: "clamp(22px, 3.4vw, 32px)", letterSpacing: "-0.5px" }}
+              >
+                {profile.display_name ?? t("title")}
+              </h1>
+              <HelpPanel
+                pageId="me-profile"
+                variant="inline"
+                why={t("help.why")}
+                what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
+                result={[t("help.result.1"), t("help.result.2")]}
+              />
+            </div>
+            <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-white/70">
+              {profile.city && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {profile.city}
+                </span>
+              )}
+              <span>{t("hello", { name: profile.display_name ?? profile.email ?? "player" })}</span>
+            </p>
+            <Link
+              href="/me/rating"
+              className="glass-on-dark mt-3 inline-flex h-10 items-center gap-1.5 rounded-[13px] px-4 text-[13px] font-bold transition-colors hover:bg-white/15"
+            >
+              <TrendingUp className="h-4 w-4 text-ball-400" />
+              {t("header.rating_cta")}
+            </Link>
+          </div>
+        </div>
+
+        <dl className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: "ELO", value: String(profile.current_elo) },
+            { label: t("header.stats.matches"), value: String(headerStats.matches_total) },
+            { label: t("header.stats.wins"), value: String(headerStats.wins) },
+            {
+              label: t("header.stats.winrate"),
+              value: headerStats.winrate == null ? "—" : `${headerStats.winrate}%`,
+            },
+          ].map((s) => (
+            <div key={s.label} className="rounded-[16px] bg-white/10 p-3.5 backdrop-blur-sm">
+              <dt className="label-eyebrow-dark">{s.label}</dt>
+              <dd className="mt-1 font-mono text-2xl font-bold leading-none text-white tabular-nums">
+                {s.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
 
       {becomeCoachState !== "is_coach" && (
         <Link

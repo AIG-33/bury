@@ -44,6 +44,9 @@ export function TelegramWidget({
 
   useEffect(() => {
     if (!href) return;
+    // On phones the popover would cover the hero CTAs / bottom tab bar, so it
+    // never auto-opens there — the button alone is the affordance.
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
     try {
       if (localStorage.getItem(DISMISS_KEY)) return;
     } catch {
@@ -106,7 +109,7 @@ export function TelegramWidget({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={close}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#229ED9] px-3 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#1d8bc0]"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#229ED9] px-3 font-display text-[12px] font-bold text-white transition hover:bg-[#1d8bc0]"
                 >
                   <TelegramIcon className="h-3.5 w-3.5" />
                   {labels.cta}
@@ -114,7 +117,7 @@ export function TelegramWidget({
                 <button
                   type="button"
                   onClick={close}
-                  className="ml-auto inline-flex h-8 items-center rounded-full px-2 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-500 hover:text-ink-700"
+                  className="ml-auto inline-flex h-8 items-center rounded-full px-2 font-display text-[12px] font-bold text-ink-500 hover:text-ink-700"
                 >
                   {labels.dismiss}
                 </button>

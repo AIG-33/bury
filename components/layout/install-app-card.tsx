@@ -171,7 +171,7 @@ export function InstallAppIcons({
 }) {
   const { openDialog } = useInstallContext();
 
-  const dim = size === "sm" ? "h-9 px-3 text-[10.5px]" : "h-10 px-3.5 text-[11px]";
+  const dim = size === "sm" ? "h-9 px-3 text-[12px]" : "h-10 px-3.5 text-[13px]";
 
   return (
     <div className={["flex items-center gap-2", className ?? ""].join(" ")}>
@@ -179,7 +179,7 @@ export function InstallAppIcons({
         type="button"
         onClick={() => openDialog("android")}
         className={[
-          "inline-flex items-center justify-center gap-1.5 rounded-full bg-grass-700 font-mono font-semibold uppercase tracking-[0.14em] text-white shadow-card transition hover:bg-grass-800",
+          "inline-flex items-center justify-center gap-1.5 rounded-full bg-pt-primary font-display font-bold text-white shadow-card transition hover:opacity-95",
           dim,
         ].join(" ")}
         aria-label={labels.android_button}
@@ -192,7 +192,7 @@ export function InstallAppIcons({
         type="button"
         onClick={() => openDialog("ios")}
         className={[
-          "inline-flex items-center justify-center gap-1.5 rounded-full border border-ink-900/80 bg-ink-900 font-mono font-semibold uppercase tracking-[0.14em] text-white shadow-card transition hover:bg-ink-800",
+          "inline-flex items-center justify-center gap-1.5 rounded-full border border-ink-900/80 bg-ink-900 font-display font-bold text-white shadow-card transition hover:bg-ink-800",
           dim,
         ].join(" ")}
         aria-label={labels.ios_button}
@@ -290,7 +290,7 @@ export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
                   openDialog("android");
                   dismiss();
                 }}
-                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-grass-700 px-3 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-grass-800"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-pt-primary px-3 font-display text-[12px] font-bold text-white hover:opacity-95"
               >
                 <Smartphone className="h-3.5 w-3.5" />
                 {labels.prompt_android}
@@ -301,7 +301,7 @@ export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
                   openDialog("ios");
                   dismiss();
                 }}
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-ink-900/80 bg-ink-900 px-3 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-ink-800"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-ink-900/80 bg-ink-900 px-3 font-display text-[12px] font-bold text-white hover:bg-ink-800"
               >
                 <Apple className="h-3.5 w-3.5" />
                 {labels.prompt_ios}
@@ -309,7 +309,7 @@ export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
               <button
                 type="button"
                 onClick={dismiss}
-                className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-2 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-500 hover:text-ink-700"
+                className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-2 font-display text-[12px] font-bold text-ink-500 hover:text-ink-700"
               >
                 {labels.prompt_dismiss}
               </button>
@@ -363,7 +363,7 @@ function InstallDialog({ labels }: { labels: InstallAppLabels }) {
           <div>
             <div className="mb-4 flex items-center gap-2">
               <Smartphone className="h-5 w-5 text-grass-700" />
-              <h4 className="font-display text-lg font-bold text-grass-900">
+              <h4 className="section-title text-[18px] md:text-[20px]">
                 {labels.android_modal_title}
               </h4>
             </div>
@@ -371,7 +371,7 @@ function InstallDialog({ labels }: { labels: InstallAppLabels }) {
               <button
                 type="button"
                 onClick={triggerNativeInstall}
-                className="mb-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-grass-700 px-5 text-[12.5px] font-mono font-semibold uppercase tracking-[0.14em] text-white hover:bg-grass-800"
+                className="btn btn-primary mb-4 w-full"
               >
                 {labels.android_install_native}
               </button>
@@ -391,7 +391,7 @@ function InstallDialog({ labels }: { labels: InstallAppLabels }) {
           <div>
             <div className="mb-4 flex items-center gap-2">
               <Apple className="h-5 w-5 text-ink-900" />
-              <h4 className="font-display text-lg font-bold text-grass-900">
+              <h4 className="section-title text-[18px] md:text-[20px]">
                 {labels.ios_modal_title}
               </h4>
             </div>

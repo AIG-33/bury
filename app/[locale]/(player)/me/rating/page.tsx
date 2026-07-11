@@ -72,7 +72,7 @@ export default async function MyRatingPage({ params }: Props) {
           />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-ball-500 text-white shadow-[0_10px_24px_-10px_rgba(234,179,8,0.9)]">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pt-lime text-[#123320] shadow-[0_10px_24px_-10px_rgba(169,221,63,0.9)]">
                 <Sparkles className="h-6 w-6" />
               </span>
               <div className="min-w-0">

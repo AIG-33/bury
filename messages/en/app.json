@@ -880,7 +880,13 @@
       "cta_primary": "Sign up · 1 minute",
       "cta_primary_authed": "Open my dashboard",
       "cta_secondary": "Open tournaments",
+      "live_badge": "{n, plural, one {# tournament live now} other {# tournaments live now}}",
       "scroll": "Next"
+    },
+    "open_now": {
+      "eyebrow": "Join in",
+      "title": "Registration open",
+      "all": "All tournaments"
     },
     "trust": {
       "label": "Already running",
@@ -1764,6 +1770,14 @@
   "profile": {
     "title": "My profile",
     "hello": "Hi, {name}!",
+    "header": {
+      "rating_cta": "My rating & matches",
+      "stats": {
+        "matches": "Matches",
+        "wins": "Wins",
+        "winrate": "Win rate"
+      }
+    },
     "help": {
       "why": "Your profile. Everything the system knows and shows other players — you can change it here.",
       "what": {

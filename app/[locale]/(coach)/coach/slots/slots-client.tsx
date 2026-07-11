@@ -104,7 +104,7 @@ export function SlotsClient({
         <div className="space-y-6">
           {grouped.map((day) => (
             <section key={day.dateLabel}>
-              <h3 className="mb-2 inline-flex items-center gap-2 font-display text-lg font-bold text-grass-900">
+              <h3 className="mb-2 inline-flex items-center gap-2 section-title text-[18px] md:text-[20px]">
                 <Calendar className="h-4 w-4 text-grass-700" />
                 {day.dateLabel}
               </h3>

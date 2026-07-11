@@ -18,20 +18,24 @@
 
   body {
     @apply text-ink-900 antialiased;
-    background-color: #f6f9f4;
+    /* ТЗ §1.1: page background — radial lime spots over a #F3F7ED→#EDF3E4 wash. */
+    background-color: #f3f7ed;
     background-image:
       radial-gradient(
-        60% 50% at 100% 0%,
-        rgba(226, 246, 68, 0.08) 0%,
+        55% 45% at 85% 0%,
+        rgba(230, 242, 211, 0.9) 0%,
         transparent 70%
       ),
       radial-gradient(
-        50% 50% at 0% 100%,
-        rgba(166, 224, 181, 0.18) 0%,
+        50% 50% at 5% 90%,
+        rgba(223, 240, 221, 0.85) 0%,
         transparent 70%
-      );
+      ),
+      linear-gradient(180deg, #f3f7ed 0%, #edf3e4 100%);
     background-attachment: fixed;
     font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   ::selection {
@@ -42,35 +46,6 @@
     @apply outline-none ring-2 ring-grass-500 ring-offset-2 ring-offset-white;
   }
 
-  /* Dark surface mode toggled by client bridge on landing/cinematic pages.
-     Keeps interior pages untouched: only applies when html[data-theme="dark"]. */
-  html[data-theme="dark"] body {
-    @apply bg-atp-night text-ink-50;
-  }
-  html[data-theme="dark"] *:focus-visible {
-    @apply ring-lime-neon ring-offset-atp-night;
-  }
-  html[data-theme="dark"] ::selection {
-    background: #d4ff3a;
-    color: #001530;
-  }
-
-  /* Make existing TopNav transparent over hero on dark surfaces.
-     Targets the sticky header rendered by app/[locale]/layout.tsx → TopNav. */
-  html[data-theme="dark"] header.sticky {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    backdrop-filter: blur(0) !important;
-    color: rgb(244 246 245);
-  }
-  html[data-theme="dark"] header.sticky a,
-  html[data-theme="dark"] header.sticky span,
-  html[data-theme="dark"] header.sticky button {
-    color: rgb(244 246 245);
-  }
-  html[data-theme="dark"] header.sticky button {
-    border-color: rgba(255, 255, 255, 0.18);
-  }
 }
 
 @layer components {
@@ -78,43 +53,12 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Editorial micro-cap label, used for meta/eyebrow text. */
+  /* Eyebrow (ТЗ §1.2): 11px / 700 / uppercase / tracking 1.3px / Hint #8AA093. */
   .label-eyebrow {
-    @apply font-mono text-[12.5px] uppercase tracking-[0.18em] text-ink-500;
+    @apply text-[11px] font-bold uppercase tracking-[1.3px] text-ink-400;
   }
   .label-eyebrow-dark {
-    @apply font-mono text-[12.5px] uppercase tracking-[0.18em] text-silver;
-  }
-
-  /* Subtle film-grain overlay; respects reduced-motion. */
-  .film-grain::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: overlay;
-    opacity: 0.04;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    background-size: 160px 160px;
-  }
-
-  /* Soft court ambience — light grass→ball wash for editorial hero. */
-  .aura-court {
-    background:
-      radial-gradient(
-        60% 60% at 80% 25%,
-        rgba(226, 246, 68, 0.55) 0%,
-        transparent 65%
-      ),
-      radial-gradient(
-        70% 70% at 15% 85%,
-        rgba(166, 224, 181, 0.6) 0%,
-        transparent 65%
-      ),
-      #f4faf0;
-    filter: blur(50px) saturate(115%);
-    will-change: transform, opacity;
-    animation: breathe 11s ease-in-out infinite;
+    @apply text-[11px] font-bold uppercase tracking-[1.3px] text-white/60;
   }
 
   /* Hairline divider used between editorial blocks. */
@@ -139,110 +83,162 @@
      warm body background even before migration.
      ------------------------------------------------------------------ */
 
-  /* Page container: single source of truth for max-width and gutters. */
+  /* Page container (ТЗ §1.5): max-width 1180px, gutter clamp(14px,3.5vw,40px). */
   .page-shell {
-    @apply mx-auto w-full max-w-[1200px] px-5 py-8 md:px-10 md:py-12;
+    @apply mx-auto w-full max-w-[1180px] py-6 md:py-10;
+    padding-left: clamp(14px, 3.5vw, 40px);
+    padding-right: clamp(14px, 3.5vw, 40px);
   }
   .page-shell-wide {
-    @apply mx-auto w-full max-w-[1440px] px-5 py-8 md:px-10 md:py-12;
+    @apply mx-auto w-full max-w-[1440px] py-6 md:py-10;
+    padding-left: clamp(14px, 3.5vw, 40px);
+    padding-right: clamp(14px, 3.5vw, 40px);
   }
 
-  /* Premium card surface — replaces ad-hoc rounded-xl2/border-grass-200 mix. */
+  /* Card (ТЗ §2.3): white, border 1px rgba(20,60,30,.07), radius 20px. */
   .surface-card {
-    @apply rounded-xl3 border border-ink-200/70 bg-white p-6 shadow-[0_8px_30px_-18px_rgba(15,27,20,0.08)] md:p-8;
+    @apply rounded-xl2 border border-[rgba(20,60,30,0.07)] bg-white p-5 shadow-card md:p-7;
   }
   .surface-card-flat {
-    @apply rounded-xl3 border border-ink-200/70 bg-white p-6 md:p-8;
+    @apply rounded-xl2 border border-[rgba(20,60,30,0.07)] bg-white p-5 md:p-7;
   }
   /* Soft tinted surface — for secondary blocks (empty states, info panels). */
   .surface-soft {
-    @apply rounded-xl3 border border-grass-200/50 bg-grass-50/40 p-6 md:p-8;
+    @apply rounded-xl2 border border-grass-100/60 bg-[#FBFDF9] p-5 md:p-7;
   }
   /* Glass surface — for floating panels over hero/aura backgrounds. */
   .surface-glass {
-    @apply rounded-xl3 border border-white/60 bg-white/70 p-6 shadow-[0_18px_60px_-30px_rgba(15,27,20,0.18)] backdrop-blur-md md:p-8;
+    @apply rounded-xl2 border border-white/60 bg-white/70 p-5 shadow-card backdrop-blur-md md:p-7;
   }
   /* Compact card for dense lists. */
   .surface-row {
-    @apply rounded-xl2 border border-ink-200/70 bg-white p-4 transition-shadow duration-300 hover:shadow-[0_8px_24px_-14px_rgba(15,27,20,0.18)] md:p-5;
+    @apply rounded-[14px] border border-[rgba(20,60,30,0.07)] bg-[#FBFDF9] p-4 transition-colors duration-200 hover:bg-[#F0F6E8] md:p-5;
   }
 
-  /* Page header type scale aligned with landing typography. */
+  /* Type scale (ТЗ §1.2). */
   .page-title {
-    @apply font-display text-3xl font-bold tracking-tight text-grass-900 md:text-4xl;
+    @apply font-display font-extrabold text-grass-900;
+    font-size: clamp(30px, 4.4vw, 44px);
+    letter-spacing: -1px;
+    line-height: 1.1;
   }
   .page-subtitle {
-    @apply mt-2 max-w-2xl text-base leading-relaxed text-ink-600 md:text-lg;
+    @apply mt-2 max-w-2xl text-sm leading-relaxed text-ink-500 md:text-base;
   }
-  /* Section title — secondary hierarchy inside pages. */
+  /* Section title — 22px / 800 / −0.5px. */
   .section-title {
-    @apply font-display text-xl font-bold tracking-tight text-grass-900 md:text-2xl;
+    @apply font-display text-[20px] font-extrabold text-grass-900 md:text-[22px];
+    letter-spacing: -0.5px;
   }
 
   /* ------------------------------------------------------------------
-     Buttons — pill recipe matching the landing hero CTA.
-     Use .btn + variant. Sizes: .btn-md (default), .btn-sm.
+     Buttons (ТЗ §2.1): primary — green gradient + glow, radius 13px,
+     hover translateY(-2px); accent — lime gradient, dark text, w800;
+     ghost — white bg + thin border. Hit-target ≥ 44px.
      ------------------------------------------------------------------ */
   .btn {
-    @apply ease-followthrough inline-flex h-11 select-none items-center justify-center gap-2 rounded-full px-5 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] transition-all duration-300 disabled:pointer-events-none disabled:opacity-60;
+    @apply inline-flex h-11 min-h-[44px] select-none items-center justify-center gap-2 rounded-[13px] px-5 text-sm font-bold transition-all duration-200 ease-out disabled:pointer-events-none disabled:opacity-60;
   }
   .btn-sm {
-    @apply h-9 px-4 text-[11.5px] tracking-[0.14em];
+    @apply h-10 px-4 text-[13px];
   }
   .btn-lg {
-    @apply h-12 px-6 text-[13px];
+    @apply h-12 rounded-[15px] px-6 text-[15px];
   }
   .btn-primary {
-    @apply bg-grass-700 text-white shadow-[0_14px_34px_-14px_rgba(21,94,54,0.6)] hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_22px_50px_-16px_rgba(21,94,54,0.7)];
+    @apply bg-pt-primary text-white shadow-glow hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(28,122,70,0.4)];
   }
   .btn-secondary {
-    @apply border border-ink-200/80 bg-white/70 text-ink-800 backdrop-blur-sm hover:-translate-y-0.5 hover:border-grass-400 hover:bg-white hover:text-grass-800;
+    @apply border border-[rgba(20,60,30,0.12)] bg-white text-[#3A5445] hover:-translate-y-0.5 hover:border-grass-300 hover:text-grass-800;
   }
   .btn-ghost {
-    @apply border border-transparent bg-transparent text-ink-700 hover:bg-grass-50 hover:text-grass-800;
+    @apply border border-transparent bg-transparent text-ink-600 hover:bg-grass-50 hover:text-grass-800;
   }
   .btn-accent {
-    @apply bg-ball-500 text-grass-900 shadow-[0_14px_34px_-14px_rgba(143,163,3,0.55)] hover:-translate-y-0.5 hover:bg-ball-400 hover:shadow-[0_22px_50px_-16px_rgba(143,163,3,0.65)];
+    @apply bg-pt-lime font-extrabold text-[#123320] shadow-[0_8px_20px_rgba(169,221,63,0.35)] hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(169,221,63,0.45)];
   }
   .btn-danger {
-    @apply border border-clay-200 bg-white text-clay-700 hover:-translate-y-0.5 hover:border-clay-400 hover:bg-clay-50 hover:text-clay-800;
+    @apply border border-clay-200 bg-white text-clay-600 hover:-translate-y-0.5 hover:border-clay-400 hover:bg-clay-50 hover:text-clay-700;
   }
 
-  /* Chips and pills — for tags, filters, status badges. */
+  /* Chips and pills (ТЗ §2.2) — tags, filters, status badges. */
   .chip {
-    @apply inline-flex h-7 items-center gap-1 rounded-full border border-ink-200/70 bg-white px-2.5 text-[11.5px] font-medium tracking-tight text-ink-700;
+    @apply inline-flex h-7 items-center gap-1.5 rounded-full bg-ink-50 px-3 text-[11.5px] font-bold text-ink-500;
   }
   .chip-grass {
-    @apply border-grass-200 bg-grass-50 text-grass-800;
+    @apply bg-grass-50 text-grass-600;
   }
   .chip-ball {
-    @apply border-ball-200 bg-ball-50 text-grass-900;
+    @apply bg-ball-100 text-ball-700;
   }
   .chip-clay {
-    @apply border-clay-200 bg-clay-50 text-clay-800;
+    @apply bg-clay-100 text-clay-500;
+  }
+  .chip-sun {
+    @apply bg-sun-50 text-sun-600;
   }
   .chip-ink {
-    @apply border-ink-200 bg-ink-50 text-ink-700;
+    @apply bg-ink-50 text-ink-500;
   }
 
-  /* Subtle hover-lift used on catalog cards and list rows. */
+  /* Live/registration pulse dot (ТЗ §2.2, §3). Place inside a chip. */
+  .pulse-dot {
+    @apply relative inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-current;
+  }
+  .pulse-dot::after {
+    content: "";
+    @apply absolute inset-0 animate-ptPulse rounded-full bg-current;
+  }
+
+  /* Stat tile (ТЗ §2.3): eyebrow on top, big Space Grotesk number below. */
+  .stat-tile {
+    @apply rounded-[16px] border border-[rgba(20,60,30,0.07)] bg-[#FBFDF9] p-4;
+  }
+  .stat-tile-value {
+    @apply mt-1 font-mono text-[26px] font-bold leading-none tracking-tight text-grass-900 tabular-nums;
+  }
+
+  /* Card icon preview (ТЗ §2.3): 46–56px lime-gradient square. */
+  .icon-preview {
+    @apply grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-pt-icon text-grass-700;
+  }
+
+  /* Hover-lift for catalog cards (ТЗ §3): −4px + stronger shadow, .2s ease. */
   .lift-on-hover {
-    @apply ease-followthrough transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-22px_rgba(15,27,20,0.18)];
+    @apply transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-cardHover;
   }
 
   /* Soft sunny gradient background — apply to page sections that need a
      gentle warm wash (e.g. hero strips inside catalog pages). */
   .bg-sun-wash {
     background-image:
-      radial-gradient(60% 50% at 100% 0%, rgba(226, 246, 68, 0.18) 0%, transparent 65%),
-      radial-gradient(50% 60% at 0% 100%, rgba(166, 224, 181, 0.28) 0%, transparent 60%),
-      linear-gradient(180deg, #f8fcf3 0%, #f3f9ec 100%);
+      radial-gradient(60% 50% at 100% 0%, rgba(230, 242, 211, 0.9) 0%, transparent 65%),
+      radial-gradient(50% 60% at 0% 100%, rgba(223, 240, 221, 0.85) 0%, transparent 60%),
+      linear-gradient(180deg, #f3f7ed 0%, #edf3e4 100%);
   }
   /* Cool grass-to-white wash — interior page background when needed. */
   .bg-grass-wash {
     background-image:
-      radial-gradient(60% 60% at 50% 0%, rgba(166, 224, 181, 0.32) 0%, transparent 65%),
-      linear-gradient(180deg, #fbfdf8 0%, #f3f9ec 100%);
+      radial-gradient(60% 60% at 50% 0%, rgba(223, 240, 221, 0.8) 0%, transparent 65%),
+      linear-gradient(180deg, #fbfdf9 0%, #f3f7ed 100%);
+  }
+
+  /* Dark hero panel (ТЗ §4.1 / §1.1): brand gradient + lime corner glow. */
+  .hero-dark {
+    @apply relative overflow-hidden rounded-hero bg-pt-hero text-white;
+  }
+  .hero-dark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(40% 45% at 92% 8%, rgba(195, 232, 79, 0.22) 0%, transparent 70%),
+      radial-gradient(35% 40% at 4% 96%, rgba(42, 149, 86, 0.35) 0%, transparent 70%);
+  }
+  /* Glass chip/button over the dark hero (ТЗ §3). */
+  .glass-on-dark {
+    @apply border border-white/20 bg-white/10 text-white backdrop-blur-md;
   }
 
   /* Court line — decorative horizontal hairline with subtle ball-tinted glow.
@@ -289,12 +285,10 @@
 
 /* Reduced motion: tame the heavy stuff. */
 @media (prefers-reduced-motion: reduce) {
-  .aura-court {
-    animation: none;
-    filter: blur(40px);
-  }
   .animate-bounceBall,
-  .animate-breathe {
+  .animate-breathe,
+  .animate-ptPulse,
+  .pulse-dot::after {
     animation: none !important;
   }
   .lift-on-hover {

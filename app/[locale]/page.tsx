@@ -4,11 +4,15 @@ import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
+import { Link } from "@/i18n/routing";
+import { ArrowRight } from "lucide-react";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { BenefitsSection } from "@/components/landing/benefits-section";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { CoachCta } from "@/components/landing/coach-cta";
 import { FinalCta } from "@/components/landing/final-cta";
+import { TournamentCard } from "@/components/domain/tournament-card";
+import { loadPublicTournaments } from "./tournaments/actions";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -87,7 +91,14 @@ export default async function LandingPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("landing");
-  const hrefs = await resolveLandingHrefs();
+  const [hrefs, allPublic] = await Promise.all([
+    resolveLandingHrefs(),
+    loadPublicTournaments({ status: "all" }).catch(() => []),
+  ]);
+  const openRegistration = allPublic
+    .filter((tn) => tn.status === "registration")
+    .slice(0, 3);
+  const liveCount = allPublic.filter((tn) => tn.status === "in_progress").length;
 
   return (
     <>
@@ -96,7 +107,30 @@ export default async function LandingPage({ params }: Props) {
         primaryCtaHref={hrefs.primary}
         primaryCtaLabel={t(`hero.${hrefs.primaryLabelKey}`)}
         secondaryCtaHref={hrefs.secondary}
+        liveCount={liveCount}
       />
+      {openRegistration.length > 0 && (
+        <section className="page-shell !py-8 md:!py-10" aria-label={t("open_now.title")}>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="label-eyebrow">{t("open_now.eyebrow")}</p>
+              <h2 className="section-title mt-1">{t("open_now.title")}</h2>
+            </div>
+            <Link
+              href="/tournaments"
+              className="inline-flex min-h-[44px] items-center gap-1.5 text-[13px] font-bold text-grass-600 transition-colors hover:text-grass-800"
+            >
+              {t("open_now.all")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
+            {openRegistration.map((tn) => (
+              <TournamentCard key={tn.id} tn={tn} locale={locale} />
+            ))}
+          </ul>
+        </section>
+      )}
       <BenefitsSection
         ratingHref={hrefs.rating}
         findHref={hrefs.find}

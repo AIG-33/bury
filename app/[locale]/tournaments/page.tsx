@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
-import { Trophy, Calendar, Clock, Coins, MapPin, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { GuestNextStepBanner } from "@/components/landing/guest-next-step-banner";
@@ -10,6 +9,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
+import { TournamentCard } from "@/components/domain/tournament-card";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   loadPublicTournaments,
@@ -83,7 +83,6 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
     })(),
   ]);
   const isGuest = !sessionUser;
-  const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
   const hasFilter = Boolean(format || surface || fee || city);
 
   return (
@@ -111,8 +110,12 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
 
       <GuestNextStepBanner isGuest={isGuest} current="tournaments" />
 
-      {/* Filter tabs — preserve secondary filters in the URL */}
-      <nav className="flex flex-wrap gap-2 border-b border-ink-100">
+      {/* Filter tabs — pill segmented control (spec §4.2). Horizontal scroll
+          on narrow screens so the row never wraps into overlap. */}
+      <nav
+        className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: "none" }}
+      >
         {(["all", "registration", "upcoming", "in_progress", "finished"] as const).map((s) => {
           const params = new URLSearchParams();
           params.set("status", s);
@@ -124,10 +127,10 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             <Link
               key={s}
               href={`/${locale}/tournaments?${params.toString()}`}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition ${
+              className={`inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-4 text-[13px] font-bold transition-colors duration-200 ${
                 filter === s
-                  ? "border-grass-700 text-grass-700"
-                  : "border-transparent text-ink-500 hover:text-ink-900"
+                  ? "bg-pt-primary text-white shadow-glow"
+                  : "border border-[rgba(20,60,30,0.12)] bg-white text-[#3A5445] hover:border-grass-300 hover:text-grass-700"
               }`}
             >
               {t(`tabs.${s}`)}
@@ -249,11 +252,11 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
           />
         )
       ) : filter === "all" ? (
-        <SectionedList tournaments={tournaments} locale={locale} t={t} fmtDate={fmtDate} />
+        <SectionedList tournaments={tournaments} locale={locale} t={t} />
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
           {tournaments.map((tn) => (
-            <TournamentCard key={tn.id} tn={tn} locale={locale} t={t} fmtDate={fmtDate} />
+            <TournamentCard key={tn.id} tn={tn} locale={locale} />
           ))}
         </ul>
       )}
@@ -269,12 +272,10 @@ function SectionedList({
   tournaments,
   locale,
   t,
-  fmtDate,
 }: {
   tournaments: PublicTournamentRow[];
   locale: string;
   t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
-  fmtDate: Intl.DateTimeFormat;
 }) {
   // Drafts are filtered out server-side (loadPublicTournaments) and never
   // reach the public catalogue.
@@ -291,24 +292,18 @@ function SectionedList({
         accent="grass"
         items={registration}
         locale={locale}
-        t={t}
-        fmtDate={fmtDate}
       />
       <SectionedGroup
         title={t("sections.upcoming")}
         accent="ball"
         items={inProgress}
         locale={locale}
-        t={t}
-        fmtDate={fmtDate}
       />
       <SectionedGroup
         title={t("sections.finished")}
         accent="ink"
         items={finished}
         locale={locale}
-        t={t}
-        fmtDate={fmtDate}
       />
     </div>
   );
@@ -319,15 +314,11 @@ function SectionedGroup({
   accent,
   items,
   locale,
-  t,
-  fmtDate,
 }: {
   title: string;
   accent: "grass" | "ball" | "ink";
   items: PublicTournamentRow[];
   locale: string;
-  t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
-  fmtDate: Intl.DateTimeFormat;
 }) {
   if (items.length === 0) return null;
   const dotCls =
@@ -340,91 +331,14 @@ function SectionedGroup({
     <section>
       <header className="mb-3 flex items-center gap-2">
         <span className={`inline-block h-2 w-2 rounded-full ${dotCls}`} />
-        <h2 className="font-display text-lg font-bold text-grass-900">{title}</h2>
-        <span className="text-xs tabular-nums text-ink-500">·&nbsp;{items.length}</span>
+        <h2 className="section-title text-[18px] md:text-[20px]">{title}</h2>
+        <span className="font-mono text-xs tabular-nums text-ink-400">·&nbsp;{items.length}</span>
       </header>
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
         {items.map((tn) => (
-          <TournamentCard key={tn.id} tn={tn} locale={locale} t={t} fmtDate={fmtDate} />
+          <TournamentCard key={tn.id} tn={tn} locale={locale} />
         ))}
       </ul>
     </section>
-  );
-}
-
-function TournamentCard({
-  tn,
-  locale,
-  t,
-  fmtDate,
-}: {
-  tn: PublicTournamentRow;
-  locale: string;
-  t: Awaited<ReturnType<typeof getTranslations<"tournamentsPublic">>>;
-  fmtDate: Intl.DateTimeFormat;
-}) {
-  return (
-    <li className="surface-row lift-on-hover group hover:border-grass-300">
-      <Link href={`/${locale}/tournaments/${tn.id}`} className="flex items-start gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-grass-100 text-grass-700">
-          <Trophy className="h-5 w-5" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-display text-lg font-semibold text-ink-900 group-hover:text-grass-700">
-            {tn.name}
-          </h3>
-          {tn.description && (
-            <p className="mt-1 line-clamp-2 text-sm text-ink-600">{tn.description}</p>
-          )}
-          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-ink-500">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              {fmtDate.format(new Date(tn.starts_on))}
-            </div>
-            <div className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" />
-              {tn.participants_count}
-              {tn.max_participants ? ` / ${tn.max_participants}` : ""}
-            </div>
-            {tn.start_time && (
-              <div className="flex items-center gap-1 tabular-nums">
-                <Clock className="h-3.5 w-3.5" />
-                {tn.start_time.slice(0, 5)}
-              </div>
-            )}
-            <div className="flex items-center gap-1 tabular-nums">
-              <Coins className="h-3.5 w-3.5" />
-              {tn.entry_fee_byn == null || tn.entry_fee_byn === 0
-                ? t("entry_fee_free")
-                : t("entry_fee_byn", { n: tn.entry_fee_byn })}
-            </div>
-            {tn.venues.length > 0 && (
-              <div className="col-span-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-ink-600">
-                <MapPin className="h-3.5 w-3.5 text-grass-700" />
-                {tn.venues.map((v) => (
-                  <span key={v.id} className="rounded-full bg-grass-50 px-2 py-0.5 text-grass-700">
-                    {v.name}
-                    {v.city && <span className="text-ink-500">· {v.city}</span>}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="col-span-2 mt-1 inline-flex items-center gap-2">
-              <span className="chip chip-grass text-[10px] font-medium uppercase">
-                {t(`format.${tn.format}`)}
-              </span>
-              {tn.surface && (
-                <span className="chip chip-clay text-[10px] font-medium uppercase">
-                  {tn.surface}
-                </span>
-              )}
-              <span className="chip chip-ink text-[10px] font-medium uppercase">
-                {t(`status.${tn.status}`)}
-              </span>
-            </div>
-          </dl>
-        </div>
-      </Link>
-    </li>
   );
 }
