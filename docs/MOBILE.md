@@ -89,14 +89,84 @@ npm run cap:assets                        # fan out to all densities
 
 ## Known follow-ups
 
-- **Google OAuth in WebView.** Google blocks its OAuth screen inside embedded
-  WebViews (`disallowed_useragent`). Email/password and magic-link login work as
-  is. To support Google sign-in natively, open the OAuth URL via `@capacitor/browser`
-  and return through a custom-scheme deep link (`by.playtennis.app://`), and add
-  that redirect URL in Supabase Auth settings.
 - **Push notifications.** Not wired yet. Add `@capacitor/push-notifications`
   plus APNs/FCM credentials when needed.
 - **App Store Guideline 4.2 (minimum functionality).** Pure website wrappers can
   be rejected. We already add native splash, status bar, back-button and external
   link handling; add push notifications and native share before submission if a
   reviewer pushes back.
+
+## OAuth setup (Google + Apple sign-in)
+
+"Continue with Google" and "Continue with Apple" appear on the login screen on
+**web, iOS and Android**. The flows differ by platform (gated on
+`Capacitor.isNativePlatform()`):
+
+- **Web** — `supabase.auth.signInWithOAuth({ provider, redirectTo:
+  <origin>/api/auth/callback })`. The existing PKCE callback route runs
+  `exchangeCodeForSession` and the profile-based redirect.
+- **Native (iOS/Android)** — `@capgo/capacitor-social-login` returns a provider
+  **id-token**, which we exchange with `supabase.auth.signInWithIdToken(...)` on
+  the cookie-backed browser client, then hard-navigate to `/api/auth/post-login`.
+  Google's OAuth screen is blocked inside WebViews, so the id-token flow is
+  mandatory on device.
+
+Implementation: `lib/auth/oauth.ts` (branching + result mapping),
+`lib/capacitor/platform.ts` (native detection),
+`components/auth/oauth-buttons.tsx` (branded buttons),
+`SocialLogin.initialize(...)` reads the `NEXT_PUBLIC_*` client IDs below.
+
+### Account linking
+
+Accounts that share the **same confirmed email** are auto-linked by Supabase
+(default behaviour — an email/password user who later signs in with Google/Apple
+on that email ends up as one account). No manual link screen; `enable_manual_linking`
+stays `false` in `supabase/config.toml`.
+
+### Placeholders you MUST fill before native builds work
+
+These are intentionally left as placeholders in the repo:
+
+| Where | Placeholder | Replace with |
+| --- | --- | --- |
+| Env (Vercel) | `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google **Web application** OAuth client ID (also the iOS token audience) |
+| Env (Vercel) | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google **iOS** OAuth client ID |
+| Env (Vercel) | `NEXT_PUBLIC_APPLE_SERVICES_ID` | Apple **Services ID** (Android Apple sign-in only) |
+| Env (Vercel) | `NEXT_PUBLIC_APPLE_REDIRECT_URL` | Server callback for Android Apple, e.g. `https://<ref>.supabase.co/auth/v1/callback` |
+| `ios/App/App/Info.plist` | `com.googleusercontent.apps.YOUR_IOS_CLIENT_ID` | **Reversed** iOS client ID (`com.googleusercontent.apps.<id>`) |
+| Google Cloud Console | Android SHA-1 fingerprints | Debug (`./gradlew signingReport`), release, and Play App Signing SHA-1s registered on an **Android** OAuth client with package `by.playtennis.app` |
+
+### Google Cloud Console
+
+1. Create OAuth clients in **one** project: a **Web application** client, an
+   **iOS** client (bundle id `by.playtennis.app`), and an **Android** client per
+   signing certificate (debug + release + Play App Signing) with package
+   `by.playtennis.app` and its SHA-1. Credential Manager needs the **Web** client
+   ID as the token audience — do **not** put the Android client ID in
+   `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID`.
+2. In the **Supabase dashboard → Auth → Providers → Google**: enable it, paste the
+   Web client ID + secret, and add the **iOS** client ID to *Authorized Client IDs*
+   so `signInWithIdToken` accepts iOS-issued tokens.
+
+### Apple Developer
+
+1. Enable the **Sign in with Apple** capability for App ID `by.playtennis.app`
+   (the entitlement is committed at `ios/App/App/App.entitlements`; add the
+   capability to the target in Xcode so the provisioning profile carries it).
+2. For **Android** Apple sign-in, create a **Services ID**, a Sign in with Apple
+   **Key** (Team ID + Key ID + `.p8`), and set the return URL to your Supabase
+   auth callback. Put the Services ID in `NEXT_PUBLIC_APPLE_SERVICES_ID` and the
+   callback in `NEXT_PUBLIC_APPLE_REDIRECT_URL`.
+3. In the **Supabase dashboard → Auth → Providers → Apple**: enable it, add the
+   Services ID + generated client secret, and ensure both the app **bundle id**
+   and the **Services ID** are accepted audiences for the id-token flow.
+
+### After changing native config
+
+```bash
+npm run cap:sync   # copies capacitor.config.ts + installs the plugin into ios/ & android/
+```
+
+Native OAuth cannot be validated locally without Apple/Google developer accounts
+and signed builds; web OAuth can be tested against a Supabase project with the
+providers enabled.

@@ -47,6 +47,18 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: "native",
     },
+    // Native Google / Apple sign-in (@capgo/capacitor-social-login). Real client
+    // IDs are passed at runtime via SocialLogin.initialize() in lib/auth/oauth.ts
+    // (fed by NEXT_PUBLIC_GOOGLE_* / NEXT_PUBLIC_APPLE_* env). Facebook + Twitter
+    // are disabled so their SDKs (and the Facebook AD_ID permission) are excluded.
+    SocialLogin: {
+      providers: {
+        google: true,
+        apple: true,
+        facebook: false,
+        twitter: false,
+      },
+    },
   },
 };
 

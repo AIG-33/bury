@@ -1019,7 +1019,12 @@
     "auth_error_missing_token": "The sign-in link is incomplete. Request a new one below.",
     "auth_error_missing_code": "The sign-in link is invalid. Request a new one below.",
     "auth_error_no_session": "Could not start a session. Please sign in again.",
-    "auth_error_generic": "The link is invalid or has expired. Request a new one below."
+    "auth_error_generic": "The link is invalid or has expired. Request a new one below.",
+    "or_divider": "or",
+    "continue_google": "Continue with Google",
+    "continue_apple": "Continue with Apple",
+    "oauth_error": "Sign-in was cancelled or failed. Please try again.",
+    "oauth_unavailable": "This sign-in method isn't available on your device."
   },
   "updatePassword": {
     "title": "Set a new password",

@@ -4,14 +4,13 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
-  Mail,
-  Lock,
-  ArrowRight,
-  Loader2,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+  signInWithApple,
+  signInWithGoogle,
+  oauthErrorLabelKey,
+  type OAuthProvider,
+} from "@/lib/auth/oauth";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { Mail, Lock, ArrowRight, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 export type LoginLabels = {
   email: string;
@@ -38,6 +37,11 @@ export type LoginLabels = {
   auth_error_missing_code: string;
   auth_error_no_session: string;
   auth_error_generic: string;
+  or_divider: string;
+  continue_google: string;
+  continue_apple: string;
+  oauth_error: string;
+  oauth_unavailable: string;
 };
 
 type Mode = "password" | "signup" | "magic" | "forgot";
@@ -50,6 +54,8 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<null | "magic" | "signup" | "forgot">(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [oauthBusy, setOauthBusy] = useState<OAuthProvider | null>(null);
+  const [oauthErrMsg, setOauthErrMsg] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
@@ -96,6 +102,36 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
     const url = new URL(`${siteBase()}/api/auth/post-login`);
     if (next) url.searchParams.set("next", next);
     return url.toString();
+  }
+
+  // Web OAuth redirects back through the existing PKCE callback route, which
+  // runs `exchangeCodeForSession` and the profile-based redirect.
+  function oauthRedirectUrl(): string {
+    const url = new URL(`${siteBase()}/api/auth/callback`);
+    if (next) url.searchParams.set("next", next);
+    return url.toString();
+  }
+
+  async function handleOAuth(provider: OAuthProvider) {
+    setErrMsg(null);
+    setOauthErrMsg(null);
+    setOauthBusy(provider);
+    const opts = {
+      redirectTo: oauthRedirectUrl(),
+      postLoginUrl: postLoginUrl(),
+    };
+    const result =
+      provider === "google" ? await signInWithGoogle(opts) : await signInWithApple(opts);
+    // On success the web flow redirects to the provider and the native flow
+    // hard-navigates to /api/auth/post-login, so we only reset on failure.
+    if (!result.ok) {
+      setOauthBusy(null);
+      setOauthErrMsg(
+        oauthErrorLabelKey(result.error) === "oauth_unavailable"
+          ? labels.oauth_unavailable
+          : labels.oauth_error,
+      );
+    }
   }
 
   async function handlePasswordSignIn(e: React.FormEvent) {
@@ -181,25 +217,20 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
     return <SuccessNote title={labels.sent} body={labels.help_signup_confirm} />;
   }
   if (done === "forgot") {
-    return (
-      <SuccessNote title={labels.forgot_sent_title} body={labels.forgot_sent_body} />
-    );
+    return <SuccessNote title={labels.forgot_sent_title} body={labels.forgot_sent_body} />;
   }
 
   return (
     <div className="space-y-4">
       {authErrorMsg && (
-        <p
-          role="alert"
-          className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700"
-        >
+        <p role="alert" className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
           {authErrorMsg}
         </p>
       )}
       <div
         role="tablist"
         aria-label="Login mode"
-        className="grid grid-cols-3 gap-1 rounded-full border border-ink-200/70 bg-white/70 p-1 text-[12px] font-mono uppercase tracking-[0.14em]"
+        className="grid grid-cols-3 gap-1 rounded-full border border-ink-200/70 bg-white/70 p-1 font-mono text-[12px] uppercase tracking-[0.14em]"
       >
         <TabButton
           active={mode === "password"}
@@ -240,7 +271,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
           <button
             type="button"
             onClick={() => setMode("password")}
-            className="block w-full text-center text-[12px] font-mono uppercase tracking-[0.14em] text-ink-500 hover:text-grass-700"
+            className="block w-full text-center font-mono text-[12px] uppercase tracking-[0.14em] text-ink-500 hover:text-grass-700"
           >
             ← {labels.back}
           </button>
@@ -295,11 +326,31 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
               setMode("forgot");
               setErrMsg(null);
             }}
-            className="block w-full text-center text-[12px] font-mono uppercase tracking-[0.14em] text-ink-500 hover:text-grass-700"
+            className="block w-full text-center font-mono text-[12px] uppercase tracking-[0.14em] text-ink-500 hover:text-grass-700"
           >
             {labels.forgot}
           </button>
         </form>
+      )}
+
+      {mode !== "forgot" && (
+        <>
+          <OAuthButtons
+            labels={{
+              or_divider: labels.or_divider,
+              continue_google: labels.continue_google,
+              continue_apple: labels.continue_apple,
+            }}
+            onProvider={handleOAuth}
+            busyProvider={oauthBusy}
+            disabled={busy || oauthBusy !== null}
+          />
+          {oauthErrMsg && (
+            <p role="alert" className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
+              {oauthErrMsg}
+            </p>
+          )}
+        </>
       )}
     </div>
   );
@@ -336,7 +387,7 @@ function TabButton({
         "h-9 rounded-full transition",
         active
           ? "bg-grass-700 text-white shadow-[0_8px_20px_-10px_rgba(21,94,54,0.6)]"
-          : "text-ink-600 hover:text-grass-800 hover:bg-grass-50",
+          : "text-ink-600 hover:bg-grass-50 hover:text-grass-800",
       ].join(" ")}
     >
       {children}
@@ -421,9 +472,7 @@ function PasswordField({
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
-      {minHint && (
-        <p className="mt-1.5 text-[11px] text-ink-500">{minHint}</p>
-      )}
+      {minHint && <p className="mt-1.5 text-[11px] text-ink-500">{minHint}</p>}
     </label>
   );
 }
@@ -439,7 +488,7 @@ function ErrorNote({
 }) {
   if (!show || !message) return null;
   return (
-    <p className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700 animate-letCordShake">
+    <p className="animate-letCordShake rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
       {prefix}: {message}
     </p>
   );
@@ -458,7 +507,7 @@ function PrimaryButton({
     <button
       type="submit"
       disabled={busy}
-      className="group inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-grass-700 font-mono text-[12.5px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_44px_-18px_rgba(21,94,54,0.6)] transition-all duration-400 ease-followthrough hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_24px_60px_-20px_rgba(21,94,54,0.7)] disabled:translate-y-0 disabled:opacity-60"
+      className="duration-400 ease-followthrough group inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-grass-700 font-mono text-[12.5px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_44px_-18px_rgba(21,94,54,0.6)] transition-all hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_24px_60px_-20px_rgba(21,94,54,0.7)] disabled:translate-y-0 disabled:opacity-60"
     >
       {busy ? (
         <>
