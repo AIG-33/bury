@@ -3579,12 +3579,7 @@
       "body": "Questions, feedback or a bug? Drop us a line — we reply within 24 h."
     },
     "telegram": {
-      "link_label": "We're on Telegram",
-      "headline": "PlayTennis.by is a free project",
-      "body": "The platform is completely free. Got an idea to make it better, or something isn't working? Message us on Telegram — we read everything.",
-      "cta": "Message us on Telegram",
-      "dismiss": "Later",
-      "open_aria": "Message us on Telegram"
+      "link_label": "We're on Telegram"
     },
     "install": {
       "title": "Install the app on your phone",
