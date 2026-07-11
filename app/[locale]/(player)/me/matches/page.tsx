@@ -147,7 +147,7 @@ export default async function MyMatchesPage({ params }: Props) {
 
       {/* History link — full match history with Elo deltas now lives on /me/rating */}
       <Link
-        href={`/${locale}/me/rating#matches` as never}
+        href="/me/rating#matches"
         className="group surface-row lift-on-hover flex items-center justify-between gap-3"
       >
         <span className="inline-flex items-center gap-3">

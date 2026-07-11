@@ -195,10 +195,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
             </Button>
             {hasFilter && (
               <Button asChild variant="secondary" size="sm">
-                <Link
-                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                  href={`/${locale}/me/coaches` as any}
-                >
+                <Link href="/me/coaches">
                   {tc("controls.reset")}
                 </Link>
               </Button>

@@ -101,7 +101,7 @@ export default async function MyRatingPage({ params }: Props) {
             </div>
 
             <Link
-              href={`/${locale}/onboarding/quiz`}
+              href="/onboarding/quiz"
               className="btn btn-primary self-stretch sm:self-auto"
             >
               {t("quiz_cta.cta")}

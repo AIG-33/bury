@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import {
   ArrowDown,
@@ -45,7 +45,6 @@ export function TableClient({
   filters,
 }: Props) {
   const t = useTranslations("adminDb");
-  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -270,8 +269,7 @@ export function TableClient({
                   <p>{t("empty_rows")}</p>
                   {!table.disableInsert && (
                     <Link
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      href={`/${locale}/admin/db/${table.name}/new` as any}
+                      href={`/admin/db/${table.name}/new`}
                       className="mt-3 inline-flex h-9 items-center rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600"
                     >
                       {t("empty_cta")}
@@ -292,8 +290,7 @@ export function TableClient({
                     <td className="px-3 py-2 text-right">
                       <div className="inline-flex items-center gap-1">
                         <Link
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          href={`/${locale}/admin/db/${table.name}/${id}` as any}
+                          href={`/admin/db/${table.name}/${id}`}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white text-ink-700 transition hover:border-grass-300 hover:bg-grass-50 hover:text-grass-800"
                           title={t("edit")}
                         >

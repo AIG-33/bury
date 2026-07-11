@@ -65,7 +65,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
   return (
     <div className="page-shell space-y-6">
       <Link
-        href={`/${locale}/me/clubs/owned` as never}
+        href="/me/clubs/owned"
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -86,7 +86,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
         }
         actions={
           <Button asChild variant="secondary" size="sm">
-            <Link href={`/${locale}/clubs/${club.slug}` as never} target="_blank" rel="noreferrer">
+            <Link href={`/clubs/${club.slug}`} target="_blank" rel="noreferrer">
               <ExternalLink className="h-4 w-4" />
               {t("detail.view_public")}
             </Link>

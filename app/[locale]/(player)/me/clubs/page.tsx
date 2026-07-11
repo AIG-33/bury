@@ -55,13 +55,13 @@ export default async function MyClubsPage({ params }: Props) {
         actions={
           <>
             <Button asChild variant="secondary" size="sm">
-              <Link href={`/${locale}/me/clubs/owned` as never}>
+              <Link href="/me/clubs/owned">
                 <FolderTree className="h-4 w-4" />
                 {t("owned_link")}
               </Link>
             </Button>
             <Button asChild variant="primary" size="sm">
-              <Link href={`/${locale}/me/clubs/owned?create=1` as never}>
+              <Link href="/me/clubs/owned?create=1">
                 <Plus className="h-4 w-4" />
                 {t("create_cta")}
               </Link>
