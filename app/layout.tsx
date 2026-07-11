@@ -4,6 +4,7 @@ import "./globals.css";
 import { getOgImageAlt } from "@/lib/seo/og-image";
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { belarusTennisKeywords } from "@/lib/seo/metadata";
+import { NativeBridge } from "@/components/mobile/native-bridge";
 
 const fontDisplay = Bricolage_Grotesque({
   subsets: ["latin", "latin-ext"],
@@ -120,7 +121,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       suppressHydrationWarning
       className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <NativeBridge />
+      </body>
     </html>
   );
 }
