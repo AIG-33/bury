@@ -47,6 +47,24 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Export compliance: the app only uses standard HTTPS/TLS (exempt
+	     encryption), so no French/US export documentation is required. Set to
+	     true and file the year-end self-classification report if you ever add
+	     non-exempt cryptography (custom/proprietary algorithms). See
+	     docs/STORE_SUBMISSION.md § Export compliance. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- Purpose strings. The app is a WebView shell around https://www.playtennis.by;
+	     these prompts fire only if the site requests the matching capability.
+	     Keep ONLY the ones the site can actually trigger — remove any unused key
+	     before submission to avoid App Review questions (see docs/STORE_SUBMISSION.md).
+	     Strings are English; localize via ru.lproj/InfoPlist.strings if needed. -->
+	<key>NSCameraUsageDescription</key>
+	<string>PlayTennis.by uses the camera when you take a photo for your profile avatar.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PlayTennis.by needs access to your photos when you choose a profile avatar.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PlayTennis.by uses your location to show nearby courts, coaches and players on the map.</string>
 	<!-- Google Sign-In: the URL scheme MUST be the reversed iOS OAuth client ID
 	     (see the "OAuth setup" section in docs/MOBILE.md). Replace the placeholder
 	     below with your real value, e.g.

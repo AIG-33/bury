@@ -1,0 +1,1 @@
+tennis,sparring,court,tournament,coach,rating,partner,match,Minsk,Belarus,amateur,play

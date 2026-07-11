@@ -23,6 +23,8 @@ const STATIC_PUBLIC_PATHS: Array<{
   { path: "/matches", priority: 0.8, changeFrequency: "daily" },
   { path: "/help", priority: 0.5, changeFrequency: "monthly" },
   { path: "/help/guide", priority: 0.55, changeFrequency: "monthly" },
+  { path: "/support", priority: 0.4, changeFrequency: "monthly" },
+  { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
 ];
 
 function localeUrl(locale: string, path: string): string {

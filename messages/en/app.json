@@ -3532,7 +3532,9 @@
       "leaderboard": "Leaderboard",
       "help": "Help",
       "login": "Sign in",
-      "profile": "My profile"
+      "profile": "My profile",
+      "support": "Support",
+      "privacy": "Privacy"
     },
     "contact": {
       "title": "Contact",
@@ -4237,6 +4239,135 @@
         "3": "Closed clubs only open via the invite link you control."
       }
     }
+  },
+  "privacyPage": {
+    "meta_title": "Privacy Policy — PlayTennis.by",
+    "meta_description": "How PlayTennis.by collects, uses and protects your data: account, profile, analytics and data deletion.",
+    "title": "Privacy Policy",
+    "updated": "Last updated: 11 July 2026",
+    "intro": "PlayTennis.by is an open amateur-tennis platform for Belarus. This policy explains what data we collect, how we use it and how you can control it. The iOS and Android apps are a wrapper around the www.playtennis.by website, so this single policy covers both web and mobile apps.",
+    "sections": [
+      {
+        "heading": "Who we are",
+        "paragraphs": [
+          "The PlayTennis.by team is the data controller. For any privacy question, email the address at the bottom of this page."
+        ]
+      },
+      {
+        "heading": "What data we collect",
+        "paragraphs": ["We only collect what the platform needs to work:"],
+        "items": [
+          "Account: your email address and sign-in identifier.",
+          "Profile: name, photo (avatar), city or neighborhood, skill level and settings.",
+          "Gameplay data: matches, results, rating, tournament participation and coach reviews.",
+          "Location: only if you allow it — to show nearby courts, coaches and players on the map.",
+          "Technical data: anonymized usage analytics (pages, events) via PostHog.",
+          "Support requests: the message text and the contact you reached us from."
+        ]
+      },
+      {
+        "heading": "Sign in with Google and Apple",
+        "paragraphs": [
+          "You can sign in by email (magic link) or with Google or Apple. When you use a provider, we receive your email and name to create your account. Sign in with Apple may use \"Hide My Email\" — in that case we work with the relay address Apple provides. We never see or store your OAuth passwords."
+        ]
+      },
+      {
+        "heading": "How we use data",
+        "items": [
+          "Create and operate your account and profile.",
+          "Match you with opponents, coaches and tournaments at your level and area.",
+          "Calculate ratings and show match statistics.",
+          "Send service emails (confirmation, match and tournament notifications).",
+          "Improve the product using anonymized analytics.",
+          "Respond to your support requests."
+        ]
+      },
+      {
+        "heading": "Data processors (third parties)",
+        "paragraphs": ["We rely on trusted providers that process data on our behalf:"],
+        "items": [
+          "Supabase — authentication and database.",
+          "Vercel — website hosting.",
+          "PostHog — product analytics (anonymized).",
+          "Google and Apple — sign-in with the respective accounts.",
+          "Resend — sending email.",
+          "Telegram — notifications and support if you connect the bot."
+        ]
+      },
+      {
+        "heading": "Advertising and tracking",
+        "paragraphs": [
+          "We do not sell your data and do not use third-party advertising trackers. PostHog analytics is used only to improve the product and is not linked to ad networks."
+        ]
+      },
+      {
+        "heading": "Data retention",
+        "paragraphs": [
+          "We keep data while your account exists. After you delete your account, personal data is deleted or anonymized; some records may be retained where required by law or for rating integrity (in anonymized form)."
+        ]
+      },
+      {
+        "heading": "Your rights",
+        "paragraphs": [
+          "You can request access, correction or deletion of your data, and withdraw consent. To delete your account and its personal data, email us at the address below — we will handle the request within a reasonable time."
+        ]
+      },
+      {
+        "heading": "Cookies and session",
+        "paragraphs": [
+          "We use strictly necessary cookies for sign-in and to keep your session. In the mobile apps, the session is stored in the WebView's secure storage."
+        ]
+      },
+      {
+        "heading": "Children",
+        "paragraphs": [
+          "The platform is not intended for children under 13. We do not knowingly collect children's data."
+        ]
+      },
+      {
+        "heading": "Changes to this policy",
+        "paragraphs": [
+          "We may update this policy. We will note material changes on this page with a new update date."
+        ]
+      }
+    ],
+    "contact_heading": "Contact and data deletion",
+    "contact_body": "Privacy questions or a data-deletion request? Email us and we'll help.",
+    "contact_email": "hello@playtennis.by"
+  },
+  "supportPage": {
+    "meta_title": "Support — PlayTennis.by",
+    "meta_description": "Contact the PlayTennis.by team: help with your account, matches, tournaments and data deletion.",
+    "title": "Support",
+    "subtitle": "We'll help with your account, matches, tournaments and anything about the platform.",
+    "email_title": "Email us",
+    "email_body": "Describe your question — we reply within 24 hours.",
+    "email": "hello@playtennis.by",
+    "telegram_title": "Message on Telegram",
+    "telegram_body": "The fastest way to reach us is our Telegram bot.",
+    "telegram_cta": "Open Telegram",
+    "topics_title": "Common questions",
+    "topics": [
+      {
+        "heading": "Sign-in problems",
+        "body": "If the magic link doesn't arrive, check your spam folder. Sign in with Google or Apple works on the web and in the apps. Accounts with the same confirmed email are merged automatically."
+      },
+      {
+        "heading": "Matches and tournaments",
+        "body": "Can't find an opponent or join a tournament? Message us and we'll help sort out the score or the draw."
+      },
+      {
+        "heading": "Coaches and reviews",
+        "body": "A review can only be left after a confirmed lesson. If something is wrong with a coach profile, let us know."
+      },
+      {
+        "heading": "Account and data deletion",
+        "body": "To delete your account and its personal data, email us from your account address. See the privacy policy for details."
+      }
+    ],
+    "privacy_title": "Privacy",
+    "privacy_body": "How we handle your data is described in our",
+    "privacy_link": "privacy policy"
   },
   "seo": {
     "home": {

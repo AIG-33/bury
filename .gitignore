@@ -61,3 +61,13 @@ android/capacitor.settings.gradle
 android/app/capacitor.build.gradle
 *.keystore
 !debug.keystore
+
+# Fastlane secrets (never commit)
+*.jks
+*.p8
+fastlane/play-service-account.json
+fastlane/*.json
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output
+fastlane/README.md
