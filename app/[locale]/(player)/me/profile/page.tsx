@@ -6,10 +6,12 @@ import { HelpPanel } from "@/components/help/help-panel";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
 import { ExternalRatingCard } from "@/components/profile/external-rating-card";
 import { ProfileForm } from "./profile-form";
+import { ProfileOverview } from "./profile-overview";
 import { TelegramLinkCard } from "./telegram-link-card";
 import { loadMyProfile, loadMyProfileHeaderStats, loadTelegramLinkState } from "./actions";
 import { loadMyCoachApplications } from "../become-coach/actions";
 import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
+import { loadMyRatingTab } from "@/lib/rating/history";
 import { WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -26,10 +28,11 @@ export default async function ProfilePage({ params }: Props) {
   if (!result.ok) redirect(`/${locale}/login`);
 
   const { profile, districts } = result;
-  const [externalRating, telegramState, headerStats] = await Promise.all([
+  const [externalRating, telegramState, headerStats, ratingTab] = await Promise.all([
     loadMyExternalRating(),
     loadTelegramLinkState(),
     loadMyProfileHeaderStats(),
+    loadMyRatingTab(),
   ]);
   const tTg = await getTranslations("telegramLink");
 
@@ -243,7 +246,7 @@ export default async function ProfilePage({ params }: Props) {
           ].map((s) => (
             <div key={s.label} className="rounded-[16px] bg-white/10 p-3.5 backdrop-blur-sm">
               <dt className="label-eyebrow-dark">{s.label}</dt>
-              <dd className="mt-1 font-mono text-2xl font-bold leading-none text-white tabular-nums">
+              <dd className="mt-1 font-mono text-2xl font-bold tabular-nums leading-none text-white">
                 {s.value}
               </dd>
             </div>
@@ -251,11 +254,44 @@ export default async function ProfilePage({ params }: Props) {
         </dl>
       </section>
 
+      {/* Spec §4.6: recent matches + achievements + ELO mini-chart. */}
+      <ProfileOverview
+        locale={locale}
+        matches={ratingTab?.recentMatches ?? []}
+        history={ratingTab?.history ?? []}
+        stats={{ matches_total: headerStats.matches_total, wins: headerStats.wins }}
+        eloStatus={profile.elo_status}
+        copy={{
+          recent: {
+            title: t("overview.recent.title"),
+            all: t("overview.recent.all"),
+            empty_title: t("overview.recent.empty_title"),
+            empty_body: t("overview.recent.empty_body"),
+            empty_cta: t("overview.recent.empty_cta"),
+            won: t("overview.recent.won"),
+            lost: t("overview.recent.lost"),
+            cancelled: t("overview.recent.cancelled"),
+          },
+          achievements: {
+            title: t("overview.achievements.title"),
+            first_match: t("overview.achievements.first_match"),
+            ten_matches: t("overview.achievements.ten_matches"),
+            five_wins: t("overview.achievements.five_wins"),
+            established: t("overview.achievements.established"),
+            locked_hint: t("overview.achievements.locked_hint"),
+          },
+          chart: {
+            title: t("overview.chart.title"),
+            empty: t("overview.chart.empty"),
+          },
+        }}
+      />
+
       {becomeCoachState !== "is_coach" && (
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           href={"/me/become-coach" as any}
-          className="group flex items-start gap-3 rounded-xl2 border border-grass-200 bg-grass-50/60 p-4 shadow-card transition hover:border-grass-300 hover:bg-grass-50 lift-on-hover"
+          className="lift-on-hover group flex items-start gap-3 rounded-xl2 border border-grass-200 bg-grass-50/60 p-4 shadow-card transition hover:border-grass-300 hover:bg-grass-50"
         >
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-grass-100 text-grass-700">
             <Award className="h-5 w-5" />

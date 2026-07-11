@@ -1778,6 +1778,30 @@
         "winrate": "Win rate"
       }
     },
+    "overview": {
+      "recent": {
+        "title": "Recent matches",
+        "all": "All matches",
+        "empty_title": "No matches yet",
+        "empty_body": "Play your first match — the result and Elo change will show up here.",
+        "empty_cta": "Find an opponent",
+        "won": "Win",
+        "lost": "Loss",
+        "cancelled": "Cancelled"
+      },
+      "achievements": {
+        "title": "Achievements",
+        "first_match": "First match",
+        "five_wins": "5 wins",
+        "ten_matches": "10 matches",
+        "established": "Established rating",
+        "locked_hint": "Not unlocked yet — keep playing"
+      },
+      "chart": {
+        "title": "ELO trend",
+        "empty": "The chart appears after your first rated matches."
+      }
+    },
     "help": {
       "why": "Your profile. Everything the system knows and shows other players — you can change it here.",
       "what": {
