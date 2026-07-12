@@ -14,6 +14,10 @@ const config: CapacitorConfig = {
   appId: "by.playtennis.app",
   appName: "PlayTennis.by",
   webDir: "mobile/www",
+  // UA marker so the site can detect the store app even if the Capacitor
+  // bridge global is unavailable (see lib/is-native-app.ts). Needs a native
+  // rebuild to ship; the bridge check works with existing binaries.
+  appendUserAgent: "PlayTennisApp",
   server: {
     url: serverUrl,
     // Only allow cleartext when explicitly pointing at a local dev server.

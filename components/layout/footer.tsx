@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { TelegramIcon } from "@/components/icons/telegram";
 import { InstallAppIcons } from "./install-app-card";
+import { HideInNativeApp } from "./hide-in-native-app";
 import { telegramBotUrl } from "@/lib/telegram/bot-link";
 
 type Props = { authed: boolean };
@@ -85,18 +86,20 @@ export async function Footer({ authed }: Props) {
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-ink-100/80 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
           <span>© {year} PlayTennis.by · Минск</span>
 
-          <div className="flex flex-wrap items-center gap-3 normal-case tracking-normal">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
-              {t("install.title_short")}
-            </span>
-            <InstallAppIcons
-              size="sm"
-              labels={{
-                android_button: t("install.android_button"),
-                ios_button: t("install.ios_button"),
-              }}
-            />
-          </div>
+          <HideInNativeApp>
+            <div className="flex flex-wrap items-center gap-3 normal-case tracking-normal">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
+                {t("install.title_short")}
+              </span>
+              <InstallAppIcons
+                size="sm"
+                labels={{
+                  android_button: t("install.android_button"),
+                  ios_button: t("install.ios_button"),
+                }}
+              />
+            </div>
+          </HideInNativeApp>
 
           <span>v1.0 · MVP</span>
         </div>

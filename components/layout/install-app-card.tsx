@@ -42,6 +42,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { isNativeApp } from "@/lib/is-native-app";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -222,6 +223,9 @@ export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
     // install a mobile-flavoured PWA.
     if (typeof window === "undefined") return;
     if (window.matchMedia("(min-width: 1024px)").matches) return;
+
+    // Inside the Capacitor store app there is nothing to install.
+    if (isNativeApp()) return;
 
     // Already installed (running as a standalone PWA)? Skip.
     const isStandalone =
