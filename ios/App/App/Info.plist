@@ -65,18 +65,10 @@
 	<string>PlayTennis.by needs access to your photos when you choose a profile avatar.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>PlayTennis.by uses your location to show nearby courts, coaches and players on the map.</string>
-	<!-- Google Sign-In: the URL scheme MUST be the reversed iOS OAuth client ID
-	     (see the "OAuth setup" section in docs/MOBILE.md). Replace the placeholder
-	     below with your real value, e.g.
-	     com.googleusercontent.apps.1234567890-abcdefg -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
-			</array>
-		</dict>
-	</array>
+	<!-- Google Sign-In: once the Google iOS OAuth client exists, add back a
+	     CFBundleURLTypes entry whose URL scheme is the REVERSED iOS client ID
+	     (com.googleusercontent.apps.<id> — see "OAuth setup" in docs/MOBILE.md).
+	     The placeholder was removed because App Store Connect rejects binaries
+	     with a malformed URL scheme; native Google login needs it restored. -->
 </dict>
 </plist>

@@ -133,7 +133,7 @@ These are intentionally left as placeholders in the repo:
 | Env (Vercel) | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google **iOS** OAuth client ID |
 | Env (Vercel) | `NEXT_PUBLIC_APPLE_SERVICES_ID` | Apple **Services ID** (Android Apple sign-in only) |
 | Env (Vercel) | `NEXT_PUBLIC_APPLE_REDIRECT_URL` | Server callback for Android Apple, e.g. `https://<ref>.supabase.co/auth/v1/callback` |
-| `ios/App/App/Info.plist` | `com.googleusercontent.apps.YOUR_IOS_CLIENT_ID` | **Reversed** iOS client ID (`com.googleusercontent.apps.<id>`) |
+| `ios/App/App/Info.plist` | `CFBundleURLTypes` entry (removed — ASC rejects the malformed placeholder) | Add back a `CFBundleURLTypes` → `CFBundleURLSchemes` entry with the **reversed** iOS client ID (`com.googleusercontent.apps.<id>`) |
 | Google Cloud Console | Android SHA-1 fingerprints | Debug (`./gradlew signingReport`), release, and Play App Signing SHA-1s registered on an **Android** OAuth client with package `by.playtennis.app` |
 
 ### Google Cloud Console

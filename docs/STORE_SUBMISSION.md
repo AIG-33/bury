@@ -191,17 +191,59 @@ fastlane ios upload_metadata     # push text listing (no binary, no submit)
 IPA_PATH=./build/PlayTennis.ipa fastlane ios release   # upload an exported .ipa + metadata
 
 # --- Android (Play service-account JSON, "Release manager") ---
-export SUPPLY_JSON_KEY=./fastlane/play-service-account.json   # gitignored!
+# SUPPLY_JSON_KEY defaults to ./fastlane/play-service-account.json (gitignored) —
+# already in place, no export needed.
 fastlane android metadata_check
-fastlane android upload_metadata
-AAB_PATH=./android/app/build/outputs/bundle/release/app-release.aab \
-  PLAY_TRACK=internal fastlane android release
 ```
 
+### Android — exact commands once the app exists in Play Console
+
+The app **must first be created by hand** in the Play Console UI (name
+"PlayTennis.by", default language Russian, App, Free) — the Play API cannot
+create apps. After that, run from the repo root:
+
+```bash
+# 1. Upload the signed release bundle to the internal track as a draft release
+AAB_PATH=./build/PlayTennis-1.0.0-vc1.aab PLAY_TRACK=internal PLAY_RELEASE_STATUS=draft fastlane android release
+
+# 2. Push the full store listing: text (ru-RU + en-US), icon, feature graphic, screenshots
+UPLOAD_IMAGES=true UPLOAD_SCREENSHOTS=true fastlane android upload_metadata
+```
+
+Until the app exists, both commands fail with
+`Google Api Error: … Package not found: by.playtennis.app` (or "caller does not
+have permission") — that is expected and confirms the service-account auth
+itself works.
+
 - Store copy lives in `fastlane/metadata/**` — edit the `.txt` files there.
+- App Review contact info lives in `fastlane/metadata/review_information/`
+  (first/last name, email, phone, reviewer notes) — deliver uploads it with the
+  metadata.
 - Screenshots/graphics are **not** committed — see `fastlane/screenshots/README.md`.
 - **Add `fastlane/play-service-account.json` and any `.p8`/keystore to
   `.gitignore`.** Never commit them.
+
+### Android release signing (upload key)
+
+The upload keystore lives at `android/keystore/playtennis-upload.jks` with its
+credentials in `android/keystore.properties` (both **gitignored** — back them up
+somewhere safe, e.g. a password manager). `android/app/build.gradle` picks up
+`keystore.properties` automatically, so a signed release bundle is just:
+
+```bash
+cd android && JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew bundleRelease
+# → android/app/build/outputs/bundle/release/app-release.aab
+```
+
+If you lose the keystore before the first Play upload, generate a new one; after
+the first upload you must request an upload-key reset in the Play Console.
+
+### iOS App Privacy JSON
+
+`fastlane/app_privacy_details.json` mirrors section 2 of this doc. It can be
+pushed with `fastlane run upload_app_privacy_details_to_app_store` — note that
+action needs interactive Apple ID login (no API-key support), otherwise answer
+the questionnaire in App Store Connect by hand.
 
 ---
 

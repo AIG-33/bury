@@ -103,6 +103,10 @@ platform :android do
       skip_upload_aab: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+      # Validation resolves metadata against a release, so target a track that
+      # has one (production is empty until first rollout).
+      track: ENV["PLAY_TRACK"] || "internal",
       validate_only: true,
     )
   end
@@ -115,6 +119,12 @@ platform :android do
       metadata_path: "./fastlane/metadata/android",
       skip_upload_apk: true,
       skip_upload_aab: true,
+      # supply resolves listing metadata against a release on this track, so it
+      # must point at a track that actually has a release (default track is
+      # production, which is empty until first rollout). Changelogs are tied to
+      # a version code and are uploaded by the `release` lane instead.
+      track: ENV["PLAY_TRACK"] || "internal",
+      skip_upload_changelogs: true,
       skip_upload_images: ENV["UPLOAD_IMAGES"] != "true",
       skip_upload_screenshots: ENV["UPLOAD_SCREENSHOTS"] != "true",
     )
@@ -123,6 +133,8 @@ platform :android do
   desc "Upload an already-built .aab + metadata to a track (build the .aab in Android Studio first)"
   lane :release do
     aab_path = ENV["AAB_PATH"] # e.g. ./android/app/build/outputs/bundle/release/app-release.aab
+    # Lane Ruby code runs with cwd = fastlane/, so resolve relative paths against the repo root.
+    aab_path = File.expand_path(aab_path, "..") if aab_path
     UI.user_error!("Set AAB_PATH to a signed .aab") unless aab_path && File.exist?(aab_path)
 
     supply(
