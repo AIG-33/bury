@@ -43,7 +43,7 @@ export default async function OwnedClubsPage({ params, searchParams }: Props) {
   return (
     <div className="page-shell space-y-6">
       <Link
-        href={`/${locale}/me/clubs` as never}
+        href="/me/clubs"
         className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 transition hover:text-grass-800"
       >
         <ArrowLeft className="h-4 w-4" />

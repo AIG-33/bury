@@ -29,12 +29,19 @@ file_size_limit = "50MiB"
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+additional_redirect_urls = [
+  "https://127.0.0.1:3000",
+  "http://localhost:3000/api/auth/callback",
+  "https://www.playtennis.by/api/auth/callback",
+]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 enable_signup = true
 enable_anonymous_sign_ins = false
+# Auto-linking of accounts that share a CONFIRMED email is Supabase's default
+# behaviour and does NOT require manual linking. Keep manual linking OFF: it
+# only enables the explicit link/unlink identity API, which we don't use.
 enable_manual_linking = false
 
 [auth.email]
@@ -47,6 +54,24 @@ max_frequency = "1s"
 [auth.sms]
 enable_signup = false
 enable_confirmations = false
+
+# --- External OAuth providers -------------------------------------------------
+# Enabled for local `supabase start`. Real credentials come from the linked
+# project's dashboard (see docs/MOBILE.md → "OAuth setup"); locally they read
+# from env vars so the repo never stores secrets. On native, the id-token flow
+# (signInWithIdToken) validates the token audience against these client IDs, so
+# the Google iOS client ID must also be registered under this provider in the
+# Supabase dashboard, and the Apple provider must accept both the app bundle id
+# and the Services ID as audiences.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+
+[auth.external.apple]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
 
 [edge_runtime]
 enabled = true

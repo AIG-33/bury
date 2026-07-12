@@ -172,7 +172,7 @@ export default async function ClubsPage({ params, searchParams }: Props) {
           />
         )
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
           {clubs.map((club) => (
             <ClubCard
               key={club.id}

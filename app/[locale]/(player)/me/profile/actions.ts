@@ -121,6 +121,47 @@ export async function loadMyProfile(): Promise<LoadResult> {
   return { ok: true, profile, districts: districtOptions };
 }
 
+// =============================================================================
+// Header stats — win/loss record for the profile hero (redesign spec §4.6).
+// =============================================================================
+
+export type ProfileHeaderStats = {
+  matches_total: number;
+  wins: number;
+  /** 0–100, rounded; null until at least one completed match. */
+  winrate: number | null;
+};
+
+export async function loadMyProfileHeaderStats(): Promise<ProfileHeaderStats> {
+  const empty: ProfileHeaderStats = { matches_total: 0, wins: 0, winrate: null };
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return empty;
+
+  const [totalRes, winsRes] = await Promise.all([
+    supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .or(`p1_id.eq.${user.id},p2_id.eq.${user.id}`)
+      .eq("outcome", "completed"),
+    supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .eq("winner_id", user.id)
+      .eq("outcome", "completed"),
+  ]);
+
+  const total = totalRes.count ?? 0;
+  const wins = winsRes.count ?? 0;
+  return {
+    matches_total: total,
+    wins,
+    winrate: total > 0 ? Math.round((wins / total) * 100) : null,
+  };
+}
+
 export type SaveResult =
   | { ok: true }
   | { ok: false; error: string; fieldErrors?: Record<string, string[]> };

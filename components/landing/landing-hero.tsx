@@ -5,141 +5,96 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Route } from "next";
 import { ArrowRight, Trophy } from "lucide-react";
-import { LivingBall } from "./living-ball";
-import { LightTennisBackdrop } from "./light-tennis-backdrop";
 
 type Props = {
   primaryCtaHref: string;
   primaryCtaLabel: string;
   secondaryCtaHref: string;
+  /** Public tournaments currently in progress — drives the pulsing badge. */
+  liveCount: number;
 };
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Hero is intentionally value-first: a plain-language promise is the H1 (not
-// the brand), two CTAs reduce sign-up friction, and a four-stat trust strip
-// gives anonymous visitors immediate proof the platform is real.
-export function LandingHero({ primaryCtaHref, primaryCtaLabel, secondaryCtaHref }: Props) {
+// Dark hero per redesign spec §4.1: brand gradient + lime corner glow,
+// slogan, lime + glass CTAs, pulsing "live now" badge, 3 hero numbers.
+export function LandingHero({
+  primaryCtaHref,
+  primaryCtaLabel,
+  secondaryCtaHref,
+  liveCount,
+}: Props) {
   const t = useTranslations("landing.hero");
   const tt = useTranslations("landing.trust");
 
   const trust = [
-    {
-      key: "cities",
-      value: tt("items.cities.value"),
-      label: tt("items.cities.label"),
-    },
-    {
-      key: "venues",
-      value: tt("items.venues.value"),
-      label: tt("items.venues.label"),
-    },
-    {
-      key: "formats",
-      value: tt("items.formats.value"),
-      label: tt("items.formats.label"),
-    },
+    { key: "cities", value: tt("items.cities.value"), label: tt("items.cities.label") },
+    { key: "venues", value: tt("items.venues.value"), label: tt("items.venues.label") },
+    { key: "formats", value: tt("items.formats.value"), label: tt("items.formats.label") },
   ] as const;
 
   return (
-    <section className="film-grain relative isolate overflow-hidden bg-grass-50 text-ink-900">
-      <LightTennisBackdrop className="-z-10" />
-
-      <div className="relative mx-auto flex max-w-[1280px] flex-col px-6 pt-16 md:px-12 md:pt-20">
-        {/* Eyebrow row: factual, no buzzwords */}
-        <motion.div
-          className="flex flex-wrap items-center gap-3"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: EASE }}
-        >
-          <span className="label-eyebrow">{t("eyebrow")}</span>
-        </motion.div>
-
-        {/* Stage: headline left, decorative ball right */}
-        <div className="mt-10 grid grid-cols-12 items-center gap-6 md:mt-14">
-          <div className="col-span-12 md:col-span-7">
-            <motion.h1
-              className="font-display font-bold leading-[0.95] tracking-tightest text-ink-900"
-              style={{ fontSize: "clamp(40px, 6.4vw, 84px)" }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: EASE }}
-            >
-              <span className="block">{t("title_line_1")}</span>
-              <span className="block">{t("title_line_2")}</span>
-              <span className="block text-grass-800">{t("title_line_3")}</span>
-            </motion.h1>
-
-            <motion.p
-              className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-700 md:text-lg"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-            >
-              {t("subtitle")}
-            </motion.p>
-
-            <motion.div
-              className="mt-8 flex flex-wrap items-center gap-3"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
-            >
-              <Link
-                href={primaryCtaHref as Route}
-                className="ease-followthrough group inline-flex h-12 items-center gap-3 rounded-full bg-grass-700 pl-6 pr-3 font-display text-[13px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_18px_44px_-18px_rgba(31,138,76,0.65)] transition-all duration-500 hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_28px_70px_-20px_rgba(31,138,76,0.75)]"
-              >
-                <span>{primaryCtaLabel}</span>
-                <span className="ease-followthrough inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 group-hover:translate-x-0.5">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </Link>
-
-              <Link
-                href={secondaryCtaHref as Route}
-                className="ease-followthrough group inline-flex h-12 items-center gap-2 rounded-full border border-ink-300/80 bg-white/60 px-5 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-ink-800 backdrop-blur-sm transition-all duration-500 hover:-translate-y-0.5 hover:border-grass-700 hover:bg-white hover:text-grass-800"
-              >
-                <Trophy className="h-4 w-4 text-grass-700" />
-                {t("cta_secondary")}
-              </Link>
-            </motion.div>
+    <section className="page-shell !pb-0 !pt-4 md:!pt-6">
+      <motion.div
+        className="hero-dark px-5 py-10 sm:px-8 md:px-12 md:py-14"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
+      >
+        <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="label-eyebrow-dark">{t("eyebrow")}</span>
+            {liveCount > 0 && (
+              <span className="glass-on-dark inline-flex h-7 items-center gap-2 rounded-full px-3 text-[11.5px] font-bold text-ball-300">
+                <span className="pulse-dot" />
+                {t("live_badge", { n: liveCount })}
+              </span>
+            )}
           </div>
 
-          {/* Decorative ball — shrunk so it never competes with the headline */}
-          <div className="relative col-span-12 md:col-span-5">
-            <div className="relative -mr-[10vw] ml-auto aspect-square w-[55vw] max-w-[260px] md:mx-auto md:mr-0 md:w-[22vw] md:max-w-[320px]">
-              <LivingBall className="absolute inset-0" />
-            </div>
-          </div>
-        </div>
+          <h1
+            className="mt-5 max-w-3xl font-display font-extrabold leading-[1.08] text-white"
+            style={{ fontSize: "clamp(30px, 4.4vw, 44px)", letterSpacing: "-1px" }}
+          >
+            <span className="block">{t("title_line_1")}</span>
+            <span className="block">{t("title_line_2")}</span>
+            <span className="block text-ball-400">{t("title_line_3")}</span>
+          </h1>
 
-        {/* Trust strip — concrete numbers, no marketing fluff */}
-        <motion.div
-          className="mt-14 border-t border-ink-900/10 pt-6 md:mt-20"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
-        >
-          <p className="label-eyebrow">{tt("label")}</p>
-          <ul className="mt-4 grid grid-cols-3 gap-x-6 gap-y-5">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 md:text-base">
+            {t("subtitle")}
+          </p>
+
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Link
+              href={primaryCtaHref as Route}
+              className="btn btn-lg btn-accent group w-full sm:w-auto"
+            >
+              <span>{primaryCtaLabel}</span>
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href={secondaryCtaHref as Route}
+              className="btn btn-lg glass-on-dark w-full font-bold hover:-translate-y-0.5 hover:bg-white/15 sm:w-auto"
+            >
+              <Trophy className="h-4 w-4 text-ball-400" />
+              {t("cta_secondary")}
+            </Link>
+          </div>
+
+          {/* Hero numbers — single column on mobile per spec breakpoints. */}
+          <ul className="mt-10 grid grid-cols-1 gap-4 border-t border-white/15 pt-6 sm:grid-cols-3 sm:gap-6">
             {trust.map((item) => (
               <li key={item.key} className="flex flex-col gap-1">
-                <span className="tabular font-display text-2xl font-bold leading-none text-grass-900 md:text-3xl">
+                <span className="font-mono text-3xl font-bold leading-none text-white tabular-nums md:text-4xl">
                   {item.value}
                 </span>
-                <span className="text-[13.5px] leading-snug text-ink-600 md:text-sm">
-                  {item.label}
-                </span>
+                <span className="text-[13px] leading-snug text-white/65">{item.label}</span>
               </li>
             ))}
           </ul>
-        </motion.div>
-
-        <div className="h-12 md:h-16" aria-hidden />
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 h-px bg-ink-900/10" />
+        </div>
+      </motion.div>
     </section>
   );
 }

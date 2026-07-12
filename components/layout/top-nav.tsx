@@ -168,9 +168,10 @@ export async function TopNav() {
             aria-label={t("group_public")}
             title={t("group_public")}
             className={[
+              // Spec §2.4: floating white pill for the menu items.
               "flex h-11 shrink-0 items-center gap-0.5 rounded-full px-1.5",
-              "border border-ink-200/70 bg-white/60",
-              "shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_24px_-16px_rgba(15,27,20,0.18)]",
+              "border border-[rgba(20,60,30,0.08)] bg-white/90",
+              "shadow-[0_1px_2px_rgba(20,60,30,0.04),0_12px_30px_rgba(20,60,30,0.07)]",
               "backdrop-blur-md",
             ].join(" ")}
           >
@@ -273,7 +274,7 @@ export async function TopNav() {
           ) : (
             <Link
               href="/login"
-              className="duration-400 ease-followthrough group hidden h-10 items-center gap-2 rounded-full bg-grass-700 pl-4 pr-2 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_10px_28px_-10px_rgba(21,94,54,0.65)] transition-all hover:-translate-y-0.5 hover:bg-grass-800 hover:shadow-[0_18px_38px_-10px_rgba(21,94,54,0.75)] md:inline-flex"
+              className="group hidden h-10 items-center gap-2 rounded-[13px] bg-pt-primary pl-4 pr-2 font-display text-[13px] font-bold text-white shadow-glow transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(28,122,70,0.4)] md:inline-flex"
             >
               {t("login")}
               <span className="ease-followthrough inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 group-hover:translate-x-0.5">

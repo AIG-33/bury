@@ -118,8 +118,12 @@ export default async function ClubPage({ params }: Props) {
         />
       )}
 
-      {/* HEADER */}
-      <Surface variant="card">
+      {/* HEADER — spec §4.5: header card with a lime corner glow. */}
+      <Surface variant="card" className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(195,232,79,0.35)_0%,transparent_70%)]"
+        />
         {accent && (
           <div
             className="mb-4 -mt-1 h-1.5 w-16 rounded-full"
@@ -178,7 +182,7 @@ export default async function ClubPage({ params }: Props) {
 
       {/* STATS */}
       <Surface variant="card" as="section">
-        <h2 className="mb-4 font-display text-lg font-bold text-grass-900">{t("stats.title")}</h2>
+        <h2 className="mb-4 section-title text-[18px] md:text-[20px]">{t("stats.title")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatTile label={t("stats.members")} value={stats.members_total} />
           <StatTile label={t("stats.coaches")} value={stats.coaches_total} accent="ball" />
@@ -193,7 +197,7 @@ export default async function ClubPage({ params }: Props) {
       {blocks.rating && ratingBoard && ratingBoard.enabled && (
         <Surface variant="card" as="section">
           <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-display text-lg font-bold text-grass-900">
+            <h2 className="flex items-center gap-2 section-title text-[18px] md:text-[20px]">
               <TrendingUp className="h-5 w-5" style={accent ? { color: accent } : undefined} />
               {ratingBoard.label || tRating("title")}
             </h2>
@@ -222,7 +226,7 @@ export default async function ClubPage({ params }: Props) {
       {/* CLUB TOURNAMENTS */}
       {blocks.tournaments && clubTournaments.length > 0 && (
         <Surface variant="card" as="section">
-          <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-grass-900">
+          <h2 className="mb-4 flex items-center gap-2 section-title text-[18px] md:text-[20px]">
             <Trophy className="h-5 w-5" style={accent ? { color: accent } : undefined} />
             {tRating("tournaments_title")}
           </h2>
@@ -255,7 +259,7 @@ export default async function ClubPage({ params }: Props) {
       <>
       <Surface variant="card" as="section">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-bold text-grass-900">
+          <h2 className="section-title text-[18px] md:text-[20px]">
             {t("coaches_section.title")}
           </h2>
           <span className="text-xs text-ink-500">{t("coaches_section.count", { n: coaches.length })}</span>
@@ -283,7 +287,7 @@ export default async function ClubPage({ params }: Props) {
       {/* PLAYERS */}
       <Surface variant="card" as="section">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-bold text-grass-900">
+          <h2 className="section-title text-[18px] md:text-[20px]">
             {t("players_section.title")}
           </h2>
           <span className="text-xs text-ink-500">{t("players_section.count", { n: players.length })}</span>
@@ -311,7 +315,7 @@ export default async function ClubPage({ params }: Props) {
       {/* VENUES */}
       {blocks.venues && (
       <Surface variant="card" as="section">
-        <h2 className="mb-4 font-display text-lg font-bold text-grass-900">
+        <h2 className="mb-4 section-title text-[18px] md:text-[20px]">
           {t("venues_section.title")}
         </h2>
         {venues.length === 0 ? (
@@ -363,9 +367,9 @@ function StatTile({
           ? "text-clay-700"
           : "text-ink-900";
   return (
-    <div className="rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wider text-ink-500">{label}</p>
-      <p className={`mt-1 font-mono text-xl font-bold tabular-nums ${tone}`}>{value}</p>
+    <div className="stat-tile">
+      <p className="label-eyebrow">{label}</p>
+      <p className={`stat-tile-value ${tone}`}>{value}</p>
     </div>
   );
 }

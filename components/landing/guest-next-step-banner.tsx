@@ -50,22 +50,19 @@ export async function GuestNextStepBanner({ isGuest, current }: Props) {
   return (
     <section
       aria-label={t("aria_label")}
-      className="rounded-xl2 border border-grass-200 bg-gradient-to-br from-grass-50 via-white to-ball-50/40 p-5 shadow-card"
+      className="rounded-xl2 border border-[rgba(20,60,30,0.07)] bg-white p-5 shadow-card"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1">
-          <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-grass-700">
-            {t("eyebrow")}
-          </p>
-          <h2 className="font-display text-lg font-semibold text-ink-900">{t("title")}</h2>
-          <p className="max-w-2xl text-sm text-ink-700">{t("body")}</p>
+          <p className="label-eyebrow text-grass-600">{t("eyebrow")}</p>
+          <h2 className="font-display text-[16px] font-extrabold text-ink-900 md:text-[17px]">
+            {t("title")}
+          </h2>
+          <p className="max-w-2xl text-sm text-ink-500">{t("body")}</p>
         </div>
 
         <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-          <Link
-            href="/login"
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-grass-700 px-5 font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_10px_28px_-10px_rgba(21,94,54,0.65)] transition hover:bg-grass-800"
-          >
+          <Link href="/login" className="btn btn-primary shrink-0">
             <LogIn className="h-4 w-4" />
             {t("primary_cta")}
           </Link>
@@ -79,7 +76,7 @@ export async function GuestNextStepBanner({ isGuest, current }: Props) {
                 <Link
                   key={c}
                   href={CATALOGUE_HREF[c]}
-                  className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 bg-white px-3 text-xs font-medium text-ink-700 transition hover:border-grass-300 hover:bg-grass-50 hover:text-grass-800"
+                  className="inline-flex h-10 items-center gap-1 rounded-full border border-[rgba(20,60,30,0.12)] bg-white px-3.5 text-xs font-bold text-[#3A5445] transition hover:border-grass-300 hover:bg-grass-50 hover:text-grass-700"
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {t(`secondary.${c}`)}

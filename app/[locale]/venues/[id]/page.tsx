@@ -100,7 +100,7 @@ export default async function VenueDetailPage({ params }: Props) {
 
   const courtsTab = (
     <Surface variant="card" as="section">
-      <h2 className="font-display text-lg font-bold text-grass-900">
+      <h2 className="section-title text-[18px] md:text-[20px]">
         {tDetail("courts.title")}
       </h2>
       {venue.courts.length === 0 ? (
@@ -155,7 +155,7 @@ export default async function VenueDetailPage({ params }: Props) {
   const openMatchesTab = (
     <Surface variant="card" as="section">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-lg font-bold text-grass-900">
+        <h2 className="section-title text-[18px] md:text-[20px]">
           {tDetail("open_matches.title")}
         </h2>
         <Button asChild variant="primary" size="sm">
@@ -227,7 +227,7 @@ export default async function VenueDetailPage({ params }: Props) {
 
   const tournamentsTab = (
     <Surface variant="card" as="section">
-      <h2 className="font-display text-lg font-bold text-grass-900">
+      <h2 className="section-title text-[18px] md:text-[20px]">
         {tDetail("tournaments.title")}
       </h2>
       {venue.tournaments.length === 0 ? (

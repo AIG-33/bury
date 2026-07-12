@@ -46,3 +46,36 @@ supabase/.temp
 
 # vercel
 .vercel
+
+# capacitor / native builds
+ios/App/Pods/
+ios/App/App/public/
+ios/App/build/
+ios/DerivedData/
+android/.gradle/
+android/app/build/
+android/build/
+android/app/src/main/assets/public/
+android/local.properties
+android/capacitor.settings.gradle
+android/app/capacitor.build.gradle
+*.keystore
+!debug.keystore
+android/keystore.properties
+android/keystore/
+
+# Store binary assets (screenshots/graphics) — regenerate, don't commit
+fastlane/screenshots/**/*.png
+fastlane/screenshots/**/*.jpg
+fastlane/metadata/android/*/images/
+
+# Fastlane secrets (never commit)
+*.jks
+*.p8
+fastlane/play-service-account.json
+fastlane/*.json
+!fastlane/app_privacy_details.json
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output
+fastlane/README.md

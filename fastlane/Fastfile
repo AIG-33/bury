@@ -1,0 +1,151 @@
+# Fastlane Fastfile — PlayTennis.by
+#
+# Store-listing automation ONLY. These lanes upload metadata / screenshots and
+# (optionally) already-built binaries to App Store Connect and Google Play.
+# They do NOT build the native apps — archive the iOS build in Xcode and the
+# Android .aab in Android Studio (see docs/MOBILE.md), then run these lanes to
+# push listings.
+#
+# All credentials come from ENV — nothing secret is committed. Required vars are
+# documented in docs/STORE_SUBMISSION.md. Run `fastlane <lane>` from repo root.
+
+fastlane_require "fileutils"
+
+# =============================================================================
+# iOS — App Store Connect (deliver)
+# =============================================================================
+platform :ios do
+  # App Store Connect API key auth (recommended over Apple ID + 2FA).
+  # Set: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_CONTENT (the .p8 contents, base64 or raw).
+  def app_store_api_key
+    return nil unless ENV["ASC_KEY_ID"] && ENV["ASC_ISSUER_ID"] && ENV["ASC_KEY_CONTENT"]
+
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_CONTENT"],
+      is_key_content_base64: ENV["ASC_KEY_CONTENT_B64"] == "true",
+      in_house: false,
+    )
+  end
+
+  desc "Validate the App Store listing metadata without uploading"
+  lane :metadata_check do
+    deliver(
+      api_key: app_store_api_key,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots/ios",
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      force: true,          # non-interactive
+      run_precheck_before_submit: false,
+    )
+  end
+
+  desc "Upload App Store listing metadata (+ screenshots) — no binary, no submit"
+  lane :upload_metadata do
+    deliver(
+      api_key: app_store_api_key,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots/ios",
+      skip_binary_upload: true,
+      skip_screenshots: ENV["UPLOAD_SCREENSHOTS"] != "true",
+      overwrite_screenshots: true,
+      force: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+    )
+  end
+
+  desc "Upload an already-archived .ipa + metadata (build the .ipa in Xcode first)"
+  lane :release do
+    ipa_path = ENV["IPA_PATH"] # e.g. ./build/PlayTennis.ipa (archive/export in Xcode)
+    UI.user_error!("Set IPA_PATH to an exported .ipa") unless ipa_path && File.exist?(ipa_path)
+
+    deliver(
+      api_key: app_store_api_key,
+      ipa: ipa_path,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots/ios",
+      skip_screenshots: ENV["UPLOAD_SCREENSHOTS"] != "true",
+      overwrite_screenshots: true,
+      force: true,
+      submit_for_review: ENV["SUBMIT_FOR_REVIEW"] == "true",
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+    )
+  end
+end
+
+# =============================================================================
+# Android — Google Play (supply)
+# =============================================================================
+platform :android do
+  # Service-account JSON with "Release manager" access. Provide EITHER:
+  #   SUPPLY_JSON_KEY       — path to the .json file, or
+  #   SUPPLY_JSON_KEY_DATA  — the JSON contents inline (CI secret).
+  def play_credentials
+    if ENV["SUPPLY_JSON_KEY_DATA"]
+      { json_key_data: ENV["SUPPLY_JSON_KEY_DATA"] }
+    else
+      { json_key: ENV["SUPPLY_JSON_KEY"] || "./fastlane/play-service-account.json" }
+    end
+  end
+
+  desc "Validate the Play listing metadata without committing changes"
+  lane :metadata_check do
+    supply(
+      **play_credentials,
+      package_name: "by.playtennis.app",
+      metadata_path: "./fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+      # Validation resolves metadata against a release, so target a track that
+      # has one (production is empty until first rollout).
+      track: ENV["PLAY_TRACK"] || "internal",
+      validate_only: true,
+    )
+  end
+
+  desc "Upload the Play Store listing metadata only (no binary)"
+  lane :upload_metadata do
+    supply(
+      **play_credentials,
+      package_name: "by.playtennis.app",
+      metadata_path: "./fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      # supply resolves listing metadata against a release on this track, so it
+      # must point at a track that actually has a release (default track is
+      # production, which is empty until first rollout). Changelogs are tied to
+      # a version code and are uploaded by the `release` lane instead.
+      track: ENV["PLAY_TRACK"] || "internal",
+      skip_upload_changelogs: true,
+      skip_upload_images: ENV["UPLOAD_IMAGES"] != "true",
+      skip_upload_screenshots: ENV["UPLOAD_SCREENSHOTS"] != "true",
+    )
+  end
+
+  desc "Upload an already-built .aab + metadata to a track (build the .aab in Android Studio first)"
+  lane :release do
+    aab_path = ENV["AAB_PATH"] # e.g. ./android/app/build/outputs/bundle/release/app-release.aab
+    # Lane Ruby code runs with cwd = fastlane/, so resolve relative paths against the repo root.
+    aab_path = File.expand_path(aab_path, "..") if aab_path
+    UI.user_error!("Set AAB_PATH to a signed .aab") unless aab_path && File.exist?(aab_path)
+
+    supply(
+      **play_credentials,
+      package_name: "by.playtennis.app",
+      aab: aab_path,
+      metadata_path: "./fastlane/metadata/android",
+      track: ENV["PLAY_TRACK"] || "internal", # internal | alpha | beta | production
+      release_status: ENV["PLAY_RELEASE_STATUS"] || "draft",
+      skip_upload_images: ENV["UPLOAD_IMAGES"] != "true",
+      skip_upload_screenshots: ENV["UPLOAD_SCREENSHOTS"] != "true",
+    )
+  end
+end

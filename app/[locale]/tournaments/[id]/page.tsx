@@ -22,7 +22,10 @@ import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
 import { Surface } from "@/components/ui/surface";
 import { Chip } from "@/components/ui/surface";
+import { TournamentStatusPill } from "@/components/domain/tournament-status-pill";
 import { loadPublicTournamentDetail } from "../actions";
+import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
+import { TournamentApplyButton, type ApplyButtonCopy } from "./apply-button";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -49,10 +52,26 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   const tNav = await getTranslations("nav");
   const tCrumb = await getTranslations("breadcrumbs");
 
-  const detail = await loadPublicTournamentDetail(id);
+  const [detail, viewer] = await Promise.all([
+    loadPublicTournamentDetail(id),
+    loadTournamentViewerState(id),
+  ]);
   if (!detail) notFound();
 
   const { tournament, participants, matches } = detail;
+
+  const applyCopy: ApplyButtonCopy = {
+    title: t("detail.apply.title"),
+    cta: t("detail.apply.cta"),
+    applying: t("detail.apply.applying"),
+    login_cta: t("detail.apply.login_cta"),
+    login_hint: t("detail.apply.login_hint"),
+    closed: t("detail.apply.closed"),
+    owner: t("detail.apply.owner"),
+    pending: t("detail.apply.pending"),
+    approved: t("detail.apply.approved"),
+    rejected: t("detail.apply.rejected"),
+  };
   const fmtDate = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
   });
@@ -103,25 +122,24 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
       />
 
       <div className="flex flex-wrap gap-2 text-xs">
-        <Chip tone="grass" className="font-medium uppercase">
+        <Chip tone="grass" className="uppercase">
           {t(`format.${tournament.format}`)}
         </Chip>
         {tournament.surface && (
-          <Chip tone="clay" className="font-medium uppercase">
-            {tournament.surface}
+          <Chip tone="clay" className="uppercase">
+            {t(`surfaces.${tournament.surface}`)}
           </Chip>
         )}
-        <Chip tone="ink" className="font-medium uppercase">
-          {t(`status.${tournament.status}`)}
-        </Chip>
+        <TournamentStatusPill
+          status={tournament.status}
+          label={t(`status.${tournament.status}`)}
+        />
       </div>
 
       {/* Meta strip */}
       <dl className="grid gap-4 sm:grid-cols-3">
         <Surface variant="row">
-          <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-            {t("detail.starts")}
-          </dt>
+          <dt className="label-eyebrow">{t("detail.starts")}</dt>
           <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
             <span className="inline-flex items-center gap-1">
               <Calendar className="h-4 w-4 text-grass-700" />
@@ -136,9 +154,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           </dd>
         </Surface>
         <Surface variant="row">
-          <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-            {t("detail.participants")}
-          </dt>
+          <dt className="label-eyebrow">{t("detail.participants")}</dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
             <Users className="h-4 w-4 text-grass-700" />
             {tournament.participants_count}
@@ -146,9 +162,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           </dd>
         </Surface>
         <Surface variant="row">
-          <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-            {t("detail.entry_fee")}
-          </dt>
+          <dt className="label-eyebrow">{t("detail.entry_fee")}</dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium tabular-nums text-ink-900">
             <Coins className="h-4 w-4 text-grass-700" />
             {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
@@ -157,9 +171,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           </dd>
         </Surface>
         <Surface variant="row">
-          <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-            {t("detail.organizer")}
-          </dt>
+          <dt className="label-eyebrow">{t("detail.organizer")}</dt>
           <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
             <Trophy className="h-4 w-4 text-grass-700" />
             {tournament.organizer_name ?? "—"}
@@ -167,9 +179,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         </Surface>
         {tournament.venues.length > 0 && (
           <Surface variant="row" className="sm:col-span-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-500">
-              {t("detail.venues")}
-            </dt>
+            <dt className="label-eyebrow">{t("detail.venues")}</dt>
             <dd className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-900">
               {tournament.venues.map((v) => (
                 <span
@@ -186,9 +196,23 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
         )}
       </dl>
 
+      {/* Apply — the CTA the shareable registration link lands on. */}
+      <Surface variant="card" as="section">
+        <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+          {applyCopy.title}
+        </h2>
+        <TournamentApplyButton
+          locale={locale}
+          tournamentId={id}
+          status={tournament.status}
+          viewer={viewer}
+          copy={applyCopy}
+        />
+      </Surface>
+
       {/* Participants */}
       <Surface variant="card" as="section">
-        <h2 className="mb-3 font-display text-lg font-bold text-grass-900">
+        <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
           {t("detail.participants_title")}
         </h2>
         {participants.length === 0 ? (
@@ -233,7 +257,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
       {/* Matches — same scorecard look as /matches; grouped by round so a
           long bracket reads top → down by stage. */}
       <Surface variant="card" as="section">
-        <h2 className="mb-3 font-display text-lg font-bold text-grass-900">
+        <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
           {t("detail.matches_title")}
         </h2>
         {matches.length === 0 ? (

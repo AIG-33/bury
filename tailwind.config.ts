@@ -9,57 +9,70 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Redesign token map (ТЗ §1.1). The legacy scale names are kept so the
+        // whole app inherits the new palette without a mass rename:
+        //   grass-600 = Primary #1C7A46 · grass-500 = Emerald #28A35A ·
+        //   grass-900 = Primary-dark #12331F · ball-500 = Lime #C3E84F ·
+        //   ink-900 = Text #16321F · ink-500 = Muted #6A8172 ·
+        //   ink-400 = Hint #8AA093 · clay-500 = Danger #CC5A4F.
         grass: {
-          50: "#EAF7EE",
-          100: "#D2EFD8",
-          200: "#A6E0B5",
-          300: "#74CB91",
-          400: "#43B26F",
-          500: "#1F8A4C",
-          600: "#187341",
-          700: "#155E36",
-          800: "#11472A",
-          900: "#0B2E1B",
-          lume: "#2E6B5A",
-          deep: "#1A3C34",
+          50: "#E4F2DF",
+          100: "#D3ECC4",
+          200: "#B4DFA6",
+          300: "#83CB84",
+          400: "#3FAF66",
+          500: "#28A35A",
+          600: "#1C7A46",
+          700: "#1C6B40",
+          800: "#17512F",
+          900: "#12331F",
+          lume: "#2A9556",
+          deep: "#12331F",
         },
         ball: {
-          50: "#FBFEDD",
-          100: "#F8FDB8",
-          200: "#F2FBA8",
-          300: "#EAF876",
-          400: "#E2F644",
-          500: "#D7F205",
-          600: "#B5CB04",
-          700: "#8FA303",
-          800: "#6A7902",
-          900: "#454F01",
+          50: "#F4FADF",
+          100: "#EEF7CF",
+          200: "#E3F3AC",
+          300: "#DBF18C",
+          400: "#CFEC6B",
+          500: "#C3E84F",
+          600: "#A7DD3C",
+          700: "#5C7A12",
+          800: "#46610C",
+          900: "#2F4507",
         },
         clay: {
-          50: "#FBEEE9",
-          100: "#F8DCD0",
-          200: "#EFB6A0",
-          300: "#E48F70",
-          400: "#DA7548",
-          500: "#C75B3A",
-          600: "#A8482D",
-          700: "#883623",
-          800: "#69281A",
-          900: "#451810",
-          dust: "#C66B4F",
-          deep: "#9C3A2B",
+          50: "#FBEEEC",
+          100: "#FBE4E1",
+          200: "#F3C4BE",
+          300: "#E79A90",
+          400: "#D97267",
+          500: "#CC5A4F",
+          600: "#B04A40",
+          700: "#8F3B33",
+          800: "#6D2C26",
+          900: "#471D19",
+          dust: "#CC5A4F",
+          deep: "#8F3B33",
+        },
+        // Warning ("Скоро старт", "По заявке"): #B7811F on #FDF1D8.
+        sun: {
+          50: "#FDF1D8",
+          100: "#FBE7B9",
+          600: "#B7811F",
+          700: "#946617",
         },
         ink: {
-          50: "#F4F6F5",
-          100: "#E6EBE8",
-          200: "#D7DDD9",
-          300: "#B6BFB9",
-          400: "#8C988F",
-          500: "#5B6A60",
-          600: "#445048",
-          700: "#2D352F",
-          800: "#1B2620",
-          900: "#0F1B14",
+          50: "#EEF1EA",
+          100: "#E2E8DF",
+          200: "#D3DCD2",
+          300: "#B4C2B6",
+          400: "#8AA093",
+          500: "#6A8172",
+          600: "#4E6355",
+          700: "#35493C",
+          800: "#22382A",
+          900: "#16321F",
         },
         atp: {
           deep: "#002B5B",
@@ -86,28 +99,49 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-display)", "ui-sans-serif", "system-ui"],
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        // Space Grotesk (numeric accent) has no cyrillic — Manrope catches
+        // russian glyphs so mixed labels stay consistent.
+        mono: ["var(--font-mono)", "var(--font-sans)", "ui-sans-serif", "system-ui"],
       },
       borderRadius: {
-        xl2: "1.25rem",
-        xl3: "1.75rem",
+        // ТЗ §1.3: cards 20px, large sections 24px, hero 28px.
+        xl2: "20px",
+        xl3: "24px",
+        hero: "28px",
       },
       letterSpacing: {
         tightest: "-0.04em",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(15,27,20,0.04), 0 8px 24px -12px rgba(15,27,20,0.12)",
-        ace: "0 0 0 4px #D7F205, 0 8px 24px -8px #1F8A4C",
+        // ТЗ §1.4.
+        card: "0 1px 2px rgba(20,60,30,0.04), 0 12px 30px rgba(20,60,30,0.05)",
+        cardHover: "0 18px 42px rgba(20,60,30,0.12)",
+        glow: "0 8px 20px rgba(28,122,70,0.3)",
+        ace: "0 0 0 4px #C3E84F, 0 8px 24px -8px #1C7A46",
         ember:
           "0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px -20px rgba(255,77,0,0.45)",
         glassDark:
           "inset 0 1px 0 rgba(255,255,255,0.08), 0 30px 60px -30px rgba(0,0,0,0.6)",
       },
       backgroundImage: {
+        // ТЗ §1.1 gradients.
+        "pt-primary": "linear-gradient(135deg,#1C7A46,#28A35A)",
+        "pt-hero": "linear-gradient(135deg,#12331F,#1C6B40,#2A9556)",
+        "pt-lime": "linear-gradient(135deg,#C9E85B,#A9DD3F)",
+        "pt-icon": "linear-gradient(135deg,#E7F4D9,#D3ECC4)",
         "night-aura":
           "radial-gradient(60% 60% at 30% 30%, rgba(14,91,216,0.35) 0%, transparent 60%), radial-gradient(70% 70% at 80% 75%, rgba(0,43,91,0.55) 0%, transparent 65%), #001530",
       },
       keyframes: {
+        // ТЗ §1.6.
+        ptFade: {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        ptPulse: {
+          "0%, 100%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.55)", opacity: "0.35" },
+        },
         bounceBall: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-6px)" },
@@ -129,6 +163,8 @@ const config: Config = {
         },
       },
       animation: {
+        ptFade: "ptFade 0.4s ease both",
+        ptPulse: "ptPulse 1.8s ease-in-out infinite",
         bounceBall: "bounceBall 1.4s ease-in-out infinite",
         letCordShake: "letCordShake 0.4s ease-in-out",
         rise: "rise 700ms cubic-bezier(0.22,1,0.36,1) both",

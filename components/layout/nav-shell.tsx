@@ -23,11 +23,12 @@ export function NavShell({ children }: Props) {
     <header
       data-scrolled={scrolled}
       className={[
-        "sticky top-0 z-40 transition-[background-color,backdrop-filter,box-shadow,border-color] duration-500 ease-followthrough",
-        "border-b",
+        // Spec §2.4: sticky glass topbar — rgba(243,247,237,.72) + blur(16px).
+        "sticky top-0 z-40 transition-[background-color,box-shadow,border-color] duration-300 ease-out",
+        "border-b backdrop-blur-[16px]",
         scrolled
-          ? "border-ink-200/60 bg-white/75 backdrop-blur-xl shadow-[0_8px_30px_-18px_rgba(15,27,20,0.18)]"
-          : "border-transparent bg-white/40 backdrop-blur-md",
+          ? "border-[rgba(20,60,30,0.08)] bg-[rgba(243,247,237,0.72)] shadow-[0_8px_30px_-18px_rgba(20,60,30,0.18)]"
+          : "border-transparent bg-[rgba(243,247,237,0.45)]",
       ].join(" ")}
     >
       {children}

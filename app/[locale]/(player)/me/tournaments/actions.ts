@@ -57,6 +57,51 @@ async function requireUser() {
 }
 
 // =============================================================================
+// Viewer state — used by the public tournament page to decide whether to show
+// an "Apply" button, a status pill, or a "sign in" link. Kept read-only and
+// RLS-safe (a non-owner, non-participant reading a club tournament simply gets
+// `isOwner=false` because the row isn't visible to them).
+// =============================================================================
+
+export type TournamentViewerState =
+  | { authenticated: false }
+  | { authenticated: true; isOwner: boolean; applicationStatus: ApplicationStatus };
+
+export async function loadTournamentViewerState(
+  tournamentId: string,
+): Promise<TournamentViewerState> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { authenticated: false };
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("owner_id")
+    .eq("id", tournamentId)
+    .maybeSingle()) as { data: { owner_id: string } | null };
+
+  const { data: part } = (await supabase
+    .from("tournament_participants")
+    .select("status, withdrawn")
+    .eq("tournament_id", tournamentId)
+    .eq("player_id", user.id)
+    .maybeSingle()) as {
+    data: { status: "pending" | "approved" | "rejected"; withdrawn: boolean } | null;
+  };
+
+  const applicationStatus: ApplicationStatus =
+    part && !part.withdrawn ? part.status : "none";
+
+  return {
+    authenticated: true,
+    isOwner: t?.owner_id === user.id,
+    applicationStatus,
+  };
+}
+
+// =============================================================================
 // Open registrations — public tournaments with registration open.
 // =============================================================================
 

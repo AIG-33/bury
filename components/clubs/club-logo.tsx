@@ -37,8 +37,9 @@ export function ClubLogo({ url, name, size = "md" }: ClubLogoProps) {
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
   return (
+    // Spec §4.4: club abbreviation on a lime-gradient tile.
     <div
-      className={`${cls} grid shrink-0 place-items-center rounded-xl border border-grass-200 bg-grass-50 font-display font-bold uppercase tracking-wider text-grass-800`}
+      className={`${cls} grid shrink-0 place-items-center rounded-xl bg-pt-lime font-display font-extrabold uppercase tracking-wider text-[#123320]`}
       aria-hidden
     >
       {initials || <Trophy className="h-1/2 w-1/2" />}

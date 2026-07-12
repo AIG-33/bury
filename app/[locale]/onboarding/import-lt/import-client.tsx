@@ -418,7 +418,7 @@ function PreviewCard({
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-grass-100 bg-grass-50/40 px-5 py-4">
         <div className="flex items-center gap-3">
           <Trophy className="h-5 w-5 text-grass-700" />
-          <h2 className="font-display text-lg font-bold text-grass-900">{copy.title}</h2>
+          <h2 className="section-title text-[18px] md:text-[20px]">{copy.title}</h2>
         </div>
         <a
           href={preview.external_url}

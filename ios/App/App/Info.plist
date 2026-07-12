@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>PlayTennis.by</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	<!-- Export compliance: the app only uses standard HTTPS/TLS (exempt
+	     encryption), so no French/US export documentation is required. Set to
+	     true and file the year-end self-classification report if you ever add
+	     non-exempt cryptography (custom/proprietary algorithms). See
+	     docs/STORE_SUBMISSION.md § Export compliance. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- Purpose strings. The app is a WebView shell around https://www.playtennis.by;
+	     these prompts fire only if the site requests the matching capability.
+	     Keep ONLY the ones the site can actually trigger — remove any unused key
+	     before submission to avoid App Review questions (see docs/STORE_SUBMISSION.md).
+	     Strings are English; localize via ru.lproj/InfoPlist.strings if needed. -->
+	<key>NSCameraUsageDescription</key>
+	<string>PlayTennis.by uses the camera when you take a photo for your profile avatar.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PlayTennis.by needs access to your photos when you choose a profile avatar.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PlayTennis.by uses your location to show nearby courts, coaches and players on the map.</string>
+	<!-- Google Sign-In: once the Google iOS OAuth client exists, add back a
+	     CFBundleURLTypes entry whose URL scheme is the REVERSED iOS client ID
+	     (com.googleusercontent.apps.<id> — see "OAuth setup" in docs/MOBILE.md).
+	     The placeholder was removed because App Store Connect rejects binaries
+	     with a malformed URL scheme; native Google login needs it restored. -->
+</dict>
+</plist>

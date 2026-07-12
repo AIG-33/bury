@@ -9,13 +9,18 @@ import {
   loadGroupStandings,
   loadRoundRobinStandings,
   loadTournamentDetail,
+  loadVenueOptions,
+  loadAdministrableClubs,
 } from "../actions";
+import { buildTournamentDialogCopy } from "../dialog-copy";
 import { ParticipantsSection, type ParticipantsCopy } from "./participants-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
 import { GroupsSection, type GroupsCopy } from "./groups-section";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
 import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
 import { StatusControl, type StatusControlCopy } from "./status-control";
+import { EditTournamentButton } from "./edit-tournament-button";
+import { RegistrationLink, type RegistrationLinkCopy } from "./registration-link";
 import {
   TOURNAMENT_FORMATS,
   TOURNAMENT_STATUSES,
@@ -36,7 +41,11 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsOrganized");
 
-  const result = await loadTournamentDetail(id);
+  const [result, venueOptions, clubOptions] = await Promise.all([
+    loadTournamentDetail(id),
+    loadVenueOptions(),
+    loadAdministrableClubs(),
+  ]);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
       redirect(`/${locale}/login?next=/me/tournaments/organized/${id}`);
@@ -161,6 +170,19 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
 
   const locked = tournament.status === "in_progress" || tournament.status === "finished";
 
+  const dialogCopy = buildTournamentDialogCopy(t);
+  const registrationLinkCopy: RegistrationLinkCopy = {
+    title: t("registration_link.title"),
+    description: t("registration_link.description"),
+    copy: t("registration_link.copy"),
+    copied: t("registration_link.copied"),
+    open: t("registration_link.open"),
+    hint_draft: t("registration_link.hint_draft"),
+    hint_club: t("registration_link.hint_club"),
+    hint_ready: t("registration_link.hint_ready"),
+    hint_closed: t("registration_link.hint_closed"),
+  };
+
   const statusTone = (
     tournament.status === "draft" ? "ink"
     : tournament.status === "registration" ? "ball"
@@ -190,7 +212,19 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
             result={[t("detail.help.result.1"), t("detail.help.result.2")]}
           />
         }
-        actions={<Chip tone={statusTone}>{statusLabels[tournament.status]}</Chip>}
+        actions={
+          <>
+            <EditTournamentButton
+              tournament={tournament}
+              venueOptions={venueOptions}
+              clubOptions={clubOptions}
+              dialogCopy={dialogCopy}
+              label={t("detail.edit")}
+              lockedHint={locked ? t("detail.edit_locked_hint") : null}
+            />
+            <Chip tone={statusTone}>{statusLabels[tournament.status]}</Chip>
+          </>
+        }
       />
 
       <div className="surface-card">
@@ -262,6 +296,13 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
             revert_confirm: t("status_control.revert_confirm"),
           } satisfies StatusControlCopy
         }
+      />
+
+      <RegistrationLink
+        path={`/${locale}/tournaments/${tournament.id}`}
+        status={tournament.status}
+        privacy={tournament.privacy}
+        copy={registrationLinkCopy}
       />
 
       <PrivacyControl

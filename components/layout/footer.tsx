@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { TelegramIcon } from "@/components/icons/telegram";
 import { InstallAppIcons } from "./install-app-card";
+import { HideInNativeApp } from "./hide-in-native-app";
 import { telegramBotUrl } from "@/lib/telegram/bot-link";
 
 type Props = { authed: boolean };
@@ -23,7 +24,7 @@ export async function Footer({ authed }: Props) {
   const botUrl = telegramBotUrl();
 
   return (
-    <footer className="mt-16 border-t border-ink-100/80 bg-white/70 backdrop-blur-md pb-mobile-nav">
+    <footer className="pb-mobile-nav mt-16 border-t border-ink-100/80 bg-white/70 backdrop-blur-md">
       <div className="page-shell !py-10 md:!py-12">
         <div className="grid gap-10 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-5">
@@ -39,9 +40,7 @@ export async function Footer({ authed }: Props) {
                 PlayTennis.by
               </span>
             </Link>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">
-              {t("tagline")}
-            </p>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">{t("tagline")}</p>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">
               {t("contact.body")}
             </p>
@@ -67,15 +66,15 @@ export async function Footer({ authed }: Props) {
 
           <FooterColumn title={t("groups.browse")}>
             <FooterLink href="/venues">{t("links.venues")}</FooterLink>
-            {authed ? (
-              <FooterLink href="/players">{t("links.players")}</FooterLink>
-            ) : null}
+            {authed ? <FooterLink href="/players">{t("links.players")}</FooterLink> : null}
             <FooterLink href="/matches">{t("links.matches")}</FooterLink>
             <FooterLink href="/leaderboard">{t("links.leaderboard")}</FooterLink>
           </FooterColumn>
 
           <FooterColumn title={t("groups.account")}>
             <FooterLink href="/help">{t("links.help")}</FooterLink>
+            <FooterLink href="/support">{t("links.support")}</FooterLink>
+            <FooterLink href="/privacy">{t("links.privacy")}</FooterLink>
             {authed ? (
               <FooterLink href="/me/profile">{t("links.profile")}</FooterLink>
             ) : (
@@ -87,18 +86,20 @@ export async function Footer({ authed }: Props) {
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-ink-100/80 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
           <span>© {year} PlayTennis.by · Минск</span>
 
-          <div className="flex flex-wrap items-center gap-3 normal-case tracking-normal">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
-              {t("install.title_short")}
-            </span>
-            <InstallAppIcons
-              size="sm"
-              labels={{
-                android_button: t("install.android_button"),
-                ios_button: t("install.ios_button"),
-              }}
-            />
-          </div>
+          <HideInNativeApp>
+            <div className="flex flex-wrap items-center gap-3 normal-case tracking-normal">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
+                {t("install.title_short")}
+              </span>
+              <InstallAppIcons
+                size="sm"
+                labels={{
+                  android_button: t("install.android_button"),
+                  ios_button: t("install.ios_button"),
+                }}
+              />
+            </div>
+          </HideInNativeApp>
 
           <span>v1.0 · MVP</span>
         </div>
@@ -107,13 +108,7 @@ export async function Footer({ authed }: Props) {
   );
 }
 
-function FooterColumn({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="md:col-span-2">
       <h4 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500">
@@ -124,13 +119,7 @@ function FooterColumn({
   );
 }
 
-function FooterLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
       <Link

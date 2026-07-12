@@ -99,12 +99,12 @@ export function MobileMenu({ items, authed, labels }: Props) {
                   href={it.href as any}
                   onClick={() => setOpen(false)}
                   className={[
-                    "flex h-12 items-center gap-2 rounded-xl px-4 font-display text-[15px] tracking-tight transition-colors",
+                    "flex h-12 items-center gap-2 rounded-[13px] px-4 font-display text-[15px] tracking-tight transition-colors",
                     active
-                      ? "bg-grass-700 font-bold text-white shadow-[0_10px_24px_-12px_rgba(21,94,54,0.55)]"
+                      ? "bg-pt-primary font-bold text-white shadow-glow"
                       : it.highlight
-                        ? "bg-grass-50 font-bold text-grass-800 ring-1 ring-grass-200/70"
-                        : "font-semibold text-ink-800 hover:bg-ink-50",
+                        ? "bg-grass-50 font-bold text-grass-700 ring-1 ring-grass-200/70"
+                        : "font-semibold text-ink-700 hover:bg-ink-50",
                   ].join(" ")}
                 >
                   <span className="flex-1">{it.label}</span>
@@ -163,7 +163,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
             <form action="/api/auth/signout" method="post">
               <button
                 type="submit"
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-ink-200 bg-white font-display text-[13px] font-bold uppercase tracking-[0.16em] text-clay-700 hover:bg-clay-50"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[13px] border border-clay-200 bg-white font-display text-[14px] font-bold text-clay-600 hover:bg-clay-50"
               >
                 <LogOut className="h-4 w-4" />
                 {labels.logout}
@@ -173,7 +173,7 @@ export function MobileMenu({ items, authed, labels }: Props) {
             <Link
               href="/login"
               onClick={() => setOpen(false)}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-grass-700 font-display text-[13px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_28px_-12px_rgba(21,94,54,0.6)]"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[13px] bg-pt-primary font-display text-[14px] font-bold text-white shadow-glow"
             >
               <LogIn className="h-4 w-4" />
               {labels.login}

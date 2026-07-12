@@ -44,8 +44,8 @@ export function BottomTabBar({ items }: Props) {
         <ul
           className={[
             "grid grid-cols-5 items-stretch gap-0.5 rounded-3xl",
-            "border border-ink-200/70 bg-white/85 shadow-[0_18px_60px_-20px_rgba(15,27,20,0.18)]",
-            "backdrop-blur-xl",
+            "border border-[rgba(20,60,30,0.08)] bg-white/90 shadow-[0_18px_60px_-20px_rgba(15,27,20,0.2)]",
+            "backdrop-blur-[16px]",
           ].join(" ")}
         >
           {items.map((item) => {
@@ -61,17 +61,13 @@ export function BottomTabBar({ items }: Props) {
                   href={item.href as any}
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "ease-followthrough flex h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10.5px] font-display font-semibold tracking-tight transition-all",
+                    "flex h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 font-display text-[10.5px] font-semibold tracking-tight transition-all duration-200 ease-out",
                     active
-                      ? "bg-grass-700 text-white shadow-[0_10px_24px_-12px_rgba(21,94,54,0.55)]"
-                      : "text-ink-600 hover:text-grass-800",
+                      ? "bg-pt-primary text-white shadow-glow"
+                      : "text-ink-500 hover:text-grass-700",
                   ].join(" ")}
                 >
-                  <Icon
-                    className={
-                      active ? "h-[18px] w-[18px]" : "h-[18px] w-[18px]"
-                    }
-                  />
+                  <Icon className="h-[18px] w-[18px]" />
                   <span className="truncate leading-none">{item.label}</span>
                   {item.badge && item.badge > 0 ? (
                     <span className="absolute right-2 top-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-clay-500 px-1 text-[9.5px] font-bold leading-none text-white ring-2 ring-white">

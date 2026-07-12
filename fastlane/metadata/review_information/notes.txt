@@ -1,0 +1,1 @@
+The app is a native shell around https://www.playtennis.by (amateur tennis platform in Belarus). Browsing coaches, courts and tournaments works without an account. Sign in with Apple is available on the login screen as required by guideline 4.8.

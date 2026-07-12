@@ -77,7 +77,7 @@ export function NavLink({ href, children, tone, highlight = false }: Props) {
         {active && (
           <span
             aria-hidden
-            className="h-1.5 w-1.5 shrink-0 rounded-full bg-grass-500 shadow-[0_0_8px_rgba(31,138,76,0.85)]"
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-ball-500 shadow-[0_0_8px_rgba(195,232,79,0.9)]"
           />
         )}
         {children}
@@ -85,7 +85,7 @@ export function NavLink({ href, children, tone, highlight = false }: Props) {
     );
   }
 
-  // tone === "public"
+  // tone === "public" — spec §2.4: active item = dark-green text + lime dot.
   return (
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,29 +94,19 @@ export function NavLink({ href, children, tone, highlight = false }: Props) {
       className={[
         "group relative inline-flex h-9 items-center gap-1.5 rounded-full px-3",
         "font-display text-[13px] tracking-tight",
-        "transition-all duration-300 ease-followthrough",
+        "transition-colors duration-200 ease-out",
         active
           ? "font-bold text-grass-900"
-          : "font-semibold text-ink-700 hover:text-grass-900",
+          : "font-semibold text-ink-600 hover:text-grass-900",
       ].join(" ")}
     >
       {active && (
         <span
           aria-hidden
-          className="h-1.5 w-1.5 shrink-0 rounded-full bg-grass-600 shadow-[0_0_6px_rgba(31,138,76,0.7)]"
+          className="h-1.5 w-1.5 shrink-0 rounded-full bg-ball-500 shadow-[0_0_6px_rgba(195,232,79,0.9)]"
         />
       )}
-      <span className="relative">
-        {children}
-        <span
-          aria-hidden
-          className={[
-            "pointer-events-none absolute -bottom-1 left-0 right-0 h-[2px] origin-left rounded-full bg-gradient-to-r from-grass-600 to-grass-800",
-            "transition-transform duration-500 ease-followthrough",
-            active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
-          ].join(" ")}
-        />
-      </span>
+      {children}
     </Link>
   );
 }

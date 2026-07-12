@@ -49,11 +49,14 @@ export function ClubRatingTable({
               className="border-b border-ink-50 transition hover:bg-ink-50/50"
             >
               <td className="px-2 py-2">
+                {/* Spec §2.3: rank 1–3 gets a lime badge, the rest stay neutral. */}
                 <span
-                  className="inline-grid h-6 w-6 place-items-center rounded-full text-xs font-bold tabular-nums"
+                  className={`inline-grid h-6 w-6 place-items-center rounded-full font-mono text-xs font-bold tabular-nums ${
+                    i < 3 ? "bg-pt-lime text-[#123320]" : "bg-ink-50 text-ink-500"
+                  }`}
                   style={
                     i < 3 && brandColor
-                      ? { backgroundColor: `${brandColor}22`, color: brandColor }
+                      ? { backgroundImage: "none", backgroundColor: `${brandColor}22`, color: brandColor }
                       : undefined
                   }
                 >

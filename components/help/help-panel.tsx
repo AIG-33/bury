@@ -158,7 +158,7 @@ function HelpModal({
             <TennisBall className="h-6 w-6 text-ball-500" />
             <h2
               id={`help-${pageId}-title`}
-              className="font-display text-lg font-bold text-grass-900"
+              className="section-title text-[18px] md:text-[20px]"
             >
               {labels.title}
             </h2>

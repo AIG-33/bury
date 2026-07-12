@@ -153,7 +153,7 @@ export default async function CoachProfilePage({ params }: Props) {
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="inline-flex items-center gap-2 font-display text-lg font-bold text-grass-900">
+          <h2 className="inline-flex items-center gap-2 section-title text-[18px] md:text-[20px]">
             <CalendarClock className="h-5 w-5 text-grass-700" />
             {t("detail.slots.heading")}
           </h2>
@@ -178,7 +178,7 @@ export default async function CoachProfilePage({ params }: Props) {
       )}
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-bold text-grass-900">
+        <h2 className="section-title text-[18px] md:text-[20px]">
           {t("detail.reviews_heading", { count: coach.coach_reviews_count })}
         </h2>
         {coach.reviews.length === 0 ? (

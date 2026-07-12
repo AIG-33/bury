@@ -96,7 +96,7 @@ export default async function BecomeCoachPage({ params }: Props) {
               <Award className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="font-display text-lg font-bold text-grass-900">
+              <h2 className="section-title text-[18px] md:text-[20px]">
                 {t("already_coach.title")}
               </h2>
               <p className="mt-1 text-sm text-grass-800">{t("already_coach.body")}</p>

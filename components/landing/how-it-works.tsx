@@ -24,70 +24,54 @@ export function HowItWorks() {
   const inView = useInView(ref, { once: true, margin: "-15%" });
 
   return (
-    <section ref={ref} className="relative bg-grass-50 text-ink-900" aria-label={t("title")}>
-      <div className="page-shell-wide max-w-[1280px] py-20 md:py-28">
-        <div className="grid grid-cols-12 items-end gap-6">
-          <div className="col-span-12 md:col-span-8">
-            <p className="label-eyebrow">{t("eyebrow")}</p>
-            <motion.h2
-              className="mt-4 font-display font-bold leading-[0.98] tracking-tightest text-grass-900"
-              style={{ fontSize: "clamp(32px, 4.4vw, 56px)" }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {t("title")}
-            </motion.h2>
-          </div>
-        </div>
+    <section ref={ref} className="relative text-ink-900" aria-label={t("title")}>
+      <div className="page-shell !py-10 md:!py-14">
+        <p className="label-eyebrow">{t("eyebrow")}</p>
+        <motion.h2
+          className="section-title mt-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          {t("title")}
+        </motion.h2>
 
-        <div className="relative mt-12 md:mt-16">
-          {/* Faint horizontal connector on desktop */}
-          <div
-            aria-hidden
-            className="absolute left-0 right-0 top-[44px] hidden h-px bg-gradient-to-r from-grass-200 via-grass-300 to-transparent md:block"
-          />
+        <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((id, i) => {
+            const Icon = ICONS[id];
+            return (
+              <motion.li
+                key={id}
+                className="flex flex-col gap-4 rounded-xl2 border border-[rgba(20,60,30,0.07)] bg-white p-5 shadow-card"
+                initial={{ opacity: 0, y: 10 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.4, delay: 0.05 + i * 0.05, ease: "easeOut" }}
+              >
+                <div className="flex items-center justify-between">
+                  {/* Dark step icon per spec §4.1. */}
+                  <span
+                    aria-hidden
+                    className="grid h-12 w-12 place-items-center rounded-[14px] bg-pt-hero text-ball-400"
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="font-mono text-[13px] font-semibold text-ink-400 tabular-nums">
+                    {t(`steps.${id}.n`)}
+                  </span>
+                </div>
 
-          <ol className="grid grid-cols-1 gap-8 md:grid-cols-4 md:gap-6">
-            {STEPS.map((id, i) => {
-              const Icon = ICONS[id];
-              return (
-                <motion.li
-                  key={id}
-                  className="relative flex flex-col gap-4"
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{
-                    duration: 0.7,
-                    delay: 0.1 + i * 0.1,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                >
-                  <div className="relative flex items-center gap-3">
-                    <span
-                      aria-hidden
-                      className="relative inline-flex h-[88px] w-[88px] items-center justify-center rounded-full bg-white text-grass-700 shadow-[0_18px_40px_-22px_rgba(31,138,76,0.45)] ring-1 ring-grass-200/80"
-                    >
-                      <Icon className="h-7 w-7" />
-                    </span>
-                    <span className="font-mono text-[12px] font-semibold uppercase tracking-[0.22em] text-grass-700/70">
-                      {t(`steps.${id}.n`)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-display text-[20px] font-bold leading-tight tracking-tight text-ink-900 md:text-[22px]">
-                      {t(`steps.${id}.title`)}
-                    </h3>
-                    <p className="text-[15px] leading-relaxed text-ink-600">
-                      {t(`steps.${id}.body`)}
-                    </p>
-                  </div>
-                </motion.li>
-              );
-            })}
-          </ol>
-        </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-display text-[16px] font-extrabold leading-snug text-ink-900">
+                    {t(`steps.${id}.title`)}
+                  </h3>
+                  <p className="text-[13px] leading-relaxed text-ink-500">
+                    {t(`steps.${id}.body`)}
+                  </p>
+                </div>
+              </motion.li>
+            );
+          })}
+        </ol>
       </div>
     </section>
   );

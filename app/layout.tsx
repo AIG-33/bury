@@ -1,27 +1,34 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
+import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { getOgImageAlt } from "@/lib/seo/og-image";
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { belarusTennisKeywords } from "@/lib/seo/metadata";
+import { NativeBridge } from "@/components/mobile/native-bridge";
 
-const fontDisplay = Bricolage_Grotesque({
-  subsets: ["latin", "latin-ext"],
+// Redesign spec (docs: ТЗ — Редизайн PlayTennis.by, §1.2):
+//   Manrope 400/500/700/800 — body and display copy;
+//   Space Grotesk 500/600/700 — numeric accent (ELO, score, stats, price)
+//   mapped onto the --font-mono slot used by eyebrows/tabular numbers.
+const fontDisplay = Manrope({
+  subsets: ["latin", "latin-ext", "cyrillic"],
   variable: "--font-display",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "700", "800"],
 });
 
-const fontSans = Inter({
+const fontSans = Manrope({
   subsets: ["latin", "latin-ext", "cyrillic"],
   variable: "--font-sans",
   display: "swap",
+  weight: ["400", "500", "700", "800"],
 });
 
-const fontMono = JetBrains_Mono({
-  subsets: ["latin", "latin-ext", "cyrillic"],
+const fontMono = Space_Grotesk({
+  subsets: ["latin", "latin-ext"],
   variable: "--font-mono",
   display: "swap",
+  weight: ["500", "600", "700"],
 });
 
 const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
@@ -108,7 +115,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#1f8a4c",
+  themeColor: "#1C7A46",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,
@@ -120,7 +127,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       suppressHydrationWarning
       className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <NativeBridge />
+      </body>
     </html>
   );
 }

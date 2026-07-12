@@ -29,13 +29,13 @@ export function ClubCard({ club, labels }: Props) {
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       href={`/clubs/${club.slug}` as any}
-      className="group block rounded-xl2 border border-ink-100 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-grass-200 hover:shadow-ace"
+      className="lift-on-hover group block rounded-xl2 border border-[rgba(20,60,30,0.07)] bg-white p-4 shadow-card md:p-5"
     >
       <div className="flex items-start gap-3">
         <ClubLogo url={club.logo_url} name={club.name} size="md" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="font-display text-base font-semibold text-ink-900 group-hover:text-grass-800">
+            <h3 className="font-display text-[16px] font-extrabold text-ink-900 group-hover:text-grass-700">
               {club.name}
             </h3>
             <JoinPolicyBadge policy={club.join_policy} labels={labels.join_policy} />
