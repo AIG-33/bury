@@ -19,8 +19,28 @@ import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+/**
+ * The Capacitor shell appends "PlayTennisApp" to the WebView user-agent
+ * (capacitor.config.ts → appendUserAgent). When the store app opens the site
+ * root, send it to the mobile UI (`/[locale]/m`) instead of the web landing.
+ * Deep links to inner pages are left untouched so shared URLs still work.
+ */
+function nativeAppRedirect(request: NextRequest): NextResponse | null {
+  const ua = request.headers.get("user-agent") ?? "";
+  if (!ua.includes("PlayTennisApp")) return null;
+
+  const { pathname } = request.nextUrl;
+  const rootMatch = pathname.match(/^\/(ru|en)\/?$/);
+  if (pathname !== "/" && !rootMatch) return null;
+
+  const locale = rootMatch?.[1] ?? routing.defaultLocale;
+  const url = request.nextUrl.clone();
+  url.pathname = `/${locale}/m`;
+  return NextResponse.redirect(url);
+}
+
 export default async function proxy(request: NextRequest) {
-  const response = intlMiddleware(request);
+  const response = nativeAppRedirect(request) ?? intlMiddleware(request);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

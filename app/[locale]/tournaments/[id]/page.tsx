@@ -18,6 +18,11 @@ import {
 import { HelpPanel } from "@/components/help/help-panel";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { PageHeader } from "@/components/layout/page-header";
+import {
+  TournamentRoomHero,
+  shouldRenderHero,
+} from "@/components/domain/tournament-room-hero";
+import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
 import { Surface } from "@/components/ui/surface";
@@ -88,38 +93,56 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
     status: tournament.status,
   });
 
-  return (
-    <div className="page-shell space-y-6">
-      <JsonLdScript data={jsonLd} />
-      <Breadcrumbs
-        locale={locale}
-        items={[
-          { name: tCrumb("home"), path: "" },
-          { name: tNav("tournaments"), path: "/tournaments" },
-          { name: tournament.name, path: `/tournaments/${id}` },
-        ]}
-      />
-      <Link
-        href={`/${locale}/tournaments`}
-        className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t("back")}
-      </Link>
+  const theme = buildRoomTheme(tournament.branding);
+  const branded = shouldRenderHero(tournament.branding);
+  const accent = theme.accentColor;
+  const helpPanel = (
+    <HelpPanel
+      pageId="public-tournament-detail"
+      variant="inline"
+      why={t("detail.help.why")}
+      what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
+      result={[t("detail.help.result.1")]}
+    />
+  );
 
-      <PageHeader
-        title={tournament.name}
-        subtitle={tournament.description ?? undefined}
-        help={
-          <HelpPanel
-            pageId="public-tournament-detail"
-            variant="inline"
-            why={t("detail.help.why")}
-            what={[t("detail.help.what.1"), t("detail.help.what.2"), t("detail.help.what.3")]}
-            result={[t("detail.help.result.1")]}
+  return (
+    <div style={theme.themed ? theme.backgroundStyle : undefined}>
+      <JsonLdScript data={jsonLd} />
+
+      {branded && (
+        <TournamentRoomHero
+          branding={tournament.branding}
+          fallbackTitle={tournament.name}
+          sponsorsLabel={t("detail.sponsors")}
+          help={helpPanel}
+        />
+      )}
+
+      <div className="page-shell space-y-6">
+        <Breadcrumbs
+          locale={locale}
+          items={[
+            { name: tCrumb("home"), path: "" },
+            { name: tNav("tournaments"), path: "/tournaments" },
+            { name: tournament.name, path: `/tournaments/${id}` },
+          ]}
+        />
+        <Link
+          href={`/${locale}/tournaments`}
+          className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("back")}
+        </Link>
+
+        {!branded && (
+          <PageHeader
+            title={tournament.name}
+            subtitle={tournament.description ?? undefined}
+            help={helpPanel}
           />
-        }
-      />
+        )}
 
       <div className="flex flex-wrap gap-2 text-xs">
         <Chip tone="grass" className="uppercase">
@@ -199,7 +222,12 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
       {/* Apply — the CTA the shareable registration link lands on. */}
       <Surface variant="card" as="section">
         <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-          {applyCopy.title}
+          <span
+            className="inline-block pb-0.5"
+            style={accent ? { borderBottom: `2px solid ${accent}` } : undefined}
+          >
+            {applyCopy.title}
+          </span>
         </h2>
         <TournamentApplyButton
           locale={locale}
@@ -276,6 +304,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           />
         )}
       </Surface>
+      </div>
     </div>
   );
 }

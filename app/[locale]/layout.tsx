@@ -5,14 +5,9 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { routing } from "@/i18n/routing";
 import { TopNav } from "@/components/layout/top-nav";
 import { Footer } from "@/components/layout/footer";
-import {
-  BottomTabBar,
-  type BottomTabItem,
-} from "@/components/layout/bottom-tab-bar";
-import {
-  InstallAppProvider,
-  InstallAppPrompt,
-} from "@/components/layout/install-app-card";
+import { BottomTabBar, type BottomTabItem } from "@/components/layout/bottom-tab-bar";
+import { InstallAppProvider, InstallAppPrompt } from "@/components/layout/install-app-card";
+import { HideOnMobileApp } from "@/components/layout/hide-on-mobile-app";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -104,12 +99,18 @@ export default async function LocaleLayout({ children, params }: Props) {
         <PostHogProvider>
           <InstallAppProvider labels={installLabels}>
             <div className="flex min-h-screen flex-col">
-              <TopNav />
+              <HideOnMobileApp>
+                <TopNav />
+              </HideOnMobileApp>
               <main className="flex-1">{children}</main>
-              <Footer authed={!!user} />
-              <BottomTabBar items={bottomTabs} />
+              <HideOnMobileApp>
+                <Footer authed={!!user} />
+                <BottomTabBar items={bottomTabs} />
+              </HideOnMobileApp>
             </div>
-            <InstallAppPrompt labels={installPromptLabels} />
+            <HideOnMobileApp>
+              <InstallAppPrompt labels={installPromptLabels} />
+            </HideOnMobileApp>
           </InstallAppProvider>
         </PostHogProvider>
       </Suspense>
