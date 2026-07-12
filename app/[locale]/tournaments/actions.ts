@@ -8,6 +8,10 @@ import type {
   Privacy,
   MatchRules,
 } from "@/lib/tournaments/schema";
+import {
+  tournamentBrandingFromRow,
+  type TournamentBranding,
+} from "@/lib/validators/tournament-branding";
 
 /**
  * Distinct list of cities that have at least one venue. Used to build the
@@ -54,6 +58,7 @@ export type PublicTournamentRow = {
   organizer_name: string | null;
   match_rules: MatchRules;
   venues: PublicTournamentVenue[];
+  branding: TournamentBranding;
 };
 
 /**
@@ -90,7 +95,7 @@ export async function loadPublicTournaments(opts: {
     .from("tournaments")
     .select(
       "id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding",
     )
     .eq("privacy", "public")
     // Drafts are organizer-private working copies — never list them publicly,
@@ -135,6 +140,7 @@ export async function loadPublicTournaments(opts: {
       privacy: Privacy;
       status: TournamentStatus;
       match_rules: MatchRules;
+      branding: unknown;
     }> | null;
   };
 
@@ -205,6 +211,7 @@ export async function loadPublicTournaments(opts: {
     organizer_name: ownerNameById.get(r.owner_id) ?? null,
     match_rules: r.match_rules,
     venues: venuesByT.get(r.id) ?? [],
+    branding: tournamentBrandingFromRow(r.branding),
   }));
 
   // City filter is applied in-memory because `tournament_venues.venues.city`
@@ -265,7 +272,7 @@ export async function loadPublicTournamentDetail(
     .from("tournaments")
     .select(
       "id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules",
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding",
     )
     .eq("id", tournamentId)
     .maybeSingle()) as {
@@ -285,6 +292,7 @@ export async function loadPublicTournamentDetail(
       privacy: Privacy;
       status: TournamentStatus;
       match_rules: MatchRules;
+      branding: unknown;
     } | null;
   };
 
@@ -479,6 +487,7 @@ export async function loadPublicTournamentDetail(
       organizer_name: organizerBasic?.display_name ?? null,
       match_rules: row.match_rules,
       venues,
+      branding: tournamentBrandingFromRow(row.branding),
     },
     participants,
     matches: matchesOut,

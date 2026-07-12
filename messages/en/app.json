@@ -2346,6 +2346,69 @@
         "2": "Every match feeds Elo and the global /matches feed automatically (when the tournament is public)."
       }
     },
+    "branding": {
+      "title": "Tournament page branding",
+      "subtitle": "Add a logo, banner and brand colors — your public tournament page becomes instantly recognizable.",
+      "help": {
+        "why": "The public tournament page is its face: players, spectators and sponsors all land on that link. Branding makes the tournament look like a real event, not just a row in a list.",
+        "what": {
+          "1": "Upload a logo and a full-width banner backdrop.",
+          "2": "Pick a background, an accent color, a theme and a corner style.",
+          "3": "Add a custom title, a tagline and sponsor logos."
+        },
+        "result": {
+          "1": "A guest opening the link sees a branded page — trust goes up.",
+          "2": "Nothing breaks for you: with no branding the page looks exactly as before."
+        }
+      },
+      "logo": "Logo",
+      "logo_hint": "PNG, JPG, WebP or SVG. A square logo looks best.",
+      "banner": "Banner (full-width backdrop)",
+      "banner_hint": "A wide header image. 1600×500 px or larger recommended.",
+      "scrim": "Banner scrim",
+      "upload": "Upload",
+      "uploading": "Uploading…",
+      "remove": "Remove",
+      "background_color": "Background color",
+      "accent_color": "Accent color",
+      "use_custom": "Custom color",
+      "gradient_to": "Gradient second color",
+      "gradient_hint": "When set, the background becomes a smooth gradient.",
+      "gradient_enable": "Enable gradient",
+      "theme_preset": "Theme",
+      "theme_presets": {
+        "light": "Light",
+        "dark": "Dark",
+        "auto": "Auto (system)"
+      },
+      "corner_style": "Corners",
+      "corner_styles": {
+        "rounded": "Rounded",
+        "sharp": "Sharp"
+      },
+      "font_pairing": "Font",
+      "font_pairings": {
+        "default": "Default",
+        "classic": "Classic",
+        "modern": "Modern"
+      },
+      "title_override": "Page title",
+      "title_override_placeholder": "Defaults to the tournament name",
+      "tagline": "Tagline",
+      "tagline_placeholder": "e.g. City Tennis Cup",
+      "sponsors": "Sponsors",
+      "sponsors_hint": "Sponsor logos show as a strip in the header (up to 12).",
+      "sponsors_add": "Add sponsor",
+      "sponsors_name": "Name",
+      "sponsors_empty": "No sponsors added yet.",
+      "preview": "Preview",
+      "preview_empty": "This is how the page looks with no branding",
+      "view_public": "Open page",
+      "save": "Save branding",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Couldn't save"
+    },
     "list": {
       "empty_title": "You haven't organized a tournament yet",
       "empty_description": "Create your first tournament — best-of-3, single elimination is a great start.",
@@ -3570,6 +3633,7 @@
       "matches_empty": "Bracket not generated yet.",
       "matches_count": "{n, plural, one {# match} other {# matches}}",
       "round_short": "R",
+      "sponsors": "Sponsors",
       "tba": "TBD",
       "winner": "Winner",
       "scheduled": "scheduled",

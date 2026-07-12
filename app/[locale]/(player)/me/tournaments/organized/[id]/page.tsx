@@ -21,6 +21,8 @@ import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
 import { StatusControl, type StatusControlCopy } from "./status-control";
 import { EditTournamentButton } from "./edit-tournament-button";
 import { RegistrationLink, type RegistrationLinkCopy } from "./registration-link";
+import { TournamentBrandingSection } from "./branding-section";
+import { loadTournamentBranding } from "../branding-actions";
 import {
   TOURNAMENT_FORMATS,
   TOURNAMENT_STATUSES,
@@ -41,10 +43,11 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsOrganized");
 
-  const [result, venueOptions, clubOptions] = await Promise.all([
+  const [result, venueOptions, clubOptions, branding] = await Promise.all([
     loadTournamentDetail(id),
     loadVenueOptions(),
     loadAdministrableClubs(),
+    loadTournamentBranding(id),
   ]);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
@@ -303,6 +306,12 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         status={tournament.status}
         privacy={tournament.privacy}
         copy={registrationLinkCopy}
+      />
+
+      <TournamentBrandingSection
+        tournamentId={tournament.id}
+        publicHref={`/${locale}/tournaments/${tournament.id}`}
+        initial={branding}
       />
 
       <PrivacyControl
