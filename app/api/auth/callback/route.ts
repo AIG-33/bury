@@ -18,10 +18,21 @@ export async function GET(request: NextRequest) {
     ? (cookieLocale as string)
     : routing.defaultLocale;
 
+  // When the provider round-trip fails on the Supabase side (wrong client
+  // secret, consent-screen denial, "Database error saving new user", ...),
+  // GoTrue redirects back here with `error` / `error_description` and NO
+  // `code`. Surface that instead of the misleading "missing_code".
+  const oauthError = searchParams.get("error");
+  if (oauthError) {
+    const q = new URLSearchParams({ error: "oauth_provider" });
+    const description =
+      searchParams.get("error_description") ?? searchParams.get("error_code") ?? oauthError;
+    q.set("error_detail", description);
+    return NextResponse.redirect(`${origin}/${fallbackLocale}/login?${q.toString()}`);
+  }
+
   if (!code) {
-    return NextResponse.redirect(
-      `${origin}/${fallbackLocale}/login?error=missing_code`,
-    );
+    return NextResponse.redirect(`${origin}/${fallbackLocale}/login?error=missing_code`);
   }
 
   const supabase = await createSupabaseServerClient();
