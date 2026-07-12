@@ -34,6 +34,7 @@ export type LoginLabels = {
   auth_error_missing_token: string;
   auth_error_missing_code: string;
   auth_error_no_session: string;
+  auth_error_oauth_provider: string;
   auth_error_generic: string;
   or_divider: string;
   continue_google: string;
@@ -63,13 +64,23 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
   // specific message; anything else (e.g. raw Supabase error text) falls
   // back to the generic "link invalid or expired".
   const authErrorParam = searchParams.get("error");
+  // Provider-side OAuth failures (bad client secret, consent denied, DB error
+  // on signup) arrive as error=oauth_provider with the raw GoTrue description
+  // in error_detail — shown verbatim so the real cause is debuggable.
+  const authErrorDetail = searchParams.get("error_detail");
   const knownAuthErrors: Record<string, string> = {
     missing_token: labels.auth_error_missing_token,
     missing_code: labels.auth_error_missing_code,
     no_session: labels.auth_error_no_session,
+    oauth_provider: labels.auth_error_oauth_provider,
   };
   const authErrorMsg = authErrorParam
-    ? (knownAuthErrors[authErrorParam] ?? labels.auth_error_generic)
+    ? [
+        knownAuthErrors[authErrorParam] ?? labels.auth_error_generic,
+        authErrorParam === "oauth_provider" && authErrorDetail ? `(${authErrorDetail})` : null,
+      ]
+        .filter(Boolean)
+        .join(" ")
     : null;
 
   // Client-side auth flows MUST use window.location.origin, not
