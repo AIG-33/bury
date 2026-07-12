@@ -22,14 +22,6 @@ export function OAuthButtons({
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3" aria-hidden>
-        <span className="h-px flex-1 bg-ink-200/70" />
-        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-          {labels.or_divider}
-        </span>
-        <span className="h-px flex-1 bg-ink-200/70" />
-      </div>
-
       <div className="space-y-2.5">
         <ProviderButton
           label={labels.continue_google}
@@ -48,6 +40,14 @@ export function OAuthButtons({
         >
           <AppleMark className="h-5 w-5" />
         </ProviderButton>
+      </div>
+
+      <div className="flex items-center gap-3" aria-hidden>
+        <span className="h-px flex-1 bg-ink-200/70" />
+        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
+          {labels.or_divider}
+        </span>
+        <span className="h-px flex-1 bg-ink-200/70" />
       </div>
     </div>
   );

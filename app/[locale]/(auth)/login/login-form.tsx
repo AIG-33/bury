@@ -17,15 +17,13 @@ export type LoginLabels = {
   password: string;
   cta_password: string;
   cta_signup: string;
-  cta_magic: string;
+  cta_forgot: string;
   sending: string;
   sent: string;
-  help_magic: string;
   help_signup_confirm: string;
   error: string;
   tab_password: string;
   tab_signup: string;
-  tab_magic: string;
   forgot: string;
   forgot_sent_title: string;
   forgot_sent_body: string;
@@ -44,7 +42,7 @@ export type LoginLabels = {
   oauth_unavailable: string;
 };
 
-type Mode = "password" | "signup" | "magic" | "forgot";
+type Mode = "password" | "signup" | "forgot";
 
 export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: string }) {
   const [mode, setMode] = useState<Mode>("password");
@@ -52,7 +50,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<null | "magic" | "signup" | "forgot">(null);
+  const [done, setDone] = useState<null | "signup" | "forgot">(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [oauthBusy, setOauthBusy] = useState<OAuthProvider | null>(null);
   const [oauthErrMsg, setOauthErrMsg] = useState<string | null>(null);
@@ -85,7 +83,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
     return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   }
 
-  // Used as `emailRedirectTo` for sign-up / magic-link / recovery emails.
+  // Used as `emailRedirectTo` for sign-up / recovery emails.
   // With the token_hash email templates (see Supabase Dashboard → Auth →
   // Email Templates), this URL is what `{{ .RedirectTo }}` resolves to,
   // and the link Supabase actually sends points at /api/auth/confirm with
@@ -177,23 +175,6 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
     setDone("signup");
   }
 
-  async function handleMagic(e: React.FormEvent) {
-    e.preventDefault();
-    setErrMsg(null);
-    setBusy(true);
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: confirmRedirectUrl() },
-    });
-    setBusy(false);
-    if (error) {
-      setErrMsg(error.message);
-      return;
-    }
-    setDone("magic");
-  }
-
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault();
     setErrMsg(null);
@@ -210,9 +191,6 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
     setDone("forgot");
   }
 
-  if (done === "magic") {
-    return <SuccessNote title={labels.sent} body={labels.help_magic} />;
-  }
   if (done === "signup") {
     return <SuccessNote title={labels.sent} body={labels.help_signup_confirm} />;
   }
@@ -227,10 +205,30 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
           {authErrorMsg}
         </p>
       )}
+      {mode !== "forgot" && (
+        <>
+          <OAuthButtons
+            labels={{
+              or_divider: labels.or_divider,
+              continue_google: labels.continue_google,
+              continue_apple: labels.continue_apple,
+            }}
+            onProvider={handleOAuth}
+            busyProvider={oauthBusy}
+            disabled={busy || oauthBusy !== null}
+          />
+          {oauthErrMsg && (
+            <p role="alert" className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
+              {oauthErrMsg}
+            </p>
+          )}
+        </>
+      )}
+
       <div
         role="tablist"
         aria-label="Login mode"
-        className="grid grid-cols-3 gap-1 rounded-full border border-ink-200/70 bg-white/70 p-1 font-mono text-[12px] uppercase tracking-[0.14em]"
+        className="grid grid-cols-2 gap-1 rounded-full border border-ink-200/70 bg-white/70 p-1 font-mono text-[12px] uppercase tracking-[0.14em]"
       >
         <TabButton
           active={mode === "password"}
@@ -250,15 +248,6 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
         >
           {labels.tab_signup}
         </TabButton>
-        <TabButton
-          active={mode === "magic"}
-          onClick={() => {
-            setMode("magic");
-            setErrMsg(null);
-          }}
-        >
-          {labels.tab_magic}
-        </TabButton>
       </div>
 
       {mode === "forgot" ? (
@@ -266,7 +255,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
           <EmailField label={labels.email} value={email} onChange={setEmail} />
           <ErrorNote show={!!errMsg} prefix={labels.error} message={errMsg} />
           <PrimaryButton busy={busy} sendingLabel={labels.sending}>
-            {labels.cta_magic}
+            {labels.cta_forgot}
           </PrimaryButton>
           <button
             type="button"
@@ -275,14 +264,6 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
           >
             ← {labels.back}
           </button>
-        </form>
-      ) : mode === "magic" ? (
-        <form onSubmit={handleMagic} className="space-y-4">
-          <EmailField label={labels.email} value={email} onChange={setEmail} />
-          <ErrorNote show={!!errMsg} prefix={labels.error} message={errMsg} />
-          <PrimaryButton busy={busy} sendingLabel={labels.sending}>
-            {labels.cta_magic}
-          </PrimaryButton>
         </form>
       ) : mode === "signup" ? (
         <form onSubmit={handleSignUp} className="space-y-4">
@@ -331,26 +312,6 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
             {labels.forgot}
           </button>
         </form>
-      )}
-
-      {mode !== "forgot" && (
-        <>
-          <OAuthButtons
-            labels={{
-              or_divider: labels.or_divider,
-              continue_google: labels.continue_google,
-              continue_apple: labels.continue_apple,
-            }}
-            onProvider={handleOAuth}
-            busyProvider={oauthBusy}
-            disabled={busy || oauthBusy !== null}
-          />
-          {oauthErrMsg && (
-            <p role="alert" className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
-              {oauthErrMsg}
-            </p>
-          )}
-        </>
       )}
     </div>
   );
