@@ -6,7 +6,7 @@ import { Surface } from "@/components/ui/surface";
 
 type Props = { params: Promise<{ locale: string }> };
 
-type PrivacySection = {
+type DeletionSection = {
   heading: string;
   paragraphs?: string[];
   items?: string[];
@@ -14,23 +14,25 @@ type PrivacySection = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "privacyPage" });
+  const t = await getTranslations({ locale, namespace: "accountDeletionPage" });
   return {
     title: t("meta_title"),
     description: t("meta_description"),
     alternates: {
-      canonical: `/${locale}/privacy`,
-      languages: { ru: "/ru/privacy", en: "/en/privacy" },
+      canonical: `/${locale}/account-deletion`,
+      languages: { ru: "/ru/account-deletion", en: "/en/account-deletion" },
     },
   };
 }
 
-export default async function PrivacyPage({ params }: Props) {
+export default async function AccountDeletionPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("privacyPage");
+  const t = await getTranslations("accountDeletionPage");
 
-  const sections = t.raw("sections") as PrivacySection[];
+  const sections = t.raw("sections") as DeletionSection[];
+  const email = t("email");
+  const subject = encodeURIComponent(t("email_subject"));
 
   return (
     <div className="page-shell space-y-6">
@@ -69,27 +71,24 @@ export default async function PrivacyPage({ params }: Props) {
       <div className="court-line" aria-hidden />
 
       <Surface variant="soft" as="section" className="space-y-2">
-        <h2 className="font-display text-lg font-semibold text-grass-900">
-          {t("contact_heading")}
-        </h2>
-        <p className="max-w-3xl text-sm leading-relaxed text-grass-800">{t("contact_body")}</p>
+        <h2 className="font-display text-lg font-semibold text-grass-900">{t("cta_heading")}</h2>
+        <p className="max-w-3xl text-sm leading-relaxed text-grass-800">{t("cta_body")}</p>
         <p className="text-sm">
           <a
-            href={`mailto:${t("contact_email")}`}
+            href={`mailto:${email}?subject=${subject}`}
             className="font-medium text-grass-700 underline underline-offset-2 hover:text-grass-900"
           >
-            {t("contact_email")}
+            {email}
           </a>
         </p>
         <p className="text-sm text-grass-800">
-          {t("deletion_page_body")}{" "}
+          {t("privacy_body")}{" "}
           <Link
-            href="/account-deletion"
+            href="/privacy"
             className="font-medium text-grass-700 underline underline-offset-2 hover:text-grass-900"
           >
-            {t("deletion_page_link")}
+            {t("privacy_link")}
           </Link>
-          .
         </p>
       </Surface>
     </div>

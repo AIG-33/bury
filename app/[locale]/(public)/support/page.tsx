@@ -87,6 +87,22 @@ export default async function SupportPage({ params }: Props) {
 
       <Surface variant="soft" as="section" className="space-y-1">
         <h2 className="font-display text-base font-semibold text-grass-900">
+          {t("deletion_title")}
+        </h2>
+        <p className="text-sm text-grass-800">
+          {t("deletion_body")}{" "}
+          <Link
+            href="/account-deletion"
+            className="font-medium text-grass-700 underline underline-offset-2 hover:text-grass-900"
+          >
+            {t("deletion_link")}
+          </Link>
+          .
+        </p>
+      </Surface>
+
+      <Surface variant="soft" as="section" className="space-y-1">
+        <h2 className="font-display text-base font-semibold text-grass-900">
           {t("privacy_title")}
         </h2>
         <p className="text-sm text-grass-800">

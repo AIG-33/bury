@@ -4364,7 +4364,72 @@
     ],
     "contact_heading": "Contact and data deletion",
     "contact_body": "Privacy questions or a data-deletion request? Email us and we'll help.",
-    "contact_email": "hello@playtennis.by"
+    "contact_email": "hello@playtennis.by",
+    "deletion_page_body": "Step-by-step account deletion instructions are on the",
+    "deletion_page_link": "account deletion page"
+  },
+  "accountDeletionPage": {
+    "meta_title": "Account Deletion — PlayTennis.by",
+    "meta_description": "How to request deletion of your PlayTennis.by account: what is removed, what may be retained and how long processing takes.",
+    "title": "Account Deletion",
+    "updated": "Last updated: 12 July 2026",
+    "intro": "You can request deletion of your PlayTennis.by account and its personal data at any time. Below is how to submit a request, what is deleted and how long we take to process it.",
+    "sections": [
+      {
+        "heading": "How to submit a request",
+        "paragraphs": [
+          "Email us from the address linked to your account so we can confirm the request comes from the profile owner."
+        ],
+        "items": [
+          "Email: hello@playtennis.by",
+          "Subject line: \"Account deletion request\"",
+          "In the message, include the profile name or account email you want deleted",
+          "If you signed in with Google or Apple, write from the same address you used to register"
+        ]
+      },
+      {
+        "heading": "What we delete",
+        "paragraphs": ["After we process your request, we delete or anonymize:"],
+        "items": [
+          "Your sign-in account (email, OAuth link to Google/Apple)",
+          "Profile: name, avatar, city, skill level and settings",
+          "Personal contacts and notification preferences",
+          "Coach reviews posted under your name",
+          "Tournament entries where you are listed as a player",
+          "Open matches and applications you created"
+        ]
+      },
+      {
+        "heading": "What may be retained",
+        "paragraphs": [
+          "Some data cannot be fully erased without breaking platform integrity or legal requirements:"
+        ],
+        "items": [
+          "Completed match results and rating (Elo) history — in anonymized form, with no link to your name or email",
+          "Tournament records you took part in — without personal data, only to preserve final draw results",
+          "Technical logs and anonymized analytics — with no identifiers that could restore your profile",
+          "Data we must keep by law (e.g. accounting or tax records) — minimum necessary amount and retention period"
+        ]
+      },
+      {
+        "heading": "Processing time",
+        "paragraphs": [
+          "We confirm receipt within a few business days and complete deletion within 30 calendar days of verifying your identity. If we need more information, we will email you at the same address."
+        ]
+      },
+      {
+        "heading": "After deletion",
+        "paragraphs": [
+          "Your account cannot be restored — returning to the platform requires a new registration. If you also used the Telegram bot, disconnect it in Telegram settings or email us and we will unlink the bot from the deleted profile."
+        ]
+      }
+    ],
+    "email": "hello@playtennis.by",
+    "email_subject": "Account deletion request",
+    "cta_heading": "Send a request",
+    "cta_body": "Email us from your account address — we will process the request within 30 days.",
+    "privacy_body": "Our full data policy is in the",
+    "privacy_link": "privacy policy"
   },
   "supportPage": {
     "meta_title": "Support — PlayTennis.by",
@@ -4393,9 +4458,12 @@
       },
       {
         "heading": "Account and data deletion",
-        "body": "To delete your account and its personal data, email us from your account address. See the privacy policy for details."
+        "body": "To delete your account and its personal data, email us from your account address. Step-by-step instructions are on a dedicated page."
       }
     ],
+    "deletion_title": "Account deletion",
+    "deletion_body": "How to submit a request, what is deleted and how long it takes — see the",
+    "deletion_link": "account deletion page",
     "privacy_title": "Privacy",
     "privacy_body": "How we handle your data is described in our",
     "privacy_link": "privacy policy"
