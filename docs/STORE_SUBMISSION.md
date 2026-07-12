@@ -13,6 +13,8 @@ accounts, 2FA and signing keys — none of that lives in git).
 - **Price:** Free · **Category:** Sports (secondary: Lifestyle)
 - **Privacy policy:** `https://www.playtennis.by/ru/privacy` · `…/en/privacy`
 - **Support URL:** `https://www.playtennis.by/ru/support` · `…/en/support`
+- **Account deletion URL:** `https://www.playtennis.by/ru/account-deletion` ·
+  `…/en/account-deletion`
 - **Marketing URL:** `https://www.playtennis.by`
 
 > ⚠️ **Placeholders to replace before / during submission**
@@ -45,6 +47,7 @@ accounts, 2FA and signing keys — none of that lives in git).
 | Fastlane lanes        | `fastlane/Fastfile`, `fastlane/Appfile`                                                   | `deliver` / `supply` skeletons       |
 | Privacy page          | `app/[locale]/(public)/privacy/page.tsx`                                                  | live at `/ru/privacy`, `/en/privacy` |
 | Support page          | `app/[locale]/(public)/support/page.tsx`                                                  | live at `/ru/support`, `/en/support` |
+| Account deletion page | `app/[locale]/(public)/account-deletion/page.tsx`                                         | live at `/ru/account-deletion`, `/en/account-deletion` |
 
 ### iOS usage-description strings — trim before submission
 
@@ -114,7 +117,7 @@ Fill under **Play Console → App content → Data safety**. Mirror of the Apple
 
 - Is data **encrypted in transit**? **Yes** (HTTPS/TLS everywhere).
 - Can users **request deletion**? **Yes** — via `hello@playtennis.by` (documented
-  on the support & privacy pages).
+  on the account deletion, support & privacy pages).
 - Is any data **shared with third parties**? **No** in the Play sense (Supabase,
   Vercel, PostHog, Resend are _processors_, not third-party recipients selling
   data). Do not sell data.
@@ -313,8 +316,9 @@ Do these in order. Cross-referenced files are prepared in the repo.
 
 27. [ ] Trim unused iOS usage strings (section 1).
 28. [ ] Verify `hello@playtennis.by` (or your chosen address) receives mail.
-29. [ ] Sanity-check that `https://www.playtennis.by/{ru,en}/privacy` and
-        `/support` load in a browser (they ship with this change once deployed).
+29. [ ] Sanity-check that `https://www.playtennis.by/{ru,en}/privacy`,
+        `/support` and `/account-deletion` load in a browser (they ship with
+        this change once deployed).
 30. [ ] Because this is a website wrapper, be ready for **Guideline 4.2**
         (minimum functionality) — the native splash/status-bar/back/external-link
         glue is in place; add push/native share if a reviewer pushes back
