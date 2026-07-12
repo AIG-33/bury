@@ -15,13 +15,12 @@ export function NativeBridge() {
       const { Capacitor } = await import("@capacitor/core");
       if (!Capacitor.isNativePlatform()) return;
 
-      const [{ SplashScreen }, { StatusBar, Style }, { App }, { Browser }] =
-        await Promise.all([
-          import("@capacitor/splash-screen"),
-          import("@capacitor/status-bar"),
-          import("@capacitor/app"),
-          import("@capacitor/browser"),
-        ]);
+      const [{ SplashScreen }, { StatusBar, Style }, { App }, { Browser }] = await Promise.all([
+        import("@capacitor/splash-screen"),
+        import("@capacitor/status-bar"),
+        import("@capacitor/app"),
+        import("@capacitor/browser"),
+      ]);
 
       // Brand-green status bar with light glyphs, matching the web theme color.
       try {

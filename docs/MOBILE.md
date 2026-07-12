@@ -16,18 +16,39 @@ flowchart LR
 
 ## Layout
 
-| Path | Purpose |
-| --- | --- |
-| `capacitor.config.ts` | App id, name, `server.url`, plugin config |
-| `mobile/www/index.html` | Offline fallback page (the bundled `webDir`) |
-| `resources/` | Source `icon.png` + `splash*.png` for asset generation |
-| `scripts/generate-mobile-assets.mjs` | Rebuilds `resources/` from `public/icons/icon.svg` |
-| `components/mobile/native-bridge.tsx` | Client glue, active only inside Capacitor |
-| `ios/` , `android/` | Generated native projects (committed) |
+| Path                                  | Purpose                                                |
+| ------------------------------------- | ------------------------------------------------------ |
+| `capacitor.config.ts`                 | App id, name, `server.url`, plugin config              |
+| `mobile/www/index.html`               | Offline fallback page (the bundled `webDir`)           |
+| `resources/`                          | Source `icon.png` + `splash*.png` for asset generation |
+| `scripts/generate-mobile-assets.mjs`  | Rebuilds `resources/` from `public/icons/icon.svg`     |
+| `components/mobile/native-bridge.tsx` | Client glue, active only inside Capacitor              |
+| `ios/` , `android/`                   | Generated native projects (committed)                  |
 
 - **App ID:** `by.playtennis.app`
 - **App name:** `PlayTennis.by`
 - **Target URL:** `https://www.playtennis.by` (override with `CAP_SERVER_URL`)
+
+## Mobile app UI (`/[locale]/m`)
+
+The store app renders its own screen set built to the mobile design spec
+(«ТЗ Mobile — PlayTennis», 8 screens): Лента, Турниры (+карточка), Клубы
+(+карточка), Профиль, Игра (спарринги) and Матчи. These live under
+`app/[locale]/m/` with shared primitives in `components/mobile/` (tab bar,
+sticky/dark headers, segment controls, status pills, CTA bars, filter
+bottom-sheet) and pure helpers in `lib/mobile/format.ts`.
+
+Routing:
+
+- `proxy.ts` detects the shell's user-agent marker (`PlayTennisApp`, appended
+  via `capacitor.config.ts`) and redirects the site root (`/`, `/ru`, `/en`)
+  to `/{locale}/m`. Deep links to web pages are untouched.
+- The web chrome (TopNav / Footer / web tab bar / install prompt) is hidden on
+  `/m/...` by `components/layout/hide-on-mobile-app.tsx`; the web UI elsewhere
+  is unchanged.
+- The mobile UI reuses the existing server actions (tournaments, clubs, open
+  matches, rating history), so shipping it is a normal web deploy — no native
+  rebuild required.
 
 ## Prerequisites
 
@@ -65,8 +86,8 @@ npm run cap:run:ios       # or cap:run:android
 npm run cap:ios           # sync + open Xcode
 ```
 
-In Xcode: set the Team/signing under *Signing & Capabilities*, bump the build
-number, then *Product → Archive → Distribute App → App Store Connect*.
+In Xcode: set the Team/signing under _Signing & Capabilities_, bump the build
+number, then _Product → Archive → Distribute App → App Store Connect_.
 
 ### Android (Google Play)
 
@@ -74,7 +95,7 @@ number, then *Product → Archive → Distribute App → App Store Connect*.
 npm run cap:android       # sync + open Android Studio
 ```
 
-In Android Studio: *Build → Generate Signed Bundle / APK → Android App Bundle*,
+In Android Studio: _Build → Generate Signed Bundle / APK → Android App Bundle_,
 sign with the upload keystore (keep it out of git — see `.gitignore`), and upload
 the `.aab` to the Play Console.
 
@@ -103,7 +124,7 @@ npm run cap:assets                        # fan out to all densities
 `Capacitor.isNativePlatform()`):
 
 - **Web** — `supabase.auth.signInWithOAuth({ provider, redirectTo:
-  <origin>/api/auth/callback })`. The existing PKCE callback route runs
+<origin>/api/auth/callback })`. The existing PKCE callback route runs
   `exchangeCodeForSession` and the profile-based redirect.
 - **Native (iOS/Android)** — `@capgo/capacitor-social-login` returns a provider
   **id-token**, which we exchange with `supabase.auth.signInWithIdToken(...)` on
@@ -127,14 +148,14 @@ stays `false` in `supabase/config.toml`.
 
 These are intentionally left as placeholders in the repo:
 
-| Where | Placeholder | Replace with |
-| --- | --- | --- |
-| Env (Vercel) | `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google **Web application** OAuth client ID (also the iOS token audience) |
-| Env (Vercel) | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google **iOS** OAuth client ID |
-| Env (Vercel) | `NEXT_PUBLIC_APPLE_SERVICES_ID` | Apple **Services ID** (Android Apple sign-in only) |
-| Env (Vercel) | `NEXT_PUBLIC_APPLE_REDIRECT_URL` | Server callback for Android Apple, e.g. `https://<ref>.supabase.co/auth/v1/callback` |
-| `ios/App/App/Info.plist` | `CFBundleURLTypes` entry (removed — ASC rejects the malformed placeholder) | Add back a `CFBundleURLTypes` → `CFBundleURLSchemes` entry with the **reversed** iOS client ID (`com.googleusercontent.apps.<id>`) |
-| Google Cloud Console | Android SHA-1 fingerprints | Debug (`./gradlew signingReport`), release, and Play App Signing SHA-1s registered on an **Android** OAuth client with package `by.playtennis.app` |
+| Where                    | Placeholder                                                                | Replace with                                                                                                                                       |
+| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Env (Vercel)             | `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID`                                         | Google **Web application** OAuth client ID (also the iOS token audience)                                                                           |
+| Env (Vercel)             | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID`                                         | Google **iOS** OAuth client ID                                                                                                                     |
+| Env (Vercel)             | `NEXT_PUBLIC_APPLE_SERVICES_ID`                                            | Apple **Services ID** (Android Apple sign-in only)                                                                                                 |
+| Env (Vercel)             | `NEXT_PUBLIC_APPLE_REDIRECT_URL`                                           | Server callback for Android Apple, e.g. `https://<ref>.supabase.co/auth/v1/callback`                                                               |
+| `ios/App/App/Info.plist` | `CFBundleURLTypes` entry (removed — ASC rejects the malformed placeholder) | Add back a `CFBundleURLTypes` → `CFBundleURLSchemes` entry with the **reversed** iOS client ID (`com.googleusercontent.apps.<id>`)                 |
+| Google Cloud Console     | Android SHA-1 fingerprints                                                 | Debug (`./gradlew signingReport`), release, and Play App Signing SHA-1s registered on an **Android** OAuth client with package `by.playtennis.app` |
 
 ### Google Cloud Console
 
@@ -145,7 +166,7 @@ These are intentionally left as placeholders in the repo:
    ID as the token audience — do **not** put the Android client ID in
    `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID`.
 2. In the **Supabase dashboard → Auth → Providers → Google**: enable it, paste the
-   Web client ID + secret, and add the **iOS** client ID to *Authorized Client IDs*
+   Web client ID + secret, and add the **iOS** client ID to _Authorized Client IDs_
    so `signInWithIdToken` accepts iOS-issued tokens.
 
 ### Apple Developer

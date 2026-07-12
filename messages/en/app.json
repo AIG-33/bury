@@ -227,14 +227,14 @@
     "help": {
       "why": "Universal Elo only feels fair when every result is verified. This page is the verification step for matches you and a friend played outside a tournament.",
       "what": {
-        "1": "Hit \u201cRegister played match\u201d to log a match you've already finished. Pick the opponent, enter the score, you're done.",
-        "2": "Your opponent then sees the match here under \u201cAwaiting your confirmation\u201d and either confirms (Elo updates instantly) or disputes it.",
-        "3": "Matches accepted via Find a Player but not yet played show up under \u201cScheduled\u201d \u2014 enter the score there once you've played.",
+        "1": "Hit “Register played match” to log a match you've already finished. Pick the opponent, enter the score, you're done.",
+        "2": "Your opponent then sees the match here under “Awaiting your confirmation” and either confirms (Elo updates instantly) or disputes it.",
+        "3": "Matches accepted via Find a Player but not yet played show up under “Scheduled” — enter the score there once you've played.",
         "4": "Disputes simply clear the score so the other side can re-enter it. Cancelled matches don't change Elo."
       },
       "result": {
-        "1": "Friendly matches feed into your universal Elo with the friendly multiplier (default 0.5\u00d7).",
-        "2": "Both players have a paper trail \u2014 no score is ever applied without two confirmations."
+        "1": "Friendly matches feed into your universal Elo with the friendly multiplier (default 0.5×).",
+        "2": "Both players have a paper trail — no score is ever applied without two confirmations."
       }
     },
     "awaiting_my_confirmation": "Awaiting your confirmation",
@@ -306,7 +306,7 @@
       "opponent_none": "No matching players visible to you.",
       "opponent_selected": "Selected: {name}",
       "played_at": "Played at",
-      "played_at_hint": "Leave empty to use \u201cnow\u201d.",
+      "played_at_hint": "Leave empty to use “now”.",
       "sets": "Score by sets",
       "you": "You",
       "opponent_short": "Opp.",
@@ -592,9 +592,9 @@
       "why": "The starting Elo is the very first number a new player sees. A bad guess scares people away. By tuning quiz questions and weights here, you make sure the platform meets every newcomer with a fair, friendly estimate.",
       "what": {
         "1": "Each row is a version of the questionnaire. Only one is active and shown in the public onboarding.",
-        "2": "Click \u201cNew draft\u201d to clone the current version (recommended) or start from scratch. Drafts can be edited freely.",
+        "2": "Click “New draft” to clone the current version (recommended) or start from scratch. Drafts can be edited freely.",
         "3": "Open a draft to add or remove questions, change wording in three languages and set option weights.",
-        "4": "When the draft looks right, hit \u201cActivate\u201d \u2014 the next signup will use it immediately. Old answers stay attached to the version that produced them."
+        "4": "When the draft looks right, hit “Activate” — the next signup will use it immediately. Old answers stay attached to the version that produced them."
       },
       "result": {
         "1": "Newcomers get a starting Elo that matches their real level, so they enjoy their first matches instead of being smashed.",
@@ -669,7 +669,10 @@
       "type": "Type",
       "required": "Required",
       "question_text": "Question text",
-      "lang": { "en": "English", "ru": "Russian" },
+      "lang": {
+        "en": "English",
+        "ru": "Russian"
+      },
       "types": {
         "single_choice": "Single choice",
         "multi_choice": "Multi choice",
@@ -727,15 +730,15 @@
     "cancel": "Cancel",
     "back_to_list": "All versions",
     "help": {
-      "why": "Universal Elo decides who plays whom in a fair match, who lands in the seasonal race, and how big a win feels. This screen is your safe place to evolve those rules \u2014 nothing is editable in code.",
+      "why": "Universal Elo decides who plays whom in a fair match, who lands in the seasonal race, and how big a win feels. This screen is your safe place to evolve those rules — nothing is editable in code.",
       "what": {
         "1": "Each row is one snapshot of the rating engine. Only one is active and feeds the live system.",
-        "2": "Click \u201cNew draft\u201d to clone the active version. Open the draft to change K-factors, multipliers, starting Elo, and seasonal scoring.",
-        "3": "Use the built-in simulator on the editor page to type in two players + a result and see exactly what Elo deltas this draft would produce \u2014 no need to play a real match.",
-        "4": "When you are happy, press \u201cActivate\u201d. From that moment on, every new match score and every onboarding quiz uses the new values; the old version stays in history."
+        "2": "Click “New draft” to clone the active version. Open the draft to change K-factors, multipliers, starting Elo, and seasonal scoring.",
+        "3": "Use the built-in simulator on the editor page to type in two players + a result and see exactly what Elo deltas this draft would produce — no need to play a real match.",
+        "4": "When you are happy, press “Activate”. From that moment on, every new match score and every onboarding quiz uses the new values; the old version stays in history."
       },
       "result": {
-        "1": "You can fine-tune rating dynamics gradually \u2014 e.g. make tournament finals weigh more without breaking friendly matches.",
+        "1": "You can fine-tune rating dynamics gradually — e.g. make tournament finals weigh more without breaking friendly matches.",
         "2": "If a change feels wrong, just clone the previous version, activate it, and you are back to the old behaviour in one click."
       }
     },
@@ -891,9 +894,18 @@
     "trust": {
       "label": "Already running",
       "items": {
-        "cities": { "value": "12", "label": "cities in Belarus" },
-        "venues": { "value": "26", "label": "tennis venues" },
-        "formats": { "value": "6", "label": "tournament formats to pick from" }
+        "cities": {
+          "value": "12",
+          "label": "cities in Belarus"
+        },
+        "venues": {
+          "value": "26",
+          "label": "tennis venues"
+        },
+        "formats": {
+          "value": "6",
+          "label": "tournament formats to pick from"
+        }
       }
     },
     "benefits": {
@@ -961,7 +973,7 @@
       "cta_primary": "Sign up",
       "cta_primary_authed": "Open my dashboard",
       "cta_secondary": "Open tournaments",
-      "quote_text": "\u201CFewer chats, more tennis. Run your own tournaments and invite everyone — we'll handle the logistics.\u201D",
+      "quote_text": "“Fewer chats, more tennis. Run your own tournaments and invite everyone — we'll handle the logistics.”",
       "quote_author": "— PlayTennis.by · the open amateur-tennis community of Belarus."
     }
   },
@@ -981,7 +993,7 @@
       }
     },
     "tooltip": {
-      "intro": "Hover or tap the \u201C?\u201D icon next to a term to see a short explanation. Examples:"
+      "intro": "Hover or tap the “?” icon next to a term to see a short explanation. Examples:"
     },
     "flow": {
       "steps": {
@@ -1058,15 +1070,27 @@
         "3": "See how many people signed in for the first time today."
       },
       "result": {
-        "1": "\u201CConfirm booking\u201D will email + Telegram-ping the player.",
+        "1": "“Confirm booking” will email + Telegram-ping the player.",
         "2": "Creating a new tournament opens the 5-step wizard."
       }
     },
     "kpi": {
-      "players": { "label": "Club players", "hint": "Active within 30 days" },
-      "tournaments": { "label": "Active tournaments", "hint": "In progress or in registration" },
-      "bookings": { "label": "Upcoming bookings", "hint": "Next 7 days" },
-      "pending": { "label": "Pending matches", "hint": "Awaiting your action" }
+      "players": {
+        "label": "Club players",
+        "hint": "Active within 30 days"
+      },
+      "tournaments": {
+        "label": "Active tournaments",
+        "hint": "In progress or in registration"
+      },
+      "bookings": {
+        "label": "Upcoming bookings",
+        "hint": "Next 7 days"
+      },
+      "pending": {
+        "label": "Pending matches",
+        "hint": "Awaiting your action"
+      }
     },
     "today": {
       "title": "Today's sessions",
@@ -1177,7 +1201,7 @@
       },
       "result": {
         "1": "We'll set your initial Elo (range 800–2200).",
-        "2": "We'll enable a \u201Cprovisional\u201D period — first 10 matches count more."
+        "2": "We'll enable a “provisional” period — first 10 matches count more."
       }
     },
     "ui": {
@@ -1511,7 +1535,10 @@
         "title": "Invalid invitation",
         "body": "The link is invalid or has already been used."
       },
-      "expired": { "title": "Invitation expired", "body": "Ask your coach to send a new one." },
+      "expired": {
+        "title": "Invitation expired",
+        "body": "Ask your coach to send a new one."
+      },
       "already": {
         "title": "Invitation already accepted",
         "body": "Sign in normally from the login page."
@@ -1641,7 +1668,11 @@
       "availability": "Your preferred slots",
       "availability_hint": "Tap windows when you can play. Slots must overlap with the partner's.",
       "hand": "Hand",
-      "hand_options": { "both": "Both", "R": "Right", "L": "Left" },
+      "hand_options": {
+        "both": "Both",
+        "R": "Right",
+        "L": "Left"
+      },
       "query": "Name",
       "query_placeholder": "Search by name…",
       "search": "Search",
@@ -1804,7 +1835,7 @@
       "why": "Your profile. Everything the system knows and shows other players — you can change it here.",
       "what": {
         "1": "Edit personal info and contacts.",
-        "2": "Set sport preferences and availability (needed for \u201CFind a Player\u201D).",
+        "2": "Set sport preferences and availability (needed for “Find a Player”).",
         "3": "Manage privacy and notifications."
       },
       "result": {
@@ -1874,7 +1905,7 @@
         "dominant_hand": "Dominant hand",
         "backhand_style": "Backhand",
         "favorite_surface": "Favorite surface",
-        "visible_in_find_player": "Visible in \u201CFind a Player\u201D",
+        "visible_in_find_player": "Visible in “Find a Player”",
         "visible_in_leaderboard": "Visible in leaderboard",
         "notification_email": "Email notifications",
         "notification_whatsapp": "WhatsApp notifications",
@@ -1885,13 +1916,13 @@
       },
       "hints": {
         "date_of_birth": "Used only for age statistics in rankings & tournaments.",
-        "motto": "Short motto shown next to your name in \u201CFind a Player\u201D.",
+        "motto": "Short motto shown next to your name in “Find a Player”.",
         "phone": "Backup number (call / SMS). Visible to a coach you have an active booking with.",
-        "whatsapp": "The de-facto messenger in Belarus. Clicking \u201CMessage\u201D opens a WhatsApp chat with a partner or coach.",
+        "whatsapp": "The de-facto messenger in Belarus. Clicking “Message” opens a WhatsApp chat with a partner or coach.",
         "telegram_username": "Optional. Without @. Only if you prefer Telegram over WhatsApp.",
         "district": "District is key for finding opponents near you.",
         "backhand_style": "One-handed vs two-handed — helps opponents match style.",
-        "availability": "Mark when you usually play. \u201CFind a Player\u201D will match others in the same slot.",
+        "availability": "Mark when you usually play. “Find a Player” will match others in the same slot.",
         "visible_in_find_player": "Turn off if you don't want match proposals.",
         "visible_in_leaderboard": "Turn off to hide from the public leaderboard.",
         "notification_email": "Primary channel for automated notifications (invitations, booking confirmations, tournament results).",
@@ -1900,11 +1931,29 @@
         "health_notes": "Injuries, allergies — visible only to your current coach."
       },
       "enums": {
-        "gender": { "m": "Male", "f": "Female", "other": "Other" },
-        "hand": { "R": "Right", "L": "Left" },
-        "backhand": { "one_handed": "One-handed", "two_handed": "Two-handed" },
-        "surface": { "hard": "Hard", "clay": "Clay", "grass": "Grass", "carpet": "Carpet" },
-        "locale": { "en": "English", "ru": "Русский" },
+        "gender": {
+          "m": "Male",
+          "f": "Female",
+          "other": "Other"
+        },
+        "hand": {
+          "R": "Right",
+          "L": "Left"
+        },
+        "backhand": {
+          "one_handed": "One-handed",
+          "two_handed": "Two-handed"
+        },
+        "surface": {
+          "hard": "Hard",
+          "clay": "Clay",
+          "grass": "Grass",
+          "carpet": "Carpet"
+        },
+        "locale": {
+          "en": "English",
+          "ru": "Русский"
+        },
         "weekday": {
           "mon": "Mon",
           "tue": "Tue",
@@ -4485,9 +4534,225 @@
           "title": "Sparring",
           "body": "Open matches — find a partner by level and district"
         },
-        "tournaments": { "title": "Tournaments", "body": "Run your own event or join open ones" },
-        "coaches": { "title": "Coaches", "body": "Verified reviews — book a court in a few taps" }
+        "tournaments": {
+          "title": "Tournaments",
+          "body": "Run your own event or join open ones"
+        },
+        "coaches": {
+          "title": "Coaches",
+          "body": "Verified reviews — book a court in a few taps"
+        }
       }
+    }
+  },
+  "mobile": {
+    "tabs": {
+      "feed": "Feed",
+      "tournaments": "Tournaments",
+      "matches": "Matches",
+      "clubs": "Clubs",
+      "profile": "Profile"
+    },
+    "common": {
+      "login": "Sign in",
+      "search": "Search",
+      "filters": "Filters",
+      "apply": "Apply",
+      "reset": "Reset",
+      "any": "Any",
+      "cancel": "Cancel",
+      "back": "Back",
+      "error_generic": "Something went wrong. Try again",
+      "player_unknown": "Player",
+      "login_required_title": "Sign in required",
+      "login_required_body": "Sign in to see your data and join games.",
+      "result_w": "W",
+      "result_l": "L",
+      "surface_hard": "Hard",
+      "surface_clay": "Clay",
+      "surface_grass": "Grass",
+      "surface_carpet": "Carpet"
+    },
+    "levels_short": {
+      "beginner": "Beginner",
+      "improver": "Improver",
+      "confident": "Confident",
+      "strong": "Strong",
+      "elite": "Elite"
+    },
+    "feed": {
+      "greeting": "Hi there!",
+      "greeting_guest": "Welcome to",
+      "player_fallback": "Player",
+      "notifications": "Notifications",
+      "live_now": "{count, plural, one {# tournament live} other {# tournaments live}}",
+      "no_live": "Browse tournaments",
+      "find_game": "Find a game",
+      "to_tournament": "Tournament",
+      "whats_new": "What's new",
+      "empty_title": "Quiet for now",
+      "empty_body": "Match results, new tournaments and game requests will appear here.",
+      "item_result": "{winner} beat {loser} {score}",
+      "friendly_match": "Friendly match",
+      "item_registration": "Registration open: {name}",
+      "starts_on": "Starts {date}",
+      "item_club": "New club: {name}",
+      "club_meta": "Club",
+      "item_sparring": "{name} is looking for an opponent"
+    },
+    "tournaments": {
+      "title": "Tournaments",
+      "search_placeholder": "Tournament name",
+      "filter_city": "City",
+      "filter_surface": "Surface",
+      "filter_fee": "Fee",
+      "fee_free": "Free",
+      "fee_paid": "Paid",
+      "seg_all": "All",
+      "seg_reg": "Registration",
+      "seg_live": "Live",
+      "empty_title": "No tournaments found",
+      "empty_body": "Try clearing the filters or come back later — new tournaments appear every week.",
+      "place_tba": "Venue TBA",
+      "status_draft": "Draft",
+      "status_registration": "Registration",
+      "status_in_progress": "Live",
+      "status_upcoming": "Starting soon",
+      "status_finished": "Finished",
+      "status_cancelled": "Cancelled"
+    },
+    "tournament": {
+      "format_single_elimination": "Single elimination",
+      "format_double_elimination": "Double elimination",
+      "format_round_robin": "Round robin",
+      "format_group_playoff": "Groups + playoff",
+      "format_swiss": "Swiss",
+      "format_compass": "Compass",
+      "meta_start": "Start",
+      "meta_place": "Venue",
+      "meta_slots": "Slots",
+      "meta_fee": "Fee",
+      "seg_players": "Players",
+      "seg_draw": "Draw",
+      "seg_info": "Info",
+      "no_players_title": "No entries yet",
+      "no_players_body": "Be the first — tap “Register” below.",
+      "free_slots": "{count, plural, one {# spot still free} other {# spots still free}}",
+      "no_draw_title": "Draw not created yet",
+      "no_draw_body": "The organizer will build the draw once registration closes.",
+      "round_label": "Round {round}",
+      "info_organizer": "Organizer",
+      "info_format": "Format",
+      "info_deadline": "Register by",
+      "cta_apply": "Register",
+      "cta_login": "Sign in to register",
+      "cta_pending": "Application sent",
+      "cta_approved": "You're in",
+      "cta_closed": "Registration closed",
+      "cta_owner": "You're the organizer",
+      "cta_withdraw": "Withdraw",
+      "cta_withdraw_confirm": "Confirm withdraw"
+    },
+    "clubs": {
+      "title": "Clubs",
+      "search_placeholder": "Club name",
+      "seg_all": "All",
+      "seg_my": "Mine",
+      "seg_near": "Nearby",
+      "members_count": "{count, plural, one {# member} other {# members}}",
+      "policy_open": "Open",
+      "policy_approval": "By request",
+      "policy_closed": "Closed",
+      "empty_my_title": "You're not in a club yet",
+      "empty_my_body": "Join a club to compete in its internal rating and club tournaments.",
+      "empty_near_title": "No clubs nearby",
+      "empty_near_body": "Set your city in the profile or browse all clubs.",
+      "empty_all_title": "No clubs found",
+      "empty_all_body": "Try a different search — or create your own club on the website."
+    },
+    "club": {
+      "stat_members": "members",
+      "stat_avg_elo": "avg ELO",
+      "stat_top5": "Top-5",
+      "stat_coaches": "coaches",
+      "stat_active": "active",
+      "stat_tournaments": "tournaments",
+      "seg_rating": "Rating",
+      "seg_about": "About",
+      "empty_rating_title": "Rating is empty",
+      "empty_rating_body": "Members will appear here after the club's first matches.",
+      "empty_about_title": "No description yet",
+      "empty_about_body": "The club owner hasn't added a description yet.",
+      "venues_label": "Venues",
+      "cta_apply": "Apply to join",
+      "cta_pending": "Application pending",
+      "cta_member": "You're a member",
+      "cta_closed": "Invite-only club",
+      "cta_owner": "You own this club"
+    },
+    "profile": {
+      "title": "Profile",
+      "edit": "Edit",
+      "stat_matches": "matches",
+      "stat_wins": "wins",
+      "stat_winrate": "winrate",
+      "chart_title": "ELO trend · 30 days",
+      "recent_matches": "Recent matches",
+      "empty_matches_title": "No matches yet",
+      "empty_matches_body": "Play your first match and the history with ELO changes will appear here."
+    },
+    "game": {
+      "title": "Play",
+      "seg_find": "Find",
+      "seg_mine": "My requests",
+      "filter_level": "Level",
+      "filter_when": "When",
+      "when_today": "Today",
+      "when_tomorrow": "Tomorrow",
+      "chip_near": "Nearby",
+      "invite_title": "Looking for an opponent?",
+      "invite_body": "Post a request — players of your level will respond.",
+      "invite_cta": "Post",
+      "list_eyebrow": "Open to play · nearby",
+      "empty_title": "No open games",
+      "empty_body": "Nobody has posted an invite yet. Create yours — it's faster than waiting.",
+      "play": "Play",
+      "applied": "Request sent",
+      "empty_mine_title": "No requests yet",
+      "empty_mine_body": "Your responses and the open matches you create will appear here.",
+      "mine_created": "My open matches",
+      "mine_applied": "My responses",
+      "applications_count": "{count, plural, =0 {No applications} one {# application} other {# applications}}",
+      "status_open": "Open",
+      "status_filled": "Filled",
+      "status_cancelled": "Cancelled",
+      "status_expired": "Expired",
+      "app_status_pending": "Awaiting reply",
+      "app_status_accepted": "Accepted",
+      "app_status_rejected": "Declined",
+      "app_status_withdrawn": "Withdrawn"
+    },
+    "matches": {
+      "title": "Matches",
+      "search_placeholder": "Opponent name",
+      "filter_result": "Result",
+      "result_wins": "Wins",
+      "result_losses": "Losses",
+      "filter_period": "Period",
+      "period_30": "30 days",
+      "period_90": "90 days",
+      "seg_date": "By date",
+      "seg_tournaments": "Tournaments",
+      "seg_clubs": "Clubs",
+      "summary_played": "Played",
+      "summary_balance": "Balance",
+      "summary_winrate": "Winrate",
+      "summary_form": "Form",
+      "group_friendly": "Friendlies",
+      "group_no_club": "No club",
+      "empty_title": "No matches found",
+      "empty_body": "Play a match or clear the filters — your history will appear here.",
+      "no_score": "no score"
     }
   }
 }
