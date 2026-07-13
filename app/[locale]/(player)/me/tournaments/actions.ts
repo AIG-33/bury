@@ -12,6 +12,10 @@ import type {
   Privacy,
   MatchRules,
 } from "@/lib/tournaments/schema";
+import {
+  tournamentBrandingFromRow,
+  type TournamentBranding,
+} from "@/lib/validators/tournament-branding";
 
 // =============================================================================
 // Types returned to UI
@@ -45,6 +49,12 @@ export type MyTournamentRow = OpenTournamentRow & {
     opponent_name: string | null;
     scheduled_at: string | null;
   } | null;
+  // Extra card fields for the mobile branded list (additive — web pages
+  // that predate them simply ignore these).
+  start_time: string | null;
+  entry_fee_byn: number | null;
+  branding: TournamentBranding;
+  venues: Array<{ id: string; name: string; city: string | null }>;
 };
 
 async function requireUser() {
@@ -91,8 +101,7 @@ export async function loadTournamentViewerState(
     data: { status: "pending" | "approved" | "rejected"; withdrawn: boolean } | null;
   };
 
-  const applicationStatus: ApplicationStatus =
-    part && !part.withdrawn ? part.status : "none";
+  const applicationStatus: ApplicationStatus = part && !part.withdrawn ? part.status : "none";
 
   return {
     authenticated: true,
@@ -106,8 +115,7 @@ export async function loadTournamentViewerState(
 // =============================================================================
 
 export async function loadOpenTournaments(): Promise<
-  | { ok: true; tournaments: OpenTournamentRow[] }
-  | { ok: false; error: string }
+  { ok: true; tournaments: OpenTournamentRow[] } | { ok: false; error: string }
 > {
   const auth = await requireUser();
   if (!auth.ok) return auth;
@@ -123,10 +131,7 @@ export async function loadOpenTournaments(): Promise<
     .eq("status", "registration")
     .order("starts_on", { ascending: true })) as {
     data: Array<
-      Omit<
-        OpenTournamentRow,
-        "participants_count" | "application_status" | "organizer_name"
-      > & {
+      Omit<OpenTournamentRow, "participants_count" | "application_status" | "organizer_name"> & {
         owner_id: string;
       }
     > | null;
@@ -188,8 +193,7 @@ export async function loadOpenTournaments(): Promise<
 // =============================================================================
 
 export async function loadMyTournaments(): Promise<
-  | { ok: true; tournaments: MyTournamentRow[] }
-  | { ok: false; error: string }
+  { ok: true; tournaments: MyTournamentRow[] } | { ok: false; error: string }
 > {
   const auth = await requireUser();
   if (!auth.ok) return auth;
@@ -199,8 +203,8 @@ export async function loadMyTournaments(): Promise<
     .from("tournament_participants")
     .select(
       "tournament_id, status, withdrawn, " +
-        "tournaments(id, owner_id, name, description, format, surface, starts_on, ends_on, " +
-        "registration_deadline, max_participants, privacy, status, match_rules)",
+        "tournaments(id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding)",
     )
     .eq("player_id", userId)) as {
     data: Array<{
@@ -215,12 +219,15 @@ export async function loadMyTournaments(): Promise<
         format: TournamentFormat;
         surface: Surface | null;
         starts_on: string;
+        start_time: string | null;
         ends_on: string | null;
         registration_deadline: string | null;
         max_participants: number | null;
+        entry_fee_byn: number | null;
         privacy: Privacy;
         status: TournamentStatus;
         match_rules: MatchRules;
+        branding: unknown;
       } | null;
     }> | null;
   };
@@ -241,16 +248,37 @@ export async function loadMyTournaments(): Promise<
   }
 
   const counts = new Map<string, number>();
+  const venuesByT = new Map<string, Array<{ id: string; name: string; city: string | null }>>();
   if (ids.length > 0) {
-    const { data: cnt } = (await supabase
-      .from("tournament_participants")
-      .select("tournament_id, status, withdrawn")
-      .in("tournament_id", ids)
-      .eq("status", "approved")) as {
-      data: Array<{ tournament_id: string; status: string; withdrawn: boolean }> | null;
-    };
+    const [{ data: cnt }, { data: tvs }] = await Promise.all([
+      supabase
+        .from("tournament_participants")
+        .select("tournament_id, status, withdrawn")
+        .in("tournament_id", ids)
+        .eq("status", "approved") as unknown as Promise<{
+        data: Array<{ tournament_id: string; status: string; withdrawn: boolean }> | null;
+      }>,
+      supabase
+        .from("tournament_venues")
+        .select("tournament_id, venues!inner(id, name, city)")
+        .in("tournament_id", ids) as unknown as Promise<{
+        data: Array<{
+          tournament_id: string;
+          venues:
+            | { id: string; name: string; city: string | null }
+            | Array<{ id: string; name: string; city: string | null }>;
+        }> | null;
+      }>,
+    ]);
     for (const c of cnt ?? []) {
       if (!c.withdrawn) counts.set(c.tournament_id, (counts.get(c.tournament_id) ?? 0) + 1);
+    }
+    for (const v of tvs ?? []) {
+      const ref = Array.isArray(v.venues) ? v.venues[0] : v.venues;
+      if (!ref) continue;
+      const arr = venuesByT.get(v.tournament_id) ?? [];
+      arr.push({ id: ref.id, name: ref.name, city: ref.city });
+      venuesByT.set(v.tournament_id, arr);
     }
   }
 
@@ -323,11 +351,15 @@ export async function loadMyTournaments(): Promise<
       application_status: r.status,
       match_rules: t.match_rules,
       withdrawn: r.withdrawn,
+      start_time: t.start_time,
+      entry_fee_byn: t.entry_fee_byn,
+      branding: tournamentBrandingFromRow(t.branding),
+      venues: venuesByT.get(t.id) ?? [],
       next_match: next
         ? {
             id: next.id,
             round: next.round,
-            opponent_name: next.opponent_id ? namesById.get(next.opponent_id) ?? null : null,
+            opponent_name: next.opponent_id ? (namesById.get(next.opponent_id) ?? null) : null,
             scheduled_at: next.scheduled_at,
           }
         : null,
@@ -411,14 +443,12 @@ export async function applyToTournament(
       .eq("id", existing.id);
     if (error) return { ok: false, error: error.message };
   } else {
-    const { error } = await supabase
-      .from("tournament_participants")
-      .insert({
-        tournament_id: tournamentId,
-        player_id: userId,
-        status: "pending",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+    const { error } = await supabase.from("tournament_participants").insert({
+      tournament_id: tournamentId,
+      player_id: userId,
+      status: "pending",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     if (error) return { ok: false, error: error.message };
   }
 
