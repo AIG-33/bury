@@ -46,7 +46,10 @@ export type LoginLabels = {
 type Mode = "password" | "signup" | "forgot";
 
 export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: string }) {
-  const [mode, setMode] = useState<Mode>("password");
+  // The mobile start screen deep-links to /login?mode=signup for its
+  // "Создать аккаунт" CTA; any other value falls back to the sign-in tab.
+  const initialMode = useSearchParams().get("mode") === "signup" ? "signup" : "password";
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
