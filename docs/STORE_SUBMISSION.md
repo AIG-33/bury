@@ -32,21 +32,21 @@ accounts, 2FA and signing keys — none of that lives in git).
 
 ## 1. What's already prepared in the repo
 
-| Area                  | File(s)                                                                                   | State                                |
-| --------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------ |
-| iOS display name      | `ios/App/App/Info.plist` → `CFBundleDisplayName`                                          | `PlayTennis.by`                      |
-| iOS version           | `ios/App/App.xcodeproj/project.pbxproj` → `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` | `1.0.0` / `1`                        |
-| iOS export-compliance | `Info.plist` → `ITSAppUsesNonExemptEncryption`                                            | `false`                              |
-| iOS usage strings     | `Info.plist` (camera / photos / location-when-in-use)                                     | English, review-safe                 |
-| Android id + version  | `android/app/build.gradle`                                                                | `by.playtennis.app`, `1` / `1.0.0`   |
-| Android name          | `android/app/src/main/res/values/strings.xml`                                             | `PlayTennis.by`                      |
-| Android permissions   | `android/app/src/main/AndroidManifest.xml`                                                | only `INTERNET`                      |
-| Capacitor config      | `capacitor.config.ts`                                                                     | `appName "PlayTennis.by"`            |
-| App Store listing     | `fastlane/metadata/{ru,en-US}/…`                                                          | ru + en copy written                 |
-| Play listing          | `fastlane/metadata/android/{ru-RU,en-US}/…`                                               | ru + en copy written                 |
-| Fastlane lanes        | `fastlane/Fastfile`, `fastlane/Appfile`                                                   | `deliver` / `supply` skeletons       |
-| Privacy page          | `app/[locale]/(public)/privacy/page.tsx`                                                  | live at `/ru/privacy`, `/en/privacy` |
-| Support page          | `app/[locale]/(public)/support/page.tsx`                                                  | live at `/ru/support`, `/en/support` |
+| Area                  | File(s)                                                                                   | State                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| iOS display name      | `ios/App/App/Info.plist` → `CFBundleDisplayName`                                          | `PlayTennis.by`                                        |
+| iOS version           | `ios/App/App.xcodeproj/project.pbxproj` → `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` | `1.0.0` / `1`                                          |
+| iOS export-compliance | `Info.plist` → `ITSAppUsesNonExemptEncryption`                                            | `false`                                                |
+| iOS usage strings     | `Info.plist` (camera / photos / location-when-in-use)                                     | English, review-safe                                   |
+| Android id + version  | `android/app/build.gradle`                                                                | `by.playtennis.app`, `1` / `1.0.0`                     |
+| Android name          | `android/app/src/main/res/values/strings.xml`                                             | `PlayTennis.by`                                        |
+| Android permissions   | `android/app/src/main/AndroidManifest.xml`                                                | only `INTERNET`                                        |
+| Capacitor config      | `capacitor.config.ts`                                                                     | `appName "PlayTennis.by"`                              |
+| App Store listing     | `fastlane/metadata/{ru,en-US}/…`                                                          | ru + en copy written                                   |
+| Play listing          | `fastlane/metadata/android/{ru-RU,en-US}/…`                                               | ru + en copy written                                   |
+| Fastlane lanes        | `fastlane/Fastfile`, `fastlane/Appfile`                                                   | `deliver` / `supply` skeletons                         |
+| Privacy page          | `app/[locale]/(public)/privacy/page.tsx`                                                  | live at `/ru/privacy`, `/en/privacy`                   |
+| Support page          | `app/[locale]/(public)/support/page.tsx`                                                  | live at `/ru/support`, `/en/support`                   |
 | Account deletion page | `app/[locale]/(public)/account-deletion/page.tsx`                                         | live at `/ru/account-deletion`, `/en/account-deletion` |
 
 ### iOS usage-description strings — trim before submission
@@ -323,3 +323,166 @@ Do these in order. Cross-referenced files are prepared in the repo.
         (minimum functionality) — the native splash/status-bar/back/external-link
         glue is in place; add push/native share if a reviewer pushes back
         (see `MOBILE.md` → Known follow-ups).
+
+---
+
+## 9. Review rejections & replies
+
+Log of App Review rejections and the replies we sent, so the same answers can
+be reused (Google Play asks near-identical questions in its policy forms).
+
+### 2026-07-13 — iOS 1.0.0 (1) rejected: Guideline 2.1 + 2.1(b) (Information Needed)
+
+- **Submission ID:** `63dcfdc1-c267-458e-80f8-c8025792d532` · reviewed on iPad
+  Air 11-inch (M3).
+- **Status:** rejected as _2.1.0 Performance: App Completeness_ — **not** a
+  policy violation; the reviewer asked questions and review resumes once we
+  reply **in App Store Connect** (no new binary needed).
+- **What they asked:**
+  - **2.1 (referencing Guideline 1.3, kids/data):** third-party analytics?
+    third-party advertising? data shared with third parties? any other
+    user/device data collected and why?
+  - **2.1(b) (business model):** who uses the paid content? where is it
+    purchased? what previously-purchased content is accessible? what is
+    unlocked without In-App Purchase?
+
+#### Facts the reply is based on (verified in the repo at reply time)
+
+- **Analytics:** PostHog only (`posthog-js`, wired via
+  `components/analytics/posthog-provider.tsx` + `lib/analytics/posthog-client.ts`).
+  EU cloud host (`eu.posthog.com`), `autocapture` **off**, session recording
+  **off**, pageviews sent manually on route change plus one custom UI event
+  (`players.guest_propose_clicked`). **`posthog.identify()` is never called**
+  → events carry a random client id and are _not_ tied to the account.
+  Active only when `NEXT_PUBLIC_POSTHOG_KEY` is set (Vercel env).
+- **Crash reporting:** none. `SENTRY_DSN` exists in `.env.example` as a
+  placeholder, but no Sentry SDK is installed and no init code exists.
+- **Advertising:** none. No ad SDKs, no ad networks, no tracking for ads.
+- **Payments:** none in-app. No payment SDK (no Stripe/bePaid/etc.), no IAP.
+  Coach slots have an informational `price_byn`; tournaments an informational
+  `entry_fee_byn`. Booking inserts `paid_status: "unpaid"`; the coach flips
+  paid/unpaid/comped **manually** — bookkeeping only. All actual payment is
+  offline, in person, for real-world services (lessons on a court, amateur
+  tournament entry) — Guideline 3.1.5(a) territory, IAP not required.
+- **Data collected:** account email + name (email magic-link or Google/Apple
+  sign-in via Supabase Auth), optional avatar photo, city/district, skill
+  level, gameplay data (matches, ratings, tournaments, reviews), optional
+  geolocation (foreground only, for the courts map), optional Telegram link,
+  optional WhatsApp number (coaches). Stored in Supabase (managed Postgres);
+  processors: Supabase, Vercel, PostHog (EU), Resend, Telegram (opt-in),
+  Google/Apple (sign-in only). Nothing sold or shared for third-party
+  purposes.
+- **Kids angle (the Guideline 1.3 reference):** the app is a platform for
+  **adult amateur players**, is **not** in the Kids Category, and the privacy
+  policy states it is not intended for children under 13. The 1.3 reference
+  is almost certainly triggered by the 4+ age rating, hence the explicit
+  "not directed at children" paragraph in the reply.
+
+#### Reply sent to Apple (paste into App Store Connect → App Review messages)
+
+> Hello,
+>
+> Thank you for reviewing PlayTennis.by. Please find our answers below.
+>
+> First, some context relevant to Guideline 1.3: PlayTennis.by is a community
+> platform for adult amateur tennis players in Belarus — finding hitting
+> partners, viewing coaches' schedules, and organizing amateur tournaments
+> with a club rating. The app is not directed at children, is not in the Kids
+> Category, and our Privacy Policy (https://www.playtennis.by/en/privacy)
+> states the platform is not intended for children under 13. We do not
+> knowingly collect data from children.
+>
+> **Guideline 2.1 — questions:**
+>
+> 1. **Third-party analytics:** Yes, we use one product-analytics tool,
+>    PostHog (PostHog Cloud EU, hosted in the European Union). It is
+>    configured conservatively: autocapture is disabled, session recording is
+>    disabled, and no device advertising identifiers are read. The only data
+>    collected are screen/page views and a small number of predefined UI
+>    events (for example, a signed-out visitor tapping "Propose a match").
+>    Events are pseudonymous — they carry a random client-generated
+>    identifier and are not linked to the user's name or email (we never call
+>    the analytics "identify" function). The sole purpose is understanding
+>    aggregate product usage to improve the app.
+> 2. **Third-party advertising:** No. The app contains no advertising of any
+>    kind — no ad SDKs, no ad networks, no ad tracking. (Not applicable: ad
+>    network policies for kids apps.)
+> 3. **Data sharing with third parties:** We do not sell user data and do not
+>    share it with any third party for their own purposes. Data is handled
+>    only by service providers acting as processors on our instructions:
+>    Supabase (authentication and our primary database, where user data is
+>    stored), Vercel (hosting of the web application the app displays),
+>    PostHog (the pseudonymous analytics described above, stored in the EU),
+>    Resend (delivery of transactional emails such as booking confirmations),
+>    Telegram (only if a user voluntarily links our optional Telegram bot for
+>    notifications), and Google/Apple (only when the user chooses "Sign in
+>    with Google/Apple"). All processing is solely to operate the service.
+> 4. **Other data collected:** Only what users provide to use the service:
+>    account data (email address and name, via email sign-in or Sign in with
+>    Google/Apple), optional profile data (avatar photo, city/district,
+>    self-assessed skill level), gameplay data the user creates (match
+>    results, rating, tournament participation, coach reviews), and — only
+>    with the user's explicit permission — foreground geolocation used to
+>    show nearby courts and coaches on a map. We collect no device data
+>    beyond standard web-server logs. All of this is used exclusively for app
+>    functionality; none of it is used for advertising or marketing, and none
+>    of it is sold or shared as described above.
+>
+> **Guideline 2.1(b) — business model:**
+>
+> The app is completely free. It contains no paid digital content, no
+> subscriptions, no in-app purchases, and no payment processing of any kind
+> (no payment SDK is integrated).
+>
+> 1. **Who are the users that will use the paid content and services?** There
+>    is no paid content or paid digital service in the app. Every app feature
+>    (profiles, partner search, ratings, tournaments, coach schedules) is
+>    free for all users. The only prices displayed are informational prices
+>    for real-world, in-person services: a coach's lesson price or an amateur
+>    tournament entry fee (in Belarusian rubles), used by adult amateur
+>    players who book a lesson or enter a tournament.
+> 2. **Where can users purchase the content and services accessible in the
+>    app?** Nothing can be purchased inside the app. Booking a lesson or
+>    registering for a tournament only reserves a spot. Any payment for these
+>    physical, in-person services happens entirely outside the app — in
+>    person at the tennis venue (typically cash or a direct transfer to the
+>    coach or organizer). The coach can later mark a booking "paid" or
+>    "unpaid" in their schedule, which is a manual bookkeeping status, not a
+>    transaction.
+> 3. **What types of previously purchased content and services can a user
+>    access in the app?** None. There is no purchasable digital content or
+>    service, so there is nothing previously purchased to access or restore.
+> 4. **What paid content, subscriptions, or features are unlocked within the
+>    app without using In-App Purchase?** None. No feature is locked behind a
+>    payment. The only paid items connected to the app are real-world
+>    person-to-person services consumed outside the app (tennis lessons,
+>    amateur tournament participation), which per Guideline 3.1.5(a) may be
+>    paid by methods other than In-App Purchase — and in our case the app
+>    does not process those payments at all.
+>
+> Please let us know if any further detail would help. Thank you!
+
+#### App Store Connect follow-ups (do together with the reply)
+
+- [ ] **Age rating:** confirm the rating questionnaire result and that the
+      app is **not** enrolled in the Kids Category / "Made for Kids". The app
+      targets adults; if the questionnaire allows, a 13+ style rating is a
+      safe fit with the privacy policy's "not for children under 13" — at
+      minimum keep 4+ with Kids Category **off**.
+- [ ] **App Privacy — remove Crash Data.** `fastlane/app_privacy_details.json`
+      and section 2 above declare crash/diagnostics data, but no crash
+      reporter (Sentry) is integrated. Declaring data we don't collect
+      invites exactly these questions — remove `CRASH_DATA` from the App
+      Privacy answers (and from the JSON) until Sentry actually ships.
+- [ ] **App Privacy — analytics "linked to you".** Section 2 marks product
+      interaction and User ID as _linked_ to identity, but the code never
+      calls `posthog.identify()` — analytics is pseudonymous. Either align
+      the labels (Product interaction → **not linked**, drop the Analytics
+      purpose from User ID) to match the reply above, or start calling
+      `identify()` deliberately; don't leave the two contradicting.
+- [ ] **Privacy policy URL** set at the app level
+      (`https://www.playtennis.by/ru/privacy`) — the reply links the `/en/`
+      version; both must load.
+- [ ] Reply is sent as a **message in App Store Connect** on the rejected
+      1.0.0 (1) submission — no new build is required unless the reviewer
+      asks for one.
