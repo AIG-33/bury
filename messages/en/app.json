@@ -2395,9 +2395,11 @@
       "sponsors_hint": "Sponsor logos show as a strip in the header (up to 12).",
       "sponsors_add": "Add sponsor",
       "sponsors_name": "Name",
+      "sponsors_url": "Website (https://…)",
       "sponsors_empty": "No sponsors added yet.",
       "preview": "Preview",
       "preview_empty": "This is how the page looks with no branding",
+      "preview_title": "Minsk Open",
       "view_public": "Open page",
       "save": "Save branding",
       "saving": "Saving…",
@@ -3260,7 +3262,10 @@
             "id": "venues",
             "title": "Browse venues",
             "auto": "All courts with addresses and districts in one catalogue.",
-            "steps": ["Open the “Venues” section.", "Pick a club/court by address or district."]
+            "steps": [
+              "Open the “Venues” section.",
+              "Pick a club/court by address or district."
+            ]
           }
         ]
       },
@@ -3361,7 +3366,9 @@
             "id": "my_coaches",
             "title": "List of my coaches",
             "auto": "Everyone you're linked to or trained with recently.",
-            "steps": ["Open the “My coaches” section."]
+            "steps": [
+              "Open the “My coaches” section."
+            ]
           },
           {
             "id": "register_tournament",
@@ -3402,7 +3409,10 @@
             "id": "profile",
             "title": "Fill in your coach profile",
             "auto": "This is your public card across the club.",
-            "steps": ["Fill in bio, specialisation, venues, prices, map visibility.", "Save."]
+            "steps": [
+              "Fill in bio, specialisation, venues, prices, map visibility.",
+              "Save."
+            ]
           },
           {
             "id": "invite_player",
@@ -3428,7 +3438,9 @@
             "id": "venues",
             "title": "Coach venues",
             "auto": "List of venues you work at (venues themselves are added by the admin).",
-            "steps": ["Open “Venues” inside the coach area."]
+            "steps": [
+              "Open “Venues” inside the coach area."
+            ]
           },
           {
             "id": "tournament",
@@ -3446,7 +3458,9 @@
             "id": "leaderboard",
             "title": "Coach leaderboard",
             "auto": "See where you stand vs other coaches in the club.",
-            "steps": ["Open “Leaderboard” — by season, with several tabs."]
+            "steps": [
+              "Open “Leaderboard” — by season, with several tabs."
+            ]
           }
         ]
       },
@@ -3957,6 +3971,7 @@
   "clubPublic": {
     "back": "All clubs",
     "created_at": "Created {date}",
+    "sponsors": "Sponsors",
     "owner": "Owner",
     "join_cta": {
       "open": "Join",
@@ -4096,6 +4111,7 @@
     "primary_help": "A player has exactly one primary club at a time. It appears next to your name across the platform.",
     "owner_badge": "Owner",
     "admin_badge": "Co-admin",
+    "edit": "Edit",
     "leave": "Leave club",
     "leave_confirm": "Leave the club? Your membership ends but your match history stays.",
     "cancel_application": "Cancel application",
@@ -4139,6 +4155,7 @@
       "members": "Members",
       "pending": "Pending applications",
       "open": "Open",
+      "edit": "Edit",
       "owner_badge": "Owner",
       "admin_badge": "Co-admin",
       "transfer_pending": "Ownership transfer in progress"
@@ -4149,7 +4166,7 @@
       "fields": {
         "name": "Name",
         "slug": "URL (slug)",
-        "slug_hint": "Used in the /clubs/<slug> URL. Latin letters, digits, and dashes.",
+        "slug_hint": "Used in the /clubs/[slug] URL. Latin letters, digits, and dashes.",
         "description": "Description",
         "description_hint": "Tell people who you are: where you play, what level, special features.",
         "city": "City",
@@ -4299,6 +4316,71 @@
         "cancel": "Cancel offer",
         "cancelling": "Cancelling…"
       },
+      "branding": {
+        "title": "Club page branding",
+        "subtitle": "Add a logo, banner and brand colors — your public club page becomes as recognizable as a tournament page.",
+        "help": {
+          "why": "The public club page is its face: players and sponsors land on that link. Branding makes the club look like a real community, not just a row in the catalogue.",
+          "what": {
+            "1": "Upload a logo and a full-width banner backdrop.",
+            "2": "Pick a background, an accent color, a theme and a corner style.",
+            "3": "Add a custom title, a tagline and sponsor logos linking to their sites."
+          },
+          "result": {
+            "1": "A guest opening the link sees a branded page — trust goes up.",
+            "2": "Nothing breaks for you: with no branding the page looks exactly as before."
+          }
+        },
+        "logo": "Logo",
+        "logo_hint": "PNG, JPG, WebP or SVG. A square logo looks best.",
+        "banner": "Banner (full-width backdrop)",
+        "banner_hint": "A wide header image. 1600×500 px or larger recommended.",
+        "scrim": "Banner scrim",
+        "upload": "Upload",
+        "uploading": "Uploading…",
+        "remove": "Remove",
+        "background_color": "Background color",
+        "accent_color": "Accent color",
+        "use_custom": "Custom color",
+        "gradient_to": "Gradient second color",
+        "gradient_hint": "When set, the background becomes a smooth gradient.",
+        "gradient_enable": "Enable gradient",
+        "theme_preset": "Theme",
+        "theme_presets": {
+          "light": "Light",
+          "dark": "Dark",
+          "auto": "Auto (system)"
+        },
+        "corner_style": "Corners",
+        "corner_styles": {
+          "rounded": "Rounded",
+          "sharp": "Sharp"
+        },
+        "font_pairing": "Font",
+        "font_pairings": {
+          "default": "Default",
+          "classic": "Classic",
+          "modern": "Modern"
+        },
+        "title_override": "Page title",
+        "title_override_placeholder": "Defaults to the club name",
+        "tagline": "Tagline",
+        "tagline_placeholder": "e.g. We play every weekend",
+        "sponsors": "Sponsors",
+        "sponsors_hint": "Sponsor logos show as a strip in the header (up to 12). With a website set the logo becomes a link.",
+        "sponsors_add": "Add sponsor",
+        "sponsors_name": "Name",
+        "sponsors_url": "Website (https://…)",
+        "sponsors_empty": "No sponsors added yet.",
+        "preview": "Preview",
+        "preview_empty": "This is how the page looks with no branding",
+        "preview_title": "Smash Tennis Club",
+        "view_public": "Open page",
+        "save": "Save branding",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Couldn't save"
+      },
       "page": {
         "title": "Public page",
         "subtitle": "Customize how your club page looks to visitors.",
@@ -4401,7 +4483,9 @@
       },
       {
         "heading": "What data we collect",
-        "paragraphs": ["We only collect what the platform needs to work:"],
+        "paragraphs": [
+          "We only collect what the platform needs to work:"
+        ],
         "items": [
           "Account: your email address and sign-in identifier.",
           "Profile: name, photo (avatar), city or neighborhood, skill level and settings.",
@@ -4430,7 +4514,9 @@
       },
       {
         "heading": "Data processors (third parties)",
-        "paragraphs": ["We rely on trusted providers that process data on our behalf:"],
+        "paragraphs": [
+          "We rely on trusted providers that process data on our behalf:"
+        ],
         "items": [
           "Supabase — authentication and database.",
           "Vercel — website hosting.",
@@ -4504,7 +4590,9 @@
       },
       {
         "heading": "What we delete",
-        "paragraphs": ["After we process your request, we delete or anonymize:"],
+        "paragraphs": [
+          "After we process your request, we delete or anonymize:"
+        ],
         "items": [
           "Your sign-in account (email, OAuth link to Google/Apple)",
           "Profile: name, avatar, city, skill level and settings",
@@ -4819,11 +4907,13 @@
       "empty_about_title": "No description yet",
       "empty_about_body": "The club owner hasn't added a description yet.",
       "venues_label": "Venues",
+      "sponsors_label": "Sponsors",
       "cta_apply": "Apply to join",
       "cta_pending": "Application pending",
       "cta_member": "You're a member",
       "cta_closed": "Invite-only club",
-      "cta_owner": "You own this club"
+      "cta_owner": "You own this club",
+      "cta_manage": "Edit club"
     },
     "profile": {
       "title": "Profile",

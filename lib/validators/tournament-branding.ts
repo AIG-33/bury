@@ -61,11 +61,18 @@ const nullableText = (max: number) =>
 export const SponsorSchema = z.object({
   name: z.string().trim().min(1, "sponsor_name_required").max(80),
   logo_url: safeImageUrl,
+  // Sponsor website. Bare domains are normalised to https:// so organizers
+  // can paste "sponsor.by" and still get a working link.
   url: z.preprocess(
-    (v) => (v == null || v === "" ? null : v),
+    (v) => {
+      if (v == null) return null;
+      if (typeof v !== "string") return v;
+      const trimmed = v.trim();
+      if (trimmed.length === 0) return null;
+      return /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    },
     z
       .string()
-      .trim()
       .max(1000)
       .refine((u) => /^https?:\/\//i.test(u), "branding_url_invalid")
       .nullable(),
