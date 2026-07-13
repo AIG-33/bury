@@ -21,16 +21,8 @@
     /* ТЗ §1.1: page background — radial lime spots over a #F3F7ED→#EDF3E4 wash. */
     background-color: #f3f7ed;
     background-image:
-      radial-gradient(
-        55% 45% at 85% 0%,
-        rgba(230, 242, 211, 0.9) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 50% at 5% 90%,
-        rgba(223, 240, 221, 0.85) 0%,
-        transparent 70%
-      ),
+      radial-gradient(55% 45% at 85% 0%, rgba(230, 242, 211, 0.9) 0%, transparent 70%),
+      radial-gradient(50% 50% at 5% 90%, rgba(223, 240, 221, 0.85) 0%, transparent 70%),
       linear-gradient(180deg, #f3f7ed 0%, #edf3e4 100%);
     background-attachment: fixed;
     font-family: var(--font-sans);
@@ -45,7 +37,6 @@
   *:focus-visible {
     @apply outline-none ring-2 ring-grass-500 ring-offset-2 ring-offset-white;
   }
-
 }
 
 @layer components {
@@ -195,7 +186,7 @@
     @apply rounded-[16px] border border-[rgba(20,60,30,0.07)] bg-[#FBFDF9] p-4;
   }
   .stat-tile-value {
-    @apply mt-1 font-mono text-[26px] font-bold leading-none tracking-tight text-grass-900 tabular-nums;
+    @apply mt-1 font-mono text-[26px] font-bold tabular-nums leading-none tracking-tight text-grass-900;
   }
 
   /* Card icon preview (ТЗ §2.3): 46–56px lime-gradient square. */
@@ -281,6 +272,22 @@
   .pb-mobile-nav {
     padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
   }
+
+  /* Mobile start screen: the app-icon logo gently "breathes" (scale only,
+     no opacity change — unlike animate-breathe which is for glow layers). */
+  .pt-logo-breathe {
+    animation: ptLogoBreathe 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes ptLogoBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
 }
 
 /* Reduced motion: tame the heavy stuff. */
@@ -288,6 +295,7 @@
   .animate-bounceBall,
   .animate-breathe,
   .animate-ptPulse,
+  .pt-logo-breathe,
   .pulse-dot::after {
     animation: none !important;
   }

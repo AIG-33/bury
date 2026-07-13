@@ -32,11 +32,25 @@ flowchart LR
 ## Mobile app UI (`/[locale]/m`)
 
 The store app renders its own screen set built to the mobile design spec
-(«ТЗ Mobile — PlayTennis», 8 screens): Лента, Турниры (+карточка), Клубы
+(«ТЗ Mobile — PlayTennis», 8 screens): Турниры (+карточка), Клубы
 (+карточка), Профиль, Игра (спарринги) and Матчи. These live under
 `app/[locale]/m/` with shared primitives in `components/mobile/` (tab bar,
 sticky/dark headers, segment controls, status pills, CTA bars, filter
 bottom-sheet) and pure helpers in `lib/mobile/format.ts`.
+
+The app root (`/[locale]/m`) follows the «PlayTennis Start» / «PlayTennis
+Home» designs:
+
+- **Guest** → splash + вход (`start-screen.tsx`): brand hero (breathing logo,
+  slogan, feature chips, live player/club counter) and a bottom sheet with
+  «Создать аккаунт» (deep-links to `/login?mode=signup`), e-mail sign-in and
+  Apple / Google (`start-oauth.tsx`, same `lib/auth/oauth.ts` flow as the web
+  login form).
+- **Signed in** → dashboard (`page.tsx`): dark header with the rating band
+  (ELO + 30-day delta, place in the primary club, win streak), three quick
+  actions, the next upcoming event card (accepted sparring / own open match /
+  tournament game) with «Открыть матч» and «Маршрут», two open games nearby
+  and tournaments closing registration.
 
 Routing:
 
@@ -148,14 +162,14 @@ stays `false` in `supabase/config.toml`.
 
 These are intentionally left as placeholders in the repo:
 
-| Where                    | Placeholder                                                                | Replace with                                                                                                                                       |
-| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Env (Vercel)             | `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID`                                         | Google **Web application** OAuth client ID (also the iOS token audience)                                                                           |
-| Env (Vercel)             | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID`                                         | Google **iOS** OAuth client ID                                                                                                                     |
-| Env (Vercel)             | `NEXT_PUBLIC_APPLE_SERVICES_ID`                                            | Apple **Services ID** (Android Apple sign-in only)                                                                                                 |
-| Env (Vercel)             | `NEXT_PUBLIC_APPLE_REDIRECT_URL`                                           | Server callback for Android Apple, e.g. `https://<ref>.supabase.co/auth/v1/callback`                                                               |
-| `ios/App/App/Info.plist` | `CFBundleURLTypes` entry (removed — ASC rejects the malformed placeholder) | Add back a `CFBundleURLTypes` → `CFBundleURLSchemes` entry with the **reversed** iOS client ID (`com.googleusercontent.apps.<id>`)                 |
-| Google Cloud Console     | Android SHA-1 fingerprints                                                 | Debug (`./gradlew signingReport`), release, and Play App Signing SHA-1s registered on an **Android** OAuth client with package `by.playtennis.app` |
+| Where                    | Placeholder                                                                                  | Replace with                                                                                                                                       |
+| ------------------------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Env (Vercel)             | `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID`                                                           | Google **Web application** OAuth client ID (also the iOS token audience)                                                                           |
+| Env (Vercel)             | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID`                                                           | Google **iOS** OAuth client ID                                                                                                                     |
+| Env (Vercel)             | `NEXT_PUBLIC_APPLE_SERVICES_ID`                                                              | Apple **Services ID** (Android Apple sign-in only)                                                                                                 |
+| Env (Vercel)             | `NEXT_PUBLIC_APPLE_REDIRECT_URL`                                                             | Server callback for Android Apple, e.g. `https://<ref>.supabase.co/auth/v1/callback`                                                               |
+| `ios/App/App/Info.plist` | `CFBundleURLTypes` → `CFBundleURLSchemes` (✅ restored with the real reversed iOS client ID) | Done — needs an iOS **rebuild + re-upload** to take effect in the store binary                                                                     |
+| Google Cloud Console     | Android SHA-1 fingerprints                                                                   | Debug (`./gradlew signingReport`), release, and Play App Signing SHA-1s registered on an **Android** OAuth client with package `by.playtennis.app` |
 
 ### Google Cloud Console
 
@@ -168,6 +182,33 @@ These are intentionally left as placeholders in the repo:
 2. In the **Supabase dashboard → Auth → Providers → Google**: enable it, paste the
    Web client ID + secret, and add the **iOS** client ID to _Authorized Client IDs_
    so `signInWithIdToken` accepts iOS-issued tokens.
+
+#### PlayTennis.by clients (project `playtennis-502214`)
+
+Client IDs are not secret (they ship inside the app). The Web client **secret**
+lives only in `.secrets/google-web-client-secret.txt` (gitignored) and the
+Supabase dashboard — never commit it.
+
+| Client type             | Client ID                                                                   | Used for                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Web application**     | `1005010581419-d0vrmm3mc85uv563mvj5d065ahg5nero.apps.googleusercontent.com` | Supabase Google provider Client ID + `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` (iOS token audience) |
+| **iOS**                 | `1005010581419-oooj9kskal3jr6t173f5ukp7get5nm8l.apps.googleusercontent.com` | `NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID` + Supabase _Authorized Client IDs_                        |
+| **Desktop (installed)** | `1005010581419-8siinqlb2ktac3lpv9qug820qg40o9e1.apps.googleusercontent.com` | Not used by web/iOS/Supabase (kept for CLI/desktop tooling only)                             |
+
+- iOS reversed client ID (Info.plist `CFBundleURLSchemes`):
+  `com.googleusercontent.apps.1005010581419-oooj9kskal3jr6t173f5ukp7get5nm8l`
+- Web client **Authorized redirect URI** must include the Supabase callback:
+  `https://uvjvvkjodomesycdlydr.supabase.co/auth/v1/callback` (already present in
+  the downloaded Web client JSON).
+- **Android** client + SHA-1 fingerprints are still pending (not among the current
+  credential files) — required before native Google sign-in works on Android.
+
+Once `SUPABASE_ACCESS_TOKEN` (sbp\_…) is available, the provider can be applied in
+one command instead of the dashboard:
+
+```bash
+SUPABASE_ACCESS_TOKEN=sbp_… node scripts/configure-google-supabase-auth.mjs
+```
 
 ### Apple Developer
 
