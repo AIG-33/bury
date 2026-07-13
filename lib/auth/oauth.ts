@@ -64,12 +64,16 @@ async function nativeIdTokenSignIn(
     // Supabase the raw value.
     const { rawNonce, nonceDigest } = await createNoncePair();
 
+    // Google: no explicit `scopes` — Android rejects any custom scopes unless
+    // MainActivity implements ModifiedMainActivityForSocialLoginPlugin, and both
+    // platforms default to email+profile+openid anyway, which is all the
+    // id-token exchange needs.
     const result =
       provider === "google"
         ? (
             await SocialLogin.login({
               provider: "google",
-              options: { scopes: ["email", "profile"], nonce: nonceDigest },
+              options: { nonce: nonceDigest },
             })
           ).result
         : (
