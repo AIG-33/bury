@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { z } from "zod";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { buildTournamentEventJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
@@ -18,10 +19,7 @@ import {
 import { HelpPanel } from "@/components/help/help-panel";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { PageHeader } from "@/components/layout/page-header";
-import {
-  TournamentRoomHero,
-  shouldRenderHero,
-} from "@/components/domain/tournament-room-hero";
+import { TournamentRoomHero, shouldRenderHero } from "@/components/domain/tournament-room-hero";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
@@ -33,6 +31,8 @@ import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournament
 import { TournamentApplyButton, type ApplyButtonCopy } from "./apply-button";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
+
+const tournamentIdSchema = z.string().uuid();
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
@@ -57,11 +57,21 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   const tNav = await getTranslations("nav");
   const tCrumb = await getTranslations("breadcrumbs");
 
+  if (!tournamentIdSchema.safeParse(id).success) notFound();
+
   const [detail, viewer] = await Promise.all([
     loadPublicTournamentDetail(id),
     loadTournamentViewerState(id),
   ]);
-  if (!detail) notFound();
+  if (!detail) {
+    // RLS hides non-public tournaments from anonymous visitors, so a shared
+    // registration link used to dead-end in a 404. Send guests through login
+    // and bounce them back here (post-login honours the locale-less `next`).
+    if (!viewer.authenticated) {
+      redirect(`/${locale}/login?next=${encodeURIComponent(`/tournaments/${id}`)}`);
+    }
+    notFound();
+  }
 
   const { tournament, participants, matches } = detail;
 
@@ -144,166 +154,166 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
           />
         )}
 
-      <div className="flex flex-wrap gap-2 text-xs">
-        <Chip tone="grass" className="uppercase">
-          {t(`format.${tournament.format}`)}
-        </Chip>
-        {tournament.surface && (
-          <Chip tone="clay" className="uppercase">
-            {t(`surfaces.${tournament.surface}`)}
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Chip tone="grass" className="uppercase">
+            {t(`format.${tournament.format}`)}
           </Chip>
-        )}
-        <TournamentStatusPill
-          status={tournament.status}
-          label={t(`status.${tournament.status}`)}
-        />
-      </div>
+          {tournament.surface && (
+            <Chip tone="clay" className="uppercase">
+              {t(`surfaces.${tournament.surface}`)}
+            </Chip>
+          )}
+          <TournamentStatusPill
+            status={tournament.status}
+            label={t(`status.${tournament.status}`)}
+          />
+        </div>
 
-      {/* Meta strip */}
-      <dl className="grid gap-4 sm:grid-cols-3">
-        <Surface variant="row">
-          <dt className="label-eyebrow">{t("detail.starts")}</dt>
-          <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
-            <span className="inline-flex items-center gap-1">
-              <Calendar className="h-4 w-4 text-grass-700" />
-              {fmtDate.format(new Date(tournament.starts_on))}
-            </span>
-            {tournament.start_time && (
-              <span className="inline-flex items-center gap-1 text-sm tabular-nums text-ink-700">
-                <Clock className="h-3.5 w-3.5 text-grass-700" />
-                {tournament.start_time.slice(0, 5)}
+        {/* Meta strip */}
+        <dl className="grid gap-4 sm:grid-cols-3">
+          <Surface variant="row">
+            <dt className="label-eyebrow">{t("detail.starts")}</dt>
+            <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="h-4 w-4 text-grass-700" />
+                {fmtDate.format(new Date(tournament.starts_on))}
               </span>
-            )}
-          </dd>
-        </Surface>
-        <Surface variant="row">
-          <dt className="label-eyebrow">{t("detail.participants")}</dt>
-          <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Users className="h-4 w-4 text-grass-700" />
-            {tournament.participants_count}
-            {tournament.max_participants ? ` / ${tournament.max_participants}` : ""}
-          </dd>
-        </Surface>
-        <Surface variant="row">
-          <dt className="label-eyebrow">{t("detail.entry_fee")}</dt>
-          <dd className="mt-1 inline-flex items-center gap-1 font-medium tabular-nums text-ink-900">
-            <Coins className="h-4 w-4 text-grass-700" />
-            {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
-              ? t("entry_fee_free")
-              : t("entry_fee_byn", { n: tournament.entry_fee_byn })}
-          </dd>
-        </Surface>
-        <Surface variant="row">
-          <dt className="label-eyebrow">{t("detail.organizer")}</dt>
-          <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-            <Trophy className="h-4 w-4 text-grass-700" />
-            {tournament.organizer_name ?? "—"}
-          </dd>
-        </Surface>
-        {tournament.venues.length > 0 && (
-          <Surface variant="row" className="sm:col-span-2">
-            <dt className="label-eyebrow">{t("detail.venues")}</dt>
-            <dd className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-900">
-              {tournament.venues.map((v) => (
-                <span
-                  key={v.id}
-                  className="inline-flex items-center gap-1 rounded-full bg-grass-50 px-2 py-0.5 text-xs text-grass-700"
-                >
-                  <MapPin className="h-3 w-3" />
-                  {v.name}
-                  {v.city && <span className="text-ink-500">· {v.city}</span>}
+              {tournament.start_time && (
+                <span className="inline-flex items-center gap-1 text-sm tabular-nums text-ink-700">
+                  <Clock className="h-3.5 w-3.5 text-grass-700" />
+                  {tournament.start_time.slice(0, 5)}
                 </span>
-              ))}
+              )}
             </dd>
           </Surface>
-        )}
-      </dl>
-
-      {/* Apply — the CTA the shareable registration link lands on. */}
-      <Surface variant="card" as="section">
-        <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-          <span
-            className="inline-block pb-0.5"
-            style={accent ? { borderBottom: `2px solid ${accent}` } : undefined}
-          >
-            {applyCopy.title}
-          </span>
-        </h2>
-        <TournamentApplyButton
-          locale={locale}
-          tournamentId={id}
-          status={tournament.status}
-          viewer={viewer}
-          copy={applyCopy}
-        />
-      </Surface>
-
-      {/* Participants */}
-      <Surface variant="card" as="section">
-        <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-          {t("detail.participants_title")}
-        </h2>
-        {participants.length === 0 ? (
-          <p className="text-sm text-ink-500">{t("detail.participants_empty")}</p>
-        ) : (
-          <ol className="grid gap-1 sm:grid-cols-2">
-            {participants
-              .filter((p) => !p.withdrawn)
-              .map((p, i) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between rounded-md px-3 py-1.5 text-sm odd:bg-ink-50/50"
-                >
-                  <span className="text-ink-700">
-                    <span className="mr-2 font-mono text-xs tabular-nums text-ink-400">
-                      {p.seed ?? i + 1}.
-                    </span>
-                    {p.name ?? "?"}
+          <Surface variant="row">
+            <dt className="label-eyebrow">{t("detail.participants")}</dt>
+            <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
+              <Users className="h-4 w-4 text-grass-700" />
+              {tournament.participants_count}
+              {tournament.max_participants ? ` / ${tournament.max_participants}` : ""}
+            </dd>
+          </Surface>
+          <Surface variant="row">
+            <dt className="label-eyebrow">{t("detail.entry_fee")}</dt>
+            <dd className="mt-1 inline-flex items-center gap-1 font-medium tabular-nums text-ink-900">
+              <Coins className="h-4 w-4 text-grass-700" />
+              {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
+                ? t("entry_fee_free")
+                : t("entry_fee_byn", { n: tournament.entry_fee_byn })}
+            </dd>
+          </Surface>
+          <Surface variant="row">
+            <dt className="label-eyebrow">{t("detail.organizer")}</dt>
+            <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
+              <Trophy className="h-4 w-4 text-grass-700" />
+              {tournament.organizer_name ?? "—"}
+            </dd>
+          </Surface>
+          {tournament.venues.length > 0 && (
+            <Surface variant="row" className="sm:col-span-2">
+              <dt className="label-eyebrow">{t("detail.venues")}</dt>
+              <dd className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-900">
+                {tournament.venues.map((v) => (
+                  <span
+                    key={v.id}
+                    className="inline-flex items-center gap-1 rounded-full bg-grass-50 px-2 py-0.5 text-xs text-grass-700"
+                  >
+                    <MapPin className="h-3 w-3" />
+                    {v.name}
+                    {v.city && <span className="text-ink-500">· {v.city}</span>}
                   </span>
-                  <RatingDisplay
-                    internalElo={p.elo}
-                    external={
-                      p.external_rating
-                        ? {
-                            source: "liga_tennisa",
-                            elo: p.external_rating.external_elo,
-                            displayTier: p.external_rating.display_tier,
-                            externalUrl: p.external_rating.external_url,
-                            isCalibrating: p.external_rating.is_calibrating_singles,
-                          }
-                        : null
-                    }
-                    variant="inline"
-                    size="sm"
-                  />
-                </li>
-              ))}
-          </ol>
-        )}
-      </Surface>
+                ))}
+              </dd>
+            </Surface>
+          )}
+        </dl>
 
-      {/* Matches — same scorecard look as /matches; grouped by round so a
-          long bracket reads top → down by stage. */}
-      <Surface variant="card" as="section">
-        <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-          {t("detail.matches_title")}
-        </h2>
-        {matches.length === 0 ? (
-          <p className="text-sm text-ink-500">{t("detail.matches_empty")}</p>
-        ) : (
-          <TournamentMatchesByRound
-            matches={matches}
+        {/* Apply — the CTA the shareable registration link lands on. */}
+        <Surface variant="card" as="section">
+          <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+            <span
+              className="inline-block pb-0.5"
+              style={accent ? { borderBottom: `2px solid ${accent}` } : undefined}
+            >
+              {applyCopy.title}
+            </span>
+          </h2>
+          <TournamentApplyButton
             locale={locale}
-            labels={{
-              round_short: t("detail.round_short"),
-              scheduled: t("detail.scheduled"),
-              winner: t("detail.winner"),
-              countLabel: (n: number) => t("detail.matches_count", { n }),
-              tba: t("detail.tba"),
-            }}
+            tournamentId={id}
+            status={tournament.status}
+            viewer={viewer}
+            copy={applyCopy}
           />
-        )}
-      </Surface>
+        </Surface>
+
+        {/* Participants */}
+        <Surface variant="card" as="section">
+          <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+            {t("detail.participants_title")}
+          </h2>
+          {participants.length === 0 ? (
+            <p className="text-sm text-ink-500">{t("detail.participants_empty")}</p>
+          ) : (
+            <ol className="grid gap-1 sm:grid-cols-2">
+              {participants
+                .filter((p) => !p.withdrawn)
+                .map((p, i) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between rounded-md px-3 py-1.5 text-sm odd:bg-ink-50/50"
+                  >
+                    <span className="text-ink-700">
+                      <span className="mr-2 font-mono text-xs tabular-nums text-ink-400">
+                        {p.seed ?? i + 1}.
+                      </span>
+                      {p.name ?? "?"}
+                    </span>
+                    <RatingDisplay
+                      internalElo={p.elo}
+                      external={
+                        p.external_rating
+                          ? {
+                              source: "liga_tennisa",
+                              elo: p.external_rating.external_elo,
+                              displayTier: p.external_rating.display_tier,
+                              externalUrl: p.external_rating.external_url,
+                              isCalibrating: p.external_rating.is_calibrating_singles,
+                            }
+                          : null
+                      }
+                      variant="inline"
+                      size="sm"
+                    />
+                  </li>
+                ))}
+            </ol>
+          )}
+        </Surface>
+
+        {/* Matches — same scorecard look as /matches; grouped by round so a
+          long bracket reads top → down by stage. */}
+        <Surface variant="card" as="section">
+          <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+            {t("detail.matches_title")}
+          </h2>
+          {matches.length === 0 ? (
+            <p className="text-sm text-ink-500">{t("detail.matches_empty")}</p>
+          ) : (
+            <TournamentMatchesByRound
+              matches={matches}
+              locale={locale}
+              labels={{
+                round_short: t("detail.round_short"),
+                scheduled: t("detail.scheduled"),
+                winner: t("detail.winner"),
+                countLabel: (n: number) => t("detail.matches_count", { n }),
+                tba: t("detail.tba"),
+              }}
+            />
+          )}
+        </Surface>
       </div>
     </div>
   );
@@ -320,9 +330,7 @@ function TournamentMatchesByRound({
   locale,
   labels,
 }: {
-  matches: NonNullable<
-    Awaited<ReturnType<typeof loadPublicTournamentDetail>>
-  >["matches"];
+  matches: NonNullable<Awaited<ReturnType<typeof loadPublicTournamentDetail>>>["matches"];
   locale: string;
   labels: {
     round_short: string;
@@ -341,10 +349,7 @@ function TournamentMatchesByRound({
 
   // Preserve the upstream order (round asc, bracket_slot asc).
   const order: Array<number | "_no_round"> = [];
-  const groups = new Map<
-    number | "_no_round",
-    { matches: typeof matches }
-  >();
+  const groups = new Map<number | "_no_round", { matches: typeof matches }>();
   for (const m of matches) {
     const k: number | "_no_round" = m.round ?? "_no_round";
     if (!groups.has(k)) {
@@ -361,9 +366,7 @@ function TournamentMatchesByRound({
       {order.map((roundKey) => {
         const g = groups.get(roundKey)!;
         const headerLabel =
-          roundKey === "_no_round"
-            ? labels.tba
-            : `${labels.round_short}${roundKey}`;
+          roundKey === "_no_round" ? labels.tba : `${labels.round_short}${roundKey}`;
 
         return (
           <details
@@ -410,15 +413,13 @@ function TournamentMatchesByRound({
                     key={m.id}
                     accent="tournament"
                     winnerLabel={labels.winner}
-                    noScoreLabel={
-                      m.outcome === "scheduled" ? labels.scheduled : "—"
-                    }
+                    noScoreLabel={m.outcome === "scheduled" ? labels.scheduled : "—"}
                     meta={
                       <>
                         {dateIso ? (
                           <span className="inline-flex items-center gap-1 text-ink-500">
                             <CalendarDays className="h-3 w-3" />
-                            <span className="text-ink-700 normal-case tracking-normal">
+                            <span className="normal-case tracking-normal text-ink-700">
                               {dateFmt.format(new Date(dateIso))}
                             </span>
                           </span>
