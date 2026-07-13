@@ -1,0 +1,1 @@
+New animated launch screen (fixes the black screen on startup) and unified navigation: tab bar on every screen and a reworked role-aware "More" hub.
