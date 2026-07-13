@@ -1,18 +1,31 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import {
+  Activity,
+  Award,
   Bell,
+  BookUser,
   CalendarDays,
   ChevronRight,
+  ClipboardList,
   GraduationCap,
+  Handshake,
   HelpCircle,
+  KeyRound,
+  LayoutDashboard,
+  LifeBuoy,
   LogIn,
   LogOut,
+  MapPin,
   Settings,
+  ShieldCheck,
   Star,
+  Swords,
   TrendingUp,
   Trophy,
+  UserCheck,
   UserRound,
+  UserSearch,
   Users,
   UsersRound,
   type LucideIcon,
@@ -27,10 +40,14 @@ import pkg from "@/package.json";
 // =============================================================================
 // Screen «Ещё» (design «PlayTennis Navigation», экран 03): mini-profile on a
 // dark gradient header (avatar, name, ELO, place in club → tap opens the full
-// profile), then every destination without its own tab, grouped Профиль ·
-// Соревнования · Сообщество · Аккаунт. Badge counters (notifications) mark
-// what needs attention. «Выйти» is separated and painted danger; the app
-// version closes the screen.
+// profile), then EVERY destination without its own tab, grouped Профиль ·
+// Игра · Соревнования · Сообщество · Управление (role-aware) · Аккаунт.
+// The «Управление» rows come from profiles.is_coach / is_admin — the same
+// source the /coach and /admin layouts gate on; both sections carry their own
+// SectionNav, so one entry per panel is enough for full reachability.
+// Badge counters (notifications) mark what needs attention. «Выйти» is
+// separated and painted danger; the app version closes the screen.
+// Full flow → menu mapping: docs/FLOWS-CATALOG.md.
 // =============================================================================
 
 type Props = { params: Promise<{ locale: string }> };
@@ -54,6 +71,8 @@ export default async function MobileMorePage({ params }: Props) {
   } = await supabase.auth.getUser();
 
   let me: { name: string | null; avatar: string | null; elo: number } | null = null;
+  let isCoach = false;
+  let isAdmin = false;
   let clubRank: number | null = null;
   let freshNotifications = 0;
 
@@ -61,13 +80,15 @@ export default async function MobileMorePage({ params }: Props) {
     const [profileRes, memberRes, outboxRes] = await Promise.all([
       supabase
         .from("profiles")
-        .select("display_name, avatar_url, current_elo")
+        .select("display_name, avatar_url, current_elo, is_coach, is_admin")
         .eq("id", user.id)
         .maybeSingle() as unknown as Promise<{
         data: {
           display_name: string | null;
           avatar_url: string | null;
           current_elo: number;
+          is_coach: boolean;
+          is_admin: boolean;
         } | null;
       }>,
       supabase
@@ -92,6 +113,8 @@ export default async function MobileMorePage({ params }: Props) {
       avatar: profileRes.data?.avatar_url ?? null,
       elo: profileRes.data?.current_elo ?? 1000,
     };
+    isCoach = profileRes.data?.is_coach ?? false;
+    isAdmin = profileRes.data?.is_admin ?? false;
     freshNotifications = outboxRes.count ?? 0;
 
     const clubId = memberRes.data?.[0]?.club_id ?? null;
@@ -106,14 +129,30 @@ export default async function MobileMorePage({ params }: Props) {
     ? [
         { href: "/m/profile", label: t("more.my_profile"), icon: UserRound },
         { href: "/m/matches", label: t("more.my_stats"), icon: TrendingUp },
+        { href: "/me/rating", label: t("more.my_rating"), icon: Activity },
       ]
     : [];
+
+  const playGroup: MoreItem[] = [
+    ...(user
+      ? [
+          { href: "/me/find", label: t("more.find_opponent"), icon: UserSearch },
+          { href: "/me/find/proposals", label: t("more.match_proposals"), icon: Handshake },
+        ]
+      : []),
+    { href: "/m/game", label: t("more.open_matches"), icon: Swords },
+  ];
 
   const competitionGroup: MoreItem[] = [
     { href: "/m/rating", label: t("more.leaderboard"), icon: Star, tone: "sun" },
     ...(user
       ? [
           { href: "/m/tournaments?tab=mine", label: t("more.my_tournaments"), icon: Trophy },
+          {
+            href: "/me/tournaments/organized",
+            label: t("more.create_tournament"),
+            icon: ClipboardList,
+          },
           { href: "/me/bookings", label: t("more.my_bookings"), icon: CalendarDays },
         ]
       : []),
@@ -121,8 +160,26 @@ export default async function MobileMorePage({ params }: Props) {
 
   const communityGroup: MoreItem[] = [
     { href: "/m/clubs", label: t("more.clubs"), icon: Users },
+    ...(user
+      ? [
+          { href: "/me/clubs", label: t("more.my_clubs"), icon: UserCheck },
+          { href: "/me/clubs/owned", label: t("more.manage_clubs"), icon: KeyRound },
+        ]
+      : []),
     { href: "/m/coaches", label: t("more.coaches"), icon: GraduationCap },
+    ...(user ? [{ href: "/me/coaches", label: t("more.my_coaches"), icon: BookUser }] : []),
     { href: "/players", label: t("more.players"), icon: UsersRound },
+    { href: "/venues", label: t("more.venues"), icon: MapPin },
+  ];
+
+  // Role-gated: /coach/* and /admin/* carry their own section navigation, so a
+  // single entry per panel keeps this screen calm while every flow stays
+  // reachable.
+  const manageGroup: MoreItem[] = [
+    ...(isCoach || isAdmin
+      ? [{ href: "/coach/dashboard", label: t("more.coach_panel"), icon: LayoutDashboard }]
+      : []),
+    ...(isAdmin ? [{ href: "/admin", label: t("more.admin_panel"), icon: ShieldCheck }] : []),
   ];
 
   const accountGroup: MoreItem[] = [
@@ -137,7 +194,11 @@ export default async function MobileMorePage({ params }: Props) {
         ]
       : []),
     { href: "/m/settings", label: t("more.settings"), icon: Settings },
+    ...(user && !isCoach
+      ? [{ href: "/me/become-coach", label: t("more.become_coach"), icon: Award }]
+      : []),
     { href: "/help", label: t("more.help"), icon: HelpCircle },
+    { href: "/support", label: t("more.support"), icon: LifeBuoy },
   ];
 
   return (
@@ -188,8 +249,12 @@ export default async function MobileMorePage({ params }: Props) {
           {profileGroup.length > 0 ? (
             <MoreGroup eyebrow={t("more.group_profile")} items={profileGroup} />
           ) : null}
+          <MoreGroup eyebrow={t("more.group_play")} items={playGroup} />
           <MoreGroup eyebrow={t("more.group_competitions")} items={competitionGroup} />
           <MoreGroup eyebrow={t("more.group_community")} items={communityGroup} />
+          {manageGroup.length > 0 ? (
+            <MoreGroup eyebrow={t("more.group_manage")} items={manageGroup} />
+          ) : null}
           <MoreGroup eyebrow={t("more.group_account")} items={accountGroup} />
         </div>
 

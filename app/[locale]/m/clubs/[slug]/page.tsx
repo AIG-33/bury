@@ -3,8 +3,10 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ArrowLeft, Lock, LockOpen, ShieldCheck } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { MContent, MCtaBar, MEmptyState, MSegment, MStatTile } from "@/components/mobile/m-ui";
+import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { loadClubBySlug, loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
 import { initialsOf } from "@/lib/mobile/format";
+import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { ClubApplyCta } from "./apply-cta";
 
 // =============================================================================
@@ -113,7 +115,7 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
         </div>
       </header>
 
-      <MContent className="flex-1 pt-4">
+      <MContent className="flex-1 pt-4" extraBottom={72}>
         <div className="grid grid-cols-3 gap-2">
           <MStatTile value={stats.members_total} label={t("club.stat_members")} />
           <MStatTile value={Math.round(stats.avg_elo)} label={t("club.stat_avg_elo")} accent />
@@ -216,7 +218,7 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
         </div>
       </MContent>
 
-      <MCtaBar>
+      <MCtaBar aboveTabBar>
         <ClubApplyCta
           clubId={club.id}
           state={ctaState}
@@ -231,6 +233,12 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
           }}
         />
       </MCtaBar>
+
+      <MTabBar
+        labels={getMobileTabLabels(t)}
+        playLabels={getMobilePlayLabels(t)}
+        authed={viewer.authenticated}
+      />
     </div>
   );
 }

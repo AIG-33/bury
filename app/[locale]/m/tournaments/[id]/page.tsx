@@ -9,19 +9,21 @@ import {
   MEyebrow,
   MSegment,
 } from "@/components/mobile/m-ui";
+import { MTabBar } from "@/components/mobile/m-tab-bar";
 import {
   loadPublicTournamentDetail,
   type PublicTournamentDetail,
 } from "@/app/[locale]/tournaments/actions";
 import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
 import { formatSetsScore } from "@/lib/mobile/format";
+import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { TournamentApplyCta } from "./apply-cta";
 
 // =============================================================================
 // Screen 03 — Карточка турнира (ТЗ Mobile §7.03).
 // Light header with back + eyebrow-status + H1 + format/surface tags,
 // 2×2 meta grid, segment Участники / Сетка / Инфо, fixed CTA bar
-// («Взнос … BYN» + «Записаться») — tab bar is hidden on detail screens.
+// («Взнос … BYN» + «Записаться») stacked above the unified tab bar.
 // =============================================================================
 
 type Props = {
@@ -113,7 +115,7 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
         </div>
       </header>
 
-      <MContent className="flex-1 pt-4">
+      <MContent className="flex-1 pt-4" extraBottom={72}>
         <div className="grid grid-cols-2 gap-2">
           <MetaTile
             eyebrow={t("tournament.meta_start")}
@@ -203,6 +205,7 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
       </MContent>
 
       <MCtaBar
+        aboveTabBar
         left={
           tournament.entry_fee_byn ? (
             <div>
@@ -231,6 +234,12 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
           }}
         />
       </MCtaBar>
+
+      <MTabBar
+        labels={getMobileTabLabels(t)}
+        playLabels={getMobilePlayLabels(t)}
+        authed={viewer.authenticated}
+      />
     </div>
   );
 }

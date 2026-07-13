@@ -162,7 +162,7 @@ export function RecordScore({ me, labels }: Props) {
 
       <div
         className="mx-auto w-full max-w-[430px] flex-1 px-[18px] pt-4"
-        style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 12px) + 96px)" }}
+        style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 12px) + 168px)" }}
       >
         {/* ---- You vs opponent ---- */}
         <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2.5">
@@ -314,7 +314,7 @@ export function RecordScore({ me, labels }: Props) {
         ) : null}
       </div>
 
-      <MCtaBar>
+      <MCtaBar aboveTabBar>
         <button
           type="button"
           disabled={!canSave}

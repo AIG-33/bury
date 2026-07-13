@@ -11,18 +11,26 @@ import { initialsOf } from "@/lib/mobile/format";
 // safe-area top 54px handled with max(env(safe-area-inset-top), 10px).
 // =============================================================================
 
-/** Scrollable content zone. Reserves space for the tab bar / CTA bar. */
+/**
+ * Scrollable content zone. Reserves space for the tab bar / CTA bar.
+ * `extraBottom` adds px on top of the default reservation — used on detail
+ * screens where the CTA bar is stacked above the tab bar.
+ */
 export function MContent({
   children,
   className = "",
+  extraBottom = 0,
 }: {
   children: ReactNode;
   className?: string;
+  extraBottom?: number;
 }) {
   return (
     <div
       className={`mx-auto w-full max-w-[430px] px-[18px] ${className}`}
-      style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 12px) + 92px)" }}
+      style={{
+        paddingBottom: `calc(max(env(safe-area-inset-bottom), 12px) + ${92 + extraBottom}px)`,
+      }}
     >
       {children}
     </div>
@@ -322,14 +330,27 @@ export function MStatTile({
 }
 
 /**
- * Fixed CTA bar (ТЗ §5): replaces the tab bar on detail screens.
- * Blurred white bar, optional left slot (entry fee), gradient button.
+ * Fixed CTA bar (ТЗ §5). Blurred white bar, optional left slot (entry fee),
+ * gradient button. With `aboveTabBar` it stacks right above the unified tab
+ * bar instead of replacing it, so the tab bar stays on every screen.
  */
-export function MCtaBar({ left, children }: { left?: ReactNode; children: ReactNode }) {
+export function MCtaBar({
+  left,
+  children,
+  aboveTabBar = false,
+}: {
+  left?: ReactNode;
+  children: ReactNode;
+  aboveTabBar?: boolean;
+}) {
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(20,60,30,0.07)] bg-white/[0.92] backdrop-blur-[16px]"
-      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 14px)" }}
+      className="fixed inset-x-0 z-50 border-t border-[rgba(20,60,30,0.07)] bg-white/[0.92] backdrop-blur-[16px]"
+      style={
+        aboveTabBar
+          ? { bottom: "calc(max(env(safe-area-inset-bottom), 12px) + 55px)", paddingBottom: 12 }
+          : { bottom: 0, paddingBottom: "max(env(safe-area-inset-bottom), 14px)" }
+      }
     >
       <div className="mx-auto flex w-full max-w-[430px] items-center gap-3 px-[18px] pt-3">
         {left ? <div className="shrink-0">{left}</div> : null}
