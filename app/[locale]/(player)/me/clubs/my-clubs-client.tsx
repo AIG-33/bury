@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Star, LogOut, XCircle, Crown, Shield, Loader2 } from "lucide-react";
+import { Star, LogOut, XCircle, Crown, Shield, Loader2, Pencil } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { ClubLogo } from "@/components/clubs/club-logo";
@@ -31,6 +31,7 @@ type Labels = {
   primary_help: string;
   owner_badge: string;
   admin_badge: string;
+  edit: string;
   leave: string;
   leave_confirm: string;
   cancel_application: string;
@@ -146,6 +147,8 @@ function MembershipCard({
   const [isPending, startTransition] = useTransition();
 
   const isApproved = membership.status === "approved";
+  const canManage =
+    membership.is_owner || (membership.role === "admin" && isApproved);
 
   return (
     <Surface variant="card">
@@ -198,6 +201,15 @@ function MembershipCard({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {canManage && (
+          <Button asChild variant="primary" size="sm">
+            <Link href={`/${locale}/me/clubs/owned/${membership.club_id}`}>
+              <Pencil className="h-3 w-3" />
+              {labels.edit}
+            </Link>
+          </Button>
+        )}
+
         {isApproved && (
           <Button
             variant={membership.is_primary ? "accent" : "secondary"}

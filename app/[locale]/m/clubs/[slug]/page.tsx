@@ -5,14 +5,17 @@ import { Link } from "@/i18n/routing";
 import { MContent, MCtaBar, MEmptyState, MSegment, MStatTile } from "@/components/mobile/m-ui";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { loadClubBySlug, loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
+import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { initialsOf } from "@/lib/mobile/format";
 import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { ClubApplyCta } from "./apply-cta";
 
 // =============================================================================
-// Screen 05 — Карточка клуба (ТЗ Mobile §7.05).
-// Dark gradient header (radius 24) with 60px logo + access badge, 3×2 stat
-// grid, segment Рейтинг / О клубе, fixed CTA «Подать заявку».
+// Screen 05 — Карточка клуба (ТЗ Mobile §7.05 + «Tournament Page» design).
+// Dark themed header (radius 24) with the owner's branding: banner + scrim,
+// logo tile, title override / tagline, sponsor strip with clickable logos.
+// Then a 3×2 stat grid, segment Рейтинг / О клубе, fixed CTA above the tab
+// bar («Подать заявку» / «Редактировать клуб» for owners & co-admins).
 // =============================================================================
 
 type Props = {
@@ -33,10 +36,17 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
   const board = await loadClubRatingBoard(club.id);
   const tab = sp.tab === "about" ? "about" : "rating";
 
+  const branding = club.branding;
+  const theme = buildRoomTheme(branding);
+  const title = branding.title_override || club.name;
+  const logoUrl = theme.logoUrl ?? club.logo_url;
+
+  const canManage = viewer.is_owner || (viewer.role === "admin" && viewer.status === "approved");
+
   const ctaState = !viewer.authenticated
     ? ("guest" as const)
-    : viewer.is_owner
-      ? ("owner" as const)
+    : canManage
+      ? ("manage" as const)
       : viewer.status === "approved"
         ? ("approved" as const)
         : viewer.status === "pending"
@@ -65,46 +75,103 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
             positive: true,
           }));
 
+  // Themed header background: custom colors when the owner set them,
+  // otherwise the default brand gradient. Text over a banner sits on a dark
+  // scrim (always white); over a flat custom color we use the auto-picked
+  // contrast color from buildRoomTheme.
+  const hasCustomBackground = Object.keys(theme.backgroundStyle).length > 0;
+  const headerBackground = hasCustomBackground
+    ? theme.backgroundStyle
+    : { background: "linear-gradient(135deg,#12331F,#1C6B40 60%,#2A9556)" };
+  const headerTextColor = theme.bannerImageStyle
+    ? "#ffffff"
+    : hasCustomBackground
+      ? theme.textColor
+      : "#ffffff";
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header
-        className="relative overflow-hidden text-white"
+        className="relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg,#12331F,#1C6B40 60%,#2A9556)",
+          ...headerBackground,
+          color: headerTextColor,
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
-          paddingTop: "max(env(safe-area-inset-top), 14px)",
         }}
       >
+        {/* Banner image + scrim (branding), else the lime corner glow. */}
+        {theme.bannerImageStyle ? (
+          <>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: theme.bannerImageStyle }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: `linear-gradient(to top, rgba(0,0,0,${theme.scrimOpacity}) 0%, rgba(0,0,0,${Math.max(
+                  0,
+                  theme.scrimOpacity - 0.2,
+                )}) 60%, rgba(0,0,0,${Math.max(0, theme.scrimOpacity - 0.35)}) 100%)`,
+              }}
+            />
+          </>
+        ) : (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(42% 48% at 92% 4%, rgba(195,232,79,0.3) 0%, transparent 70%)",
+            }}
+          />
+        )}
+        {/* Accent top bar (branding). */}
+        {theme.accentColor ? (
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0"
+            style={{ height: 4, backgroundColor: theme.accentColor }}
+          />
+        ) : null}
+
         <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(42% 48% at 92% 4%, rgba(195,232,79,0.3) 0%, transparent 70%)",
-          }}
-        />
-        <div className="relative mx-auto w-full max-w-[430px] px-[18px] pb-5 pt-2">
-          <MBackButtonDark href="/m/clubs" label={t("common.back")} />
+          className="relative mx-auto w-full max-w-[430px] px-[18px] pb-5"
+          style={{ paddingTop: "max(env(safe-area-inset-top), 14px)" }}
+        >
+          <div className="pt-2">
+            <MBackButtonDark label={t("common.back")} />
+          </div>
           <div className="mt-4 flex items-center gap-3.5">
             <span
               className="grid h-[60px] w-[60px] shrink-0 place-items-center overflow-hidden rounded-[17px] font-display text-[19px] font-extrabold text-grass-700"
-              style={{ background: "linear-gradient(135deg,#E7F4D9,#D3ECC4)" }}
+              style={{
+                background: "linear-gradient(135deg,#E7F4D9,#D3ECC4)",
+                boxShadow: theme.accentColor ? `0 0 0 2px ${theme.accentColor}` : undefined,
+              }}
             >
-              {club.logo_url ? (
+              {logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={club.logo_url} alt="" className="h-full w-full object-cover" />
+                <img src={logoUrl} alt="" className="h-full w-full object-cover" />
               ) : (
                 initialsOf(club.name)
               )}
             </span>
             <div className="min-w-0 flex-1">
               <h1 className="truncate font-display text-[22px] font-extrabold leading-[1.1] tracking-[-0.5px]">
-                {club.name}
+                {title}
               </h1>
+              {branding.tagline ? (
+                <p className="mt-0.5 truncate text-[12px] font-semibold" style={{ opacity: 0.75 }}>
+                  {branding.tagline}
+                </p>
+              ) : null}
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 <DarkAccessBadge policy={club.join_policy} t={t} />
-                <span className="text-[11.5px] font-semibold text-white/70">
+                <span className="text-[11.5px] font-semibold" style={{ opacity: 0.7 }}>
                   {[club.city, t("clubs.members_count", { count: stats.members_total })]
                     .filter(Boolean)
                     .join(" · ")}
@@ -112,6 +179,25 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
               </div>
             </div>
           </div>
+
+          {/* Sponsor strip — logos link out to the sponsor's site. */}
+          {branding.sponsors.length > 0 ? (
+            <div className="mt-4">
+              <p
+                className="mb-1.5 text-[10px] font-bold uppercase tracking-[1.2px]"
+                style={{ opacity: 0.6 }}
+              >
+                {t("club.sponsors_label")}
+              </p>
+              <ul className="flex flex-wrap items-center gap-2">
+                {branding.sponsors.map((s, i) => (
+                  <li key={i}>
+                    <SponsorBadge sponsor={s} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -222,13 +308,14 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
         <ClubApplyCta
           clubId={club.id}
           state={ctaState}
+          accentColor={theme.accentColor}
           labels={{
             apply: t("club.cta_apply"),
             login: t("tournament.cta_login"),
             pending: t("club.cta_pending"),
             approved: t("club.cta_member"),
             closed: t("club.cta_closed"),
-            owner: t("club.cta_owner"),
+            manage: t("club.cta_manage"),
             error: t("common.error_generic"),
           }}
         />
@@ -244,16 +331,50 @@ export default async function MobileClubDetailPage({ params, searchParams }: Pro
 }
 
 // Dark-header variant of the back button (glass over gradient).
-function MBackButtonDark({ href, label }: { href: string; label: string }) {
+function MBackButtonDark({ label }: { label: string }) {
   return (
     <Link
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      href={href as any}
+      href="/m/clubs"
       aria-label={label}
       className="grid h-10 w-10 place-items-center rounded-[12px] border border-white/20 bg-white/10 text-white backdrop-blur-md transition-opacity active:opacity-85"
     >
       <ArrowLeft className="h-[19px] w-[19px]" strokeWidth={1.8} />
     </Link>
+  );
+}
+
+// Sponsor logo/name chip; opens the sponsor's site when a URL is set. The
+// native shell (native-bridge.tsx) routes off-site anchors to the system
+// browser via Capacitor Browser.
+function SponsorBadge({
+  sponsor,
+}: {
+  sponsor: { name: string; logo_url: string | null; url: string | null };
+}) {
+  const inner = sponsor.logo_url ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={sponsor.logo_url}
+      alt={sponsor.name}
+      title={sponsor.name}
+      className="h-7 w-auto max-w-[110px] rounded-[8px] bg-white/90 object-contain px-2 py-1"
+    />
+  ) : (
+    <span className="inline-flex items-center rounded-[8px] bg-white/90 px-2 py-1 text-[11px] font-bold text-ink-800">
+      {sponsor.name}
+    </span>
+  );
+  return sponsor.url ? (
+    <a
+      href={sponsor.url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className="inline-flex transition-opacity active:opacity-85"
+    >
+      {inner}
+    </a>
+  ) : (
+    inner
   );
 }
 

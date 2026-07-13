@@ -99,6 +99,7 @@ export default async function MyClubsPage({ params }: Props) {
             primary_help: t("primary_help"),
             owner_badge: t("owner_badge"),
             admin_badge: t("admin_badge"),
+            edit: t("edit"),
             leave: t("leave"),
             leave_confirm: t("leave_confirm"),
             cancel_application: t("cancel_application"),

@@ -4,12 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import {
-  ClubPageSettingsSchema,
+  ClubPageBlocksInputSchema,
   ClubRatingSettingsSchema,
   AdjustClubRatingSchema,
   ClubRatingConfigSchema,
   DEFAULT_CLUB_RATING_CONFIG,
-  DEFAULT_CLUB_PAGE_BLOCKS,
   clubRatingConfigFromRow,
   clubRatingConfigToRatingConfig,
   clubPageBlocksFromRow,
@@ -155,8 +154,9 @@ export async function loadClubStandings(
 
 // ─── Mutations ────────────────────────────────────────────────────────────────
 
-export async function updateClubPageSettings(input: unknown): Promise<Result> {
-  const parsed = ClubPageSettingsSchema.safeParse(input);
+/** Blocks-only update; visual branding is saved via updateClubBranding. */
+export async function updateClubPageBlocks(input: unknown): Promise<Result> {
+  const parsed = ClubPageBlocksInputSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "invalid" };
   }
@@ -166,15 +166,12 @@ export async function updateClubPageSettings(input: unknown): Promise<Result> {
 
   const { error } = await auth.supabase
     .from("clubs")
-    .update({
-      brand_color: v.brand_color,
-      cover_url: v.cover_url,
-      page_blocks: v.blocks ?? DEFAULT_CLUB_PAGE_BLOCKS,
-    } as never)
+    .update({ page_blocks: v.blocks } as never)
     .eq("id", v.club_id);
   if (error) return { ok: false, error: error.message };
 
   revalidatePath(`/clubs/${auth.club.slug}`);
+  revalidatePath(`/m/clubs/${auth.club.slug}`);
   revalidatePath(`/me/clubs/owned/${v.club_id}`);
   return { ok: true };
 }

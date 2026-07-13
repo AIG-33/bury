@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Crown, Shield, AlertCircle } from "lucide-react";
+import { Plus, Crown, Shield, AlertCircle, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClubLogo } from "@/components/clubs/club-logo";
 import { JoinPolicyBadge } from "@/components/clubs/join-policy-badge";
@@ -22,6 +22,7 @@ type Props = {
       members: string;
       pending: string;
       open: string;
+      edit: string;
       owner_badge: string;
       admin_badge: string;
       transfer_pending: string;
@@ -134,7 +135,10 @@ function ClubAdminCard({
             {labels.card.transfer_pending}
           </span>
         )}
-        <span className="ml-auto font-medium text-grass-800">{labels.card.open} →</span>
+        <span className="ml-auto inline-flex h-7 items-center gap-1 rounded-lg bg-grass-700 px-2.5 font-semibold text-white transition group-hover:bg-grass-800">
+          <Pencil className="h-3 w-3" />
+          {labels.card.edit}
+        </span>
       </div>
     </Link>
   );

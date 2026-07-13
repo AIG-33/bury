@@ -101,6 +101,7 @@ function getLabels(t: T, tCommon: T) {
       members: t("card.members"),
       pending: t("card.pending"),
       open: t("card.open"),
+      edit: t("card.edit"),
       owner_badge: t("card.owner_badge"),
       admin_badge: t("card.admin_badge"),
       transfer_pending: t("card.transfer_pending"),

@@ -8,6 +8,11 @@ import {
   clubPageBlocksFromRow,
   type ClubPageBlocks,
 } from "@/lib/clubs/rating-schema";
+import {
+  clubBrandingFromRow,
+  clubBrandingWithLegacy,
+  type ClubBranding,
+} from "@/lib/validators/club-branding";
 
 // =============================================================================
 // Types exposed to the UI
@@ -42,6 +47,8 @@ export type ClubDetail = {
   brand_color: string | null;
   cover_url: string | null;
   page_blocks: ClubPageBlocks;
+  /** Branding blob with the legacy brand_color / cover_url already folded in. */
+  branding: ClubBranding;
 };
 
 export type ClubRosterEntry = {
@@ -236,14 +243,15 @@ export async function loadClubBySlug(slug: string): Promise<
   const { data: club } = (await supabase
     .from("clubs")
     .select(
-      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, created_at, brand_color, cover_url, page_blocks",
+      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, created_at, brand_color, cover_url, page_blocks, branding",
     )
     .eq("slug", slug)
     .maybeSingle()) as {
     data:
-      | (Omit<ClubDetail, "district_name" | "page_blocks"> & {
+      | (Omit<ClubDetail, "district_name" | "page_blocks" | "branding"> & {
           district_id: string | null;
           page_blocks: unknown;
+          branding: unknown;
         })
       | null;
   };
@@ -414,6 +422,11 @@ export async function loadClubBySlug(slug: string): Promise<
       brand_color: club.brand_color,
       cover_url: club.cover_url,
       page_blocks: clubPageBlocksFromRow(club.page_blocks),
+      branding: clubBrandingWithLegacy(
+        clubBrandingFromRow(club.branding),
+        club.brand_color,
+        club.cover_url,
+      ),
     },
     stats,
     coaches,
