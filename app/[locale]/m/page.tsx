@@ -392,7 +392,14 @@ export default async function MobileHomePage({ params }: Props) {
       {/* ---- Dark header: greeting + rating band ---- */}
       <MDarkHeader radius={26}>
         <div className="flex items-center gap-3">
-          <MAvatar name={me.name} url={me.avatar} size={46} ring />
+          {/* PDF: «профиль всегда доступен по аватару в хедере». */}
+          <Link
+            href={"/m/profile" as never}
+            aria-label={t("profile.title")}
+            className="shrink-0 transition-opacity active:opacity-85"
+          >
+            <MAvatar name={me.name} url={me.avatar} size={46} ring />
+          </Link>
           <div className="min-w-0 flex-1">
             <p className="text-[12px] leading-tight text-white/70">{t("home.greeting")}</p>
             <p className="truncate font-display text-[19px] font-extrabold leading-tight">
