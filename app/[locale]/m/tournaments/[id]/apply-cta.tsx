@@ -18,6 +18,8 @@ import {
 type Props = {
   tournamentId: string;
   state: "guest" | "none" | "pending" | "approved" | "closed" | "owner";
+  /** Branding accent (#RRGGBB, pre-sanitized) — overrides the primary button color. */
+  accentColor?: string | null;
   labels: {
     apply: string;
     login: string;
@@ -37,15 +39,23 @@ const PRIMARY =
 const NEUTRAL =
   "flex h-12 w-full items-center justify-center gap-1.5 rounded-[15px] border border-[rgba(20,60,30,0.12)] bg-white font-display text-[14px] font-extrabold text-ink-500";
 
-export function TournamentApplyCta({ tournamentId, state, labels }: Props) {
+export function TournamentApplyCta({ tournamentId, state, accentColor, labels }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState(false);
+  const accentStyle = accentColor
+    ? { background: accentColor, boxShadow: "0 10px 22px rgba(0,0,0,0.18)" }
+    : undefined;
 
   if (state === "guest") {
     return (
-      <button type="button" className={PRIMARY} onClick={() => router.push("/login" as never)}>
+      <button
+        type="button"
+        className={PRIMARY}
+        style={accentStyle}
+        onClick={() => router.push("/login" as never)}
+      >
         {labels.login}
         <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
       </button>
@@ -63,6 +73,7 @@ export function TournamentApplyCta({ tournamentId, state, labels }: Props) {
           type="button"
           disabled={pending}
           className={PRIMARY}
+          style={accentStyle}
           onClick={() =>
             startTransition(async () => {
               setError(false);

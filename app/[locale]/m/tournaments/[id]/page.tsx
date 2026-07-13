@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { CalendarDays, MapPin, Users, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import {
-  MBackButton,
+  MAvatar,
   MContent,
   MCtaBar,
   MEmptyState,
@@ -15,15 +16,17 @@ import {
   type PublicTournamentDetail,
 } from "@/app/[locale]/tournaments/actions";
 import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
-import { formatSetsScore } from "@/lib/mobile/format";
+import { buildRoomTheme } from "@/lib/tournaments/branding";
+import { formatSetsScore, shortNameOf } from "@/lib/mobile/format";
 import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { TournamentApplyCta } from "./apply-cta";
+import { TournamentShareButton } from "./share-button";
 
 // =============================================================================
-// Screen 03 — Карточка турнира (ТЗ Mobile §7.03).
-// Light header with back + eyebrow-status + H1 + format/surface tags,
-// 2×2 meta grid, segment Участники / Сетка / Инфо, fixed CTA bar
-// («Взнос … BYN» + «Записаться») stacked above the unified tab bar.
+// Screen 03 — Карточка турнира («Tournament Page» mockup, июль 2026).
+// Themed hero (branding tokens: banner + scrim, logo tile, tagline, sponsors),
+// status/format/surface chips, meta tiles, segment Участники / Сетка / Инфо,
+// fixed CTA «Участие … / Подать заявку» stacked above the unified tab bar.
 // =============================================================================
 
 type Props = {
@@ -47,21 +50,30 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   const tab = sp.tab === "draw" ? "draw" : sp.tab === "info" ? "info" : "players";
 
   const dateFmt = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
     day: "numeric",
     month: "short",
+    year: "numeric",
     timeZone: "Europe/Minsk",
   });
   const startLabel = [
-    dateFmt.format(new Date(tournament.starts_on)),
+    dateFmt.format(new Date(tournament.starts_on)).replace(/\s*г\.$/u, ""),
     tournament.start_time?.slice(0, 5),
   ]
     .filter(Boolean)
-    .join(", ");
+    .join(" · ");
   const venue = tournament.venues[0];
+  const venueLabel = venue
+    ? [venue.name, venue.city].filter(Boolean).join(" · ")
+    : t("tournaments.place_tba");
   const active = participants.filter((p) => !p.withdrawn);
   const freeSlots = tournament.max_participants
     ? Math.max(0, tournament.max_participants - tournament.participants_count)
     : null;
+
+  const theme = buildRoomTheme(tournament.branding);
+  const heroTitle = tournament.branding.title_override ?? tournament.name;
+  const accent = theme.accentColor;
 
   const ctaState = !viewer.authenticated
     ? ("guest" as const)
@@ -78,75 +90,182 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   const segHref = (nextTab: string) =>
     `/m/tournaments/${id}${nextTab === "players" ? "" : `?tab=${nextTab}`}`;
 
+  const heroBackground =
+    Object.keys(theme.backgroundStyle).length > 0
+      ? theme.backgroundStyle
+      : { background: "linear-gradient(150deg,#12331F 0%,#1C6B40 55%,#2A9556 100%)" };
+
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div
+      className="flex min-h-dvh flex-col"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(42,149,86,0.16) 0%, rgba(42,149,86,0.05) 320px, rgba(42,149,86,0) 520px)",
+      }}
+    >
+      {/* ── Hero: branding tokens (banner + scrim / gradient / logo / tagline) ── */}
       <header
-        className="border-b border-[rgba(20,60,30,0.07)] bg-[rgba(243,247,237,0.92)]"
-        style={{ paddingTop: "max(env(safe-area-inset-top), 12px)" }}
+        className="relative overflow-hidden text-white"
+        style={{
+          ...heroBackground,
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+          paddingTop: "max(env(safe-area-inset-top), 14px)",
+        }}
       >
-        <div className="mx-auto w-full max-w-[430px] px-[18px] pb-4">
-          <div className="flex items-center justify-between pt-1">
-            <MBackButton href="/m/tournaments" label={t("common.back")} />
+        {theme.bannerImageStyle ? (
+          <>
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: theme.bannerImageStyle }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(to top, rgba(0,0,0,${theme.scrimOpacity}) 0%, rgba(0,0,0,${Math.max(
+                  0,
+                  theme.scrimOpacity - 0.25,
+                )}) 100%)`,
+              }}
+            />
+          </>
+        ) : (
+          <CourtLinesPattern />
+        )}
+
+        <div className="relative mx-auto w-full max-w-[430px] px-[18px] pb-5 pt-2">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/m/tournaments"
+              aria-label={t("common.back")}
+              className="grid h-10 w-10 place-items-center rounded-[12px] border border-white/20 bg-white/15 text-white backdrop-blur-[8px] transition-opacity active:opacity-85"
+            >
+              <ArrowLeft className="h-[19px] w-[19px]" strokeWidth={1.8} />
+            </Link>
+            <TournamentShareButton
+              title={heroTitle}
+              label={t("tournament.share")}
+              copiedLabel={t("tournament.share_copied")}
+            />
           </div>
-          <p
-            className={`mt-3 text-[10px] font-bold uppercase tracking-[1.2px] ${
-              tournament.status === "registration"
-                ? "text-grass-600"
-                : tournament.status === "in_progress"
-                  ? "text-ball-700"
-                  : "text-[#8AA093]"
-            }`}
-          >
-            {t(`tournaments.status_${tournament.status}` as never)}
-          </p>
-          <h1 className="mt-1 font-display text-[24px] font-extrabold leading-[1.1] tracking-[-0.5px] text-grass-900">
-            {tournament.name}
-          </h1>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            <span className="rounded-full border border-[rgba(20,60,30,0.1)] bg-white px-3 py-1 text-[11px] font-bold text-[#3A5445]">
-              {t(`tournament.format_${tournament.format}` as never)}
-            </span>
-            {tournament.surface ? (
-              <span className="rounded-full border border-[rgba(20,60,30,0.1)] bg-white px-3 py-1 text-[11px] font-bold text-[#3A5445]">
-                {t(`common.surface_${tournament.surface}` as never)}
-              </span>
+
+          <div className="mt-9 flex items-center gap-3">
+            {theme.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={theme.logoUrl}
+                alt=""
+                className="h-[56px] w-[56px] shrink-0 rounded-[14px] border-2 bg-white/95 object-contain"
+                style={{ borderColor: accent ?? "rgba(255,255,255,0.55)" }}
+              />
             ) : null}
+            <div className="min-w-0">
+              <h1 className="font-display text-[22px] font-extrabold leading-[1.12] tracking-[-0.4px] text-white">
+                {heroTitle}
+              </h1>
+              {tournament.branding.tagline ? (
+                <p className="mt-1 text-[12.5px] font-semibold leading-snug text-white/75">
+                  {tournament.branding.tagline}
+                </p>
+              ) : null}
+            </div>
           </div>
+
+          {tournament.branding.sponsors.length > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-[9.5px] font-bold uppercase tracking-[1.2px] text-white/60">
+                {t("tournament.partners")}
+              </span>
+              {tournament.branding.sponsors.map((s, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center rounded-full bg-white/90 px-2 py-0.5"
+                >
+                  {s.logo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={s.logo_url}
+                      alt={s.name}
+                      title={s.name}
+                      className="h-5 w-auto max-w-[80px] object-contain"
+                    />
+                  ) : (
+                    <span className="text-[11px] font-bold text-ink-900">{s.name}</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       </header>
 
       <MContent className="flex-1 pt-4" extraBottom={72}>
-        <div className="grid grid-cols-2 gap-2">
+        {/* Status / format / surface chips */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-[11px] font-extrabold shadow-[0_1px_2px_rgba(20,60,30,0.06)] ${
+              tournament.status === "registration"
+                ? "border-[rgba(28,122,70,0.25)] text-grass-600"
+                : tournament.status === "in_progress"
+                  ? "border-ball-200 text-ball-700"
+                  : "border-[rgba(20,60,30,0.1)] text-[#7A8C7F]"
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`h-1.5 w-1.5 rounded-full ${
+                tournament.status === "registration"
+                  ? "bg-grass-500"
+                  : tournament.status === "in_progress"
+                    ? "bg-ball-600"
+                    : "bg-[#9FB3A6]"
+              }`}
+            />
+            {t(`tournaments.status_${tournament.status}` as never)}
+          </span>
+          <span className="rounded-full border border-[rgba(20,60,30,0.1)] bg-white px-3 py-1.5 text-[11px] font-bold text-[#3A5445] shadow-[0_1px_2px_rgba(20,60,30,0.06)]">
+            {t(`tournament.format_${tournament.format}` as never)}
+          </span>
+          {tournament.surface ? (
+            <span className="rounded-full border border-[rgba(20,60,30,0.1)] bg-white px-3 py-1.5 text-[11px] font-bold text-[#3A5445] shadow-[0_1px_2px_rgba(20,60,30,0.06)]">
+              {t(`common.surface_${tournament.surface}` as never)}
+            </span>
+          ) : null}
+        </div>
+
+        {/* Meta tiles */}
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <MetaTile
             eyebrow={t("tournament.meta_start")}
             icon={<CalendarDays className="h-[13px] w-[13px]" strokeWidth={2} />}
             value={startLabel}
           />
           <MetaTile
-            eyebrow={t("tournament.meta_place")}
-            icon={<MapPin className="h-[13px] w-[13px]" strokeWidth={2} />}
-            value={venue ? venue.name : t("tournaments.place_tba")}
-          />
-          <MetaTile
-            eyebrow={t("tournament.meta_slots")}
+            eyebrow={t("tournament.meta_participants")}
             icon={<Users className="h-[13px] w-[13px]" strokeWidth={2} />}
-            value={
-              tournament.max_participants
-                ? `${tournament.participants_count}/${tournament.max_participants}`
-                : String(tournament.participants_count)
-            }
-            mono
+            value={t("tournament.players_count", { count: tournament.participants_count })}
           />
           <MetaTile
-            eyebrow={t("tournament.meta_fee")}
-            icon={<Wallet className="h-[13px] w-[13px]" strokeWidth={2} />}
+            eyebrow={t("tournament.meta_cost")}
+            icon={<Tag className="h-[13px] w-[13px]" strokeWidth={2} />}
             value={
               tournament.entry_fee_byn
                 ? `${tournament.entry_fee_byn} BYN`
                 : t("tournaments.fee_free")
             }
-            mono
-            accent
+            mono={Boolean(tournament.entry_fee_byn)}
+          />
+          <MetaTile
+            eyebrow={t("tournament.info_organizer")}
+            icon={<UserRound className="h-[13px] w-[13px]" strokeWidth={2} />}
+            value={shortNameOf(tournament.organizer_name) ?? "—"}
+          />
+          <MetaTile
+            eyebrow={t("tournament.meta_place")}
+            icon={<MapPin className="h-[13px] w-[13px]" strokeWidth={2} />}
+            value={venueLabel}
           />
         </div>
 
@@ -169,6 +288,7 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
             <div className="space-y-[8px]">
               {active.length === 0 ? (
                 <MEmptyState
+                  icon={<Users className="h-[22px] w-[22px]" strokeWidth={1.8} />}
                   title={t("tournament.no_players_title")}
                   body={t("tournament.no_players_body")}
                 />
@@ -181,12 +301,19 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
                     <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-[8px] bg-pt-icon font-mono text-[12px] font-bold tabular-nums text-grass-700">
                       {p.seed ?? i + 1}
                     </span>
+                    <MAvatar name={p.name} url={p.avatar_url} size={34} />
                     <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
                       {p.name ?? t("common.player_unknown")}
                     </p>
-                    <span className="font-mono text-[14px] font-bold tabular-nums text-ink-700">
-                      {p.elo}
-                    </span>
+                    {p.city ? (
+                      <span className="shrink-0 text-[12.5px] font-semibold text-ink-500">
+                        {p.city}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 font-mono text-[13px] font-bold tabular-nums text-ink-700">
+                        {p.elo}
+                      </span>
+                    )}
                   </div>
                 ))
               )}
@@ -207,19 +334,20 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
       <MCtaBar
         aboveTabBar
         left={
-          tournament.entry_fee_byn ? (
-            <div>
-              <MEyebrow>{t("tournament.meta_fee")}</MEyebrow>
-              <p className="font-mono text-[19px] font-bold tabular-nums leading-tight text-ink-900">
-                {tournament.entry_fee_byn}&nbsp;BYN
-              </p>
-            </div>
-          ) : undefined
+          <div>
+            <MEyebrow>{t("tournament.cta_fee_label")}</MEyebrow>
+            <p className="font-mono text-[19px] font-bold tabular-nums leading-tight text-ink-900">
+              {tournament.entry_fee_byn
+                ? `${tournament.entry_fee_byn}\u00A0BYN`
+                : t("tournaments.fee_free")}
+            </p>
+          </div>
         }
       >
         <TournamentApplyCta
           tournamentId={id}
           state={ctaState}
+          accentColor={accent}
           labels={{
             apply: t("tournament.cta_apply"),
             login: t("tournament.cta_login"),
@@ -244,31 +372,52 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   );
 }
 
+/** Faint tennis-court lines over the default hero gradient (mockup art). */
+function CourtLinesPattern() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.14]"
+      viewBox="0 0 402 240"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+    >
+      <rect x="40" y="-40" width="322" height="260" />
+      <line x1="40" y1="90" x2="362" y2="90" />
+      <line x1="201" y1="-40" x2="201" y2="220" />
+      <line x1="112" y1="-40" x2="112" y2="220" />
+      <line x1="290" y1="-40" x2="290" y2="220" />
+      <line x1="112" y1="160" x2="290" y2="160" />
+    </svg>
+  );
+}
+
 function MetaTile({
   eyebrow,
   icon,
   value,
   mono = false,
-  accent = false,
 }: {
   eyebrow: string;
   icon: React.ReactNode;
   value: string;
   mono?: boolean;
-  accent?: boolean;
 }) {
   return (
     <div className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white p-3 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
-      <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-[#8AA093]">{eyebrow}</p>
+      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[1.2px] text-[#8AA093]">
+        <span className="text-grass-600">{icon}</span>
+        {eyebrow}
+      </p>
       <p
         className={[
-          "mt-1.5 flex items-center gap-1.5 text-[14px] font-extrabold leading-tight",
-          accent ? "text-grass-600" : "text-ink-900",
+          "mt-1.5 truncate text-[14px] font-extrabold leading-tight text-ink-900",
           mono ? "font-mono tabular-nums" : "",
         ].join(" ")}
       >
-        <span className={accent ? "text-grass-600" : "text-grass-600"}>{icon}</span>
-        <span className="min-w-0 truncate">{value}</span>
+        {value}
       </p>
     </div>
   );
@@ -286,7 +435,11 @@ function DrawList({
   void locale;
   if (!matches || matches.length === 0) {
     return (
-      <MEmptyState title={t("tournament.no_draw_title")} body={t("tournament.no_draw_body")} />
+      <MEmptyState
+        icon={<LayoutGrid className="h-[22px] w-[22px]" strokeWidth={1.8} />}
+        title={t("tournament.no_draw_title")}
+        body={t("tournament.no_draw_body")}
+      />
     );
   }
 

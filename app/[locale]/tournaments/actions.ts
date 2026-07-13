@@ -231,6 +231,8 @@ export type PublicTournamentDetail = {
     name: string | null;
     seed: number | null;
     elo: number;
+    avatar_url: string | null;
+    city: string | null;
     withdrawn: boolean;
     external_rating: {
       source: "liga_tennisa";
@@ -385,14 +387,18 @@ export async function loadPublicTournamentDetail(
     current_elo: number | null;
     avatar_url: string | null;
     is_coach: boolean | null;
+    city: string | null;
   };
   let basicById = new Map<string, Basic>();
-  const extByPlayer = new Map<string, PublicTournamentDetail["participants"][number]["external_rating"]>();
+  const extByPlayer = new Map<
+    string,
+    PublicTournamentDetail["participants"][number]["external_rating"]
+  >();
   if (playerIds.length > 0) {
     const [{ data: basics }, { data: extRows }] = await Promise.all([
       supabase
         .from("public_player_basic")
-        .select("id, display_name, current_elo, avatar_url, is_coach")
+        .select("id, display_name, current_elo, avatar_url, is_coach, city")
         .in("id", playerIds) as unknown as Promise<{ data: Basic[] | null }>,
       supabase
         .from("external_ratings")
@@ -427,6 +433,8 @@ export async function loadPublicTournamentDetail(
       name: b?.display_name ?? null,
       seed: p.seed,
       elo: b?.current_elo ?? 1000,
+      avatar_url: b?.avatar_url ?? null,
+      city: b?.city ?? null,
       withdrawn: p.withdrawn,
       external_rating: extByPlayer.get(p.player_id) ?? null,
     };
