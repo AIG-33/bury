@@ -4743,7 +4743,10 @@
       "mine_pending": "Заявка",
       "mine_rejected": "Отклонена",
       "mine_withdrawn": "Вы снялись",
-      "mine_next_match": "След. матч: {opponent}"
+      "mine_next_match": "След. матч: {opponent}",
+      "section_registration": "Открыта регистрация",
+      "section_live": "Идут сейчас",
+      "section_finished": "Завершённые"
     },
     "tournament": {
       "format_single_elimination": "Олимпийка",

@@ -4735,7 +4735,10 @@
       "mine_pending": "Applied",
       "mine_rejected": "Rejected",
       "mine_withdrawn": "Withdrawn",
-      "mine_next_match": "Next match: {opponent}"
+      "mine_next_match": "Next match: {opponent}",
+      "section_registration": "Open for registration",
+      "section_live": "Happening now",
+      "section_finished": "Finished"
     },
     "tournament": {
       "format_single_elimination": "Single elimination",
