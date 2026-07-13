@@ -1553,7 +1553,7 @@
   },
   "rating": {
     "title": "My rating",
-    "subtitle": "Your Elo, recent match history and the seasonal race for prizes.",
+    "subtitle": "Your Elo and recent match history.",
     "help": {
       "why": "This is where you see how your true level changes with every match. One rating — all matches.",
       "what": {
@@ -1608,13 +1608,6 @@
         "manual_refresh": "Manual refresh",
         "admin_set": "Admin correction"
       }
-    },
-    "race": {
-      "title": "Seasonal race",
-      "days_left": "Days left",
-      "prizes": "Prizes",
-      "coming_soon": "Full race standings coming soon.",
-      "no_season": "No active season right now."
     },
     "matches": {
       "title": "My matches",
@@ -3149,10 +3142,6 @@
         "term": "Starting Elo",
         "def": "Your initial rating, computed from a 60-second quiz when you sign up."
       },
-      "race": {
-        "term": "Season race",
-        "def": "A leaderboard counted within a season window. Top N players win prizes; details on the Rating tab."
-      },
       "tournament_seed": {
         "term": "Seed",
         "def": "Your slot in the bracket based on rating. Higher seeds avoid each other in early rounds."
@@ -4617,7 +4606,30 @@
       "tournaments": "Tournaments",
       "matches": "Matches",
       "clubs": "Clubs",
-      "profile": "Profile"
+      "menu": "Menu"
+    },
+    "menu": {
+      "title": "Menu",
+      "open": "Open menu",
+      "close": "Close menu",
+      "group_personal": "Personal",
+      "group_sections": "Sections",
+      "group_info": "Info",
+      "profile": "Profile",
+      "my_matches": "My matches",
+      "my_tournaments": "My tournaments",
+      "my_clubs": "My clubs",
+      "game": "Sparring",
+      "coaches": "Coaches",
+      "venues": "Venues",
+      "players": "Players",
+      "matches_feed": "Match feed",
+      "leaderboard": "Leaderboard",
+      "help": "Help",
+      "support": "Support",
+      "privacy": "Privacy",
+      "logout": "Sign out",
+      "login": "Sign in"
     },
     "start": {
       "slogan": "Find a game, run a tournament\nand climb the rating",
@@ -4727,15 +4739,23 @@
       "seg_all": "All",
       "seg_reg": "Registration",
       "seg_live": "Live",
+      "seg_mine": "Mine",
       "empty_title": "No tournaments found",
       "empty_body": "Try clearing the filters or come back later — new tournaments appear every week.",
+      "empty_mine_title": "You're not in any tournaments yet",
+      "empty_mine_body": "Apply to a tournament with open registration — it will appear here with your application status and next match.",
+      "empty_mine_cta": "Open for registration",
       "place_tba": "Venue TBA",
       "status_draft": "Draft",
       "status_registration": "Registration",
       "status_in_progress": "Live",
       "status_upcoming": "Starting soon",
       "status_finished": "Finished",
-      "status_cancelled": "Cancelled"
+      "status_cancelled": "Cancelled",
+      "mine_pending": "Applied",
+      "mine_rejected": "Rejected",
+      "mine_withdrawn": "Withdrawn",
+      "mine_next_match": "Next match: {opponent}"
     },
     "tournament": {
       "format_single_elimination": "Single elimination",

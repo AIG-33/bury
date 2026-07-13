@@ -13,6 +13,8 @@ export type MobileMenuItem = {
   group: "personal" | "public";
   /** Optional red counter rendered after the label (unread notifications etc). */
   badge?: number;
+  /** External URL (e.g. Telegram) — rendered as <a target="_blank">. */
+  external?: boolean;
 };
 
 type Props = {
@@ -91,29 +93,48 @@ export function MobileMenu({ items, authed, labels }: Props) {
         </div>
         <ul className="flex flex-col gap-1">
           {rows.map((it) => {
-            const active = pathname === it.href || pathname.startsWith(`${it.href}/`);
+            const active =
+              !it.external && (pathname === it.href || pathname.startsWith(`${it.href}/`));
+            const rowClass = [
+              "flex h-12 items-center gap-2 rounded-[13px] px-4 font-display text-[15px] tracking-tight transition-colors",
+              active
+                ? "bg-pt-primary font-bold text-white shadow-glow"
+                : it.highlight
+                  ? "bg-grass-50 font-bold text-grass-700 ring-1 ring-grass-200/70"
+                  : "font-semibold text-ink-700 hover:bg-ink-50",
+            ].join(" ");
+            const rowContent = (
+              <>
+                <span className="flex-1">{it.label}</span>
+                {it.badge && it.badge > 0 ? (
+                  <span className="inline-flex h-5 min-w-[22px] items-center justify-center rounded-full bg-clay-500 px-1.5 text-[11px] font-bold tabular-nums text-white">
+                    {it.badge > 99 ? "99+" : it.badge}
+                  </span>
+                ) : null}
+              </>
+            );
             return (
               <li key={it.href}>
-                <Link
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  href={it.href as any}
-                  onClick={() => setOpen(false)}
-                  className={[
-                    "flex h-12 items-center gap-2 rounded-[13px] px-4 font-display text-[15px] tracking-tight transition-colors",
-                    active
-                      ? "bg-pt-primary font-bold text-white shadow-glow"
-                      : it.highlight
-                        ? "bg-grass-50 font-bold text-grass-700 ring-1 ring-grass-200/70"
-                        : "font-semibold text-ink-700 hover:bg-ink-50",
-                  ].join(" ")}
-                >
-                  <span className="flex-1">{it.label}</span>
-                  {it.badge && it.badge > 0 ? (
-                    <span className="inline-flex h-5 min-w-[22px] items-center justify-center rounded-full bg-clay-500 px-1.5 text-[11px] font-bold tabular-nums text-white">
-                      {it.badge > 99 ? "99+" : it.badge}
-                    </span>
-                  ) : null}
-                </Link>
+                {it.external ? (
+                  <a
+                    href={it.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
+                    className={rowClass}
+                  >
+                    {rowContent}
+                  </a>
+                ) : (
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={it.href as any}
+                    onClick={() => setOpen(false)}
+                    className={rowClass}
+                  >
+                    {rowContent}
+                  </Link>
+                )}
               </li>
             );
           })}
@@ -133,7 +154,10 @@ export function MobileMenu({ items, authed, labels }: Props) {
       />
       {/* Sheet */}
       <div className="absolute right-0 top-0 flex h-full w-[88%] max-w-sm flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
+        <div
+          className="flex items-center justify-between border-b border-ink-100 px-5 py-4"
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
+        >
           <span className="font-display text-base font-extrabold tracking-tight text-grass-900">
             PlayTennis.by
           </span>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -8,6 +9,9 @@ import { Footer } from "@/components/layout/footer";
 import { BottomTabBar, type BottomTabItem } from "@/components/layout/bottom-tab-bar";
 import { InstallAppProvider, InstallAppPrompt } from "@/components/layout/install-app-card";
 import { HideOnMobileApp } from "@/components/layout/hide-on-mobile-app";
+import { HideInNativeApp } from "@/components/layout/hide-in-native-app";
+import { NativeTabBar } from "@/components/mobile/native-tab-bar";
+import { getMobileMenuLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -31,6 +35,15 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
   const t = await getTranslations("nav");
   const tFooter = await getTranslations("footer");
+  const tMobile = await getTranslations("mobile");
+
+  // The store app is a WebView shell; its long footer is dead weight there
+  // (every footer destination lives in the burger menu). New shells are
+  // detected server-side via the `PlayTennisApp` UA token (no flash); older
+  // binaries without the token fall back to the client-side Capacitor-bridge
+  // check in <HideInNativeApp> below.
+  const userAgent = (await headers()).get("user-agent") ?? "";
+  const isNativeShellUA = userAgent.includes("PlayTennisApp");
 
   // Single auth probe for layout-level chrome (footer cta state, mobile tabs).
   const supabase = await createSupabaseServerClient();
@@ -103,10 +116,28 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <TopNav />
               </HideOnMobileApp>
               <main className="flex-1">{children}</main>
-              <HideOnMobileApp>
-                <Footer authed={!!user} />
-                <BottomTabBar items={bottomTabs} />
-              </HideOnMobileApp>
+              {!isNativeShellUA && (
+                <HideOnMobileApp>
+                  <HideInNativeApp>
+                    <Footer authed={!!user} />
+                  </HideInNativeApp>
+                </HideOnMobileApp>
+              )}
+              {/* Web bottom tab bar — browsers only. Inside the store shell it's
+                  replaced by the unified app bar (NativeTabBar below); same
+                  UA-token + bridge detection combo as the footer. */}
+              {!isNativeShellUA && (
+                <HideOnMobileApp>
+                  <HideInNativeApp>
+                    <BottomTabBar items={bottomTabs} />
+                  </HideInNativeApp>
+                </HideOnMobileApp>
+              )}
+              <NativeTabBar
+                labels={getMobileTabLabels(tMobile)}
+                menuLabels={getMobileMenuLabels(tMobile)}
+                authed={!!user}
+              />
             </div>
             <HideOnMobileApp>
               <InstallAppPrompt labels={installPromptLabels} />

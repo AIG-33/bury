@@ -20,7 +20,7 @@ import {
   type OpenMatchStatus,
 } from "@/lib/open-matches/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getMobileTabLabels } from "../tab-labels";
+import { getMobileMenuLabels, getMobileTabLabels } from "../tab-labels";
 import { PlayButton } from "./play-button";
 
 // =============================================================================
@@ -298,7 +298,7 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
         )}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} />
+      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed={!!user} />
     </div>
   );
 }

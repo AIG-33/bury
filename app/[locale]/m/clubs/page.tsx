@@ -6,7 +6,7 @@ import { MSearchTool } from "@/components/mobile/m-header-tools";
 import { loadClubs, type ClubListItem } from "@/app/[locale]/clubs/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { initialsOf } from "@/lib/mobile/format";
-import { getMobileTabLabels } from "../tab-labels";
+import { getMobileMenuLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
 // Screen 04 — Список клубов (ТЗ Mobile §7.04).
@@ -137,7 +137,7 @@ export default async function MobileClubsPage({ params, searchParams }: Props) {
         )}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} />
+      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed={!!user} />
     </div>
   );
 }

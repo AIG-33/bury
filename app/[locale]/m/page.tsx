@@ -19,7 +19,7 @@ import { loadPublicTournaments } from "@/app/[locale]/tournaments/actions";
 import { loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
 import { loadMyTournaments } from "@/app/[locale]/(player)/me/tournaments/actions";
 import type { OpenMatchApplicationStatus } from "@/lib/open-matches/schema";
-import { getMobileTabLabels } from "./tab-labels";
+import { getMobileMenuLabels, getMobileTabLabels } from "./tab-labels";
 import { StartScreen } from "./start-screen";
 import { PlayButton } from "./game/play-button";
 
@@ -651,7 +651,7 @@ export default async function MobileHomePage({ params }: Props) {
         ) : null}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} />
+      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed />
     </div>
   );
 }

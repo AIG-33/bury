@@ -15,7 +15,7 @@ import { loadMyRatingTab, type EloPoint } from "@/lib/rating/history";
 import { loadMyProfileHeaderStats } from "@/app/[locale]/(player)/me/profile/actions";
 import { getLevelBand } from "@/lib/rating/levels";
 import { formatSetsScore } from "@/lib/mobile/format";
-import { getMobileTabLabels } from "../tab-labels";
+import { getMobileMenuLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
 // Screen 06 — Профиль игрока (ТЗ Mobile §7.06).
@@ -36,7 +36,9 @@ export default async function MobileProfilePage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const tabBar = <MTabBar labels={getMobileTabLabels(t)} />;
+  const tabBar = (
+    <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed={!!user} />
+  );
 
   if (!user) {
     return (
