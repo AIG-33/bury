@@ -4601,6 +4601,9 @@
     }
   },
   "mobile": {
+    "splash": {
+      "slogan": "Play tennis — it's good for you"
+    },
     "tabs": {
       "feed": "Home",
       "tournaments": "Tournaments",

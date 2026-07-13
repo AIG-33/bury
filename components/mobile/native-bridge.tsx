@@ -32,8 +32,10 @@ export function NativeBridge() {
         // Status bar plugin is best-effort; ignore on unsupported surfaces.
       }
 
-      // Reveal the app now that the remote page has mounted. `launchAutoHide`
-      // is the fallback if this never runs (e.g. offline fallback page).
+      // Reveal the app now that the remote page has mounted. The animated web
+      // splash (launch-splash.tsx) is already painted underneath, so hiding
+      // the static native splash here hands off seamlessly (launchAutoHide is
+      // off — see capacitor.config.ts).
       await SplashScreen.hide();
 
       // Send off-site links (maps, Telegram, mailto, tel) to the system

@@ -11,6 +11,7 @@ import { InstallAppProvider, InstallAppPrompt } from "@/components/layout/instal
 import { HideOnMobileApp } from "@/components/layout/hide-on-mobile-app";
 import { HideInNativeApp } from "@/components/layout/hide-in-native-app";
 import { NativeTabBar } from "@/components/mobile/native-tab-bar";
+import { LaunchSplash } from "@/components/mobile/launch-splash";
 import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -108,6 +109,11 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages} locale={locale} timeZone="Europe/Minsk">
+      {/* Full-screen animated splash for the store app while the WebView
+          boots. Server-rendered only for the native UA so it is part of the
+          very first paint (covers the old "black screen" gap), then fades out
+          client-side after ~3s once the page is interactive. */}
+      {isNativeShellUA && <LaunchSplash slogan={tMobile("splash.slogan")} />}
       <Suspense fallback={null}>
         <PostHogProvider>
           <InstallAppProvider labels={installLabels}>
