@@ -6,8 +6,8 @@ import { StartOAuth, type StartOAuthLabels } from "./start-oauth";
 // =============================================================================
 // Screen 00 — Splash · Вход (дизайн «PlayTennis Start»). Guest landing of the
 // native app: dark brand hero (breathing logo, slogan, feature chips, live
-// proof) + light bottom sheet with sign-up / sign-in options. Blocks cascade
-// in with animate-rise.
+// proof) + light bottom sheet with Apple / Google first, then the primary
+// e-mail sign-in CTA. Blocks cascade in with animate-rise.
 // =============================================================================
 
 export type StartScreenLabels = {
@@ -16,11 +16,10 @@ export type StartScreenLabels = {
   chip_tournaments: string;
   chip_elo: string;
   proof: string;
-  create_account: string;
   login_email: string;
   or: string;
-  already: string;
-  login: string;
+  new_here: string;
+  signup: string;
   legal_prefix: string;
   legal_terms: string;
   legal_and: string;
@@ -97,7 +96,7 @@ export function StartScreen({ labels }: { labels: StartScreenLabels }) {
         </div>
       </div>
 
-      {/* ---- Bottom sheet: sign-up / sign-in ---- */}
+      {/* ---- Bottom sheet: Apple / Google → e-mail sign-in ---- */}
       <div
         className="relative animate-rise rounded-t-[28px] bg-[#F3F7ED] px-[18px] text-ink-900 shadow-[0_-18px_44px_rgba(0,0,0,0.3)]"
         style={{
@@ -111,21 +110,7 @@ export function StartScreen({ labels }: { labels: StartScreenLabels }) {
         />
 
         <div className="mx-auto w-full max-w-[430px] pt-7">
-          <Link
-            href={"/login?mode=signup" as never}
-            className="flex h-[52px] items-center justify-center rounded-[16px] font-display text-[16px] font-extrabold text-white shadow-[0_12px_26px_rgba(28,122,70,0.38)] transition-opacity active:opacity-85"
-            style={{ background: "linear-gradient(135deg,#2E9E5B,#1C7A46)" }}
-          >
-            {labels.create_account}
-          </Link>
-
-          <Link
-            href={"/login" as never}
-            className="mt-3 flex h-[52px] items-center justify-center gap-2.5 rounded-[16px] border border-[rgba(20,60,30,0.1)] bg-white font-display text-[15px] font-bold text-grass-600 shadow-[0_1px_2px_rgba(20,60,30,0.05)] transition-opacity active:opacity-85"
-          >
-            <Mail className="h-[18px] w-[18px]" strokeWidth={2} />
-            {labels.login_email}
-          </Link>
+          <StartOAuth labels={labels.oauth} />
 
           <div className="my-5 flex items-center gap-3" aria-hidden>
             <span className="h-px flex-1 bg-[rgba(20,60,30,0.1)]" />
@@ -135,12 +120,19 @@ export function StartScreen({ labels }: { labels: StartScreenLabels }) {
             <span className="h-px flex-1 bg-[rgba(20,60,30,0.1)]" />
           </div>
 
-          <StartOAuth labels={labels.oauth} />
+          <Link
+            href={"/login" as never}
+            className="flex h-[52px] items-center justify-center gap-2.5 rounded-[16px] font-display text-[16px] font-extrabold text-white shadow-[0_12px_26px_rgba(28,122,70,0.38)] transition-opacity active:opacity-85"
+            style={{ background: "linear-gradient(135deg,#2E9E5B,#1C7A46)" }}
+          >
+            <Mail className="h-[18px] w-[18px]" strokeWidth={2} />
+            {labels.login_email}
+          </Link>
 
           <p className="mt-5 text-center text-[13.5px] font-semibold text-ink-500">
-            {labels.already}{" "}
-            <Link href={"/login" as never} className="font-extrabold text-grass-600">
-              {labels.login}
+            {labels.new_here}{" "}
+            <Link href={"/login?mode=signup" as never} className="font-extrabold text-grass-600">
+              {labels.signup}
             </Link>
           </p>
 

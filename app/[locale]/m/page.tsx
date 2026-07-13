@@ -26,8 +26,8 @@ import { PlayButton } from "./game/play-button";
 // =============================================================================
 // Screen 00/01 — root of the native app (дизайны «PlayTennis Start» и
 // «PlayTennis Home»).
-//   * Guest → splash + вход: brand hero and a bottom sheet with sign-up,
-//     e-mail sign-in and Apple / Google.
+//   * Guest → splash + вход: brand hero and a bottom sheet with Apple /
+//     Google on top and the primary e-mail sign-in below.
 //   * Signed in → personal dashboard: rating band, quick actions, next event
 //     card, open games nearby and tournaments closing registration.
 // =============================================================================
@@ -68,11 +68,10 @@ export default async function MobileHomePage({ params }: Props) {
             players: players >= 20 ? Math.floor(players / 10) * 10 : players,
             clubs: clubsRes.count ?? 0,
           }),
-          create_account: t("start.create_account"),
           login_email: t("start.login_email"),
           or: t("start.or"),
-          already: t("start.already"),
-          login: t("start.login"),
+          new_here: t("start.new_here"),
+          signup: t("start.signup"),
           legal_prefix: t("start.legal_prefix"),
           legal_terms: t("start.legal_terms"),
           legal_and: t("start.legal_and"),
@@ -82,6 +81,7 @@ export default async function MobileHomePage({ params }: Props) {
             google: "Google",
             error: t("start.oauth_error"),
             unavailable: t("start.oauth_unavailable"),
+            error_detail: t("start.oauth_error_detail"),
           },
         }}
       />

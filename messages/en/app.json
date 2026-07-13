@@ -1041,7 +1041,8 @@
     "continue_google": "Continue with Google",
     "continue_apple": "Continue with Apple",
     "oauth_error": "Sign-in was cancelled or failed. Please try again.",
-    "oauth_unavailable": "This sign-in method isn't available on your device."
+    "oauth_unavailable": "This sign-in method isn't available on your device.",
+    "oauth_error_detail": "Details:"
   },
   "updatePassword": {
     "title": "Set a new password",
@@ -4624,17 +4625,17 @@
       "chip_tournaments": "Tournaments",
       "chip_elo": "ELO rating",
       "proof": "{players}+ players · {clubs} clubs online",
-      "create_account": "Create account",
       "login_email": "Sign in with e-mail or phone",
       "or": "or",
-      "already": "Already with us?",
-      "login": "Sign in",
+      "new_here": "New here?",
+      "signup": "Create account",
       "legal_prefix": "By continuing you accept the",
       "legal_terms": "Terms",
       "legal_and": "and",
       "legal_privacy": "Privacy Policy",
       "oauth_error": "Sign-in failed. Please try again.",
-      "oauth_unavailable": "Sign-in with this service is not available yet."
+      "oauth_unavailable": "Sign-in with this service is not available yet.",
+      "oauth_error_detail": "Details:"
     },
     "home": {
       "greeting": "Welcome back,",

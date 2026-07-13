@@ -17,6 +17,7 @@ export type StartOAuthLabels = {
   google: string;
   error: string;
   unavailable: string;
+  error_detail: string;
 };
 
 function siteBase() {
@@ -27,9 +28,11 @@ function siteBase() {
 export function StartOAuth({ labels }: { labels: StartOAuthLabels }) {
   const [busy, setBusy] = useState<OAuthProvider | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [errDetail, setErrDetail] = useState<string | null>(null);
 
   async function handle(provider: OAuthProvider) {
     setErrMsg(null);
+    setErrDetail(null);
     setBusy(provider);
     const opts = {
       redirectTo: `${siteBase()}/api/auth/callback`,
@@ -45,6 +48,7 @@ export function StartOAuth({ labels }: { labels: StartOAuthLabels }) {
           ? labels.unavailable
           : labels.error,
       );
+      setErrDetail(result.detail ?? null);
     }
   }
 
@@ -69,9 +73,14 @@ export function StartOAuth({ labels }: { labels: StartOAuthLabels }) {
         </ProviderPill>
       </div>
       {errMsg ? (
-        <p role="alert" className="mt-2.5 text-center text-[12px] font-semibold text-clay-500">
-          {errMsg}
-        </p>
+        <div role="alert" className="mt-2.5 text-center">
+          <p className="text-[12px] font-semibold text-clay-500">{errMsg}</p>
+          {errDetail ? (
+            <p className="mt-1 break-words text-[11px] font-medium text-clay-500/80">
+              {labels.error_detail} {errDetail}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
