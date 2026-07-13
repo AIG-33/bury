@@ -23,7 +23,7 @@ import {
 } from "@/app/[locale]/(player)/me/tournaments/actions";
 import { SURFACES } from "@/lib/tournaments/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getMobileMenuLabels, getMobileTabLabels } from "../tab-labels";
+import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
 // Screen 02 — Список турниров (ТЗ Mobile §7.02).
@@ -242,7 +242,7 @@ export default async function MobileTournamentsPage({ params, searchParams }: Pr
         )}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed={!!user} />
+      <MTabBar labels={getMobileTabLabels(t)} playLabels={getMobilePlayLabels(t)} authed={!!user} />
     </div>
   );
 }

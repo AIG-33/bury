@@ -19,7 +19,7 @@ import { loadPublicTournaments } from "@/app/[locale]/tournaments/actions";
 import { loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
 import { loadMyTournaments } from "@/app/[locale]/(player)/me/tournaments/actions";
 import type { OpenMatchApplicationStatus } from "@/lib/open-matches/schema";
-import { getMobileMenuLabels, getMobileTabLabels } from "./tab-labels";
+import { getMobilePlayLabels, getMobileTabLabels } from "./tab-labels";
 import { StartScreen } from "./start-screen";
 import { PlayButton } from "./game/play-button";
 
@@ -400,7 +400,7 @@ export default async function MobileHomePage({ params }: Props) {
             </p>
           </div>
           <Link
-            href={"/m/profile" as never}
+            href={"/m/notifications" as never}
             aria-label={t("home.notifications")}
             className="glass-on-dark relative grid h-11 w-11 place-items-center rounded-[13px] transition-opacity active:opacity-85"
           >
@@ -464,7 +464,7 @@ export default async function MobileHomePage({ params }: Props) {
           <QuickAction href="/m/tournaments" label={t("home.qa_tournaments")}>
             <Trophy className="h-[21px] w-[21px]" strokeWidth={1.8} />
           </QuickAction>
-          <QuickAction href="/me/matches" label={t("home.qa_record")}>
+          <QuickAction href="/m/record" label={t("home.qa_record")}>
             <Plus className="h-[21px] w-[21px]" strokeWidth={2.2} />
           </QuickAction>
         </div>
@@ -651,7 +651,7 @@ export default async function MobileHomePage({ params }: Props) {
         ) : null}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed />
+      <MTabBar labels={getMobileTabLabels(t)} playLabels={getMobilePlayLabels(t)} authed />
     </div>
   );
 }

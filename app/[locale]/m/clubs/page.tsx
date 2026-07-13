@@ -1,12 +1,12 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Lock, LockOpen, ShieldCheck } from "lucide-react";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
-import { MContent, MEmptyState, MRow, MSegment, MStickyHeader } from "@/components/mobile/m-ui";
+import { MContent, MEmptyState, MRow, MSegment, MSubHeader } from "@/components/mobile/m-ui";
 import { MSearchTool } from "@/components/mobile/m-header-tools";
 import { loadClubs, type ClubListItem } from "@/app/[locale]/clubs/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { initialsOf } from "@/lib/mobile/format";
-import { getMobileMenuLabels, getMobileTabLabels } from "../tab-labels";
+import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
 // Screen 04 — Список клубов (ТЗ Mobile §7.04).
@@ -106,8 +106,11 @@ export default async function MobileClubsPage({ params, searchParams }: Props) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <MStickyHeader
+      {/* Clubs moved from an own tab to «Ещё» — the header gets a back button. */}
+      <MSubHeader
         title={t("clubs.title")}
+        backHref="/m/more"
+        backLabel={t("common.back")}
         actions={
           <MSearchTool placeholder={t("clubs.search_placeholder")} ariaLabel={t("common.search")} />
         }
@@ -121,7 +124,7 @@ export default async function MobileClubsPage({ params, searchParams }: Props) {
             ]}
           />
         </div>
-      </MStickyHeader>
+      </MSubHeader>
 
       <MContent className="flex-1 pt-4">
         {visible.length === 0 ? (
@@ -137,7 +140,7 @@ export default async function MobileClubsPage({ params, searchParams }: Props) {
         )}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed={!!user} />
+      <MTabBar labels={getMobileTabLabels(t)} playLabels={getMobilePlayLabels(t)} authed={!!user} />
     </div>
   );
 }

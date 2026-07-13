@@ -6,7 +6,7 @@ import { MFilterTool, MSearchTool } from "@/components/mobile/m-header-tools";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
 import { computeRecord, formatSetsScore } from "@/lib/mobile/format";
-import { getMobileMenuLabels, getMobileTabLabels } from "../tab-labels";
+import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
 // Screen 08 — Матчи · история (ТЗ Mobile §7.08).
@@ -337,7 +337,7 @@ export default async function MobileMatchesPage({ params, searchParams }: Props)
         )}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} menuLabels={getMobileMenuLabels(t)} authed={!!user} />
+      <MTabBar labels={getMobileTabLabels(t)} playLabels={getMobilePlayLabels(t)} authed={!!user} />
     </div>
   );
 }

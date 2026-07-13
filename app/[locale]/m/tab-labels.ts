@@ -1,5 +1,5 @@
 import type { MTab } from "@/components/mobile/m-tab-bar";
-import type { MMenuLabels } from "@/components/mobile/m-menu-sheet";
+import type { MPlaySheetLabels } from "@/components/mobile/m-play-sheet";
 
 type Translator = (key: string) => string;
 
@@ -8,35 +8,25 @@ export function getMobileTabLabels(t: Translator): Record<MTab, string> {
   return {
     feed: t("tabs.feed"),
     tournaments: t("tabs.tournaments"),
+    play: t("tabs.play"),
     matches: t("tabs.matches"),
-    clubs: t("tabs.clubs"),
-    menu: t("tabs.menu"),
+    more: t("tabs.more"),
   };
 }
 
-/** Labels for the burger bottom-sheet opened from the 5th tab. */
-export function getMobileMenuLabels(t: Translator): MMenuLabels {
+/** Labels for the action-sheet opened from the central «Играть» FAB. */
+export function getMobilePlayLabels(t: Translator): MPlaySheetLabels {
   return {
-    title: t("menu.title"),
-    open: t("menu.open"),
-    close: t("menu.close"),
-    group_personal: t("menu.group_personal"),
-    group_sections: t("menu.group_sections"),
-    group_info: t("menu.group_info"),
-    profile: t("menu.profile"),
-    my_matches: t("menu.my_matches"),
-    my_tournaments: t("menu.my_tournaments"),
-    my_clubs: t("menu.my_clubs"),
-    game: t("menu.game"),
-    coaches: t("menu.coaches"),
-    venues: t("menu.venues"),
-    players: t("menu.players"),
-    matches_feed: t("menu.matches_feed"),
-    leaderboard: t("menu.leaderboard"),
-    help: t("menu.help"),
-    support: t("menu.support"),
-    privacy: t("menu.privacy"),
-    logout: t("menu.logout"),
-    login: t("menu.login"),
+    open: t("play.open"),
+    title: t("play.title"),
+    subtitle: t("play.subtitle"),
+    match_title: t("play.match_title"),
+    match_sub: t("play.match_sub"),
+    lesson_title: t("play.lesson_title"),
+    lesson_sub: t("play.lesson_sub"),
+    more_divider: t("play.more_divider"),
+    record_score: t("play.record_score"),
+    book_court: t("play.book_court"),
+    cancel: t("play.cancel"),
   };
 }

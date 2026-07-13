@@ -60,6 +60,43 @@ export function MStickyHeader({
   );
 }
 
+/**
+ * Sticky sub-screen header (design «PlayTennis Screens»): back button +
+ * 24px title + optional 40×40 actions, optional row below (segment control).
+ * Used by every screen opened from «Ещё» or the «Играть» sheet.
+ */
+export function MSubHeader({
+  title,
+  backHref,
+  backLabel,
+  actions,
+  children,
+}: {
+  title: string;
+  backHref: string;
+  backLabel: string;
+  actions?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <header
+      className="sticky top-0 z-40 border-b border-[rgba(20,60,30,0.07)] bg-[rgba(243,247,237,0.92)] backdrop-blur-[12px]"
+      style={{ paddingTop: "max(env(safe-area-inset-top), 12px)" }}
+    >
+      <div className="mx-auto w-full max-w-[430px] px-[18px] pb-3">
+        <div className="flex items-center gap-3 pt-1">
+          <MBackButton href={backHref} label={backLabel} />
+          <h1 className="flex-1 font-display text-[24px] font-extrabold leading-[1.1] tracking-[-0.6px] text-grass-900">
+            {title}
+          </h1>
+          {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+        </div>
+        {children}
+      </div>
+    </header>
+  );
+}
+
 /** 40×40 white action button for headers (icon 19px). */
 export function MHeaderButton({
   children,

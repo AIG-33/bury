@@ -11,7 +11,7 @@ import { InstallAppProvider, InstallAppPrompt } from "@/components/layout/instal
 import { HideOnMobileApp } from "@/components/layout/hide-on-mobile-app";
 import { HideInNativeApp } from "@/components/layout/hide-in-native-app";
 import { NativeTabBar } from "@/components/mobile/native-tab-bar";
-import { getMobileMenuLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
+import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -135,7 +135,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               )}
               <NativeTabBar
                 labels={getMobileTabLabels(tMobile)}
-                menuLabels={getMobileMenuLabels(tMobile)}
+                playLabels={getMobilePlayLabels(tMobile)}
                 authed={!!user}
               />
             </div>
