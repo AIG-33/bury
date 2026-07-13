@@ -69,6 +69,9 @@ fastlane/screenshots/**/*.png
 fastlane/screenshots/**/*.jpg
 fastlane/metadata/android/*/images/
 
+# Local secrets (never commit)
+.secrets/
+
 # Fastlane secrets (never commit)
 *.jks
 *.p8
@@ -79,3 +82,4 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/test_output
 fastlane/README.md
+.env*.local
