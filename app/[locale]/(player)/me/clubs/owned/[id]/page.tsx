@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOwnedClubDetail } from "../actions";
 import { loadClubPageSettings, loadClubRatingSettings, loadClubStandings } from "../rating-actions";
+import { loadClubBranding } from "../branding-actions";
+import { clubBrandingWithLegacy } from "@/lib/validators/club-branding";
 import { loadClubTournamentsForAdmin } from "../tournaments-actions";
 import { loadDistrictOptionsForClubs } from "../../../../../clubs/actions";
 import { loadVenueOptions } from "../../../tournaments/organized/actions";
@@ -41,6 +43,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
     res,
     districts,
     pageSettings,
+    branding,
     ratingSettings,
     standings,
     clubTournaments,
@@ -50,6 +53,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
     loadOwnedClubDetail(id),
     loadDistrictOptionsForClubs(),
     loadClubPageSettings(id),
+    loadClubBranding(id),
     loadClubRatingSettings(id),
     loadClubStandings(id),
     loadClubTournamentsForAdmin(id),
@@ -118,7 +122,16 @@ export default async function OwnedClubDetailPage({ params }: Props) {
 
       <ClubCustomizationSections
         clubId={club.id}
-        pageSettings={pageSettings}
+        clubSlug={club.slug}
+        locale={locale}
+        // Legacy brand_color / cover_url are folded into the branding blob so
+        // the editor starts from what the page currently looks like.
+        branding={clubBrandingWithLegacy(
+          branding,
+          pageSettings.brand_color,
+          pageSettings.cover_url,
+        )}
+        blocks={pageSettings.blocks}
         ratingSettings={ratingSettings}
         standings={standings}
         members={members}

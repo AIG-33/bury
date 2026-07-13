@@ -135,6 +135,14 @@ export const ClubPageSettingsSchema = z.object({
 });
 export type ClubPageSettings = z.infer<typeof ClubPageSettingsSchema>;
 
+// Blocks-only update — visual branding moved to clubs.branding
+// (lib/validators/club-branding.ts), so the blocks toggle saves separately.
+export const ClubPageBlocksInputSchema = z.object({
+  club_id: z.string().uuid(),
+  blocks: ClubPageBlocksSchema,
+});
+export type ClubPageBlocksInput = z.infer<typeof ClubPageBlocksInputSchema>;
+
 export const ClubRatingSettingsSchema = z.object({
   club_id: z.string().uuid(),
   enabled: z.boolean(),

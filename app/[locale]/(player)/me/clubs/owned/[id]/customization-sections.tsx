@@ -3,16 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2, Trash2, TrendingUp, Palette, Image as ImageIcon, Calculator } from "lucide-react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { Loader2, TrendingUp, LayoutGrid, Calculator } from "lucide-react";
+import { BrandingEditor } from "@/components/domain/branding-editor";
+import type { ClubBranding } from "@/lib/validators/club-branding";
+import { updateClubBranding } from "../branding-actions";
 import type { MemberRow } from "../actions";
-import type {
-  ClubPageSettingsData,
-  ClubRatingSettingsData,
-  ClubRatingStandingRow,
-} from "../rating-actions";
+import type { ClubRatingSettingsData, ClubRatingStandingRow } from "../rating-actions";
 import {
-  updateClubPageSettings,
+  updateClubPageBlocks,
   updateClubRatingSettings,
   adjustClubRating,
   simulateClubMatch,
@@ -21,7 +19,10 @@ import type { ClubRatingConfig, ClubPageBlocks } from "@/lib/clubs/rating-schema
 
 type Props = {
   clubId: string;
-  pageSettings: ClubPageSettingsData;
+  clubSlug: string;
+  locale: string;
+  branding: ClubBranding;
+  blocks: ClubPageBlocks;
   ratingSettings: ClubRatingSettingsData;
   standings: ClubRatingStandingRow[];
   members: MemberRow[];
@@ -36,7 +37,16 @@ const BTN_PRIMARY =
 export function ClubCustomizationSections(props: Props) {
   return (
     <>
-      <PageBrandingSection clubId={props.clubId} initial={props.pageSettings} />
+      <BrandingEditor
+        entityId={props.clubId}
+        bucket="club-logos"
+        namespace="clubsOwned.detail.branding"
+        helpPageId="me-club-branding"
+        publicHref={`/${props.locale}/clubs/${props.clubSlug}`}
+        initial={props.branding}
+        onSave={(branding) => updateClubBranding({ club_id: props.clubId, branding })}
+      />
+      <PageBlocksSection clubId={props.clubId} initial={props.blocks} />
       <ClubRatingSection clubId={props.clubId} initial={props.ratingSettings} />
       <ManualAdjustSection
         clubId={props.clubId}
@@ -48,36 +58,21 @@ export function ClubCustomizationSections(props: Props) {
   );
 }
 
-// ─── Branding ─────────────────────────────────────────────────────────────────
+// ─── Content blocks (which sections the public page shows) ───────────────────
 
-function PageBrandingSection({
-  clubId,
-  initial,
-}: {
-  clubId: string;
-  initial: ClubPageSettingsData;
-}) {
+function PageBlocksSection({ clubId, initial }: { clubId: string; initial: ClubPageBlocks }) {
   const t = useTranslations("clubsOwned.detail.page");
   const router = useRouter();
-  const [color, setColor] = useState(initial.brand_color ?? "#16a34a");
-  const [colorOn, setColorOn] = useState(!!initial.brand_color);
-  const [cover, setCover] = useState<string | null>(initial.cover_url);
-  const [blocks, setBlocks] = useState<ClubPageBlocks>(initial.blocks);
+  const [blocks, setBlocks] = useState<ClubPageBlocks>(initial);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
-  const [uploading, startUpload] = useTransition();
   const [saving, startSave] = useTransition();
 
   function save() {
     startSave(async () => {
       setStatus("idle");
       setError(null);
-      const r = await updateClubPageSettings({
-        club_id: clubId,
-        brand_color: colorOn ? color : null,
-        cover_url: cover,
-        blocks,
-      });
+      const r = await updateClubPageBlocks({ club_id: clubId, blocks });
       if (r.ok) {
         setStatus("saved");
         router.refresh();
@@ -98,134 +93,34 @@ function PageBrandingSection({
   return (
     <section className={SECTION}>
       <h2 className="mb-1 flex items-center gap-2 font-display text-lg font-semibold text-ink-900">
-        <Palette className="h-5 w-5 text-grass-700" />
-        {t("title")}
+        <LayoutGrid className="h-5 w-5 text-grass-700" />
+        {t("blocks_title")}
       </h2>
-      <p className="mb-4 text-xs text-ink-500">{t("subtitle")}</p>
-
-      <div className="space-y-5">
-        {/* Brand color */}
-        <div>
-          <span className="mb-1 block text-sm font-medium text-ink-800">{t("brand_color")}</span>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="inline-flex items-center gap-2 text-sm text-ink-700">
-              <input
-                type="checkbox"
-                checked={colorOn}
-                onChange={(e) => setColorOn(e.target.checked)}
-                className="h-4 w-4 rounded border-ink-300"
-              />
-              {t("brand_color_clear")}
-            </label>
-            {colorOn && (
-              <>
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="h-9 w-14 cursor-pointer rounded-lg border border-ink-200"
-                />
-                <input
-                  type="text"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className={`${INPUT} w-28 font-mono`}
-                  maxLength={7}
-                />
-              </>
-            )}
-          </div>
-          <p className="mt-1 text-xs text-ink-500">{t("brand_color_hint")}</p>
-        </div>
-
-        {/* Cover */}
-        <div>
-          <span className="mb-1 block text-sm font-medium text-ink-800">
-            <ImageIcon className="mr-1 inline h-3.5 w-3.5" />
-            {t("cover")}
-          </span>
-          {cover && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cover}
-              alt=""
-              className="mb-2 h-28 w-full max-w-md rounded-lg border border-ink-100 object-cover"
+      <p className="mb-3 text-xs text-ink-500">{t("blocks_hint")}</p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {blockDefs.map((b) => (
+          <label
+            key={b.key}
+            className="inline-flex items-center gap-2 rounded-lg border border-ink-100 bg-ink-50/40 px-2 py-1.5 text-sm text-ink-700"
+          >
+            <input
+              type="checkbox"
+              checked={blocks[b.key]}
+              onChange={(e) => setBlocks({ ...blocks, [b.key]: e.target.checked })}
+              className="h-4 w-4 rounded border-ink-300"
             />
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex h-9 cursor-pointer items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {uploading ? t("cover_uploading") : t("cover_upload")}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                disabled={uploading}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  startUpload(async () => {
-                    setError(null);
-                    const supabase = createSupabaseBrowserClient();
-                    const ext = file.name.split(".").pop() ?? "jpg";
-                    const path = `${clubId}/cover-${Date.now()}.${ext}`;
-                    const { error: upErr } = await supabase.storage
-                      .from("club-logos")
-                      .upload(path, file, { upsert: true, contentType: file.type });
-                    if (upErr) {
-                      setError(upErr.message);
-                      return;
-                    }
-                    const { data: pub } = supabase.storage.from("club-logos").getPublicUrl(path);
-                    setCover(pub.publicUrl);
-                  });
-                }}
-              />
-            </label>
-            {cover && (
-              <button
-                type="button"
-                onClick={() => setCover(null)}
-                className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
-              >
-                <Trash2 className="h-4 w-4" />
-                {t("cover_remove")}
-              </button>
-            )}
-          </div>
-          <p className="mt-1 text-xs text-ink-500">{t("cover_hint")}</p>
-        </div>
+            {b.label}
+          </label>
+        ))}
+      </div>
 
-        {/* Blocks */}
-        <div>
-          <span className="mb-1 block text-sm font-medium text-ink-800">{t("blocks_title")}</span>
-          <p className="mb-2 text-xs text-ink-500">{t("blocks_hint")}</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {blockDefs.map((b) => (
-              <label
-                key={b.key}
-                className="inline-flex items-center gap-2 rounded-lg border border-ink-100 bg-ink-50/40 px-2 py-1.5 text-sm text-ink-700"
-              >
-                <input
-                  type="checkbox"
-                  checked={blocks[b.key]}
-                  onChange={(e) => setBlocks({ ...blocks, [b.key]: e.target.checked })}
-                  className="h-4 w-4 rounded border-ink-300"
-                />
-                {b.label}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={save} disabled={saving} className={BTN_PRIMARY}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {saving ? t("saving") : t("save")}
-          </button>
-          {status === "saved" && <span className="text-sm text-grass-700">{t("saved")}</span>}
-          {status === "error" && <span className="text-sm text-clay-700">{error ?? t("error")}</span>}
-        </div>
+      <div className="mt-4 flex items-center gap-3">
+        <button type="button" onClick={save} disabled={saving} className={BTN_PRIMARY}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {saving ? t("saving") : t("save")}
+        </button>
+        {status === "saved" && <span className="text-sm text-grass-700">{t("saved")}</span>}
+        {status === "error" && <span className="text-sm text-clay-700">{error ?? t("error")}</span>}
       </div>
     </section>
   );
@@ -338,7 +233,9 @@ function ClubRatingSection({
         />
       </label>
 
-      <p className="mb-3 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">{t("defaults_note")}</p>
+      <p className="mb-3 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
+        {t("defaults_note")}
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <NumberField
@@ -359,18 +256,69 @@ function ClubRatingSection({
 
       <h3 className="mb-2 mt-4 text-sm font-semibold text-ink-800">{t("k_title")}</h3>
       <div className="grid gap-3 sm:grid-cols-3">
-        <NumberField label={t("k_provisional")} value={cfg.k_factors.provisional} min={8} max={80} onChange={(n) => setK("provisional", n)} />
-        <NumberField label={t("k_intermediate")} value={cfg.k_factors.intermediate} min={8} max={80} onChange={(n) => setK("intermediate", n)} />
-        <NumberField label={t("k_established")} value={cfg.k_factors.established} min={8} max={80} onChange={(n) => setK("established", n)} />
-        <NumberField label={t("k_provisional_until")} value={cfg.k_factors.provisional_until_n_matches} min={0} max={50} onChange={(n) => setK("provisional_until_n_matches", n)} />
-        <NumberField label={t("k_intermediate_until")} value={cfg.k_factors.intermediate_until_n_matches} min={1} max={200} onChange={(n) => setK("intermediate_until_n_matches", n)} />
+        <NumberField
+          label={t("k_provisional")}
+          value={cfg.k_factors.provisional}
+          min={8}
+          max={80}
+          onChange={(n) => setK("provisional", n)}
+        />
+        <NumberField
+          label={t("k_intermediate")}
+          value={cfg.k_factors.intermediate}
+          min={8}
+          max={80}
+          onChange={(n) => setK("intermediate", n)}
+        />
+        <NumberField
+          label={t("k_established")}
+          value={cfg.k_factors.established}
+          min={8}
+          max={80}
+          onChange={(n) => setK("established", n)}
+        />
+        <NumberField
+          label={t("k_provisional_until")}
+          value={cfg.k_factors.provisional_until_n_matches}
+          min={0}
+          max={50}
+          onChange={(n) => setK("provisional_until_n_matches", n)}
+        />
+        <NumberField
+          label={t("k_intermediate_until")}
+          value={cfg.k_factors.intermediate_until_n_matches}
+          min={1}
+          max={200}
+          onChange={(n) => setK("intermediate_until_n_matches", n)}
+        />
       </div>
 
       <h3 className="mb-2 mt-4 text-sm font-semibold text-ink-800">{t("mult_title")}</h3>
       <div className="grid gap-3 sm:grid-cols-3">
-        <NumberField label={t("mult_friendly")} value={cfg.multipliers.friendly} min={0} max={3} step={0.05} onChange={(n) => setMult("friendly", n)} />
-        <NumberField label={t("mult_tournament")} value={cfg.multipliers.tournament} min={0} max={3} step={0.05} onChange={(n) => setMult("tournament", n)} />
-        <NumberField label={t("mult_final")} value={cfg.multipliers.tournament_final} min={0} max={3} step={0.05} onChange={(n) => setMult("tournament_final", n)} />
+        <NumberField
+          label={t("mult_friendly")}
+          value={cfg.multipliers.friendly}
+          min={0}
+          max={3}
+          step={0.05}
+          onChange={(n) => setMult("friendly", n)}
+        />
+        <NumberField
+          label={t("mult_tournament")}
+          value={cfg.multipliers.tournament}
+          min={0}
+          max={3}
+          step={0.05}
+          onChange={(n) => setMult("tournament", n)}
+        />
+        <NumberField
+          label={t("mult_final")}
+          value={cfg.multipliers.tournament_final}
+          min={0}
+          max={3}
+          step={0.05}
+          onChange={(n) => setMult("tournament_final", n)}
+        />
       </div>
 
       <div className="mt-4 flex items-center gap-3">
@@ -427,7 +375,11 @@ function Simulator({ config }: { config: ClubRatingConfig }) {
         <NumberField label={t("sim_p2_matches")} value={m2} min={0} onChange={setM2} />
         <label className="block">
           <span className="mb-1 block text-xs font-medium text-ink-600">{t("sim_winner")}</span>
-          <select value={winner} onChange={(e) => setWinner(e.target.value as "p1" | "p2")} className={INPUT}>
+          <select
+            value={winner}
+            onChange={(e) => setWinner(e.target.value as "p1" | "p2")}
+            className={INPUT}
+          >
             <option value="p1">{t("sim_winner_p1")}</option>
             <option value="p2">{t("sim_winner_p2")}</option>
           </select>
@@ -436,7 +388,9 @@ function Simulator({ config }: { config: ClubRatingConfig }) {
           <span className="mb-1 block text-xs font-medium text-ink-600">{t("sim_kind")}</span>
           <select
             value={kind}
-            onChange={(e) => setKind(e.target.value as "friendly" | "tournament" | "tournament_final")}
+            onChange={(e) =>
+              setKind(e.target.value as "friendly" | "tournament" | "tournament_final")
+            }
             className={INPUT}
           >
             <option value="friendly">{t("sim_kind_friendly")}</option>
