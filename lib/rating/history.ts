@@ -25,19 +25,6 @@ export type EloHero = {
   worst_elo: number;
 };
 
-export type SeasonInfo = {
-  id: string;
-  name: string;
-  starts_on: string;
-  ends_on: string;
-  status: "upcoming" | "active" | "closed";
-  top_n_for_prizes: number;
-  prizes_description: string | null;
-  // The race standings/score per player are computed separately in iter 12.
-  // For now the widget renders only the season meta + days_left.
-  days_left: number;
-} | null;
-
 export type RatingMatchSet = {
   p1_games: number;
   p2_games: number;
@@ -69,7 +56,6 @@ export type RatingMatchRow = {
 export type RatingTabPayload = {
   hero: EloHero;
   history: EloPoint[];
-  season: SeasonInfo;
   recentMatches: RatingMatchRow[];
   // True when the player still needs to take the onboarding quiz to get a
   // real starting Elo. The rating page uses this to surface a prominent CTA.
@@ -86,31 +72,18 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [profileRes, historyRes, seasonRes, matchesRes] = await Promise.all([
+  const [profileRes, historyRes, matchesRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select(
-        "current_elo, elo_status, rated_matches_count, onboarding_completed_at",
-      )
+      .select("current_elo, elo_status, rated_matches_count, onboarding_completed_at")
       .eq("id", user.id)
       .single(),
     supabase
       .from("rating_history")
-      .select(
-        "id, created_at, old_elo, new_elo, delta, k_factor, multiplier, reason, match_id",
-      )
+      .select("id, created_at, old_elo, new_elo, delta, k_factor, multiplier, reason, match_id")
       .eq("player_id", user.id)
       .order("created_at", { ascending: false })
       .limit(HISTORY_LIMIT),
-    supabase
-      .from("seasons")
-      .select(
-        "id, name, starts_on, ends_on, status, top_n_for_prizes, prizes_description",
-      )
-      .eq("status", "active")
-      .order("starts_on", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
     supabase
       .from("matches")
       .select(
@@ -158,30 +131,6 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
     worst_elo: Math.min(...allElos),
   };
 
-  const seasonRow = seasonRes.data as
-    | {
-        id: string;
-        name: string;
-        starts_on: string;
-        ends_on: string;
-        status: "upcoming" | "active" | "closed";
-        top_n_for_prizes: number;
-        prizes_description: string | null;
-      }
-    | null;
-
-  const season: SeasonInfo = seasonRow
-    ? {
-        ...seasonRow,
-        days_left: Math.max(
-          0,
-          Math.ceil(
-            (Date.parse(seasonRow.ends_on) - Date.now()) / (24 * 60 * 60 * 1000),
-          ),
-        ),
-      }
-    : null;
-
   // -- Build the "recent matches with Elo delta" list --------------------
   const matchRows = (matchesRes.data ?? []) as Array<{
     id: string;
@@ -216,11 +165,7 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
   }
 
   const tournamentIds = Array.from(
-    new Set(
-      matchRows
-        .map((m) => m.tournament_id)
-        .filter((x): x is string => x != null),
-    ),
+    new Set(matchRows.map((m) => m.tournament_id).filter((x): x is string => x != null)),
   );
   const tournamentNameById = new Map<string, string>();
   if (tournamentIds.length > 0) {
@@ -267,11 +212,7 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
     const opponent = opponentById.get(otherId);
     if (!opponent) return [];
     const iAmWinner =
-      m.winner_side == null
-        ? null
-        : (m.winner_side === "p1") === isP1
-          ? true
-          : false;
+      m.winner_side == null ? null : (m.winner_side === "p1") === isP1 ? true : false;
     const elo = eloByMatch.get(m.id);
     return [
       {
@@ -283,9 +224,7 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
         sets: m.sets,
         opponent,
         tournament_id: m.tournament_id,
-        tournament_name: m.tournament_id
-          ? (tournamentNameById.get(m.tournament_id) ?? null)
-          : null,
+        tournament_name: m.tournament_id ? (tournamentNameById.get(m.tournament_id) ?? null) : null,
         delta: elo?.delta ?? null,
         new_elo: elo?.new_elo ?? null,
       },
@@ -295,7 +234,6 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
   return {
     hero,
     history,
-    season,
     recentMatches,
     needs_onboarding_quiz: !profile.onboarding_completed_at,
   };

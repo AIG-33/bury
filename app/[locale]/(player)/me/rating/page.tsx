@@ -1,16 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import {
-  ArrowDown,
-  ArrowUp,
-  Calendar,
-  Clock,
-  Minus,
-  Sparkles,
-  Trophy,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, Clock, Minus, Sparkles, Trophy, ArrowRight } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
 import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
@@ -37,7 +28,7 @@ export default async function MyRatingPage({ params }: Props) {
   const externalRating = await loadMyExternalRating();
   const externalTimeline = await loadMyExternalRatingTimeline();
 
-  const { hero, history, season, recentMatches, needs_onboarding_quiz } = data;
+  const { hero, history, recentMatches, needs_onboarding_quiz } = data;
   const deltaPositive = hero.delta_30d >= 0;
   const extDelta30d = externalTimeline?.delta_30d ?? 0;
   const extDeltaPositive = extDelta30d >= 0;
@@ -100,10 +91,7 @@ export default async function MyRatingPage({ params }: Props) {
               </div>
             </div>
 
-            <Link
-              href="/onboarding/quiz"
-              className="btn btn-primary self-stretch sm:self-auto"
-            >
+            <Link href="/onboarding/quiz" className="btn btn-primary self-stretch sm:self-auto">
               {t("quiz_cta.cta")}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -208,9 +196,7 @@ export default async function MyRatingPage({ params }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="surface-card">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="section-title">
-              {t("history.title")}
-            </h2>
+            <h2 className="section-title">{t("history.title")}</h2>
             <span className="text-xs text-ink-500">
               {t("history.last_n", { n: history.length })}
             </span>
@@ -234,9 +220,7 @@ export default async function MyRatingPage({ params }: Props) {
           <div className="mb-3 flex items-center justify-between">
             <div>
               <h2 className="section-title">{t("ext_history.title")}</h2>
-              <p className="mt-0.5 text-xs text-ink-500">
-                {t("ext_history.subtitle")}
-              </p>
+              <p className="mt-0.5 text-xs text-ink-500">{t("ext_history.subtitle")}</p>
             </div>
             {externalTimeline && externalTimeline.refreshed_count > 0 && (
               <span className="text-xs text-ink-500">
@@ -266,13 +250,7 @@ export default async function MyRatingPage({ params }: Props) {
               <Stat
                 label={t("ext_history.delta_30d")}
                 value={`${extDeltaPositive ? "+" : ""}${extDelta30d}`}
-                accent={
-                  extDelta30d === 0
-                    ? "neutral"
-                    : extDeltaPositive
-                      ? "positive"
-                      : "negative"
-                }
+                accent={extDelta30d === 0 ? "neutral" : extDeltaPositive ? "positive" : "negative"}
                 icon={
                   extDelta30d === 0 ? null : extDeltaPositive ? (
                     <ArrowUp className="h-3.5 w-3.5" />
@@ -284,40 +262,6 @@ export default async function MyRatingPage({ params }: Props) {
               <Stat label={t("ext_history.best")} value={externalTimeline.best_elo.toString()} />
               <Stat label={t("ext_history.worst")} value={externalTimeline.worst_elo.toString()} />
             </div>
-          )}
-        </section>
-      </div>
-
-      {/* Season race */}
-      <div className="grid grid-cols-1 gap-6">
-        <section className="surface-card overflow-hidden bg-gradient-to-br from-ball-50 via-white to-white">
-          <div className="mb-2 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-ball-700" />
-            <h2 className="section-title">{t("race.title")}</h2>
-          </div>
-          {season ? (
-            <>
-              <p className="text-sm font-medium text-ink-800">{season.name}</p>
-              <p className="mt-1 text-xs text-ink-500">
-                {new Date(season.starts_on).toLocaleDateString(locale)} →{" "}
-                {new Date(season.ends_on).toLocaleDateString(locale)}
-              </p>
-              <div className="mt-4 rounded-lg bg-white p-3 ring-1 ring-ball-200">
-                <p className="text-xs uppercase tracking-wide text-ink-500">
-                  {t("race.days_left")}
-                </p>
-                <p className="font-mono text-3xl font-bold text-ball-700">{season.days_left}</p>
-              </div>
-              {season.prizes_description && (
-                <p className="mt-3 text-xs text-ink-700">
-                  <span className="font-semibold">{t("race.prizes")}:</span>{" "}
-                  {season.prizes_description}
-                </p>
-              )}
-              <p className="mt-3 text-[11px] text-ink-500">{t("race.coming_soon")}</p>
-            </>
-          ) : (
-            <p className="text-sm text-ink-500">{t("race.no_season")}</p>
           )}
         </section>
       </div>

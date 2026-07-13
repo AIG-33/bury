@@ -1553,7 +1553,7 @@
   },
   "rating": {
     "title": "Мой рейтинг",
-    "subtitle": "Твоё Elo, история последних матчей и сезонная гонка за призами.",
+    "subtitle": "Твоё Elo и история последних матчей.",
     "help": {
       "why": "Здесь видно, как меняется твой настоящий уровень с каждым матчем. Один рейтинг — все матчи.",
       "what": {
@@ -1608,13 +1608,6 @@
         "manual_refresh": "Ручное обновление",
         "admin_set": "Корректировка админа"
       }
-    },
-    "race": {
-      "title": "Сезонная гонка",
-      "days_left": "Дней до конца",
-      "prizes": "Призы",
-      "coming_soon": "Полные таблицы гонки появятся скоро.",
-      "no_season": "Сейчас нет активного сезона."
     },
     "matches": {
       "title": "Мои матчи",
@@ -3149,10 +3142,6 @@
         "term": "Стартовый Эло",
         "def": "Начальный рейтинг по итогам 60-секундного квиза при регистрации."
       },
-      "race": {
-        "term": "Гонка сезона",
-        "def": "Рейтинг внутри одного сезона. Топ-N получают призы — детали в разделе Рейтинг."
-      },
       "tournament_seed": {
         "term": "Посев",
         "def": "Твоё место в сетке по рейтингу. Высокие посевы не пересекаются в первых раундах."
@@ -4620,12 +4609,15 @@
     }
   },
   "mobile": {
+    "splash": {
+      "slogan": "Играйте в теннис — это полезно"
+    },
     "tabs": {
       "feed": "Главная",
       "tournaments": "Турниры",
+      "play": "Играть",
       "matches": "Матчи",
-      "clubs": "Клубы",
-      "profile": "Профиль"
+      "more": "Ещё"
     },
     "start": {
       "slogan": "Найди игру, собери турнир\nи расти в рейтинге",
@@ -4735,15 +4727,23 @@
       "seg_all": "Все",
       "seg_reg": "Регистрация",
       "seg_live": "Идут",
+      "seg_mine": "Мои",
       "empty_title": "Турниров не найдено",
       "empty_body": "Попробуйте убрать фильтры или загляните позже — новые турниры появляются каждую неделю.",
+      "empty_mine_title": "Вы пока не участвуете в турнирах",
+      "empty_mine_body": "Подайте заявку на турнир с открытой регистрацией — он появится здесь вместе со статусом заявки и ближайшим матчем.",
+      "empty_mine_cta": "Турниры с регистрацией",
       "place_tba": "Место уточняется",
       "status_draft": "Черновик",
       "status_registration": "Регистрация",
       "status_in_progress": "Идёт",
       "status_upcoming": "Скоро старт",
       "status_finished": "Завершён",
-      "status_cancelled": "Отменён"
+      "status_cancelled": "Отменён",
+      "mine_pending": "Заявка",
+      "mine_rejected": "Отклонена",
+      "mine_withdrawn": "Вы снялись",
+      "mine_next_match": "След. матч: {opponent}"
     },
     "tournament": {
       "format_single_elimination": "Олимпийка",
@@ -4877,6 +4877,156 @@
       "empty_title": "Матчей не найдено",
       "empty_body": "Сыграйте матч или уберите фильтры — история появится здесь.",
       "no_score": "без счёта"
+    },
+    "play": {
+      "open": "Играть — выбрать сценарий",
+      "title": "С кем играешь?",
+      "subtitle": "Матч с соперником или занятие с тренером",
+      "match_title": "Матч",
+      "match_sub": "Соперник твоего уровня рядом",
+      "lesson_title": "Занятие",
+      "lesson_sub": "Тренировка с тренером",
+      "more_divider": "ещё",
+      "record_score": "Записать счёт сыгранного",
+      "book_court": "Забронировать корт",
+      "cancel": "Отмена"
+    },
+    "more": {
+      "group_profile": "Профиль",
+      "group_play": "Игра",
+      "group_competitions": "Соревнования",
+      "group_community": "Сообщество",
+      "group_manage": "Управление",
+      "group_account": "Аккаунт",
+      "my_profile": "Мой профиль",
+      "my_stats": "Моя статистика",
+      "my_rating": "Динамика рейтинга",
+      "find_opponent": "Подбор соперника",
+      "match_proposals": "Предложения матчей",
+      "open_matches": "Спарринги · открытые матчи",
+      "venues": "Площадки и корты",
+      "leaderboard": "Рейтинг · лидерборд",
+      "my_tournaments": "Мои турниры",
+      "create_tournament": "Организация турниров",
+      "my_bookings": "Мои записи и брони",
+      "clubs": "Клубы",
+      "my_clubs": "Мои клубы",
+      "manage_clubs": "Управление клубами",
+      "coaches": "Тренеры",
+      "my_coaches": "Мои тренеры",
+      "players": "Игроки",
+      "become_coach": "Стать тренером",
+      "coach_panel": "Панель тренера",
+      "admin_panel": "Панель администратора",
+      "notifications": "Уведомления",
+      "settings": "Настройки",
+      "help": "Помощь",
+      "support": "Поддержка",
+      "logout": "Выйти",
+      "version": "PlayTennis.by · версия {version}",
+      "club_place": "#{rank} в клубе",
+      "guest_title": "Ты ещё не вошёл",
+      "guest_body": "Войди, чтобы играть и следить за рейтингом"
+    },
+    "rating": {
+      "title": "Рейтинг",
+      "seg_all": "Общий",
+      "seg_club": "Клуб",
+      "seg_city": "Город",
+      "you": "ты",
+      "empty_title": "Пока нет рейтинга",
+      "empty_generic": "Как только игроки сыграют матчи, здесь появится таблица лидеров.",
+      "empty_no_club": "Вступи в клуб — и здесь появится рейтинг твоего клуба.",
+      "empty_no_city": "Укажи город в профиле, чтобы видеть рейтинг по своему городу."
+    },
+    "coaches": {
+      "title": "Тренеры",
+      "search_placeholder": "Имя тренера",
+      "seg_all": "Все",
+      "seg_near": "Рядом",
+      "seg_top": "Топ",
+      "reviews_count": "{count, plural, =0 {нет отзывов} one {# отзыв} few {# отзыва} many {# отзывов} other {# отзывов}}",
+      "per_hour": "ч",
+      "book": "Записаться",
+      "empty_title": "Тренеров пока нет",
+      "empty_body": "Каталог тренеров пополняется — загляни позже.",
+      "empty_near_title": "Рядом тренеров не нашлось",
+      "empty_near_body": "В твоём городе пока нет тренеров — посмотри общий список."
+    },
+    "coach": {
+      "stat_slots": "слотов",
+      "stat_rating": "рейтинг",
+      "stat_reviews": "отзывов",
+      "seg_schedule": "Расписание",
+      "seg_about": "О тренере",
+      "seg_reviews": "Отзывы",
+      "slots_eyebrow": "Свободные слоты",
+      "venue_eyebrow": "Площадка",
+      "book_cta": "Записаться на занятие",
+      "hour_short": "час",
+      "success_title": "Ты записан!",
+      "success_body": "Занятие в календаре. Детали — в «Мои записи и брони».",
+      "empty_slots_title": "Свободных слотов нет",
+      "empty_slots_body": "Тренер ещё не открыл запись — загляни позже или напиши ему.",
+      "empty_about_title": "Пока без описания",
+      "empty_about_body": "Тренер ещё не рассказал о себе.",
+      "empty_reviews_title": "Отзывов пока нет",
+      "empty_reviews_body": "Позанимайся с тренером и оставь первый отзыв."
+    },
+    "record": {
+      "title": "Записать счёт",
+      "close": "Закрыть",
+      "you": "Ты",
+      "vs": "VS",
+      "opponent": "Соперник",
+      "opponent_pick": "выбрать",
+      "opponent_search": "Имя игрока",
+      "opponent_empty": "Никого не нашли. Попробуй другое имя.",
+      "seg_two": "2 сета",
+      "seg_three": "3 сета",
+      "seg_proset": "Про-сет",
+      "sets_eyebrow": "Счёт по сетам",
+      "set_label": "Сет",
+      "win_forecast": "Победа",
+      "loss_forecast": "Поражение",
+      "save": "Сохранить результат",
+      "saving": "Сохраняем…",
+      "saved_title": "Счёт записан",
+      "saved_body": "Соперник получит запрос на подтверждение — после этого обновится ELO.",
+      "to_matches": "К матчам",
+      "minus": "Минус гейм",
+      "plus": "Плюс гейм"
+    },
+    "notifications": {
+      "title": "Уведомления",
+      "group_today": "Сегодня",
+      "group_earlier": "Ранее",
+      "empty_title": "Уведомлений нет",
+      "empty_body": "Играй матчи и записывайся на турниры — новости появятся здесь.",
+      "tpl_booking_confirmed": "Запись на занятие подтверждена",
+      "tpl_booking_cancelled": "Занятие отменено",
+      "tpl_booking_reminder_24h": "Занятие уже завтра — напоминание",
+      "tpl_match_proposal": "Тебя пригласили на матч",
+      "tpl_match_accepted": "Твой вызов на матч принят",
+      "tpl_tournament_application_submitted": "Заявка на турнир отправлена",
+      "tpl_tournament_starting_24h": "Турнир стартует завтра",
+      "tpl_club_member_kicked": "Изменение членства в клубе",
+      "tpl_club_ownership_offered": "Тебе предложили управление клубом",
+      "tpl_generic": "Новое уведомление"
+    },
+    "settings": {
+      "title": "Настройки",
+      "group_account": "Аккаунт",
+      "group_notifications": "Уведомления",
+      "group_app": "Приложение",
+      "profile": "Профиль и фото",
+      "privacy": "Приватность",
+      "channel_email": "E-mail",
+      "channel_telegram": "Telegram",
+      "channel_whatsapp": "WhatsApp",
+      "language": "Язык",
+      "support": "Помощь и поддержка",
+      "logout": "Выйти из аккаунта"
     }
   }
 }

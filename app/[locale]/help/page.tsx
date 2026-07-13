@@ -31,7 +31,6 @@ export default async function HelpPage({ params }: Props) {
     "k_factor",
     "provisional",
     "starting_elo",
-    "race",
     "tournament_seed",
     "bye",
     "no_ad",
@@ -69,10 +68,7 @@ export default async function HelpPage({ params }: Props) {
         }
       />
 
-      <Link
-        href={`/${locale}/help/guide`}
-        className="surface-card lift-on-hover block"
-      >
+      <Link href={`/${locale}/help/guide`} className="surface-card lift-on-hover block">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-semibold text-grass-900">

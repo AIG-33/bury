@@ -30,6 +30,13 @@ export function NavShell({ children }: Props) {
           ? "border-[rgba(20,60,30,0.08)] bg-[rgba(243,247,237,0.72)] shadow-[0_8px_30px_-18px_rgba(20,60,30,0.18)]"
           : "border-transparent bg-[rgba(243,247,237,0.45)]",
       ].join(" ")}
+      // Inside the native app (Android 15+ edge-to-edge, iOS notches, PWA
+      // standalone) the WebView extends under the system status bar. Padding
+      // the sticky element itself keeps the glass background flowing under
+      // the status bar while the nav row stays below the system icons — and
+      // no white gap can appear when scrolled. In regular browsers
+      // env(safe-area-inset-top) is 0, so desktop/mobile web is unchanged.
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       {children}
     </header>

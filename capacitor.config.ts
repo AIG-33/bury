@@ -14,6 +14,9 @@ const config: CapacitorConfig = {
   appId: "by.playtennis.app",
   appName: "PlayTennis.by",
   webDir: "mobile/www",
+  // Grass-green WebView background: even if the splash hides before the remote
+  // page paints, the user sees brand green instead of a black flash.
+  backgroundColor: "#1C7A46",
   // UA marker so the site can detect the store app even if the Capacitor
   // bridge global is unavailable (see lib/is-native-app.ts). Needs a native
   // rebuild to ship; the bridge check works with existing binaries.
@@ -36,9 +39,13 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1200,
-      launchAutoHide: true,
-      backgroundColor: "#f6f9f4",
+      // Keep the native splash up until the web app mounts and hides it from
+      // JS (native-bridge.tsx). The animated web overlay (launch-splash.tsx)
+      // is already in the server HTML underneath, so the hand-off is seamless
+      // and there is never a black frame between splash and content.
+      launchShowDuration: 0,
+      launchAutoHide: false,
+      backgroundColor: "#1C7A46",
       showSpinner: false,
       androidScaleType: "CENTER_CROP",
       splashFullScreen: true,

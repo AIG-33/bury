@@ -22,9 +22,9 @@ import type { ConnectedSnapshot, ExternalRatingCardCopy } from "./external-ratin
 // designed for the dense `/me/rating` page.
 //
 // Why this exists separately from the full card on `/me/profile`:
-//   * The rating page already shows the player's primary Elo, season race,
-//     chart and recent matches — adding the full multi-row card on top of
-//     that would dominate the layout.
+//   * The rating page already shows the player's primary Elo, chart and
+//     recent matches — adding the full multi-row card on top of that would
+//     dominate the layout.
 //   * Here we only need the LT badge + a one-click "Refresh" action and a
 //     subtle empty-state CTA pointing at the existing /onboarding/import-lt
 //     flow. Disconnect lives on /me/profile.
@@ -55,8 +55,7 @@ export function ExternalRatingStrip({
       if (!r.ok) {
         // Rate-limit messages embed the retry-after if the i18n string
         // contains "{seconds}"; otherwise they fall back to the generic copy.
-        const base =
-          copy.errors[r.error as keyof typeof copy.errors] ?? copy.errors.unknown;
+        const base = copy.errors[r.error as keyof typeof copy.errors] ?? copy.errors.unknown;
         const msg =
           r.error === "rate_limited" && r.retry_after_seconds
             ? base.replace("{seconds}", String(r.retry_after_seconds))

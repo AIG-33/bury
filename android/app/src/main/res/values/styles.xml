@@ -17,6 +17,9 @@
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- Grass green behind the Android 12+ system splash and any
+             letterboxing around the legacy splash drawable — never black. -->
+        <item name="windowSplashScreenBackground">#1C7A46</item>
         <item name="android:background">@drawable/splash</item>
     </style>
 </resources>

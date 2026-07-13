@@ -19,7 +19,7 @@ import { loadPublicTournaments } from "@/app/[locale]/tournaments/actions";
 import { loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
 import { loadMyTournaments } from "@/app/[locale]/(player)/me/tournaments/actions";
 import type { OpenMatchApplicationStatus } from "@/lib/open-matches/schema";
-import { getMobileTabLabels } from "./tab-labels";
+import { getMobilePlayLabels, getMobileTabLabels } from "./tab-labels";
 import { StartScreen } from "./start-screen";
 import { PlayButton } from "./game/play-button";
 
@@ -392,7 +392,14 @@ export default async function MobileHomePage({ params }: Props) {
       {/* ---- Dark header: greeting + rating band ---- */}
       <MDarkHeader radius={26}>
         <div className="flex items-center gap-3">
-          <MAvatar name={me.name} url={me.avatar} size={46} ring />
+          {/* PDF: «профиль всегда доступен по аватару в хедере». */}
+          <Link
+            href={"/m/profile" as never}
+            aria-label={t("profile.title")}
+            className="shrink-0 transition-opacity active:opacity-85"
+          >
+            <MAvatar name={me.name} url={me.avatar} size={46} ring />
+          </Link>
           <div className="min-w-0 flex-1">
             <p className="text-[12px] leading-tight text-white/70">{t("home.greeting")}</p>
             <p className="truncate font-display text-[19px] font-extrabold leading-tight">
@@ -400,7 +407,7 @@ export default async function MobileHomePage({ params }: Props) {
             </p>
           </div>
           <Link
-            href={"/m/profile" as never}
+            href={"/m/notifications" as never}
             aria-label={t("home.notifications")}
             className="glass-on-dark relative grid h-11 w-11 place-items-center rounded-[13px] transition-opacity active:opacity-85"
           >
@@ -464,7 +471,7 @@ export default async function MobileHomePage({ params }: Props) {
           <QuickAction href="/m/tournaments" label={t("home.qa_tournaments")}>
             <Trophy className="h-[21px] w-[21px]" strokeWidth={1.8} />
           </QuickAction>
-          <QuickAction href="/me/matches" label={t("home.qa_record")}>
+          <QuickAction href="/m/record" label={t("home.qa_record")}>
             <Plus className="h-[21px] w-[21px]" strokeWidth={2.2} />
           </QuickAction>
         </div>
@@ -651,7 +658,7 @@ export default async function MobileHomePage({ params }: Props) {
         ) : null}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} />
+      <MTabBar labels={getMobileTabLabels(t)} playLabels={getMobilePlayLabels(t)} authed />
     </div>
   );
 }

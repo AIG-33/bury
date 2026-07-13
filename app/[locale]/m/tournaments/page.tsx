@@ -17,12 +17,17 @@ import {
   loadVenueCities,
   type PublicTournamentRow,
 } from "@/app/[locale]/tournaments/actions";
+import {
+  loadMyTournaments,
+  type MyTournamentRow,
+} from "@/app/[locale]/(player)/me/tournaments/actions";
 import { SURFACES } from "@/lib/tournaments/schema";
-import { getMobileTabLabels } from "../tab-labels";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
 // Screen 02 — Список турниров (ТЗ Mobile §7.02).
-// Sticky light header + segment (Все / Регистрация / Идут), rows with a
+// Sticky light header + segment (Все / Регистрация / Идут / Мои), rows with a
 // 46px cup badge colored by status, status pill + participants counter,
 // entry fee (Space Grotesk) + chevron. Filters live in a bottom-sheet.
 // =============================================================================
@@ -52,7 +57,14 @@ export default async function MobileTournamentsPage({ params, searchParams }: Pr
   setRequestLocale(locale);
   const t = await getTranslations("mobile");
 
-  const tab = sp.tab === "reg" ? "reg" : sp.tab === "live" ? "live" : "all";
+  // Auth state only feeds the burger menu (profile/logout vs login CTA).
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const tab =
+    sp.tab === "reg" ? "reg" : sp.tab === "live" ? "live" : sp.tab === "mine" ? "mine" : "all";
   const status = tab === "reg" ? "registration" : tab === "live" ? "in_progress" : "all";
 
   const surface = (SURFACES as readonly string[]).includes(sp.surface ?? "")
@@ -60,14 +72,17 @@ export default async function MobileTournamentsPage({ params, searchParams }: Pr
     : null;
   const fee = sp.fee === "free" || sp.fee === "paid" ? sp.fee : null;
 
-  const [rows, cities] = await Promise.all([
-    loadPublicTournaments({
-      status,
-      surface,
-      fee,
-      city: sp.city ?? null,
-    }),
+  const [rows, cities, mine] = await Promise.all([
+    tab === "mine"
+      ? Promise.resolve([] as PublicTournamentRow[])
+      : loadPublicTournaments({
+          status,
+          surface,
+          fee,
+          city: sp.city ?? null,
+        }),
     loadVenueCities(),
+    tab === "mine" ? loadMyTournaments() : Promise.resolve(null),
   ]);
 
   const q = sp.q?.trim().toLowerCase() ?? "";
@@ -81,6 +96,20 @@ export default async function MobileTournamentsPage({ params, searchParams }: Pr
     finished: 3,
   };
   const sorted = [...filtered].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+
+  // "Мои": active tournaments first (live → registration), withdrawn and
+  // finished sink to the bottom; newest start date first within each group.
+  const mineRows =
+    mine && mine.ok
+      ? mine.tournaments
+          .filter((r) => !q || r.name.toLowerCase().includes(q))
+          .sort((a, b) => {
+            const rank = (r: MyTournamentRow) => (r.withdrawn ? 10 : 0) + (order[r.status] ?? 9);
+            const byRank = rank(a) - rank(b);
+            if (byRank !== 0) return byRank;
+            return b.starts_on.localeCompare(a.starts_on);
+          })
+      : [];
 
   const dateFmt = new Intl.DateTimeFormat(locale, {
     day: "numeric",
@@ -151,13 +180,51 @@ export default async function MobileTournamentsPage({ params, searchParams }: Pr
                 href: buildTabHref("live"),
                 active: tab === "live",
               },
+              {
+                label: t("tournaments.seg_mine"),
+                href: buildTabHref("mine"),
+                active: tab === "mine",
+              },
             ]}
           />
         </div>
       </MStickyHeader>
 
       <MContent className="flex-1 pt-4">
-        {sorted.length === 0 ? (
+        {tab === "mine" ? (
+          mine && !mine.ok ? (
+            <MEmptyState
+              title={t("common.login_required_title")}
+              body={t("common.login_required_body")}
+              cta={t("common.login")}
+              href="/login"
+            />
+          ) : mineRows.length === 0 ? (
+            q ? (
+              <MEmptyState
+                title={t("tournaments.empty_title")}
+                body={t("tournaments.empty_body")}
+                cta={t("tournaments.seg_all")}
+                href="/m/tournaments"
+              />
+            ) : (
+              <MEmptyState
+                title={t("tournaments.empty_mine_title")}
+                body={t("tournaments.empty_mine_body")}
+                cta={t("tournaments.empty_mine_cta")}
+                href="/m/tournaments?tab=reg"
+              />
+            )
+          ) : (
+            <ul className="space-y-[10px]">
+              {mineRows.map((row) => (
+                <li key={row.id}>
+                  <MyTournamentRowItem row={row} t={t} dateFmt={dateFmt} />
+                </li>
+              ))}
+            </ul>
+          )
+        ) : sorted.length === 0 ? (
           <MEmptyState
             title={t("tournaments.empty_title")}
             body={t("tournaments.empty_body")}
@@ -175,7 +242,7 @@ export default async function MobileTournamentsPage({ params, searchParams }: Pr
         )}
       </MContent>
 
-      <MTabBar labels={getMobileTabLabels(t)} />
+      <MTabBar labels={getMobileTabLabels(t)} playLabels={getMobilePlayLabels(t)} authed={!!user} />
     </div>
   );
 }
@@ -242,6 +309,75 @@ function TournamentRow({
             {t("tournaments.fee_free")}
           </span>
         )}
+        <ChevronRight className="h-[15px] w-[15px] text-[#8AA093]" strokeWidth={2} />
+      </div>
+    </MRow>
+  );
+}
+
+function MyTournamentRowItem({
+  row,
+  t,
+  dateFmt,
+}: {
+  row: MyTournamentRow;
+  t: Awaited<ReturnType<typeof getTranslations<"mobile">>>;
+  dateFmt: Intl.DateTimeFormat;
+}) {
+  const inactive = row.withdrawn || row.status === "finished" || row.status === "cancelled";
+
+  // Pill: application state first (pending / rejected / withdrawn), otherwise
+  // the tournament status — same tones as the public list.
+  const pill = row.withdrawn
+    ? { tone: "finished" as MPillTone, label: t("tournaments.mine_withdrawn"), pulse: false }
+    : row.application_status === "pending"
+      ? { tone: "soon" as MPillTone, label: t("tournaments.mine_pending"), pulse: false }
+      : row.application_status === "rejected"
+        ? { tone: "loss" as MPillTone, label: t("tournaments.mine_rejected"), pulse: false }
+        : {
+            tone: STATUS_TONE[row.status] ?? ("soon" as MPillTone),
+            label: t(`tournaments.status_${row.status}` as never),
+            pulse: row.status === "registration" || row.status === "in_progress",
+          };
+
+  const nextMatch =
+    !row.withdrawn && row.next_match?.opponent_name
+      ? t("tournaments.mine_next_match", { opponent: row.next_match.opponent_name })
+      : null;
+  const meta = [dateFmt.format(new Date(row.starts_on)), nextMatch ?? row.organizer_name]
+    .filter(Boolean)
+    .join(" · ");
+
+  const badgeClass = inactive
+    ? "bg-ink-50 text-[#7A8C7F]"
+    : row.status === "in_progress"
+      ? "bg-ball-100 text-ball-700"
+      : "";
+
+  return (
+    <MRow href={`/m/tournaments/${row.id}`} className={inactive ? "opacity-[0.72]" : ""}>
+      <MIconBadge size={46} radius={14} className={badgeClass}>
+        <Trophy className="h-[22px] w-[22px]" strokeWidth={1.8} />
+      </MIconBadge>
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14.5px] font-extrabold leading-tight text-ink-900">
+          {row.name}
+        </p>
+        <p className="mt-0.5 truncate text-[11.5px] font-semibold text-ink-500">{meta}</p>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <MStatusPill tone={pill.tone} pulse={pill.pulse}>
+            {pill.label}
+          </MStatusPill>
+          {row.max_participants ? (
+            <span className="font-mono text-[11px] font-bold tabular-nums text-ink-500">
+              {row.participants_count}/{row.max_participants}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-1.5 self-center">
         <ChevronRight className="h-[15px] w-[15px] text-[#8AA093]" strokeWidth={2} />
       </div>
     </MRow>

@@ -8,6 +8,7 @@ import { NavLink } from "./nav-link";
 import { ProfileMenu } from "./profile-menu";
 import { MobileMenu, type MobileMenuItem } from "./mobile-menu";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { telegramBotUrl } from "@/lib/telegram/bot-link";
 
 // Top navigation — variant A "3 pillars + Profile".
 // -------------------------------------------------
@@ -24,6 +25,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 //   * /help     → "?" icon in the right cluster + footer
 export async function TopNav() {
   const t = await getTranslations("nav");
+  const tFooter = await getTranslations("footer");
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -59,6 +61,26 @@ export async function TopNav() {
   // users) sit on top, then the public 4 pillars, then secondary public
   // links (players, matches feed, help) so even mobile users keep a
   // shortcut to them.
+  //
+  // The tail block mirrors the footer (leaderboard, support, privacy,
+  // Telegram) — inside the store app the footer is hidden entirely, so the
+  // burger menu is the only place these destinations remain reachable.
+  const botUrl = telegramBotUrl();
+  const footerItems: MobileMenuItem[] = [
+    { group: "public", href: "/leaderboard", label: tFooter("links.leaderboard") },
+    { group: "public", href: "/support", label: tFooter("links.support") },
+    { group: "public", href: "/privacy", label: tFooter("links.privacy") },
+    ...(botUrl
+      ? [
+          {
+            group: "public" as const,
+            href: botUrl,
+            label: tFooter("telegram.link_label"),
+            external: true,
+          },
+        ]
+      : []),
+  ];
   const mobileItems: MobileMenuItem[] = user
     ? [
         { group: "personal", href: "/me/profile", label: t("my_profile") },
@@ -82,6 +104,7 @@ export async function TopNav() {
         { group: "public", href: "/players", label: t("players") },
         { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/help", label: t("help") },
+        ...footerItems,
         ...(isCoach
           ? [
               {
@@ -111,6 +134,7 @@ export async function TopNav() {
         { group: "public", href: "/venues", label: t("venues") },
         { group: "public", href: "/matches", label: t("matches") },
         { group: "public", href: "/help", label: t("help") },
+        ...footerItems,
       ];
 
   // The 4 pillars are identical for anon and authed visitors — single
