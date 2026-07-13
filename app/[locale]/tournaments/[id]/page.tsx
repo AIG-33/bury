@@ -5,30 +5,26 @@ import { z } from "zod";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { buildTournamentEventJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  CalendarDays,
-  Calendar,
-  Clock,
-  Coins,
-  MapPin,
-  Users,
-  Trophy,
-} from "lucide-react";
+import { SITE_URL } from "@/lib/seo/site";
+import { CalendarDays, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
-import { PageHeader } from "@/components/layout/page-header";
-import { TournamentRoomHero, shouldRenderHero } from "@/components/domain/tournament-room-hero";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
 import { Surface } from "@/components/ui/surface";
-import { Chip } from "@/components/ui/surface";
-import { TournamentStatusPill } from "@/components/domain/tournament-status-pill";
-import { loadPublicTournamentDetail } from "../actions";
+import { initialsOf, shortNameOf } from "@/lib/mobile/format";
+import { loadPublicTournamentDetail, type PublicTournamentRow } from "../actions";
 import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
 import { TournamentApplyButton, type ApplyButtonCopy } from "./apply-button";
+import { TournamentShareActions } from "./share-actions";
+
+// =============================================================================
+// Public tournament room («Tournament Page» mockup, июль 2026): full-bleed
+// themed hero (branding tokens: banner + scrim, logo tile, tagline, partners),
+// meta tiles, participants with seed + avatar + city, matches by round, and a
+// sticky registration card in the sidebar (share / add-to-calendar included).
+// =============================================================================
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -87,9 +83,19 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
     approved: t("detail.apply.approved"),
     rejected: t("detail.apply.rejected"),
   };
-  const fmtDate = new Intl.DateTimeFormat(locale, {
-    dateStyle: "full",
+  const dateFmt = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Europe/Minsk",
   });
+  const startLabel = [
+    dateFmt.format(new Date(tournament.starts_on)).replace(/\s*г\.$/u, ""),
+    tournament.start_time?.slice(0, 5),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const city = tournament.venues[0]?.city ?? null;
   const jsonLd = buildTournamentEventJsonLd({
@@ -104,8 +110,31 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   });
 
   const theme = buildRoomTheme(tournament.branding);
-  const branded = shouldRenderHero(tournament.branding);
   const accent = theme.accentColor;
+  const heroTitle = tournament.branding.title_override ?? tournament.name;
+  const sponsors = tournament.branding.sponsors;
+  const activeParticipants = participants.filter((p) => !p.withdrawn);
+  const freeSlots = tournament.max_participants
+    ? Math.max(0, tournament.max_participants - tournament.participants_count)
+    : null;
+  const feeLabel =
+    tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
+      ? t("entry_fee_free")
+      : t("entry_fee_byn", { n: tournament.entry_fee_byn });
+  const venueLabel =
+    tournament.venues.length > 0
+      ? tournament.venues.map((v) => [v.name, v.city].filter(Boolean).join(" · ")).join("; ")
+      : null;
+
+  const heroBackground =
+    Object.keys(theme.backgroundStyle).length > 0
+      ? theme.backgroundStyle
+      : { background: "linear-gradient(150deg,#12331F 0%,#1C6B40 55%,#2A9556 100%)" };
+  const overBanner = theme.bannerImageStyle != null;
+  const heroTextColor =
+    overBanner || Object.keys(theme.backgroundStyle).length === 0 ? "#ffffff" : theme.textColor;
+  const heroMuted = heroTextColor === "#ffffff" ? "rgba(255,255,255,0.78)" : theme.mutedTextColor;
+
   const helpPanel = (
     <HelpPanel
       pageId="public-tournament-detail"
@@ -117,206 +146,448 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   );
 
   return (
-    <div style={theme.themed ? theme.backgroundStyle : undefined}>
+    <div
+      style={
+        theme.themed && Object.keys(theme.backgroundStyle).length > 0
+          ? theme.backgroundStyle
+          : { background: "linear-gradient(180deg,#E9F2E3 0%,#CDE3C9 55%,#BCD9BA 100%)" }
+      }
+    >
       <JsonLdScript data={jsonLd} />
 
-      {branded && (
-        <TournamentRoomHero
-          branding={tournament.branding}
-          fallbackTitle={tournament.name}
-          sponsorsLabel={t("detail.sponsors")}
-          help={helpPanel}
-        />
-      )}
+      {/* ── Hero: branding tokens (banner + scrim / gradient / logo / tagline) ── */}
+      <div
+        className={`relative overflow-hidden ${theme.fontClass}`}
+        style={{ ...heroBackground, color: heroTextColor }}
+      >
+        {accent && <div aria-hidden style={{ height: 4, backgroundColor: accent }} />}
 
-      <div className="page-shell space-y-6">
-        <Breadcrumbs
-          locale={locale}
-          items={[
-            { name: tCrumb("home"), path: "" },
-            { name: tNav("tournaments"), path: "/tournaments" },
-            { name: tournament.name, path: `/tournaments/${id}` },
-          ]}
-        />
-        <Link
-          href={`/${locale}/tournaments`}
-          className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t("back")}
-        </Link>
-
-        {!branded && (
-          <PageHeader
-            title={tournament.name}
-            subtitle={tournament.description ?? undefined}
-            help={helpPanel}
-          />
-        )}
-
-        <div className="flex flex-wrap gap-2 text-xs">
-          <Chip tone="grass" className="uppercase">
-            {t(`format.${tournament.format}`)}
-          </Chip>
-          {tournament.surface && (
-            <Chip tone="clay" className="uppercase">
-              {t(`surfaces.${tournament.surface}`)}
-            </Chip>
-          )}
-          <TournamentStatusPill
-            status={tournament.status}
-            label={t(`status.${tournament.status}`)}
-          />
-        </div>
-
-        {/* Meta strip */}
-        <dl className="grid gap-4 sm:grid-cols-3">
-          <Surface variant="row">
-            <dt className="label-eyebrow">{t("detail.starts")}</dt>
-            <dd className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-ink-900">
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-4 w-4 text-grass-700" />
-                {fmtDate.format(new Date(tournament.starts_on))}
-              </span>
-              {tournament.start_time && (
-                <span className="inline-flex items-center gap-1 text-sm tabular-nums text-ink-700">
-                  <Clock className="h-3.5 w-3.5 text-grass-700" />
-                  {tournament.start_time.slice(0, 5)}
-                </span>
-              )}
-            </dd>
-          </Surface>
-          <Surface variant="row">
-            <dt className="label-eyebrow">{t("detail.participants")}</dt>
-            <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-              <Users className="h-4 w-4 text-grass-700" />
-              {tournament.participants_count}
-              {tournament.max_participants ? ` / ${tournament.max_participants}` : ""}
-            </dd>
-          </Surface>
-          <Surface variant="row">
-            <dt className="label-eyebrow">{t("detail.entry_fee")}</dt>
-            <dd className="mt-1 inline-flex items-center gap-1 font-medium tabular-nums text-ink-900">
-              <Coins className="h-4 w-4 text-grass-700" />
-              {tournament.entry_fee_byn == null || tournament.entry_fee_byn === 0
-                ? t("entry_fee_free")
-                : t("entry_fee_byn", { n: tournament.entry_fee_byn })}
-            </dd>
-          </Surface>
-          <Surface variant="row">
-            <dt className="label-eyebrow">{t("detail.organizer")}</dt>
-            <dd className="mt-1 inline-flex items-center gap-1 font-medium text-ink-900">
-              <Trophy className="h-4 w-4 text-grass-700" />
-              {tournament.organizer_name ?? "—"}
-            </dd>
-          </Surface>
-          {tournament.venues.length > 0 && (
-            <Surface variant="row" className="sm:col-span-2">
-              <dt className="label-eyebrow">{t("detail.venues")}</dt>
-              <dd className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-900">
-                {tournament.venues.map((v) => (
-                  <span
-                    key={v.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-grass-50 px-2 py-0.5 text-xs text-grass-700"
-                  >
-                    <MapPin className="h-3 w-3" />
-                    {v.name}
-                    {v.city && <span className="text-ink-500">· {v.city}</span>}
-                  </span>
-                ))}
-              </dd>
-            </Surface>
-          )}
-        </dl>
-
-        {/* Apply — the CTA the shareable registration link lands on. */}
-        <Surface variant="card" as="section">
-          <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-            <span
-              className="inline-block pb-0.5"
-              style={accent ? { borderBottom: `2px solid ${accent}` } : undefined}
-            >
-              {applyCopy.title}
-            </span>
-          </h2>
-          <TournamentApplyButton
-            locale={locale}
-            tournamentId={id}
-            status={tournament.status}
-            viewer={viewer}
-            copy={applyCopy}
-          />
-        </Surface>
-
-        {/* Participants */}
-        <Surface variant="card" as="section">
-          <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-            {t("detail.participants_title")}
-          </h2>
-          {participants.length === 0 ? (
-            <p className="text-sm text-ink-500">{t("detail.participants_empty")}</p>
-          ) : (
-            <ol className="grid gap-1 sm:grid-cols-2">
-              {participants
-                .filter((p) => !p.withdrawn)
-                .map((p, i) => (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between rounded-md px-3 py-1.5 text-sm odd:bg-ink-50/50"
-                  >
-                    <span className="text-ink-700">
-                      <span className="mr-2 font-mono text-xs tabular-nums text-ink-400">
-                        {p.seed ?? i + 1}.
-                      </span>
-                      {p.name ?? "?"}
-                    </span>
-                    <RatingDisplay
-                      internalElo={p.elo}
-                      external={
-                        p.external_rating
-                          ? {
-                              source: "liga_tennisa",
-                              elo: p.external_rating.external_elo,
-                              displayTier: p.external_rating.display_tier,
-                              externalUrl: p.external_rating.external_url,
-                              isCalibrating: p.external_rating.is_calibrating_singles,
-                            }
-                          : null
-                      }
-                      variant="inline"
-                      size="sm"
-                    />
-                  </li>
-                ))}
-            </ol>
-          )}
-        </Surface>
-
-        {/* Matches — same scorecard look as /matches; grouped by round so a
-          long bracket reads top → down by stage. */}
-        <Surface variant="card" as="section">
-          <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
-            {t("detail.matches_title")}
-          </h2>
-          {matches.length === 0 ? (
-            <p className="text-sm text-ink-500">{t("detail.matches_empty")}</p>
-          ) : (
-            <TournamentMatchesByRound
-              matches={matches}
-              locale={locale}
-              labels={{
-                round_short: t("detail.round_short"),
-                scheduled: t("detail.scheduled"),
-                winner: t("detail.winner"),
-                countLabel: (n: number) => t("detail.matches_count", { n }),
-                tba: t("detail.tba"),
+        {overBanner ? (
+          <>
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: theme.bannerImageStyle! }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(to top, rgba(0,0,0,${theme.scrimOpacity}) 0%, rgba(0,0,0,${Math.max(
+                  0,
+                  theme.scrimOpacity - 0.2,
+                )}) 60%, rgba(0,0,0,${Math.max(0, theme.scrimOpacity - 0.35)}) 100%)`,
               }}
             />
-          )}
-        </Surface>
+          </>
+        ) : (
+          <CourtLinesPattern />
+        )}
+
+        <div className="page-shell relative space-y-6 pb-8 pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="rounded-full bg-black/25 px-4 py-1.5 backdrop-blur-[6px] [&_a:hover]:text-white [&_a]:text-white/80 [&_span]:text-white [&_svg]:text-white/50">
+              <Breadcrumbs
+                locale={locale}
+                items={[
+                  { name: tCrumb("home"), path: "" },
+                  { name: tNav("tournaments"), path: "/tournaments" },
+                  { name: tournament.name, path: `/tournaments/${id}` },
+                ]}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              {sponsors.length > 0 && (
+                <span className="inline-flex items-center gap-2 rounded-full bg-black/25 py-1 pl-3 pr-1 text-[10px] font-bold uppercase tracking-[1.2px] text-white/80 backdrop-blur-[6px]">
+                  {t("detail.partner_badge")}
+                  <span className="inline-flex items-center rounded-full bg-white/90 px-1.5 py-0.5">
+                    {sponsors[0].logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sponsors[0].logo_url}
+                        alt={sponsors[0].name}
+                        title={sponsors[0].name}
+                        className="h-5 w-auto max-w-[72px] object-contain"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-bold normal-case tracking-normal text-ink-900">
+                        {sponsors[0].name}
+                      </span>
+                    )}
+                  </span>
+                </span>
+              )}
+              {helpPanel}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-4 pt-6">
+            {theme.logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={theme.logoUrl}
+                alt=""
+                className="h-20 w-20 shrink-0 rounded-2xl border-2 bg-white/95 object-contain sm:h-24 sm:w-24"
+                style={{ borderColor: accent ?? "rgba(255,255,255,0.55)" }}
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-white/90 backdrop-blur-[6px]">
+                  {t(`format.${tournament.format}`)}
+                </span>
+                {tournament.surface && (
+                  <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-white/90 backdrop-blur-[6px]">
+                    {t(`surfaces.${tournament.surface}`)}
+                  </span>
+                )}
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold text-white"
+                  style={{ backgroundColor: accent ?? "#28A35A" }}
+                >
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white/90" />
+                  {t(`status.${tournament.status}`)}
+                </span>
+              </div>
+              <h1
+                className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl"
+                style={{ color: heroTextColor }}
+              >
+                {heroTitle}
+              </h1>
+              {tournament.branding.tagline && (
+                <p className="mt-1.5 text-sm font-medium sm:text-base" style={{ color: heroMuted }}>
+                  {tournament.branding.tagline}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="page-shell py-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* ── Main column ── */}
+          <div className="min-w-0 space-y-6">
+            {/* Meta tiles */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <MetaTile
+                eyebrow={t("detail.starts")}
+                icon={<CalendarDays className="h-4 w-4" strokeWidth={2} />}
+                value={startLabel}
+              />
+              <MetaTile
+                eyebrow={t("detail.participants")}
+                icon={<Users className="h-4 w-4" strokeWidth={2} />}
+                value={t("detail.players_count", { count: tournament.participants_count })}
+              />
+              <MetaTile
+                eyebrow={t("detail.entry_fee")}
+                icon={<Tag className="h-4 w-4" strokeWidth={2} />}
+                value={feeLabel}
+                mono={Boolean(tournament.entry_fee_byn)}
+              />
+              <MetaTile
+                eyebrow={t("detail.organizer")}
+                icon={<UserRound className="h-4 w-4" strokeWidth={2} />}
+                value={shortNameOf(tournament.organizer_name) ?? "—"}
+              />
+              {venueLabel && (
+                <MetaTile
+                  eyebrow={t("detail.venues")}
+                  icon={<MapPin className="h-4 w-4" strokeWidth={2} />}
+                  value={venueLabel}
+                />
+              )}
+            </div>
+
+            {/* Participants */}
+            <Surface variant="card" as="section">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="section-title text-[18px] md:text-[20px]">
+                  {t("detail.participants_title")}
+                </h2>
+                <span className="rounded-full bg-grass-50 px-3 py-1 text-xs font-bold tabular-nums text-grass-700">
+                  {t("detail.registered_count", { count: activeParticipants.length })}
+                </span>
+              </div>
+              {activeParticipants.length === 0 ? (
+                <p className="text-sm text-ink-500">{t("detail.participants_empty")}</p>
+              ) : (
+                <ol className="grid gap-2">
+                  {activeParticipants.map((p, i) => (
+                    <li
+                      key={p.id}
+                      className="flex items-center gap-3 rounded-xl border border-ink-100/70 bg-white px-3 py-2 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
+                    >
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-grass-50 font-mono text-xs font-bold tabular-nums text-grass-700">
+                        {p.seed ?? i + 1}
+                      </span>
+                      {p.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.avatar_url}
+                          alt=""
+                          className="h-9 w-9 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grass-100 text-xs font-extrabold text-grass-700">
+                          {initialsOf(p.name)}
+                        </span>
+                      )}
+                      <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink-900">
+                        {p.name ?? "?"}
+                      </span>
+                      <RatingDisplay
+                        internalElo={p.elo}
+                        external={
+                          p.external_rating
+                            ? {
+                                source: "liga_tennisa",
+                                elo: p.external_rating.external_elo,
+                                displayTier: p.external_rating.display_tier,
+                                externalUrl: p.external_rating.external_url,
+                                isCalibrating: p.external_rating.is_calibrating_singles,
+                              }
+                            : null
+                        }
+                        variant="inline"
+                        size="sm"
+                      />
+                      {p.city && (
+                        <span className="hidden shrink-0 text-xs font-semibold text-ink-500 sm:inline">
+                          {p.city}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </Surface>
+
+            {/* Matches — same scorecard look as /matches; grouped by round so a
+              long bracket reads top → down by stage. */}
+            <Surface variant="card" as="section">
+              <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+                {t("detail.matches_title")}
+              </h2>
+              {matches.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-grass-200 bg-grass-50/40 px-6 py-10 text-center">
+                  <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-grass-100 text-grass-600">
+                    <LayoutGrid className="h-6 w-6" strokeWidth={1.8} />
+                  </span>
+                  <p className="font-display text-[15px] font-extrabold text-ink-900">
+                    {t("detail.draw_empty_title")}
+                  </p>
+                  <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-ink-500">
+                    {t("detail.draw_empty_body")}
+                  </p>
+                </div>
+              ) : (
+                <TournamentMatchesByRound
+                  matches={matches}
+                  locale={locale}
+                  labels={{
+                    round_short: t("detail.round_short"),
+                    scheduled: t("detail.scheduled"),
+                    winner: t("detail.winner"),
+                    countLabel: (n: number) => t("detail.matches_count", { n }),
+                    tba: t("detail.tba"),
+                  }}
+                />
+              )}
+            </Surface>
+          </div>
+
+          {/* ── Sidebar: sticky registration card + organizer ── */}
+          <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            <Surface variant="card" as="section">
+              <p
+                className={`inline-flex items-center gap-1.5 text-xs font-bold ${
+                  tournament.status === "registration" ? "text-grass-600" : "text-ink-500"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    tournament.status === "registration" ? "bg-grass-500" : "bg-ink-300"
+                  }`}
+                />
+                {tournament.status === "registration"
+                  ? t("detail.reg_open")
+                  : t(`status.${tournament.status}`)}
+              </p>
+              <p className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight text-ink-900">
+                {feeLabel}
+              </p>
+              <p className="mt-1 text-xs text-ink-500">
+                {t("detail.participation")}
+                {freeSlots != null && freeSlots > 0
+                  ? ` · ${t("detail.slots_left", { count: freeSlots })}`
+                  : ""}
+              </p>
+              <div className="mt-4">
+                <TournamentApplyButton
+                  locale={locale}
+                  tournamentId={id}
+                  status={tournament.status}
+                  viewer={viewer}
+                  copy={applyCopy}
+                />
+              </div>
+              <div className="mt-4 border-t border-ink-100 pt-4">
+                <TournamentShareActions
+                  title={tournament.name}
+                  calendarUrl={buildGoogleCalendarUrl(tournament, locale)}
+                  labels={{
+                    share: t("detail.share"),
+                    copied: t("detail.share_copied"),
+                    calendar: t("detail.add_to_calendar"),
+                  }}
+                />
+              </div>
+            </Surface>
+
+            <Surface variant="card" as="section">
+              <p className="label-eyebrow">{t("detail.organizer")}</p>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-grass-100 text-sm font-extrabold text-grass-700">
+                  {initialsOf(tournament.organizer_name)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-ink-900">
+                    {tournament.organizer_name ?? "—"}
+                  </p>
+                  <p className="text-xs text-ink-500">{t("detail.organizer_role")}</p>
+                </div>
+              </div>
+            </Surface>
+          </div>
+        </div>
+
+        {/* Partners strip */}
+        {sponsors.length > 0 && (
+          <Surface variant="card" as="section" className="mt-6">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <p className="label-eyebrow">{t("detail.sponsors")}</p>
+              <ul className="flex flex-wrap items-center gap-3">
+                {sponsors.map((s, i) => {
+                  const inner = s.logo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={s.logo_url}
+                      alt={s.name}
+                      title={s.name}
+                      className="h-9 w-auto max-w-[130px] rounded bg-white object-contain px-2 py-1"
+                    />
+                  ) : (
+                    <span className="inline-flex items-center rounded-lg border border-ink-100 bg-white px-3 py-1.5 text-xs font-bold text-ink-800">
+                      {s.name}
+                    </span>
+                  );
+                  return (
+                    <li key={i}>
+                      {s.url ? (
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noreferrer noopener nofollow"
+                          className="inline-flex"
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        inner
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </Surface>
+        )}
       </div>
     </div>
   );
+}
+
+/** Faint tennis-court lines over the default hero gradient (mockup art). */
+function CourtLinesPattern() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12]"
+      viewBox="0 0 1200 320"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+    >
+      <rect x="140" y="-60" width="920" height="360" />
+      <line x1="140" y1="120" x2="1060" y2="120" />
+      <line x1="600" y1="-60" x2="600" y2="300" />
+      <line x1="340" y1="-60" x2="340" y2="300" />
+      <line x1="860" y1="-60" x2="860" y2="300" />
+      <line x1="340" y1="220" x2="860" y2="220" />
+    </svg>
+  );
+}
+
+function MetaTile({
+  eyebrow,
+  icon,
+  value,
+  mono = false,
+}: {
+  eyebrow: string;
+  icon: React.ReactNode;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-ink-100/70 bg-white p-4 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
+      <p className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[1.2px] text-ink-400">
+        <span className="text-grass-600">{icon}</span>
+        {eyebrow}
+      </p>
+      <p
+        className={`mt-1.5 truncate text-[15px] font-extrabold leading-tight text-ink-900 ${
+          mono ? "font-mono tabular-nums" : ""
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+/** Prefilled Google Calendar event link (no API key; works logged-out). */
+function buildGoogleCalendarUrl(tournament: PublicTournamentRow, locale: string): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  let dates: string;
+  if (tournament.start_time) {
+    // Wall-clock times + ctz=Europe/Minsk → Google interprets them in Minsk time.
+    const start = new Date(`${tournament.starts_on}T${tournament.start_time}`);
+    const end = new Date(start.getTime() + 2 * 3600 * 1000);
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+    dates = `${fmt(start)}/${fmt(end)}`;
+  } else {
+    const start = new Date(`${tournament.starts_on}T00:00:00`);
+    const end = new Date(start.getTime() + 24 * 3600 * 1000);
+    const fmt = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+    dates = `${fmt(start)}/${fmt(end)}`;
+  }
+  const venue = tournament.venues[0];
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: tournament.name,
+    dates,
+    ctz: "Europe/Minsk",
+    details: `${SITE_URL}/${locale}/tournaments/${tournament.id}`,
+  });
+  if (venue) params.set("location", [venue.name, venue.city].filter(Boolean).join(", "));
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 // =============================================================================

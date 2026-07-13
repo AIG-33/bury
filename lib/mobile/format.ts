@@ -108,3 +108,12 @@ export function initialsOf(name: string | null | undefined): string {
   const parts = name.trim().split(/\s+/u).slice(0, 2);
   return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "?";
 }
+
+/** Compact display name for tight meta tiles: "Максим Горбацевич" → "М. Горбацевич". */
+export function shortNameOf(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const parts = name.trim().split(/\s+/u);
+  if (parts.length < 2) return parts[0] ?? null;
+  const [first, ...rest] = parts;
+  return `${first[0]?.toUpperCase() ?? ""}. ${rest.join(" ")}`;
+}

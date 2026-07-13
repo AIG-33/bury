@@ -411,14 +411,23 @@ export function MEmptyState({
   body,
   cta,
   href,
+  icon,
 }: {
   title: string;
   body: string;
   cta?: string;
   href?: string;
+  icon?: ReactNode;
 }) {
   return (
     <div className="rounded-[16px] border border-dashed border-[rgba(20,60,30,0.15)] bg-white/60 p-5 text-center">
+      {icon ? (
+        <div className="mb-3 flex justify-center">
+          <MIconBadge size={48} radius={14}>
+            {icon}
+          </MIconBadge>
+        </div>
+      ) : null}
       <p className="font-display text-[14.5px] font-extrabold text-ink-900">{title}</p>
       <p className="mt-1 text-[12.5px] leading-[1.35] text-ink-500">{body}</p>
       {cta && href ? (
