@@ -12,7 +12,8 @@ export type OAuthProvider = "google" | "apple";
 
 export type OAuthErrorCode = "cancelled" | "unavailable" | "no_id_token" | "sign_in_failed";
 
-export type OAuthResult = { ok: true } | { ok: false; error: OAuthErrorCode };
+/** `detail` carries the raw plugin/Supabase error text for on-screen diagnostics. */
+export type OAuthResult = { ok: true } | { ok: false; error: OAuthErrorCode; detail?: string };
 
 export type OAuthSignInOptions = {
   /** Web PKCE OAuth redirect target (the existing /api/auth/callback route). */
@@ -43,7 +44,10 @@ async function webOAuthSignIn(provider: OAuthProvider, redirectTo: string): Prom
   });
   // On success the browser is redirected to the provider, so this rarely
   // resolves; a resolved value with no error still means "in progress".
-  if (error) return { ok: false, error: "sign_in_failed" };
+  if (error) {
+    console.error(`[oauth] web ${provider} signInWithOAuth failed`, error);
+    return { ok: false, error: "sign_in_failed", detail: error.message };
+  }
   return { ok: true };
 }
 
@@ -76,7 +80,10 @@ async function nativeIdTokenSignIn(
           ).result;
 
     const token = extractIdToken(result);
-    if (!token) return { ok: false, error: "no_id_token" };
+    if (!token) {
+      console.error(`[oauth] native ${provider} login returned no id-token`, result);
+      return { ok: false, error: "no_id_token", detail: "no idToken in plugin response" };
+    }
 
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithIdToken({
@@ -84,14 +91,23 @@ async function nativeIdTokenSignIn(
       token,
       nonce: rawNonce,
     });
-    if (error) return { ok: false, error: "sign_in_failed" };
+    if (error) {
+      console.error(`[oauth] supabase signInWithIdToken failed for ${provider}`, error);
+      return { ok: false, error: "sign_in_failed", detail: error.message };
+    }
 
     // Hard navigate through the shared post-login redirector so the server
     // decides between onboarding, the coach dashboard and the rating page.
     window.location.assign(postLoginUrl);
     return { ok: true };
   } catch (error) {
-    return { ok: false, error: classifyOAuthError(error) };
+    const code = classifyOAuthError(error);
+    // A user closing the sheet is expected; anything else is a config/runtime
+    // failure whose raw text we need to see on the device (DEVELOPER_ERROR,
+    // status codes like "10:", missing SHA-1, ...).
+    if (code === "cancelled") return { ok: false, error: code };
+    console.error(`[oauth] native ${provider} sign-in threw`, error);
+    return { ok: false, error: code, detail: readErrorMessage(error) || undefined };
   }
 }
 

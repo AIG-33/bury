@@ -66,6 +66,7 @@ export default async function LoginPage({ params }: Props) {
                   continue_apple: t("continue_apple"),
                   oauth_error: t("oauth_error"),
                   oauth_unavailable: t("oauth_unavailable"),
+                  oauth_error_detail: t("oauth_error_detail"),
                 }}
               />
             </Suspense>

@@ -41,13 +41,14 @@ export type LoginLabels = {
   continue_apple: string;
   oauth_error: string;
   oauth_unavailable: string;
+  oauth_error_detail: string;
 };
 
 type Mode = "password" | "signup" | "forgot";
 
 export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: string }) {
   // The mobile start screen deep-links to /login?mode=signup for its
-  // "Создать аккаунт" CTA; any other value falls back to the sign-in tab.
+  // "Создать аккаунт" link; any other value falls back to the sign-in tab.
   const initialMode = useSearchParams().get("mode") === "signup" ? "signup" : "password";
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
@@ -58,6 +59,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [oauthBusy, setOauthBusy] = useState<OAuthProvider | null>(null);
   const [oauthErrMsg, setOauthErrMsg] = useState<string | null>(null);
+  const [oauthErrDetail, setOauthErrDetail] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
@@ -127,6 +129,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
   async function handleOAuth(provider: OAuthProvider) {
     setErrMsg(null);
     setOauthErrMsg(null);
+    setOauthErrDetail(null);
     setOauthBusy(provider);
     const opts = {
       redirectTo: oauthRedirectUrl(),
@@ -143,6 +146,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
           ? labels.oauth_unavailable
           : labels.oauth_error,
       );
+      setOauthErrDetail(result.detail ?? null);
     }
   }
 
@@ -232,9 +236,14 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
             disabled={busy || oauthBusy !== null}
           />
           {oauthErrMsg && (
-            <p role="alert" className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
-              {oauthErrMsg}
-            </p>
+            <div role="alert" className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-clay-700">
+              <p>{oauthErrMsg}</p>
+              {oauthErrDetail && (
+                <p className="mt-1 break-words text-[12px] text-clay-700/80">
+                  {labels.oauth_error_detail} {oauthErrDetail}
+                </p>
+              )}
+            </div>
           )}
         </>
       )}

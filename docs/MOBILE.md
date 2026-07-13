@@ -43,9 +43,9 @@ Home» designs:
 
 - **Guest** → splash + вход (`start-screen.tsx`): brand hero (breathing logo,
   slogan, feature chips, live player/club counter) and a bottom sheet with
-  «Создать аккаунт» (deep-links to `/login?mode=signup`), e-mail sign-in and
-  Apple / Google (`start-oauth.tsx`, same `lib/auth/oauth.ts` flow as the web
-  login form).
+  Apple / Google on top (`start-oauth.tsx`, same `lib/auth/oauth.ts` flow as
+  the web login form), then the primary e-mail sign-in button and a
+  «Создать аккаунт» link (deep-links to `/login?mode=signup`).
 - **Signed in** → dashboard (`page.tsx`): dark header with the rating band
   (ELO + 30-day delta, place in the primary club, win streak), three quick
   actions, the next upcoming event card (accepted sparring / own open match /

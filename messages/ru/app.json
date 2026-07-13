@@ -1041,7 +1041,8 @@
     "continue_google": "Продолжить с Google",
     "continue_apple": "Продолжить с Apple",
     "oauth_error": "Вход отменён или не удался. Попробуйте ещё раз.",
-    "oauth_unavailable": "Этот способ входа недоступен на вашем устройстве."
+    "oauth_unavailable": "Этот способ входа недоступен на вашем устройстве.",
+    "oauth_error_detail": "Детали:"
   },
   "updatePassword": {
     "title": "Задайте новый пароль",
@@ -4632,17 +4633,17 @@
       "chip_tournaments": "Турниры",
       "chip_elo": "ELO-рейтинг",
       "proof": "{players}+ игроков · {clubs} клубов онлайн",
-      "create_account": "Создать аккаунт",
       "login_email": "Войти по e-mail или телефону",
       "or": "или",
-      "already": "Уже с нами?",
-      "login": "Войти",
+      "new_here": "Впервые у нас?",
+      "signup": "Создать аккаунт",
       "legal_prefix": "Продолжая, вы принимаете",
       "legal_terms": "Условия",
       "legal_and": "и",
       "legal_privacy": "Политику конфиденциальности",
       "oauth_error": "Не получилось войти. Попробуйте ещё раз.",
-      "oauth_unavailable": "Вход через этот сервис пока недоступен."
+      "oauth_unavailable": "Вход через этот сервис пока недоступен.",
+      "oauth_error_detail": "Детали:"
     },
     "home": {
       "greeting": "С возвращением,",
