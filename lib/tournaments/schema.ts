@@ -69,22 +69,23 @@ export type MatchRuleKind = (typeof MATCH_RULE_KINDS)[number];
 export const MatchRulesSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("best_of_3"),
-    set_target: z.number().int().min(4).max(8).default(6),
+    // Up to 10 so "tiebreak sets" (each set is a race to 10) are possible.
+    set_target: z.number().int().min(4).max(10).default(6),
     no_ad: z.boolean().default(false),
     super_tiebreak_decider: z.boolean().default(false),
-    set_tiebreak_at: z.number().int().min(5).max(9).default(6),
+    set_tiebreak_at: z.number().int().min(5).max(10).default(6),
   }),
   z.object({
     kind: z.literal("best_of_5"),
-    set_target: z.number().int().min(4).max(8).default(6),
+    set_target: z.number().int().min(4).max(10).default(6),
     no_ad: z.boolean().default(false),
-    set_tiebreak_at: z.number().int().min(5).max(9).default(6),
+    set_tiebreak_at: z.number().int().min(5).max(10).default(6),
   }),
   z.object({
     kind: z.literal("single_set"),
     set_target: z.number().int().min(4).max(10).default(6),
     no_ad: z.boolean().default(false),
-    set_tiebreak_at: z.number().int().min(5).max(9).default(6),
+    set_tiebreak_at: z.number().int().min(5).max(10).default(6),
   }),
   z.object({
     kind: z.literal("pro_set"),

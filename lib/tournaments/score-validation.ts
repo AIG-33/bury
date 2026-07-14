@@ -26,12 +26,11 @@ const fail = (error: string): ScoreValidationResult => ({ ok: false, error });
  * `tiebreakAt`-all. Examples for target=6, tiebreakAt=6:
  * 6-0…6-4, 7-5, 7-6. 6-5 / 8-6 / ties are invalid.
  */
-function isValidRegularSet(
-  p1: number,
-  p2: number,
-  target: number,
-  tiebreakAt: number,
-): boolean {
+function isValidRegularSet(p1: number, p2: number, target: number, tiebreakAtRaw: number): boolean {
+  // A tiebreak can't happen before the target is reachable. Long sets
+  // (e.g. set_target=10) created while the form kept the default
+  // set_tiebreak_at=6 would otherwise wrongly accept 7-6 and reject 11-10.
+  const tiebreakAt = Math.max(tiebreakAtRaw, target);
   const w = Math.max(p1, p2);
   const l = Math.min(p1, p2);
   if (w === l) return false;
