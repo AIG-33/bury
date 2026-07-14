@@ -10,6 +10,7 @@ import { CalendarDays, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-
 import { HelpPanel } from "@/components/help/help-panel";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
+import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
 import { Surface } from "@/components/ui/surface";
@@ -266,6 +267,18 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
       </div>
 
       <div className="page-shell py-8">
+        {/* Prominent sponsors carousel right under the hero (mockup: dedicated
+            section with large clickable logo tiles, scroll-snap when 3+). */}
+        {sponsors.length > 0 && (
+          <SponsorsCarousel
+            sponsors={sponsors}
+            heading={t("detail.partners_title")}
+            accentColor={accent}
+            size="web"
+            className="mb-6"
+          />
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* ── Main column ── */}
           <div className="min-w-0 space-y-6">
@@ -464,48 +477,6 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             </Surface>
           </div>
         </div>
-
-        {/* Partners strip */}
-        {sponsors.length > 0 && (
-          <Surface variant="card" as="section" className="mt-6">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-              <p className="label-eyebrow">{t("detail.sponsors")}</p>
-              <ul className="flex flex-wrap items-center gap-3">
-                {sponsors.map((s, i) => {
-                  const inner = s.logo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.logo_url}
-                      alt={s.name}
-                      title={s.name}
-                      className="h-9 w-auto max-w-[130px] rounded bg-white object-contain px-2 py-1"
-                    />
-                  ) : (
-                    <span className="inline-flex items-center rounded-lg border border-ink-100 bg-white px-3 py-1.5 text-xs font-bold text-ink-800">
-                      {s.name}
-                    </span>
-                  );
-                  return (
-                    <li key={i}>
-                      {s.url ? (
-                        <a
-                          href={s.url}
-                          target="_blank"
-                          rel="noreferrer noopener nofollow"
-                          className="inline-flex"
-                        >
-                          {inner}
-                        </a>
-                      ) : (
-                        inner
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </Surface>
-        )}
       </div>
     </div>
   );
