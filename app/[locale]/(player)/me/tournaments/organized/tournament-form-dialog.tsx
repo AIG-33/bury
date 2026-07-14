@@ -567,7 +567,21 @@ export function TournamentFormDialog({
                     min={4}
                     max={10}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    {...form.register("match_rules.set_target" as any, { valueAsNumber: true })}
+                    {...form.register("match_rules.set_target" as any, {
+                      valueAsNumber: true,
+                      // Keep the tiebreak threshold in sync for long sets:
+                      // a set to 10 plays its tiebreak at 10-all, not 6-all.
+                      onChange: (e) => {
+                        const v = Number(e.target.value);
+                        if (Number.isFinite(v)) {
+                          form.setValue(
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            "match_rules.set_tiebreak_at" as any,
+                            Math.max(6, Math.min(Math.round(v), 10)),
+                          );
+                        }
+                      },
+                    })}
                     className="h-9 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   />
                 </div>

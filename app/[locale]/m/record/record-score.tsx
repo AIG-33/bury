@@ -53,7 +53,9 @@ type Props = {
 type Format = "two" | "three" | "proset";
 
 const SET_COUNT: Record<Format, number> = { two: 2, three: 3, proset: 1 };
-const MAX_GAMES: Record<Format, number> = { two: 7, three: 7, proset: 10 };
+// 11 games allows tiebreak sets to 10 (11:9, 11:10) and champion's tiebreaks
+// recorded as a set (10:8); the server accepts up to 20 per side anyway.
+const MAX_GAMES: Record<Format, number> = { two: 11, three: 11, proset: 11 };
 
 export function RecordScore({ me, labels }: Props) {
   const router = useRouter();

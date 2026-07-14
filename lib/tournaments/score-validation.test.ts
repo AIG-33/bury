@@ -254,4 +254,47 @@ describe("validateScoreAgainstRules — custom set targets", () => {
       error: "score_invalid_set",
     });
   });
+
+  it("supports tiebreak sets to 10 (best of 3, tiebreak at 10-all)", () => {
+    const rules: MatchRules = {
+      kind: "best_of_3",
+      set_target: 10,
+      no_ad: false,
+      super_tiebreak_decider: false,
+      set_tiebreak_at: 10,
+    };
+    expect(validateScoreAgainstRules([s(10, 8), s(10, 3)], rules)).toEqual({ ok: true });
+    expect(validateScoreAgainstRules([s(10, 8), s(8, 10), s(11, 9)], rules)).toEqual({
+      ok: true,
+    });
+    // 11-10 = tiebreak played at 10-all.
+    expect(validateScoreAgainstRules([s(11, 10), s(10, 0)], rules)).toEqual({ ok: true });
+    // 10-9 has no 2-game margin and is before the tiebreak score.
+    expect(validateScoreAgainstRules([s(10, 9), s(10, 0)], rules)).toEqual({
+      ok: false,
+      error: "score_invalid_set",
+    });
+    // A regular 7-6 set doesn't decide a set to 10.
+    expect(validateScoreAgainstRules([s(7, 6), s(10, 0)], rules)).toEqual({
+      ok: false,
+      error: "score_invalid_set",
+    });
+  });
+
+  it("clamps a stale tiebreak threshold below the set target (10 with tb-at-6)", () => {
+    // Payload shape from a form that raised set_target but kept the old
+    // default set_tiebreak_at=6 — must behave like tiebreak at 10-all.
+    const rules: MatchRules = {
+      kind: "single_set",
+      set_target: 10,
+      no_ad: false,
+      set_tiebreak_at: 6,
+    };
+    expect(validateScoreAgainstRules([s(10, 8)], rules)).toEqual({ ok: true });
+    expect(validateScoreAgainstRules([s(11, 10)], rules)).toEqual({ ok: true });
+    expect(validateScoreAgainstRules([s(7, 6)], rules)).toEqual({
+      ok: false,
+      error: "score_invalid_set",
+    });
+  });
 });

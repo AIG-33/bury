@@ -460,12 +460,14 @@ function ScoreEditor({
                     value={s.p1}
                     onChange={(v) => updateSet(i, "p1", v)}
                     winner={winner === "p1"}
+                    maxGames={maxSelectableGames(matchRules)}
                   />
                   <div className="mt-1.5">
                     <DigitRow
                       value={s.p2}
                       onChange={(v) => updateSet(i, "p2", v)}
                       winner={winner === "p2"}
+                      maxGames={maxSelectableGames(matchRules)}
                     />
                   </div>
                 </div>
@@ -558,18 +560,40 @@ function setWinner(s: { p1: number; p2: number }): "p1" | "p2" | null {
   return null;
 }
 
+/**
+ * Highest games count that can appear in one set under the given rules —
+ * defines the digit-picker range. E.g. set to 6 (TB at 6) → 7; set to 10
+ * (tiebreak set) → 11; pro-set to 8 → 9.
+ */
+function maxSelectableGames(rules: MatchRules): number {
+  switch (rules.kind) {
+    case "best_of_3":
+    case "best_of_5":
+    case "single_set":
+      return Math.max(rules.set_target, rules.set_tiebreak_at) + 1;
+    case "pro_set":
+      return rules.target_games + 1;
+    case "first_to_games":
+      return rules.target_games;
+    case "timed":
+      return 12;
+  }
+}
+
 function DigitRow({
   value,
   onChange,
   winner,
+  maxGames,
 }: {
   value: number;
   onChange: (v: number) => void;
   winner: boolean;
+  maxGames: number;
 }) {
   return (
     <div className="flex flex-wrap gap-1">
-      {[0, 1, 2, 3, 4, 5, 6, 7].map((d) => {
+      {Array.from({ length: maxGames + 1 }, (_, d) => d).map((d) => {
         const selected = d === value;
         return (
           <button
