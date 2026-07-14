@@ -7,6 +7,33 @@ import {
   templatePayloadFromRow,
 } from "./template-schema";
 import { TournamentFormSchema, type TournamentForm } from "./schema";
+import {
+  DEFAULT_TOURNAMENT_BRANDING,
+  TournamentBrandingSchema,
+  type TournamentBranding,
+} from "@/lib/validators/tournament-branding";
+
+const FULL_BRANDING: TournamentBranding = TournamentBrandingSchema.parse({
+  theme_preset: "dark",
+  background_color: "#0a1f0a",
+  background_gradient_to: "#123412",
+  accent_color: "#ccff00",
+  logo_url: "https://cdn.example.com/tournament-branding/t1/logo.png",
+  banner_url: "https://cdn.example.com/tournament-branding/t1/banner.jpg",
+  banner_overlay_opacity: 0.6,
+  corner_style: "sharp",
+  font_pairing: "classic",
+  title_override: "Summer League",
+  tagline: "Каждый понедельник в 19:00",
+  sponsors: [
+    {
+      name: "Wilson",
+      logo_url: "https://cdn.example.com/tournament-branding/t1/wilson.png",
+      url: "https://wilson.com",
+    },
+    { name: "Локальный корт", logo_url: null, url: "https://kort.by" },
+  ],
+});
 
 const FULL_FORM: TournamentForm = TournamentFormSchema.parse({
   name: "Летняя лига — этап 3",
@@ -50,6 +77,7 @@ describe("templatePayloadFromForm", () => {
     expect(payload.max_participants).toBe(16);
     expect(payload.entry_fee_byn).toBe(30);
     expect(payload.privacy).toBe("public");
+    expect(payload.application_mode).toBe("manual");
     expect(payload.draw_method).toBe("rating");
     expect(payload.prizes_description).toBe("Мяч Wilson");
     expect(payload.match_rules).toEqual({ kind: "pro_set", target_games: 8, no_ad: true });
@@ -60,6 +88,22 @@ describe("templatePayloadFromForm", () => {
     const payload = templatePayloadFromForm(FULL_FORM);
     const parsed = TournamentTemplatePayloadSchema.parse(payload);
     expect(parsed).toEqual(payload);
+  });
+
+  it("captures the tournament's branding, sponsors included", () => {
+    const payload = templatePayloadFromForm(FULL_FORM, FULL_BRANDING);
+    expect(payload.branding).toEqual(FULL_BRANDING);
+    expect(payload.branding.sponsors).toHaveLength(2);
+    expect(payload.branding.sponsors[0]).toEqual({
+      name: "Wilson",
+      logo_url: "https://cdn.example.com/tournament-branding/t1/wilson.png",
+      url: "https://wilson.com",
+    });
+  });
+
+  it("defaults branding when the tournament has none", () => {
+    const payload = templatePayloadFromForm(FULL_FORM);
+    expect(payload.branding).toEqual(DEFAULT_TOURNAMENT_BRANDING);
   });
 });
 
@@ -90,6 +134,46 @@ describe("formFromTemplatePayload", () => {
     });
     expect(form.starts_on).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(form.club_id).toBeNull();
+  });
+
+  it("keeps branding out of the form (it is applied separately on create)", () => {
+    const payload = templatePayloadFromForm(FULL_FORM, FULL_BRANDING);
+    const form = formFromTemplatePayload({
+      templateName: "X",
+      payload,
+      clubId: null,
+    });
+    expect(form).not.toHaveProperty("branding");
+    // …while the payload still carries the full branding for the create action.
+    expect(payload.branding).toEqual(FULL_BRANDING);
+  });
+});
+
+describe("save → create round-trip with branding", () => {
+  it("a template saved from a branded tournament recreates the same look", () => {
+    // Save: tournament form + branding → payload → JSONB round-trip.
+    const payload = templatePayloadFromForm(FULL_FORM, FULL_BRANDING);
+    const stored = templatePayloadFromRow(JSON.parse(JSON.stringify(payload)));
+    expect(stored).not.toBeNull();
+
+    // Create: form fields expand into a valid create form…
+    const form = formFromTemplatePayload({
+      templateName: "Этап 4",
+      payload: stored!,
+      clubId: null,
+    });
+    expect(TournamentFormSchema.parse(form).match_rules).toEqual(FULL_FORM.match_rules);
+
+    // …and the branding (with sponsors) survives verbatim for the create action.
+    expect(TournamentBrandingSchema.parse(stored!.branding)).toEqual(FULL_BRANDING);
+  });
+
+  it("templates saved before branding existed still parse (defaults apply)", () => {
+    const legacy = templatePayloadFromForm(FULL_FORM) as Record<string, unknown>;
+    delete legacy.branding;
+    const parsed = templatePayloadFromRow(JSON.parse(JSON.stringify(legacy)));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.branding).toEqual(DEFAULT_TOURNAMENT_BRANDING);
   });
 });
 

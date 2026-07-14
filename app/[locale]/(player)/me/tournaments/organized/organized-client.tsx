@@ -28,6 +28,7 @@ import {
   formFromTemplatePayload,
   type TournamentTemplatePayload,
 } from "@/lib/tournaments/template-schema";
+import type { TournamentBranding } from "@/lib/validators/tournament-branding";
 import { deleteTournament, type TournamentRow, type VenueOption, type ClubOption } from "./actions";
 import type { TemplateRow } from "./template-actions";
 import { SaveTemplateDialog, TemplatePickerDialog } from "./template-dialogs";
@@ -88,6 +89,7 @@ export function OrganizedTournamentsClient({
   const [mode, setMode] = useState<TournamentDialogMode>("create");
   const [editing, setEditing] = useState<TournamentRow | null>(null);
   const [prefill, setPrefill] = useState<TournamentForm | null>(null);
+  const [brandingPrefill, setBrandingPrefill] = useState<TournamentBranding | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saveTplFor, setSaveTplFor] = useState<{
@@ -111,6 +113,7 @@ export function OrganizedTournamentsClient({
       max_participants: t.max_participants,
       entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
+      application_mode: t.application_mode,
       club_id: t.club_id ?? null,
       draw_method: t.draw_method ?? "rating",
       prizes_description: t.prizes_description,
@@ -124,18 +127,21 @@ export function OrganizedTournamentsClient({
     setMode("create");
     setEditing(null);
     setPrefill(null);
+    setBrandingPrefill(null);
     setOpen(true);
   }
   function openEdit(t: TournamentRow) {
     setMode("edit");
     setEditing(t);
     setPrefill(null);
+    setBrandingPrefill(null);
     setOpen(true);
   }
   function openDuplicate(t: TournamentRow) {
     // Clone settings, blank out everything date-related, suffix the name and
     // demote registration_deadline to null — the organiser must pick fresh
-    // dates for the new run. Participants & matches stay behind.
+    // dates for the new run. Participants & matches stay behind; branding
+    // (logo, banner, colors, sponsors) is carried over.
     const base = tournamentToForm(t);
     const today = new Date().toISOString().slice(0, 10);
     setMode("duplicate");
@@ -147,11 +153,12 @@ export function OrganizedTournamentsClient({
       ends_on: null,
       registration_deadline: null,
     });
+    setBrandingPrefill(t.branding);
     setOpen(true);
   }
   function openSaveTemplate(t: TournamentRow) {
     setSaveTplFor({
-      payload: templatePayloadFromForm(tournamentToForm(t)),
+      payload: templatePayloadFromForm(tournamentToForm(t), t.branding),
       name: t.name,
       clubId: t.club_id ?? null,
     });
@@ -168,6 +175,7 @@ export function OrganizedTournamentsClient({
         clubId: tpl.club_id,
       }),
     );
+    setBrandingPrefill(tpl.payload.branding);
     setOpen(true);
   }
   function onDelete(id: string) {
@@ -352,6 +360,7 @@ export function OrganizedTournamentsClient({
         onClose={() => setOpen(false)}
         initial={initialForm}
         prefill={prefill}
+        branding={brandingPrefill}
         mode={mode}
         venueOptions={venueOptions}
         clubOptions={clubOptions}

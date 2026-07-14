@@ -24,6 +24,7 @@ import {
   formFromTemplatePayload,
   type TournamentTemplatePayload,
 } from "@/lib/tournaments/template-schema";
+import type { TournamentBranding } from "@/lib/validators/tournament-branding";
 import type {
   TournamentForm,
   TournamentStatus,
@@ -82,6 +83,7 @@ export function ClubTournamentsSection({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<TournamentDialogMode>("create");
   const [prefill, setPrefill] = useState<TournamentForm | null>(null);
+  const [brandingPrefill, setBrandingPrefill] = useState<TournamentBranding | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [openingRegId, setOpeningRegId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +104,7 @@ export function ClubTournamentsSection({
       max_participants: null,
       entry_fee_byn: null,
       privacy: "club",
+      application_mode: "manual",
       club_id: clubId,
       draw_method: "rating",
       prizes_description: null,
@@ -114,6 +117,7 @@ export function ClubTournamentsSection({
   function openNew() {
     setDialogMode("create");
     setPrefill(baseForm());
+    setBrandingPrefill(null);
     setDialogOpen(true);
   }
 
@@ -128,6 +132,7 @@ export function ClubTournamentsSection({
         clubId,
       }),
     );
+    setBrandingPrefill(tpl.payload.branding);
     setDialogOpen(true);
   }
 
@@ -147,6 +152,7 @@ export function ClubTournamentsSection({
       max_participants: src.max_participants,
       entry_fee_byn: src.entry_fee_byn,
       privacy: src.privacy,
+      application_mode: src.application_mode,
       club_id: clubId,
       draw_method: src.draw_method ?? "rating",
       prizes_description: src.prizes_description,
@@ -154,6 +160,7 @@ export function ClubTournamentsSection({
       venue_ids: src.venue_ids,
       third_place_match: src.third_place_match,
     });
+    setBrandingPrefill(src.branding);
     setDialogOpen(true);
   }
 
@@ -340,6 +347,7 @@ export function ClubTournamentsSection({
         onClose={() => setDialogOpen(false)}
         initial={null}
         prefill={prefill}
+        branding={brandingPrefill}
         mode={dialogMode}
         venueOptions={venueOptions}
         clubOptions={[{ id: clubId, name: clubName }]}

@@ -1,11 +1,16 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  tournamentBrandingFromRow,
+  type TournamentBranding,
+} from "@/lib/validators/tournament-branding";
 import type {
   TournamentFormat,
   TournamentStatus,
   SeedingMethod,
   Privacy,
+  ApplicationMode,
   Surface,
   MatchRules,
   MatchStage,
@@ -32,11 +37,14 @@ export type ClubTournamentRow = {
   max_participants: number | null;
   entry_fee_byn: number | null;
   privacy: Privacy;
+  application_mode: ApplicationMode;
   status: TournamentStatus;
   draw_method: SeedingMethod | null;
   prizes_description: string | null;
   match_rules: MatchRules;
   third_place_match: boolean;
+  /** Public-page branding — carried into "repeat last" copies. */
+  branding: TournamentBranding;
   created_at: string;
   organizer_id: string;
   organizer_name: string | null;
@@ -116,14 +124,15 @@ export async function loadClubTournamentsForAdmin(clubId: string): Promise<
     | "pending_applications"
     | "pending_matches"
     | "venue_ids"
-  > & { owner_id: string };
+    | "branding"
+  > & { owner_id: string; branding: unknown };
 
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
       "id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, status, " +
-        "draw_method, prizes_description, match_rules, third_place_match, created_at, owner_id",
+        "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, status, " +
+        "draw_method, prizes_description, match_rules, third_place_match, branding, created_at, owner_id",
     )
     .eq("club_id", clubId)
     .order("starts_on", { ascending: false })
@@ -251,11 +260,13 @@ export async function loadClubTournamentsForAdmin(clubId: string): Promise<
       max_participants: t.max_participants,
       entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
+      application_mode: t.application_mode,
       status: t.status,
       draw_method: t.draw_method,
       prizes_description: t.prizes_description,
       match_rules: t.match_rules,
       third_place_match: t.third_place_match,
+      branding: tournamentBrandingFromRow(t.branding),
       created_at: t.created_at,
       organizer_id: t.owner_id,
       organizer_name: organizerNameById.get(t.owner_id) ?? null,
