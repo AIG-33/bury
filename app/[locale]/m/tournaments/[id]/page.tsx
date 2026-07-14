@@ -17,6 +17,7 @@ import {
 } from "@/app/[locale]/tournaments/actions";
 import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
+import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { formatSetsScore, shortNameOf } from "@/lib/mobile/format";
 import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { TournamentApplyCta } from "./apply-cta";
@@ -172,36 +173,22 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
               ) : null}
             </div>
           </div>
-
-          {tournament.branding.sponsors.length > 0 ? (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-[9.5px] font-bold uppercase tracking-[1.2px] text-white/60">
-                {t("tournament.partners")}
-              </span>
-              {tournament.branding.sponsors.map((s, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center rounded-full bg-white/90 px-2 py-0.5"
-                >
-                  {s.logo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.logo_url}
-                      alt={s.name}
-                      title={s.name}
-                      className="h-5 w-auto max-w-[80px] object-contain"
-                    />
-                  ) : (
-                    <span className="text-[11px] font-bold text-ink-900">{s.name}</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          ) : null}
         </div>
       </header>
 
       <MContent className="flex-1 pt-4" extraBottom={72}>
+        {/* Prominent sponsors carousel right under the hero — replaces the old
+            tiny logo pills that used to sit inside the hero. */}
+        {tournament.branding.sponsors.length > 0 ? (
+          <SponsorsCarousel
+            sponsors={tournament.branding.sponsors}
+            heading={t("tournament.partners_title")}
+            accentColor={accent}
+            size="mobile"
+            className="mb-4"
+          />
+        ) : null}
+
         {/* Status / format / surface chips */}
         <div className="flex flex-wrap items-center gap-1.5">
           <span
