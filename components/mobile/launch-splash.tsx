@@ -6,11 +6,12 @@ import { useEffect, useState } from "react";
 // Launch splash for the native store app (Capacitor shell). Server-rendered
 // into the first HTML response when the `PlayTennisApp` UA token is present,
 // so it paints with the very first frame of the remote page — no black gap
-// between the native splash (solid grass green, see capacitor.config.ts) and
-// the web app. Pure-CSS grass court with white lines, a tennis ball flying
-// side to side, logo + slogan on top. Stays for MIN_VISIBLE_MS *and* until
-// hydration (the effect below only fires once React is interactive), then
-// fades out and unmounts.
+// between the native splash and the web app. Pure-CSS grass court with white
+// lines, a tennis ball flying side to side, logo + slogan on top. The static
+// native splash image mirrors this exact layout (scripts/generate-mobile-assets.mjs),
+// so the native → web hand-off is invisible; the ball simply starts moving.
+// Stays for MIN_VISIBLE_MS after hydration (≈ the moment the native splash
+// hides and the overlay becomes user-visible), then fades out and unmounts.
 // =============================================================================
 
 const MIN_VISIBLE_MS = 3000;
@@ -33,9 +34,13 @@ export function LaunchSplash({ slogan }: { slogan: string }) {
       // Storage can be unavailable (private mode); treat as first launch.
     }
 
-    // performance.now() counts from navigation start, so the minimum display
-    // time is measured from app launch rather than from hydration.
-    const remaining = seen ? 0 : Math.max(0, MIN_VISIBLE_MS - performance.now());
+    // Count the minimum display time from NOW (hydration), not from
+    // navigation start: the native splash covers the WebView until the app
+    // mounts (native-bridge.tsx hides it), so this is the first moment the
+    // animated overlay is actually visible to the user. Counting from
+    // navigation start made the overlay flash for well under a second when
+    // the remote page took a few seconds to load.
+    const remaining = seen ? 0 : MIN_VISIBLE_MS;
     const fadeTimer = window.setTimeout(() => setPhase("fading"), remaining);
     return () => window.clearTimeout(fadeTimer);
   }, []);
