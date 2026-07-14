@@ -545,10 +545,14 @@ auth code to the Supabase callback — see §9 for the full root cause).
 **iOS:** archived `build/App-1.1.0-6.xcarchive` (`xcodebuild`, team
 `VH4L4R7PKW`, ASC API key `TRS8NZAGX5`), exported with
 `build/ExportOptions.plist`, uploaded via `xcrun altool` (delivery
-`646f11ec-c03b-4227-9bef-7be14e9de06c`). Build 6 attached to version 1.1.0,
-reviewer note updated (Kids Category removed + Apple sign-in root cause and
-fix), review submission resubmitted (the `198e10f7-…` submission was reused /
-recreated as needed — final state in §9).
+`646f11ec-c03b-4227-9bef-7be14e9de06c`). Build 6 attached to version 1.1.0
+via the ASC API (Spaceship), reviewer note updated (Kids Category removed +
+Apple sign-in root cause and fix). The rejected submission (`198e10f7-…`,
+UNRESOLVED_ISSUES) was **canceled** — same as last time, it would not release
+the version item — and a fresh submission
+(`3fb78100-dc87-4c23-b991-a9cbb7bd9806`) was created with version 1.1.0 /
+build 6 and submitted → state `WAITING_FOR_REVIEW`. Verified after submit:
+`kidsAgeBand = null`, rating 4+, appInfo `WAITING_FOR_REVIEW`.
 
 **Android:** `./gradlew bundleRelease` → `build/PlayTennis-1.1.0-vc6.aab`
 (versionCode 6 verified with bundletool), uploaded to the **internal** track
