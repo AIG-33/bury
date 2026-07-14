@@ -10,8 +10,10 @@ import type {
   TournamentStatus,
   Surface,
   Privacy,
+  ApplicationMode,
   MatchRules,
 } from "@/lib/tournaments/schema";
+import { decideApplication } from "@/lib/tournaments/applications";
 import {
   tournamentBrandingFromRow,
   type TournamentBranding,
@@ -374,20 +376,26 @@ export async function loadMyTournaments(): Promise<
 // =============================================================================
 
 /**
- * Submit an application to a tournament. Players are NOT auto-approved any
- * more — the row is created with status='pending' and the organizer must
- * approve or reject it.
+ * Submit an application to a tournament. What happens next depends on the
+ * tournament's `application_mode`:
+ *   – 'manual' (default) — the row is created with status='pending' and the
+ *     organizer approves or rejects it by hand;
+ *   – 'auto' — the row is approved immediately (registration window and
+ *     capacity are validated here; the approved write goes through the
+ *     service role because RLS keeps client-side inserts pending-only).
  */
 export async function applyToTournament(
   tournamentId: string,
-): Promise<{ ok: true; status: "pending" } | { ok: false; error: string }> {
+): Promise<{ ok: true; status: "pending" | "approved" } | { ok: false; error: string }> {
   const auth = await requireUser();
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
   const { data: t } = (await supabase
     .from("tournaments")
-    .select("id, owner_id, name, status, max_participants, registration_deadline")
+    .select(
+      "id, owner_id, name, status, max_participants, registration_deadline, application_mode",
+    )
     .eq("id", tournamentId)
     .single()) as {
     data: {
@@ -397,33 +405,20 @@ export async function applyToTournament(
       status: TournamentStatus;
       max_participants: number | null;
       registration_deadline: string | null;
+      application_mode: ApplicationMode;
     } | null;
   };
   if (!t) return { ok: false, error: "not_found" };
-  if (t.owner_id === userId) return { ok: false, error: "cant_apply_to_own_tournament" };
-  // Drafts are organizer-private: applications open only once the organizer
-  // explicitly flips the tournament to "registration".
-  if (t.status !== "registration") {
-    return { ok: false, error: "registration_closed" };
-  }
-  if (t.registration_deadline && new Date(t.registration_deadline) < new Date()) {
-    return { ok: false, error: "deadline_passed" };
-  }
 
-  if (t.max_participants != null) {
-    const { data: cnt } = (await supabase
-      .from("tournament_participants")
-      .select("id")
-      .eq("tournament_id", tournamentId)
-      .eq("status", "approved")
-      .eq("withdrawn", false)) as { data: Array<{ id: string }> | null };
-    if ((cnt?.length ?? 0) >= t.max_participants) {
-      return { ok: false, error: "full" };
-    }
-  }
+  const { data: cnt } = (await supabase
+    .from("tournament_participants")
+    .select("id")
+    .eq("tournament_id", tournamentId)
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as { data: Array<{ id: string }> | null };
 
-  // Existing row? Resurrect it on reapplication; reset status to 'pending'
-  // so the owner gets a fresh decision to make.
+  // Existing row? Resurrect it on reapplication so the organizer (or the
+  // auto mode) gets a fresh decision to make.
   const { data: existing } = (await supabase
     .from("tournament_participants")
     .select("id, status, withdrawn")
@@ -433,52 +428,93 @@ export async function applyToTournament(
     data: { id: string; status: "pending" | "approved" | "rejected"; withdrawn: boolean } | null;
   };
 
-  if (existing) {
-    if (existing.status === "pending" && !existing.withdrawn) {
-      return { ok: true, status: "pending" };
-    }
-    const { error } = await supabase
-      .from("tournament_participants")
-      .update({ status: "pending", withdrawn: false } as never)
-      .eq("id", existing.id);
-    if (error) return { ok: false, error: error.message };
-  } else {
-    const { error } = await supabase.from("tournament_participants").insert({
-      tournament_id: tournamentId,
-      player_id: userId,
-      status: "pending",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-    if (error) return { ok: false, error: error.message };
-  }
+  const decision = decideApplication({
+    mode: t.application_mode,
+    tournamentStatus: t.status,
+    ownerId: t.owner_id,
+    playerId: userId,
+    registrationDeadline: t.registration_deadline,
+    now: new Date(),
+    approvedCount: cnt?.length ?? 0,
+    maxParticipants: t.max_participants,
+    existing,
+  });
+  if (!decision.ok) return decision;
 
-  // Best-effort notification to organizer that a new application landed.
-  try {
-    const { data: ownerProfile } = (await supabase
-      .from("profiles")
-      .select("locale, notification_email")
-      .eq("id", t.owner_id)
-      .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-    if (ownerProfile?.notification_email) {
-      const service = createSupabaseServiceClient();
-      await enqueue(service, {
-        recipient_id: t.owner_id,
-        channel: "email",
-        template: "tournament_application_submitted",
-        locale: ownerProfile.locale,
-        payload: {
-          tournament_id: tournamentId,
-          tournament_name: t.name,
-        },
-      });
+  if (!decision.noop) {
+    // The pending-only `tp_player_register` RLS policy is intentional — a
+    // player can never write an approved row themselves. Auto-approval (and
+    // resurrecting an old row, which is an UPDATE the player has no policy
+    // for) therefore goes through the service role AFTER the checks above.
+    const writer =
+      decision.nextStatus === "approved" || existing
+        ? createSupabaseServiceClient()
+        : supabase;
+    if (existing) {
+      const { error } = await writer
+        .from("tournament_participants")
+        .update({ status: decision.nextStatus, withdrawn: false } as never)
+        .eq("id", existing.id);
+      if (error) return { ok: false, error: error.message };
+    } else {
+      const { error } = await writer.from("tournament_participants").insert({
+        tournament_id: tournamentId,
+        player_id: userId,
+        status: decision.nextStatus,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      if (error) return { ok: false, error: error.message };
     }
-  } catch (e) {
-    console.warn("[tournaments] failed to enqueue organizer notification:", e);
+
+    // Best-effort notifications — never fail the action over the outbox.
+    try {
+      const service = createSupabaseServiceClient();
+      const { data: ownerProfile } = (await supabase
+        .from("profiles")
+        .select("locale, notification_email")
+        .eq("id", t.owner_id)
+        .single()) as { data: { locale: Locale; notification_email: boolean } | null };
+      if (ownerProfile?.notification_email) {
+        await enqueue(service, {
+          recipient_id: t.owner_id,
+          channel: "email",
+          template: "tournament_application_submitted",
+          locale: ownerProfile.locale,
+          payload: {
+            tournament_id: tournamentId,
+            tournament_name: t.name,
+          },
+        });
+      }
+      // Auto mode: the applicant is in immediately — tell them so.
+      if (decision.nextStatus === "approved") {
+        const { data: applicant } = (await supabase
+          .from("profiles")
+          .select("locale, notification_email")
+          .eq("id", userId)
+          .single()) as { data: { locale: Locale; notification_email: boolean } | null };
+        if (applicant?.notification_email) {
+          await enqueue(service, {
+            recipient_id: userId,
+            channel: "email",
+            template: "tournament_application_approved",
+            locale: applicant.locale,
+            payload: {
+              tournament_id: tournamentId,
+              tournament_name: t.name,
+            },
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[tournaments] failed to enqueue application notifications:", e);
+    }
   }
 
   revalidatePath("/me/tournaments");
   revalidatePath(`/me/tournaments/organized/${tournamentId}`);
-  return { ok: true, status: "pending" };
+  revalidatePath(`/tournaments/${tournamentId}`);
+  return { ok: true, status: decision.nextStatus };
 }
 
 /**

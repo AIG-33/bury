@@ -101,6 +101,8 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     rejecting: t("participants.rejecting"),
     reapprove: t("participants.reapprove"),
     add_directly_hint: t("participants.add_directly_hint"),
+    mode_hint_auto: t("participants.mode_hint_auto"),
+    mode_hint_manual: t("participants.mode_hint_manual"),
   };
 
   const bracketCopy: BracketCopy = {
@@ -344,6 +346,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         options={playerOptions}
         copy={participantsCopy}
         locked={locked}
+        applicationMode={tournament.application_mode}
       />
 
       {tournament.format === "group_playoff" && (

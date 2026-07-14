@@ -2454,6 +2454,10 @@
       "club": "Club only",
       "public": "Public (open to all)"
     },
+    "application_modes": {
+      "manual": "Manually by the organizer",
+      "auto": "Automatically"
+    },
     "privacy_control": {
       "status_label": "Visibility:",
       "club_hint": "only participants and the owner can see the bracket and results.",
@@ -2510,6 +2514,7 @@
       "match_not_ready": "This match's opponents haven't been decided yet.",
       "tied_score": "A tie isn't possible — the score must produce a winner.",
       "invalid_privacy": "Invalid visibility value.",
+      "branding_invalid": "The design settings failed validation — the tournament was not created. Please try again.",
       "score_too_few_sets": "Fewer sets than needed to win under the match rules.",
       "score_too_many_sets": "More sets than the match rules allow.",
       "score_extra_sets": "Extra set: the match was already decided in the previous sets.",
@@ -2531,7 +2536,7 @@
       "save_button_short": "To template",
       "save_dialog": {
         "title": "Save as template",
-        "subtitle": "The template remembers the format, match rules, surface, venues, fee and seeding. Dates and participants are not saved — you'll pick them when creating a new tournament.",
+        "subtitle": "The template remembers the format, match rules, surface, venues, fee and seeding, plus the page design and sponsors. Dates and participants are not saved — you'll pick them when creating a new tournament.",
         "name_label": "Template name",
         "club_label": "Club",
         "club_none": "Personal template (visible only to you)",
@@ -2574,6 +2579,7 @@
         "venues": "Venues",
         "club": "Club",
         "privacy": "Visibility",
+        "application_mode": "Application approval",
         "draw_method": "Default seeding",
         "prizes": "Prizes",
         "match_rules": "Match rules",
@@ -2587,6 +2593,7 @@
       "hints": {
         "format": "Single elimination is supported in MVP; other formats are coming soon.",
         "privacy": "Public tournaments appear in /me/tournaments → Open registrations for any player.",
+        "application_mode": "\"Manually\" — every application waits for your approval. \"Automatically\" — a player joins the field right away while registration is open and seats remain.",
         "draw_method": "How to assign positions in the bracket. You can override per draw.",
         "match_rules": "Defines how a single match is played. Used as a default; you can override per match later.",
         "coming_soon": "coming soon",
@@ -2627,7 +2634,9 @@
       "approving": "Approving…",
       "rejecting": "Rejecting…",
       "reapprove": "Restore",
-      "add_directly_hint": "You can add a player directly (no application needed). They'll go straight into the approved roster."
+      "add_directly_hint": "You can add a player directly (no application needed). They'll go straight into the approved roster.",
+      "mode_hint_auto": "Applications are confirmed automatically: players join the roster right away while seats remain. You can change this in the tournament settings.",
+      "mode_hint_manual": "You confirm every application: each one waits for your Approve or Reject decision. You can change this in the tournament settings."
     },
     "bracket": {
       "title": "Bracket",

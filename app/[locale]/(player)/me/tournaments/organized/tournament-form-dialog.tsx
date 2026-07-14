@@ -13,17 +13,20 @@ import {
   SUPPORTED_FORMATS_MVP,
   SEEDING_METHODS,
   PRIVACY_OPTIONS,
+  APPLICATION_MODES,
   SURFACES,
   MATCH_RULE_KINDS,
   DEFAULT_MATCH_RULES,
   type TournamentFormat,
   type SeedingMethod,
   type Privacy,
+  type ApplicationMode,
   type Surface,
   type MatchRuleKind,
 } from "@/lib/tournaments/schema";
 import { createTournament, updateTournament, type VenueOption, type ClubOption } from "./actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
+import type { TournamentBranding } from "@/lib/validators/tournament-branding";
 
 export type TournamentDialogCopy = {
   create_title: string;
@@ -47,6 +50,7 @@ export type TournamentDialogCopy = {
     venues: string;
     club: string;
     privacy: string;
+    application_mode: string;
     draw_method: string;
     prizes: string;
     match_rules: string;
@@ -60,6 +64,7 @@ export type TournamentDialogCopy = {
   hints: {
     format: string;
     privacy: string;
+    application_mode: string;
     draw_method: string;
     match_rules: string;
     coming_soon: string;
@@ -73,6 +78,7 @@ export type TournamentDialogCopy = {
   surface_labels: Record<Surface, string>;
   draw_method_labels: Record<SeedingMethod, string>;
   privacy_labels: Record<Privacy, string>;
+  application_mode_labels: Record<ApplicationMode, string>;
   match_rule_labels: Record<MatchRuleKind, string>;
   save: string;
   saving: string;
@@ -96,6 +102,12 @@ type Props = {
    * is responsible for clearing dates / suffixing the name beforehand.
    */
   prefill?: TournamentForm | null;
+  /**
+   * Branding (logo, banner, colors, sponsors) to apply to the NEW tournament.
+   * Set by the duplicate / create-from-template flows; ignored in edit mode
+   * (branding of an existing tournament is managed by its own editor).
+   */
+  branding?: TournamentBranding | null;
   mode?: TournamentDialogMode;
   venueOptions: VenueOption[];
   clubOptions: ClubOption[];
@@ -108,6 +120,7 @@ export function TournamentFormDialog({
   onClose,
   initial,
   prefill,
+  branding,
   mode = initial ? "edit" : "create",
   venueOptions,
   clubOptions,
@@ -133,6 +146,7 @@ export function TournamentFormDialog({
         max_participants: null,
         entry_fee_byn: null,
         privacy: "club",
+        application_mode: "manual",
         club_id: null,
         draw_method: "rating",
         prizes_description: null,
@@ -164,7 +178,7 @@ export function TournamentFormDialog({
       const r =
         mode === "edit" && initial
           ? await updateTournament(initial.id, values)
-          : await createTournament(values);
+          : await createTournament(values, branding ?? undefined);
       if (r.ok) onSaved(r.id);
       else setError(localizeActionError(tErrors, r.error));
     });
@@ -316,6 +330,30 @@ export function TournamentFormDialog({
                 )}
               />
               <p className="mt-1 text-[11px] text-ink-500">{copy.hints.privacy}</p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink-700">
+                {copy.fields.application_mode}
+              </label>
+              <Controller
+                control={form.control}
+                name="application_mode"
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    value={field.value ?? "manual"}
+                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                  >
+                    {APPLICATION_MODES.map((m) => (
+                      <option key={m} value={m}>
+                        {copy.application_mode_labels[m]}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+              <p className="mt-1 text-[11px] text-ink-500">{copy.hints.application_mode}</p>
             </div>
 
             {clubOptions.length > 0 && (

@@ -16,10 +16,12 @@ import {
   type TournamentStatus,
   type SeedingMethod,
   type Privacy,
+  type ApplicationMode,
   type Surface,
   type MatchRules,
   type MatchStage,
 } from "@/lib/tournaments/schema";
+import { canSetParticipantStatus } from "@/lib/tournaments/applications";
 import {
   buildRoundRobinSchedule,
   buildSingleEliminationBracket,
@@ -34,6 +36,12 @@ import {
 import { recalcMatchElo } from "@/lib/rating/recalc";
 import { recalcClubRatingsForMatch } from "@/lib/rating/club-recalc";
 import { validateScoreAgainstRules } from "@/lib/tournaments/score-validation";
+import {
+  TournamentBrandingSchema,
+  tournamentBrandingFromRow,
+  hasBranding,
+  type TournamentBranding,
+} from "@/lib/validators/tournament-branding";
 
 // =============================================================================
 // Types returned to the UI
@@ -58,6 +66,7 @@ export type TournamentRow = {
   max_participants: number | null;
   entry_fee_byn: number | null;
   privacy: Privacy;
+  application_mode: ApplicationMode;
   club_id: string | null;
   status: TournamentStatus;
   draw_method: SeedingMethod | null;
@@ -66,6 +75,9 @@ export type TournamentRow = {
   participants_count: number;
   pending_count: number;
   venues: TournamentVenueRef[];
+  /** Public-page branding (logo, banner, colors, sponsors, …). Always a
+   * well-formed object — legacy rows parse to the defaults. */
+  branding: TournamentBranding;
   created_at: string;
   // Hybrid (group + playoff) fields. Null on tournaments where they don't apply.
   groups_count: number | null;
@@ -154,14 +166,16 @@ export async function loadOrganizedTournaments(): Promise<
     .from("tournaments")
     .select(
       "id, name, description, format, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, club_id, status, " +
-        "draw_method, prizes_description, match_rules, created_at, " +
+        "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
+        "draw_method, prizes_description, match_rules, branding, created_at, " +
         "groups_count, advance_per_group, playoff_size, third_place_match",
     )
     .eq("owner_id", userId)
     .order("created_at", { ascending: false })) as {
     data: Array<
-      Omit<TournamentRow, "participants_count" | "pending_count" | "venues">
+      Omit<TournamentRow, "participants_count" | "pending_count" | "venues" | "branding"> & {
+        branding: unknown;
+      }
     > | null;
   };
 
@@ -210,6 +224,7 @@ export async function loadOrganizedTournaments(): Promise<
     ok: true,
     tournaments: tournaments.map((t) => ({
       ...t,
+      branding: tournamentBrandingFromRow(t.branding),
       participants_count: approvedCounts.get(t.id) ?? 0,
       pending_count: pendingCounts.get(t.id) ?? 0,
       venues: venuesByTournament.get(t.id) ?? [],
@@ -282,15 +297,16 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     .from("tournaments")
     .select(
       "id, owner_id, name, description, format, surface, starts_on, start_time, " +
-        "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, club_id, status, " +
-        "draw_method, prizes_description, match_rules, created_at, " +
+        "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
+        "draw_method, prizes_description, match_rules, branding, created_at, " +
         "groups_count, advance_per_group, playoff_size, third_place_match",
     )
     .eq("id", tournamentId)
     .single()) as {
     data:
-      | (Omit<TournamentRow, "participants_count" | "pending_count" | "venues"> & {
+      | (Omit<TournamentRow, "participants_count" | "pending_count" | "venues" | "branding"> & {
           owner_id: string;
+          branding: unknown;
         })
       | null;
   };
@@ -426,6 +442,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       max_participants: t.max_participants,
       entry_fee_byn: t.entry_fee_byn,
       privacy: t.privacy,
+      application_mode: t.application_mode,
       club_id: t.club_id ?? null,
       status: t.status,
       draw_method: t.draw_method,
@@ -434,6 +451,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       participants_count,
       pending_count,
       venues,
+      branding: tournamentBrandingFromRow(t.branding),
       created_at: t.created_at,
       groups_count: t.groups_count,
       advance_per_group: t.advance_per_group,
@@ -504,7 +522,16 @@ async function userAdministersClub(
   return !!member;
 }
 
-export async function createTournament(input: unknown): Promise<SaveResult> {
+/**
+ * `brandingInput` (optional) — the public-page branding to apply to the new
+ * tournament. Used by the duplicate / create-from-template flows so the copy
+ * keeps the source's look (logo, banner, colors, sponsors). Plain creates
+ * omit it and get the DB default (`{}` → default look).
+ */
+export async function createTournament(
+  input: unknown,
+  brandingInput?: unknown,
+): Promise<SaveResult> {
   const auth = await requireUser();
   if (!auth.ok) return { ok: false, error: auth.error };
   const { supabase, userId } = auth;
@@ -514,6 +541,13 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "invalid" };
   }
   const v = parsed.data;
+
+  let branding: TournamentBranding | null = null;
+  if (brandingInput != null) {
+    const parsedBranding = TournamentBrandingSchema.safeParse(brandingInput);
+    if (!parsedBranding.success) return { ok: false, error: "branding_invalid" };
+    if (hasBranding(parsedBranding.data)) branding = parsedBranding.data;
+  }
 
   if (v.club_id && !(await userAdministersClub(supabase, userId, v.club_id))) {
     return { ok: false, error: "not_club_admin" };
@@ -536,12 +570,14 @@ export async function createTournament(input: unknown): Promise<SaveResult> {
       max_participants: v.max_participants,
       entry_fee_byn: v.entry_fee_byn,
       privacy: v.privacy,
+      application_mode: v.application_mode,
       club_id: v.club_id,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
       third_place_match: v.format === "group_playoff" ? v.third_place_match : false,
       status: "draft",
+      ...(branding ? { branding } : {}),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
     .select("id")
@@ -612,8 +648,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       v.format !== current.format ||
       v.draw_method !== (current.draw_method ?? "rating") ||
       stableStringify(v.match_rules) !== stableStringify(current.match_rules) ||
-      (v.format === "group_playoff" &&
-        v.third_place_match !== current.third_place_match);
+      (v.format === "group_playoff" && v.third_place_match !== current.third_place_match);
     if (drawAffectingChanged) {
       return { ok: false, error: "locked_in_progress" };
     }
@@ -635,6 +670,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       max_participants: v.max_participants,
       entry_fee_byn: v.entry_fee_byn,
       privacy: v.privacy,
+      application_mode: v.application_mode,
       club_id: v.club_id,
       draw_method: v.draw_method,
       prizes_description: v.prizes_description,
@@ -747,11 +783,7 @@ export async function deleteTournament(
     return { ok: false, error: "delete_locked_in_progress" };
   }
 
-  const { error } = await supabase
-    .from("tournaments")
-    .delete()
-    .eq("id", id)
-    .eq("owner_id", userId);
+  const { error } = await supabase.from("tournaments").delete().eq("id", id).eq("owner_id", userId);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/me/tournaments/organized");
   return { ok: true };
@@ -856,9 +888,6 @@ export async function setParticipantStatus(
   };
   if (!t) return { ok: false, error: "tournament_not_found" };
   if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
-  if (t.status === "finished" || t.status === "cancelled") {
-    return { ok: false, error: "tournament_locked" };
-  }
 
   const { data: p } = (await supabase
     .from("tournament_participants")
@@ -875,17 +904,19 @@ export async function setParticipantStatus(
   };
   if (!p) return { ok: false, error: "participant_not_found" };
 
-  if (status === "approved" && t.max_participants != null) {
-    const { data: cnt } = (await supabase
-      .from("tournament_participants")
-      .select("id")
-      .eq("tournament_id", tournamentId)
-      .eq("status", "approved")
-      .eq("withdrawn", false)) as { data: Array<{ id: string }> | null };
-    if ((cnt?.length ?? 0) >= t.max_participants) {
-      return { ok: false, error: "tournament_full" };
-    }
-  }
+  const { data: cnt } = (await supabase
+    .from("tournament_participants")
+    .select("id")
+    .eq("tournament_id", tournamentId)
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as { data: Array<{ id: string }> | null };
+  const guard = canSetParticipantStatus({
+    target: status,
+    tournamentStatus: t.status,
+    approvedCount: cnt?.length ?? 0,
+    maxParticipants: t.max_participants,
+  });
+  if (!guard.ok) return guard;
 
   const { error } = await supabase
     .from("tournament_participants")
@@ -1140,9 +1171,7 @@ export async function generateBracket(
       // If round-1 had a bye, normalise so the present player sits in p1_id
       // and we can credit them an auto-win without a second row.
       const [p1, p2] =
-        isAutoBye && m.p1_id == null && m.p2_id != null
-          ? [m.p2_id, null]
-          : [m.p1_id, m.p2_id];
+        isAutoBye && m.p1_id == null && m.p2_id != null ? [m.p2_id, null] : [m.p1_id, m.p2_id];
       return {
         tournament_id: tournamentId,
         round: m.round,
@@ -1366,8 +1395,10 @@ export async function reassignToGroup(
 
   const { data: p } = (await supabase
     .from("tournament_participants")
-    .select("id, tournament_id, group_id, status, withdrawn, " +
-      "tournaments!inner(id, owner_id, format)")
+    .select(
+      "id, tournament_id, group_id, status, withdrawn, " +
+        "tournaments!inner(id, owner_id, format)",
+    )
     .eq("id", v.participant_id)
     .single()) as {
     data: {
@@ -1381,8 +1412,10 @@ export async function reassignToGroup(
   };
   if (!p || !p.tournaments) return { ok: false, error: "participant_not_found" };
   if (p.tournaments.owner_id !== userId) return { ok: false, error: "not_owner" };
-  if (p.tournaments.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
-  if (p.status !== "approved" || p.withdrawn) return { ok: false, error: "participant_not_approved" };
+  if (p.tournaments.format !== "group_playoff")
+    return { ok: false, error: "format_not_group_playoff" };
+  if (p.status !== "approved" || p.withdrawn)
+    return { ok: false, error: "participant_not_approved" };
 
   // Confirm the target group belongs to the same tournament.
   const { data: targetGroup } = (await supabase
@@ -1486,8 +1519,7 @@ export async function reassignToGroup(
 export async function closeGroupsAndStartPlayoff(
   input: unknown,
 ): Promise<
-  | { ok: true; playoffMatches: number; thirdPlaceMatch: boolean }
-  | { ok: false; error: string }
+  { ok: true; playoffMatches: number; thirdPlaceMatch: boolean } | { ok: false; error: string }
 > {
   const auth = await requireUser();
   if (!auth.ok) return { ok: false, error: auth.error };
@@ -1621,9 +1653,7 @@ export async function closeGroupsAndStartPlayoff(
     const isAutoBye = m.round === 1 && (m.p1_id != null) !== (m.p2_id != null);
     // Round-1 bye normalisation: present player to p1_id, auto-credit them.
     const [p1, p2] =
-      isAutoBye && m.p1_id == null && m.p2_id != null
-        ? [m.p2_id, null]
-        : [m.p1_id, m.p2_id];
+      isAutoBye && m.p1_id == null && m.p2_id != null ? [m.p2_id, null] : [m.p1_id, m.p2_id];
     return {
       tournament_id: v.tournament_id,
       round: m.round,
@@ -1729,8 +1759,7 @@ export async function setMatchScore(
     // Bracket placeholder waiting on a previous round — can't score yet.
     return { ok: false, error: "match_not_ready" };
   }
-  const isRoundRobin =
-    m.tournaments.format === "round_robin" || m.stage === "group";
+  const isRoundRobin = m.tournaments.format === "round_robin" || m.stage === "group";
 
   // Drop trailing untouched "0:0" placeholder sets from the score widget,
   // then validate the rest against the tournament's match rules. Special
@@ -1790,9 +1819,8 @@ export async function setMatchScore(
       .select("id", { count: "exact" })
       .eq("tournament_id", m.tournament_id)
       .eq("outcome", "pending");
-    const { data: remaining } = (await (m.tournaments.format === "round_robin"
-      ? baseQuery
-      : baseQuery.eq("stage", "group")
+    const { data: remaining } = (await (
+      m.tournaments.format === "round_robin" ? baseQuery : baseQuery.eq("stage", "group")
     ).limit(1)) as { data: Array<{ id: string }> | null };
 
     if (!remaining || remaining.length === 0) {
@@ -1829,9 +1857,8 @@ export async function setMatchScore(
         .eq("tournament_id", m.tournament_id)
         .eq("round", nextRound)
         .eq("bracket_slot", nextSlot);
-      const { data: nextMatch } = (await (m.stage
-        ? nextQ.eq("stage", m.stage)
-        : nextQ.is("stage", null)
+      const { data: nextMatch } = (await (
+        m.stage ? nextQ.eq("stage", m.stage) : nextQ.is("stage", null)
       ).maybeSingle()) as {
         data: { id: string; p1_id: string | null; p2_id: string | null } | null;
       };
@@ -1888,9 +1915,8 @@ export async function setMatchScore(
     .from("matches")
     .select("round, winner_side")
     .eq("tournament_id", m.tournament_id);
-  const { data: finalMatch } = (await (stageScope
-    ? finalQ.eq("stage", "playoff")
-    : finalQ.is("stage", null)
+  const { data: finalMatch } = (await (
+    stageScope ? finalQ.eq("stage", "playoff") : finalQ.is("stage", null)
   )
     .order("round", { ascending: false })
     .limit(1)
@@ -1935,9 +1961,7 @@ export type GroupStandingsBlock = {
   rows: StandingsLine[];
 };
 
-export async function loadGroupStandings(
-  tournamentId: string,
-): Promise<GroupStandingsBlock[]> {
+export async function loadGroupStandings(tournamentId: string): Promise<GroupStandingsBlock[]> {
   const supabase = await createSupabaseServerClient();
 
   const { data: groups } = (await supabase
