@@ -8,7 +8,7 @@ accounts, 2FA and signing keys — none of that lives in git).
 
 - **App name (display):** PlayTennis.by
 - **Bundle ID / applicationId:** `by.playtennis.app`
-- **Marketing version:** `1.0.0` · **Build / versionCode:** `1`
+- **Marketing version:** `1.1.0` · **Build / versionCode:** `5` (see §10 Release log)
 - **Primary language:** Russian · **Also:** English
 - **Price:** Free · **Category:** Sports (secondary: Lifestyle)
 - **Privacy policy:** `https://www.playtennis.by/ru/privacy` · `…/en/privacy`
@@ -486,3 +486,50 @@ be reused (Google Play asks near-identical questions in its policy forms).
 - [ ] Reply is sent as a **message in App Store Connect** on the rejected
       1.0.0 (1) submission — no new build is required unless the reviewer
       asks for one.
+
+### 2026-07-14 — iOS 1.0.0 (1): automated "crashed on launch" message
+
+After the 2.1 reply, App Review sent an automated message that 1.0.0 (1)
+**crashed on launch**. That binary was months old; instead of debugging it we
+replaced it with build 1.1.0 (5) — see the §10 release-log entry, which
+includes the crash check and the submission swap (old build detached, version
+renamed to 1.1.0, build 5 attached, resubmitted with a reviewer note).
+
+---
+
+## 10. Release log
+
+### 2026-07-14 — 1.1.0 (iOS build 5 / Android versionCode 5)
+
+Replaces the rejected 1.0.0 (1) submission on the App Store and rolls Android
+to production. Marketing version stays `1.1.0` (builds 2–4 were earlier 1.1.0
+uploads; build 4 went up a day earlier but was never attached to the version).
+
+**Included since 1.0.0 (1):** new animated launch splash (shows immediately,
+minimum 3 s hold — fixes the black screen / perceived launch hang), redesigned
+tournament and club pages with tournament-grade branding, unified navigation
+(tab bar on every screen, role-aware "Ещё" hub), sponsor branding with website
+URLs.
+
+**Crash check (before upload):** Release-configuration build installed and
+launched on the iPhone 17 Pro simulator — no crash, splash then start screen
+rendered (process stayed alive; verified via `launchctl list` + screenshots).
+
+**iOS:** archived `build/App-1.1.0-5.xcarchive` with `xcodebuild` (team
+`VH4L4R7PKW`, ASC API-key auth), exported with `build/ExportOptions.plist`,
+uploaded via `xcrun altool`. In App Store Connect the rejected version was
+reworked **via the ASC API (Spaceship)**: version string `1.0.0` → `1.1.0`,
+build 1.0.0 (1) detached and build 5 attached, reviewer note added (crash fixed
+by the new build; 2.1/2.1(b) answers are in the 2026-07-13 reply). The old
+review submission (`63dcfdc1-…`, UNRESOLVED_ISSUES) would not accept a
+resubmit while holding the rejected item ("Version is not ready to be
+submitted yet"), so it was **canceled** and a fresh submission
+(`198e10f7-8248-4790-a757-2a44ae684e78`) was created with the reworked version
+and submitted → state `WAITING_FOR_REVIEW`. The 2.1 reply thread stays
+available in the Resolution Center history.
+
+**Android:** `./gradlew bundleRelease` → `build/PlayTennis-1.1.0-vc5.aab`
+(versionCode 5 verified with bundletool), uploaded to the **internal** track
+via `fastlane android release` (changelogs `5.txt`, ru-RU + en-US), then
+promoted to the **production** track (`supply` with `track_promote_to:
+production`, 100 % rollout).
