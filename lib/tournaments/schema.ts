@@ -43,6 +43,12 @@ export type SeedingMethod = (typeof SEEDING_METHODS)[number];
 export const PRIVACY_OPTIONS = ["club", "public"] as const;
 export type Privacy = (typeof PRIVACY_OPTIONS)[number];
 
+// How player applications get confirmed: 'manual' — the organizer approves
+// each one by hand (historical behaviour, default); 'auto' — an application
+// is approved immediately while registration is open and seats remain.
+export const APPLICATION_MODES = ["manual", "auto"] as const;
+export type ApplicationMode = (typeof APPLICATION_MODES)[number];
+
 export const SURFACES = ["hard", "clay", "grass", "carpet"] as const;
 export type Surface = (typeof SURFACES)[number];
 
@@ -172,6 +178,7 @@ export const TournamentFormSchema = z.object({
   max_participants: optionalIntInRange(2, 128),
   entry_fee_byn: optionalIntInRange(0, 100000),
   privacy: z.enum(PRIVACY_OPTIONS).default("club"),
+  application_mode: z.enum(APPLICATION_MODES).default("manual"),
   // Optional link to a club the organiser owns/administers. Club tournaments
   // feed that club's internal rating. Empty = a standalone tournament.
   club_id: z

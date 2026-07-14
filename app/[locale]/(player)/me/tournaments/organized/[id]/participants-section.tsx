@@ -48,6 +48,8 @@ export type ParticipantsCopy = {
   rejecting: string;
   reapprove: string;
   add_directly_hint: string;
+  mode_hint_auto: string;
+  mode_hint_manual: string;
 };
 
 export function ParticipantsSection({
@@ -56,12 +58,14 @@ export function ParticipantsSection({
   options,
   copy,
   locked,
+  applicationMode,
 }: {
   tournamentId: string;
   participants: ParticipantRow[];
   options: PlayerOption[];
   copy: ParticipantsCopy;
   locked: boolean;
+  applicationMode: "auto" | "manual";
 }) {
   const t = useTranslations("tournamentsOrganized.participants");
   const tErrors = useTranslations("tournamentsOrganized.errors");
@@ -142,6 +146,9 @@ export function ParticipantsSection({
           <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-clay-800">
             <Inbox className="h-3.5 w-3.5" />
             {copy.pending_section}
+          </p>
+          <p className="mt-1 text-[11px] text-ink-500">
+            {applicationMode === "auto" ? copy.mode_hint_auto : copy.mode_hint_manual}
           </p>
           {grouped.pending.length === 0 ? (
             <p className="mt-2 text-xs text-clay-700/80">{copy.pending_empty}</p>

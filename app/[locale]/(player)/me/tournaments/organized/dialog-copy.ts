@@ -4,12 +4,14 @@ import {
   SURFACES,
   SEEDING_METHODS,
   PRIVACY_OPTIONS,
+  APPLICATION_MODES,
   MATCH_RULE_KINDS,
   type TournamentFormat,
   type TournamentStatus,
   type Surface,
   type SeedingMethod,
   type Privacy,
+  type ApplicationMode,
   type MatchRuleKind,
 } from "@/lib/tournaments/schema";
 import type { TournamentDialogCopy } from "./tournament-form-dialog";
@@ -57,6 +59,9 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
   const privacyLabels = Object.fromEntries(
     PRIVACY_OPTIONS.map((p) => [p, t(`privacy.${p}`)]),
   ) as Record<Privacy, string>;
+  const applicationModeLabels = Object.fromEntries(
+    APPLICATION_MODES.map((m) => [m, t(`application_modes.${m}`)]),
+  ) as Record<ApplicationMode, string>;
   const matchRuleLabels = Object.fromEntries(
     MATCH_RULE_KINDS.map((k) => [k, t(`match_rule_kinds.${k}`)]),
   ) as Record<MatchRuleKind, string>;
@@ -83,6 +88,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
       venues: t("dialog.fields.venues"),
       club: t("dialog.fields.club"),
       privacy: t("dialog.fields.privacy"),
+      application_mode: t("dialog.fields.application_mode"),
       draw_method: t("dialog.fields.draw_method"),
       prizes: t("dialog.fields.prizes"),
       match_rules: t("dialog.fields.match_rules"),
@@ -96,6 +102,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
     hints: {
       format: t("dialog.hints.format"),
       privacy: t("dialog.hints.privacy"),
+      application_mode: t("dialog.hints.application_mode"),
       draw_method: t("dialog.hints.draw_method"),
       match_rules: t("dialog.hints.match_rules"),
       coming_soon: t("dialog.hints.coming_soon"),
@@ -109,6 +116,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
     surface_labels: surfaceLabels,
     draw_method_labels: drawMethodLabels,
     privacy_labels: privacyLabels,
+    application_mode_labels: applicationModeLabels,
     match_rule_labels: matchRuleLabels,
     save: t("dialog.save"),
     saving: t("dialog.saving"),

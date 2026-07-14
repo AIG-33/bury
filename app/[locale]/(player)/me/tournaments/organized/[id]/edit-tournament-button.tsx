@@ -23,6 +23,7 @@ function tournamentToForm(t: TournamentRow): TournamentForm {
     max_participants: t.max_participants,
     entry_fee_byn: t.entry_fee_byn,
     privacy: t.privacy,
+    application_mode: t.application_mode,
     club_id: t.club_id ?? null,
     draw_method: t.draw_method ?? "rating",
     prizes_description: t.prizes_description,
