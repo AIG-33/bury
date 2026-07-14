@@ -1,6 +1,6 @@
 import type { Provider } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isNative } from "@/lib/capacitor/platform";
+import { getPlatform, isNative } from "@/lib/capacitor/platform";
 
 // Google / Apple sign-in that works on the web (full-page PKCE OAuth redirect)
 // and inside the Capacitor shell (native id-token flow). Google's OAuth screen
@@ -128,7 +128,15 @@ async function initSocialLogin(SocialLogin: SocialLoginPlugin): Promise<void> {
       // iOS ignores clientId (uses the bundle id); Android needs the Apple
       // Services ID plus a server redirect URL that lands back in the app.
       clientId: process.env.NEXT_PUBLIC_APPLE_SERVICES_ID,
-      redirectUrl: process.env.NEXT_PUBLIC_APPLE_REDIRECT_URL,
+      // On iOS the redirectUrl MUST be empty: a non-empty value makes the
+      // plugin POST the authorization code to that backend (the Android web
+      // flow) and expect a `success=true` redirect. Supabase's /auth/v1/callback
+      // answers that POST with `bad_oauth_callback`, so native Apple sign-in
+      // failed with "Success path component not provided." after the user
+      // authorized (App Review rejection 2026-07-14, Guideline 2.1(a)).
+      // With an empty redirectUrl the plugin returns the identityToken
+      // directly and we exchange it via signInWithIdToken below.
+      redirectUrl: getPlatform() === "ios" ? "" : process.env.NEXT_PUBLIC_APPLE_REDIRECT_URL,
     },
   });
   socialLoginInitialized = true;
