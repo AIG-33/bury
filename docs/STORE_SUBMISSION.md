@@ -8,7 +8,7 @@ accounts, 2FA and signing keys — none of that lives in git).
 
 - **App name (display):** PlayTennis.by
 - **Bundle ID / applicationId:** `by.playtennis.app`
-- **Marketing version:** `1.1.0` · **Build / versionCode:** `5` (see §10 Release log)
+- **Marketing version:** `1.1.0` · **Build / versionCode:** `6` (see §10 Release log)
 - **Primary language:** Russian · **Also:** English
 - **Price:** Free · **Category:** Sports (secondary: Lifestyle)
 - **Privacy policy:** `https://www.playtennis.by/ru/privacy` · `…/en/privacy`
@@ -495,9 +495,71 @@ replaced it with build 1.1.0 (5) — see the §10 release-log entry, which
 includes the crash check and the submission swap (old build detached, version
 renamed to 1.1.0, build 5 attached, resubmitted with a reviewer note).
 
+### 2026-07-14 — iOS 1.1.0 (5) rejected: Guideline 1.3 (Kids Category) + 2.1(a) (Sign in with Apple error)
+
+- **Submission ID:** `198e10f7-8248-4790-a757-2a44ae684e78` · reviewed on iPad
+  Air 11-inch (M3), iPadOS 26.5.2.
+- **Issue 1 — Guideline 1.3:** "you selected the Kids Category for the app, but
+  the app does not appear designed for kids aged 11 and under… resubmit the app
+  without the Kids category designation." The age-rating questionnaire had
+  `kidsAgeBand = NINE_TO_ELEVEN` set (a leftover from an age-rating edit), which
+  enrolls the app in the Kids Category. **Fixed via the ASC API** (PATCH
+  `ageRatingDeclarations` with `kidsAgeBand: null`); the rating stays **4+**
+  with the Kids Category off, matching §4 and the "not directed at children"
+  position from the 2026-07-13 reply.
+- **Issue 2 — Guideline 2.1(a):** "the app displayed an error message when we
+  attempted to Sign in with Apple." Root cause found in `lib/auth/oauth.ts`:
+  `SocialLogin.initialize()` passed the Supabase callback
+  (`…supabase.co/auth/v1/callback`) as `apple.redirectUrl` on **all** platforms.
+  On iOS a non-empty `redirectUrl` switches `@capgo/capacitor-social-login`
+  into the Android web flow — after the user authorizes, the plugin POSTs the
+  authorization code to that URL and expects a `success=true` redirect back.
+  Supabase answers that POST with `bad_oauth_callback` (no `success` param), so
+  the plugin rejected with "Success path component not provided." and the app
+  showed the sign-in error — always, on every iOS device, right after a
+  successful Apple authorization. Per the plugin docs iOS must get an **empty**
+  `redirectUrl`; then the identityToken is returned directly and exchanged via
+  `supabase.auth.signInWithIdToken` (audience `by.playtennis.app` is registered
+  as an additional client ID on the Supabase Apple provider). Fix is
+  web-layer (deployed with the merge to `main`), so it applies to any installed
+  binary; build 6 was still uploaded to give the reviewer a fresh build to test.
+  Verified on iPad Air 11-inch and iPhone 17 Pro simulators: tapping "Apple" now
+  reaches the native `ASAuthorizationController` (simulator without an Apple ID
+  session fails with AuthenticationServices error 1000 — the expected simulator
+  limitation, proving the broken redirect path is gone; full end-to-end sign-in
+  needs a device with an Apple ID).
+
 ---
 
 ## 10. Release log
+
+### 2026-07-15 — 1.1.0 (iOS build 6 / Android versionCode 6)
+
+Response to the 2026-07-14 rejection of 1.1.0 (5) — see §9. Two changes:
+Kids Category removed in App Store Connect (via the ASC API,
+`kidsAgeBand: null` on the age-rating declaration; rating stays 4+), and the
+iOS Sign in with Apple bug fixed (`lib/auth/oauth.ts`: empty `apple.redirectUrl`
+on iOS so the plugin returns the id-token directly instead of POSTing the
+auth code to the Supabase callback — see §9 for the full root cause).
+
+**iOS:** archived `build/App-1.1.0-6.xcarchive` (`xcodebuild`, team
+`VH4L4R7PKW`, ASC API key `TRS8NZAGX5`), exported with
+`build/ExportOptions.plist`, uploaded via `xcrun altool` (delivery
+`646f11ec-c03b-4227-9bef-7be14e9de06c`). Build 6 attached to version 1.1.0,
+reviewer note updated (Kids Category removed + Apple sign-in root cause and
+fix), review submission resubmitted (the `198e10f7-…` submission was reused /
+recreated as needed — final state in §9).
+
+**Android:** `./gradlew bundleRelease` → `build/PlayTennis-1.1.0-vc6.aab`
+(versionCode 6 verified with bundletool), uploaded to the **internal** track
+via `fastlane android release` (changelogs `6.txt`, ru-RU + en-US), then
+promoted to **production** (`supply` with `track_promote_to: production`).
+
+**Verification before upload:** Release simulator build + prod web bundle on
+iPad Air 11-inch (M4) and iPhone 17 Pro (iOS 26.4): Apple sign-in now invokes
+the native `ASAuthorizationController` (simulator-only error 1000 without an
+Apple ID session; the previous "Success path component not provided." plugin
+error is gone). `npm run typecheck`, `npm run lint`, `prettier --check` clean.
 
 ### 2026-07-14 — 1.1.0 (iOS build 5 / Android versionCode 5)
 
