@@ -8,7 +8,7 @@ accounts, 2FA and signing keys — none of that lives in git).
 
 - **App name (display):** PlayTennis.by
 - **Bundle ID / applicationId:** `by.playtennis.app`
-- **Marketing version:** `1.1.0` · **Build / versionCode:** `6` (see §10 Release log)
+- **Marketing version:** `1.1.0` · **Build / versionCode:** `7` (see §10 Release log)
 - **Primary language:** Russian · **Also:** English
 - **Price:** Free · **Category:** Sports (secondary: Lifestyle)
 - **Privacy policy:** `https://www.playtennis.by/ru/privacy` · `…/en/privacy`
@@ -595,6 +595,35 @@ renamed to 1.1.0, build 5 attached, resubmitted with a reviewer note).
 ---
 
 ## 10. Release log
+
+### 2026-07-15 — 1.1.0 (iOS build 7 / Android versionCode 7)
+
+Splash-screen fix release: native launch splash re-enabled with a static
+image matching the web overlay (no plain-green flash between the system
+launch screen and the animated splash), regenerated iOS/Android splash
+assets, over-the-net ball trajectory in the animation
+(`fix(mobile): stable splash handoff and over-the-net ball trajectory`).
+
+**iOS:** archived `build/App-1.1.0-7.xcarchive` (`xcodebuild`, team
+`VH4L4R7PKW`, ASC API key `TRS8NZAGX5`), exported with
+`build/ExportOptions.plist` → `build/ipa-1.1.0-7/App.ipa`, uploaded via
+`xcrun altool` (delivery `58181e36-0cb2-43b4-8344-2c6c99044c60`), processed →
+TestFlight state `VALID`. **The App Review submission was NOT touched:**
+version 1.1.0 stays `WAITING_FOR_REVIEW` with build **6** attached, review
+submission `3fb78100-…` stays `WAITING_FOR_REVIEW` (verified via Spaceship
+after the upload). Build 7 sits in TestFlight for when it's needed.
+
+**Android:** `./gradlew bundleRelease` → `build/PlayTennis-1.1.0-vc7.aab`
+(versionCode 7 verified with bundletool), uploaded to the **internal** track
+via `fastlane android release` (changelogs `7.txt`, ru-RU + en-US:
+исправленная заставка / smooth launch), then promoted to **production**
+(`supply` with `track_promote_to: production`, 100 % rollout — production
+track now reports `[7]`).
+
+**Verification before upload:** Release simulator build on iPhone 17 Pro
+(iOS 26.5), cold launch: static splash → animated splash (ball crosses the
+net) → start screen, no plain-green phase (screenshot sequence in
+`build/splash-check-7/`).
 
 ### 2026-07-15 — 1.1.0 (iOS build 6 / Android versionCode 6)
 
