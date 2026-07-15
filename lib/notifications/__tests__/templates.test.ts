@@ -57,6 +57,18 @@ describe("renderTemplate", () => {
     expect(r.subject.length).toBeGreaterThan(0);
   });
 
+  it("venue_comment_added includes venue name, author and link", () => {
+    const r = renderTemplate("venue_comment_added", "ru", {
+      venue_id: "v1",
+      venue_name: "Аква-Минск",
+      author_name: "Иван",
+      excerpt: "Кортов теперь шесть",
+    });
+    expect(r.subject).toContain("Аква-Минск");
+    expect(r.html).toContain("Иван");
+    expect(r.html).toContain("/venues/v1");
+  });
+
   it("tournament_registered includes the format string", () => {
     const r = renderTemplate("tournament_registered", "ru", {
       tournament_id: "t1",

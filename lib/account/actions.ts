@@ -167,6 +167,9 @@ async function deletePersonalRows(
   const steps: Array<{ table: string; column: string }> = [
     { table: "coach_reviews", column: "reviewer_id" },
     { table: "coach_reviews", column: "target_coach_id" },
+    // Venue comments the user wrote disappear with the account; venues they
+    // created stay in the directory (venues.created_by → NULL via FK on purge).
+    { table: "venue_comments", column: "author_id" },
     { table: "open_matches", column: "creator_id" }, // applications cascade
     { table: "open_match_applications", column: "applicant_id" },
     { table: "bookings", column: "player_id" },
