@@ -55,9 +55,11 @@ async function makeSplash(file) {
   const serviceTop = courtTop + courtHeight * 0.26;
   const serviceBottom = courtBottom - courtHeight * 0.26;
 
-  // Ball frozen at the CSS animation's from-state: translateX(-38vw), y=62%.
-  const ballCx = bandLeft + 48 * 3.125;
-  const ballCy = 1750;
+  // Ball frozen at the CSS animation's resting pose (paused until hydration):
+  // base = net-line center, translateY(+21vh), translateX(-5.95vh) — i.e. on
+  // the near side by the baseline, slightly left, about to be "served".
+  const ballCx = cx - 0.0595 * S;
+  const ballCy = 0.64 * S + 0.21 * S;
   const ballR = 56;
 
   const scene = `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}">

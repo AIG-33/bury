@@ -43,7 +43,12 @@ const config: CapacitorConfig = {
       // JS (native-bridge.tsx). The animated web overlay (launch-splash.tsx)
       // is already in the server HTML underneath, so the hand-off is seamless
       // and there is never a black frame between splash and content.
-      launchShowDuration: 0,
+      //
+      // launchShowDuration MUST be > 0: the plugin's showOnLaunch() treats 0
+      // as "don't show the launch splash at all" on both platforms (users got
+      // a bare green WebView for the whole page load). With launchAutoHide
+      // off the actual value is never used as a timer.
+      launchShowDuration: 3000,
       launchAutoHide: false,
       backgroundColor: "#1C7A46",
       showSpinner: false,
