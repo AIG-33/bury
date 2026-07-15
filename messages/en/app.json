@@ -3758,6 +3758,28 @@
     "min_hint": "Minimum 8 characters. Use a unique combination.",
     "wrong_current": "Current password is incorrect."
   },
+  "accountDeletion": {
+    "trigger": "Delete account",
+    "card_title": "Delete account",
+    "card_body": "Your account, profile and personal data will be deleted permanently. Results of played matches and tournaments are kept in anonymized form.",
+    "dialog_title": "Delete your account?",
+    "dialog_warning": "This cannot be undone. The following will be deleted:",
+    "consequence_login": "Your sign-in (e-mail, Google, Apple)",
+    "consequence_profile": "Profile: name, photo, contacts and settings",
+    "consequence_personal": "Applications, bookings, notifications and club memberships",
+    "consequence_history": "Played matches and tournament results are kept anonymized — your name is replaced with “Deleted player”",
+    "confirm_hint": "Type {word} to confirm",
+    "confirm_word": "DELETE",
+    "cancel": "Cancel",
+    "confirm_cta": "Delete forever",
+    "deleting": "Deleting…",
+    "blocked_title": "Deletion is not possible yet",
+    "blocked_body": "You own clubs or active tournaments. Transfer ownership or delete them first, then try again.",
+    "blocked_clubs_label": "Your clubs",
+    "blocked_tournaments_label": "Your active tournaments",
+    "error_generic": "Could not delete the account. Please try again.",
+    "deleted_banner": "Your account has been deleted. Thanks for playing with us."
+  },
   "guestNextStep": {
     "aria_label": "Next step for visitors",
     "eyebrow": "NEXT STEP",
@@ -4568,18 +4590,19 @@
     "meta_description": "How to request deletion of your PlayTennis.by account: what is removed, what may be retained and how long processing takes.",
     "title": "Account Deletion",
     "updated": "Last updated: 12 July 2026",
-    "intro": "You can request deletion of your PlayTennis.by account and its personal data at any time. Below is how to submit a request, what is deleted and how long we take to process it.",
+    "intro": "You can delete your PlayTennis.by account and its personal data yourself — right in the app or on the website, in a couple of minutes. Below is how to do it, what exactly is deleted and what happens afterwards.",
     "sections": [
       {
-        "heading": "How to submit a request",
+        "heading": "How to delete your account",
         "paragraphs": [
-          "Email us from the address linked to your account so we can confirm the request comes from the profile owner."
+          "Deletion is built into the app and the website — no need to contact support."
         ],
         "items": [
-          "Email: hello@playtennis.by",
-          "Subject line: \"Account deletion request\"",
-          "In the message, include the profile name or account email you want deleted",
-          "If you signed in with Google or Apple, write from the same address you used to register"
+          "In the app: More → Settings → \"Delete account\", then confirm the action",
+          "On the website: Profile → \"Delete account\" block at the bottom of the page",
+          "You will be asked to type the word DELETE — a safeguard against accidental taps",
+          "If you own a club or an active tournament, transfer ownership or delete it first (the app will tell you exactly what is in the way)",
+          "Can't sign in? Email hello@playtennis.by from the address linked to your account — we will delete it manually within 30 days"
         ]
       },
       {
@@ -4609,7 +4632,7 @@
       {
         "heading": "Processing time",
         "paragraphs": [
-          "We confirm receipt within a few business days and complete deletion within 30 calendar days of verifying your identity. If we need more information, we will email you at the same address."
+          "Deletion through the app or the website happens immediately and automatically. Email requests (when you cannot sign in) are acknowledged within a few business days and completed within 30 calendar days of confirming your identity."
         ]
       },
       {
@@ -4622,7 +4645,7 @@
     "email": "hello@playtennis.by",
     "email_subject": "Account deletion request",
     "cta_heading": "Send a request",
-    "cta_body": "Email us from your account address — we will process the request within 30 days.",
+    "cta_body": "The fastest way is in the app: Settings → \"Delete account\". Or email us from your account address — we will process the request within 30 days.",
     "privacy_body": "Our full data policy is in the",
     "privacy_link": "privacy policy"
   },

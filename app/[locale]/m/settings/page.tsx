@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MContent, MEmptyState, MEyebrow, MSubHeader } from "@/components/mobile/m-ui";
+import { DeleteAccountSection } from "@/components/account/delete-account";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 import { LanguageRow, ToggleRow } from "./settings-rows";
@@ -31,6 +32,7 @@ export default async function MobileSettingsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("mobile");
+  const tDel = await getTranslations("accountDeletion");
   const supabase = await createSupabaseServerClient();
 
   const {
@@ -122,6 +124,34 @@ export default async function MobileSettingsPage({ params }: Props) {
                 {t("settings.logout")}
               </button>
             </form>
+
+            <DeleteAccountSection
+              variant="row"
+              redirectTo={`/${locale}/m?account_deleted=1`}
+              copy={{
+                trigger: tDel("trigger"),
+                card_title: tDel("card_title"),
+                card_body: tDel("card_body"),
+                dialog_title: tDel("dialog_title"),
+                dialog_warning: tDel("dialog_warning"),
+                consequences: [
+                  tDel("consequence_login"),
+                  tDel("consequence_profile"),
+                  tDel("consequence_personal"),
+                  tDel("consequence_history"),
+                ],
+                confirm_hint: tDel("confirm_hint", { word: tDel("confirm_word") }),
+                confirm_word: tDel("confirm_word"),
+                cancel: tDel("cancel"),
+                confirm_cta: tDel("confirm_cta"),
+                deleting: tDel("deleting"),
+                blocked_title: tDel("blocked_title"),
+                blocked_body: tDel("blocked_body"),
+                blocked_clubs_label: tDel("blocked_clubs_label"),
+                blocked_tournaments_label: tDel("blocked_tournaments_label"),
+                error_generic: tDel("error_generic"),
+              }}
+            />
           </div>
         )}
 
