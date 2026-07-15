@@ -26,6 +26,10 @@ export type VenueDetail = {
   lng: number | null;
   indoor_status: VenueIndoorStatus;
   amenities: string[];
+  created_by: string | null;
+  website: string | null;
+  phone: string | null;
+  photos: string[];
   courts: Array<{
     id: string;
     number: number;
@@ -51,7 +55,10 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
 
   const { data: venue } = (await supabase
     .from("venues")
-    .select("id, name, city, district_id, address, lat, lng, indoor_status, amenities")
+    .select(
+      "id, name, city, district_id, address, lat, lng, indoor_status, amenities, " +
+        "created_by, website, phone, photos",
+    )
     .eq("id", venueId)
     .maybeSingle()) as {
     data: {
@@ -64,6 +71,10 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
       lng: number | null;
       indoor_status: VenueIndoorStatus;
       amenities: string[];
+      created_by: string | null;
+      website: string | null;
+      phone: string | null;
+      photos: string[];
     } | null;
   };
 
@@ -114,14 +125,13 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
           };
         }> | null;
       };
-      const all =
-        (links ?? [])
-          .map((l) => l.tournaments)
-          // Show only public-privacy entries on the public detail page; private
-          // tournaments are filtered by RLS for anonymous users but a logged-in
-          // owner can still see their own. We deliberately keep public-only here
-          // to avoid leaking a club tournament to its own owner via this tab.
-          .filter((t) => t.privacy === "public");
+      const all = (links ?? [])
+        .map((l) => l.tournaments)
+        // Show only public-privacy entries on the public detail page; private
+        // tournaments are filtered by RLS for anonymous users but a logged-in
+        // owner can still see their own. We deliberately keep public-only here
+        // to avoid leaking a club tournament to its own owner via this tab.
+        .filter((t) => t.privacy === "public");
       all.sort((a, b) => (a.starts_on > b.starts_on ? -1 : 1));
       return all.map((t) => ({
         id: t.id,

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import {
   ArrowRight,
   MapPin,
+  MapPinPlus,
   Building2,
   Sun,
   Lightbulb,
@@ -190,10 +191,25 @@ export default async function VenuesCatalogPage({ params }: Props) {
             result={[t("help.result.1"), t("help.result.2")]}
           />
         }
+        actions={
+          <Link
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            href={"/venues/new" as any}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
+          >
+            <MapPinPlus className="h-4 w-4" />
+            {t("add_venue")}
+          </Link>
+        }
       />
 
       {cards.length === 0 ? (
-        <EmptyState title={t("empty_title")} description={t("empty_description")} />
+        <EmptyState
+          title={t("empty_title")}
+          description={t("empty_description")}
+          ctaHref={`/${locale}/venues/new`}
+          ctaLabel={t("add_venue")}
+        />
       ) : (
         <ul className="space-y-4">
           {cards.map((v) => {
@@ -206,16 +222,11 @@ export default async function VenuesCatalogPage({ params }: Props) {
                     )}`
                   : null;
             return (
-              <li
-                key={v.id}
-                className="surface-row lift-on-hover overflow-hidden p-0 md:p-0"
-              >
+              <li key={v.id} className="surface-row lift-on-hover overflow-hidden p-0 md:p-0">
                 <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <h2 className="font-display text-xl font-semibold text-ink-900">
-                        {v.name}
-                      </h2>
+                      <h2 className="font-display text-xl font-semibold text-ink-900">{v.name}</h2>
                       <IndoorStatusBadge
                         status={v.indoor_status}
                         label={indoorStatusLabels[v.indoor_status]}
@@ -228,9 +239,7 @@ export default async function VenuesCatalogPage({ params }: Props) {
                           {[v.city, v.district_name].filter(Boolean).join(" · ")}
                         </span>
                       )}
-                      {v.address && (
-                        <span className="text-ink-500">{v.address}</span>
-                      )}
+                      {v.address && <span className="text-ink-500">{v.address}</span>}
                       {mapsHref && (
                         <a
                           href={mapsHref}
@@ -279,9 +288,7 @@ export default async function VenuesCatalogPage({ params }: Props) {
                       <ul className="divide-y divide-ink-100 overflow-hidden rounded-lg ring-1 ring-ink-100">
                         {v.courts.map((c) => {
                           const dot = c.surface ? SURFACE_DOT[c.surface] : "bg-ink-300";
-                          const surfaceLabel = c.surface
-                            ? tSurfaces(c.surface)
-                            : "—";
+                          const surfaceLabel = c.surface ? tSurfaces(c.surface) : "—";
                           const isMaintenance = c.status === "maintenance";
                           return (
                             <li
@@ -291,7 +298,7 @@ export default async function VenuesCatalogPage({ params }: Props) {
                                 (isMaintenance ? "bg-ink-50/40 text-ink-500" : "text-ink-700")
                               }
                             >
-                              <span className="font-mono w-7 tabular-nums text-ink-500">
+                              <span className="w-7 font-mono tabular-nums text-ink-500">
                                 #{c.number}
                               </span>
                               <span className="flex-1 truncate">{c.name ?? "—"}</span>
