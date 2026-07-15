@@ -22,21 +22,30 @@ export function NativeBridge() {
         import("@capacitor/browser"),
       ]);
 
-      // Brand-green status bar with light glyphs, matching the web theme color.
-      try {
-        await StatusBar.setStyle({ style: Style.Light });
-        if (Capacitor.getPlatform() === "android") {
-          await StatusBar.setBackgroundColor({ color: "#1f8a4c" });
-        }
-      } catch {
-        // Status bar plugin is best-effort; ignore on unsupported surfaces.
-      }
-
       // Reveal the app now that the remote page has mounted. The animated web
       // splash (launch-splash.tsx) is already painted underneath, so hiding
       // the static native splash here hands off seamlessly (launchAutoHide is
       // off — see capacitor.config.ts).
       await SplashScreen.hide();
+
+      // Brand-green status bar with light glyphs, matching the web theme
+      // color. The same values are applied natively at launch via the
+      // StatusBar plugin config (capacitor.config.ts), so this is only a
+      // safety net — and it is deferred past the launch splash because on
+      // some Android shells the call re-layouts the WebView (status-bar
+      // insets), which visibly jolted the splash mid-animation.
+      const statusBarTimer = window.setTimeout(() => {
+        void (async () => {
+          try {
+            await StatusBar.setStyle({ style: Style.Light });
+            if (Capacitor.getPlatform() === "android") {
+              await StatusBar.setBackgroundColor({ color: "#1f8a4c" });
+            }
+          } catch {
+            // Status bar plugin is best-effort; ignore on unsupported surfaces.
+          }
+        })();
+      }, 4500);
 
       // Send off-site links (maps, Telegram, mailto, tel) to the system
       // browser so users are never trapped inside the WebView.
@@ -69,6 +78,7 @@ export function NativeBridge() {
       });
 
       cleanup = () => {
+        window.clearTimeout(statusBarTimer);
         document.removeEventListener("click", onClick, true);
         void backSub.remove();
       };
