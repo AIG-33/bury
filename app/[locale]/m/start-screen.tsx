@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/routing";
-import { Mail, Trophy, TrendingUp } from "lucide-react";
+import { CheckCircle2, Mail, Trophy, TrendingUp } from "lucide-react";
 import { TennisBallIcon } from "@/components/mobile/m-icons";
 import { StartOAuth, type StartOAuthLabels } from "./start-oauth";
 
@@ -27,12 +27,31 @@ export type StartScreenLabels = {
   oauth: StartOAuthLabels;
 };
 
-export function StartScreen({ labels }: { labels: StartScreenLabels }) {
+export function StartScreen({
+  labels,
+  deletedNotice = null,
+}: {
+  labels: StartScreenLabels;
+  /** Post-account-deletion confirmation shown once after the redirect. */
+  deletedNotice?: string | null;
+}) {
   return (
     <div
       className="flex min-h-dvh flex-col text-white"
       style={{ background: "linear-gradient(160deg,#0F2C1A,#1C6B40 62%,#23854C)" }}
     >
+      {deletedNotice ? (
+        <div
+          className="relative z-10 px-[18px]"
+          style={{ paddingTop: "max(env(safe-area-inset-top), 14px)" }}
+        >
+          <p className="glass-on-dark flex items-center gap-2 rounded-[14px] px-4 py-3 text-[13px] font-bold text-white/90">
+            <CheckCircle2 className="h-[16px] w-[16px] shrink-0 text-ball-500" strokeWidth={2.2} />
+            {deletedNotice}
+          </p>
+        </div>
+      ) : null}
+
       {/* ---- Hero: floating logo + slogan + chips + live proof ---- */}
       <div
         className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-[18px] text-center"

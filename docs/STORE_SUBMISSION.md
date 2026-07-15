@@ -529,6 +529,69 @@ renamed to 1.1.0, build 5 attached, resubmitted with a reviewer note).
   limitation, proving the broken redirect path is gone; full end-to-end sign-in
   needs a device with an Apple ID).
 
+### 2026-07-15 — iOS 1.1.0 (6) rejected: Guideline 5.1.1(v) (account deletion missing)
+
+- **Submission ID:** `3fb78100-dc87-4c23-b991-a9cbb7bd9806` · reviewed on
+  iPhone 17 Pro Max.
+- **Issue:** the app supports account creation but offered no in-app way to
+  delete the account. Apple requires real deletion (not deactivation), no
+  customer-service-only flows; confirmation steps are allowed.
+- **Fix (web-layer, no new binary needed):** full self-service deletion
+  shipped to prod:
+  - Entry points: mobile **Ещё → Настройки → «Удалить аккаунт»**
+    (`app/[locale]/m/settings`) and web **Профиль → «Удаление аккаунта»**
+    (`/me/profile`). Confirmation dialog names the consequences and requires
+    typing «УДАЛИТЬ» / DELETE.
+  - Server action `deleteAccount` (`lib/account/actions.ts`, service role,
+    Zod-validated) + pure decision module `lib/account/deletion.ts` (Vitest
+    covered): deletes the `auth.users` row via `auth.admin.deleteUser`,
+    wipes personal rows (bookings, applications, notifications, quiz
+    answers, rating history, reviews, memberships, open matches, telegram
+    links, invitations) and storage files (`avatars/<uid>`,
+    `coach-applications/<uid>`).
+  - Shared history stays consistent: if the user has matches / finished
+    tournaments, the profile row becomes an anonymized «Удалённый игрок»
+    tombstone (all PII stripped, hidden everywhere); otherwise the row is
+    fully purged. Owners of clubs / active tournaments are blocked with an
+    in-app explanation to transfer/delete those first (allowed confirmation
+    step — not a support flow).
+  - Migration `20260715000000_account_deletion.sql` dropped the
+    `profiles → auth.users` FK so the tombstone can outlive the auth user.
+  - Public `/{ru,en}/account-deletion` page rewritten: in-app self-service
+    flow first, e-mail only as a can't-sign-in fallback.
+- **Reply:** sent in App Store Connect on the rejected submission, together
+  with a **screen recording captured on a physical iPhone** (Apple requires
+  it for 5.1.1(v) replies): sign in → Ещё → Настройки → Удалить аккаунт →
+  type «УДАЛИТЬ» → confirm → «Аккаунт удалён» start screen. Use a throwaway
+  account for the recording. Reply text:
+
+> Hello,
+>
+> Thank you for the review. Account deletion is now available directly in
+> the app, with no need to contact support.
+>
+> Path: profile tab ("Ещё") → "Настройки" (Settings) → "Удалить аккаунт"
+> (Delete account). After a confirmation step that explains the
+> consequences and asks the user to type a confirmation word, the account
+> is deleted immediately and automatically: the login credentials
+> (email/Google/Apple), the profile and all personal data (photo, contacts,
+> settings, bookings, applications, notifications) are permanently
+> destroyed. This is a real deletion, not a deactivation. Results of
+> matches already played against other members are retained only in
+> anonymized form ("Deleted player") to keep other players' rating history
+> consistent.
+>
+> Because the app renders content from our platform, this feature is live
+> in the build you already have (1.1.0, build 6) — no new binary is
+> required. We attached a screen recording made on a physical device
+> showing the full flow: signing in, navigating to Settings, initiating
+> deletion, confirming, and the signed-out "account deleted" state.
+>
+> We also updated https://www.playtennis.by/en/account-deletion to document
+> the in-app flow.
+>
+> Thank you!
+
 ---
 
 ## 10. Release log

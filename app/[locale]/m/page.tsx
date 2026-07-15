@@ -32,10 +32,14 @@ import { PlayButton } from "./game/play-button";
 //     card, open games nearby and tournaments closing registration.
 // =============================================================================
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ account_deleted?: string }>;
+};
 
-export default async function MobileHomePage({ params }: Props) {
+export default async function MobileHomePage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const { account_deleted } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("mobile");
   const supabase = await createSupabaseServerClient();
@@ -45,6 +49,7 @@ export default async function MobileHomePage({ params }: Props) {
   } = await supabase.auth.getUser();
 
   if (!user) {
+    const tDel = await getTranslations("accountDeletion");
     // Live proof numbers for the hero chip (both sources are world-readable).
     const [playersRes, clubsRes] = await Promise.all([
       supabase
@@ -59,6 +64,7 @@ export default async function MobileHomePage({ params }: Props) {
     const players = playersRes.count ?? 0;
     return (
       <StartScreen
+        deletedNotice={account_deleted === "1" ? tDel("deleted_banner") : null}
         labels={{
           slogan: t("start.slogan"),
           chip_sparring: t("start.chip_sparring"),

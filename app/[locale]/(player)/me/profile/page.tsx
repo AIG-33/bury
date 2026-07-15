@@ -4,6 +4,7 @@ import { Link } from "@/i18n/routing";
 import { Award, ArrowRight, MapPin, TrendingUp, UserRound } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
+import { DeleteAccountSection } from "@/components/account/delete-account";
 import { ExternalRatingCard } from "@/components/profile/external-rating-card";
 import { ProfileForm } from "./profile-form";
 import { ProfileOverview } from "./profile-overview";
@@ -21,6 +22,7 @@ export default async function ProfilePage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("profile");
   const tSec = await getTranslations("accountSecurity");
+  const tDel = await getTranslations("accountDeletion");
   const tBecome = await getTranslations("becomeCoach");
   const tExt = await getTranslations("externalRating");
 
@@ -394,6 +396,34 @@ export default async function ProfilePage({ params }: Props) {
           }}
         />
       )}
+
+      <DeleteAccountSection
+        variant="card"
+        redirectTo={`/${locale}?account_deleted=1`}
+        copy={{
+          trigger: tDel("trigger"),
+          card_title: tDel("card_title"),
+          card_body: tDel("card_body"),
+          dialog_title: tDel("dialog_title"),
+          dialog_warning: tDel("dialog_warning"),
+          consequences: [
+            tDel("consequence_login"),
+            tDel("consequence_profile"),
+            tDel("consequence_personal"),
+            tDel("consequence_history"),
+          ],
+          confirm_hint: tDel("confirm_hint", { word: tDel("confirm_word") }),
+          confirm_word: tDel("confirm_word"),
+          cancel: tDel("cancel"),
+          confirm_cta: tDel("confirm_cta"),
+          deleting: tDel("deleting"),
+          blocked_title: tDel("blocked_title"),
+          blocked_body: tDel("blocked_body"),
+          blocked_clubs_label: tDel("blocked_clubs_label"),
+          blocked_tournaments_label: tDel("blocked_tournaments_label"),
+          error_generic: tDel("error_generic"),
+        }}
+      />
     </div>
   );
 }

@@ -14,7 +14,10 @@ import { FinalCta } from "@/components/landing/final-cta";
 import { TournamentCard } from "@/components/domain/tournament-card";
 import { loadPublicTournaments } from "./tournaments/actions";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ account_deleted?: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -87,22 +90,29 @@ async function resolveLandingHrefs(): Promise<LandingHrefs> {
   }
 }
 
-export default async function LandingPage({ params }: Props) {
+export default async function LandingPage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const accountDeleted = (await searchParams)?.account_deleted === "1";
   setRequestLocale(locale);
   const t = await getTranslations("landing");
+  const tDel = await getTranslations("accountDeletion");
   const [hrefs, allPublic] = await Promise.all([
     resolveLandingHrefs(),
     loadPublicTournaments({ status: "all" }).catch(() => []),
   ]);
-  const openRegistration = allPublic
-    .filter((tn) => tn.status === "registration")
-    .slice(0, 3);
+  const openRegistration = allPublic.filter((tn) => tn.status === "registration").slice(0, 3);
   const liveCount = allPublic.filter((tn) => tn.status === "in_progress").length;
 
   return (
     <>
       <JsonLdScript data={[buildOrganizationJsonLd(), buildWebSiteJsonLd(locale)]} />
+      {accountDeleted && (
+        <div className="page-shell !py-4">
+          <p className="rounded-xl2 border border-grass-200 bg-grass-50 px-4 py-3 text-sm font-semibold text-grass-800">
+            {tDel("deleted_banner")}
+          </p>
+        </div>
+      )}
       <LandingHero
         primaryCtaHref={hrefs.primary}
         primaryCtaLabel={t(`hero.${hrefs.primaryLabelKey}`)}
