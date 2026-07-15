@@ -1979,6 +1979,7 @@
   "venuesCatalog": {
     "title": "Venues",
     "subtitle": "{venues} venues · {courts} courts in the shared club directory.",
+    "add_venue": "Add a venue",
     "indoor": "Indoor",
     "outdoor": "Outdoor",
     "mixed": "Indoor + outdoor",
@@ -1987,7 +1988,7 @@
     "courts_title": "{n, plural, =0 {No courts} one {# court} other {# courts}}",
     "courts_empty": "No courts have been added to this venue yet.",
     "empty_title": "No venues yet",
-    "empty_description": "The venue catalogue is curated by the club admin. As soon as venues are added, they will show up here.",
+    "empty_description": "The catalogue is built by the players themselves. Add the first venue — it will show up here and on the map right away.",
     "footnote_surfaces": "Surfaces: {surfaces}.",
     "open_venue": "Open venue",
     "help": {
@@ -1995,7 +1996,7 @@
       "what": {
         "1": "Browse venues by district, address, indoor/outdoor and amenities.",
         "2": "Open each venue's court list to see number, name, surface and status.",
-        "3": "If your venue isn't listed, ask the admin — they'll add it for every coach."
+        "3": "If your venue isn't listed, hit “Add a venue” and enter it yourself — it appears in the catalogue instantly."
       },
       "result": {
         "1": "Coaches pick the right court immediately when posting a slot.",
@@ -2004,6 +2005,8 @@
     },
     "detail": {
       "back": "Back to venues",
+      "edit_venue": "Edit",
+      "website": "Website",
       "courts_count": "{n, plural, =0 {no courts} one {# court} other {# courts}}",
       "tabs": {
         "courts": "Courts",
@@ -2035,6 +2038,101 @@
         "title": "Recent matches here",
         "empty": "No completed matches at this venue yet."
       }
+    },
+    "form": {
+      "create_title": "New venue",
+      "create_subtitle": "Add a court or club that isn't in the catalogue yet — it becomes visible to all players and coaches immediately.",
+      "edit_title": "Edit venue",
+      "guest_title": "Account required",
+      "guest_body": "Only signed-in players can add venues — that way we know who maintains the data. Signing in takes a minute.",
+      "guest_cta": "Sign in",
+      "forbidden_title": "Only the author can edit",
+      "forbidden_body": "This venue was added by another player or an admin. Spotted something wrong? Leave a comment on the venue page — the author will get a notification.",
+      "forbidden_cta": "Open venue",
+      "sections": {
+        "basics": "Basics",
+        "details": "Details",
+        "courts": "Courts"
+      },
+      "fields": {
+        "name": "Name",
+        "city": "City",
+        "district": "District",
+        "address": "Address",
+        "location": "Map location",
+        "amenities": "Amenities",
+        "website": "Website",
+        "phone": "Phone",
+        "photo": "Photo"
+      },
+      "hints": {
+        "address": "Shown to players, helps with navigation.",
+        "location": "Click the map or search for an address — the venue will show up on the map with exact coordinates. The marker is draggable.",
+        "photo": "JPG, PNG or WebP up to 5 MB. Shown on the venue page.",
+        "courts": "Add courts with numbers and surfaces. The venue's indoor/outdoor status is derived automatically from its courts."
+      },
+      "map": {
+        "search_placeholder": "Search an address…",
+        "picked": "Picked",
+        "clear": "Clear pin",
+        "hint": "Click the map to drop a pin.",
+        "none": "Nothing found"
+      },
+      "photo": {
+        "upload": "Upload photo",
+        "uploading": "Uploading…",
+        "remove": "Remove"
+      },
+      "courts": {
+        "add": "Add court",
+        "empty": "No courts yet — add at least one so players can see the surface and indoor status.",
+        "number": "No.",
+        "name": "Name",
+        "name_placeholder": "Centre court",
+        "surface": "Surface",
+        "indoor": "Indoor",
+        "remove": "Remove court",
+        "remove_confirm": "Remove this court from the venue? It disappears from the catalogue after saving. Slots and matches tied to it will lose their court."
+      },
+      "none": "— none —",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save_create": "Publish venue",
+      "save_edit": "Save changes",
+      "errors": {
+        "invalid_payload": "Check the form fields — some of them have errors.",
+        "not_authenticated": "You need to sign in.",
+        "not_allowed": "Only the venue's author or an admin can edit it.",
+        "duplicate_number": "Court numbers must be unique.",
+        "duplicate_court_numbers": "Court numbers must be unique.",
+        "invalid_website": "The website link must start with http:// or https://.",
+        "db_error": "Couldn't save. Please try again."
+      },
+      "help": {
+        "why": "The venue catalogue is built by players: if the court you play on isn't listed yet, add it and it instantly becomes available to everyone for open matches and tournaments.",
+        "what": {
+          "1": "Fill in the name, city and address — that's the minimum to publish.",
+          "2": "Drop a pin on the map and add courts with surfaces to make the venue more useful.",
+          "3": "Upload a photo and add a website or phone if you know them."
+        },
+        "result": {
+          "1": "The venue appears in the catalogue and on the map immediately — no moderation queue.",
+          "2": "You can edit it any time, and other players can comment if something goes out of date."
+        }
+      }
+    },
+    "comments": {
+      "title": "Spotted something wrong? Tell us",
+      "subtitle": "Comments are visible to all players and to the venue author — that's how the data stays up to date.",
+      "placeholder": "E.g.: the phone doesn't answer, there are six courts now, the entrance moved…",
+      "submit": "Send",
+      "empty": "No comments yet. If something is outdated or wrong, be the first to write — the venue author gets a notification and can update the details.",
+      "guest_hint": "Only signed-in players can comment.",
+      "guest_cta": "Sign in",
+      "anonymous": "Player",
+      "delete": "Delete",
+      "delete_confirm": "Delete this comment? It will disappear from the venue page permanently.",
+      "error": "Error"
     }
   },
   "venues": {

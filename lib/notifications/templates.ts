@@ -30,7 +30,8 @@ export type TemplateCode =
   | "club_application_approved"
   | "club_application_rejected"
   | "club_member_kicked"
-  | "club_ownership_offered";
+  | "club_ownership_offered"
+  | "venue_comment_added";
 
 export type RenderedEmail = { subject: string; html: string };
 
@@ -105,6 +106,7 @@ type Strings = {
   club_application_rejected: { subject: string; intro: string };
   club_member_kicked: { subject: string; intro: string };
   club_ownership_offered: { subject: string; intro: string; cta: string; ps: string };
+  venue_comment_added: { subject: string; intro: string; cta: string };
   footer: string;
 };
 
@@ -221,6 +223,12 @@ const COPY: Record<Locale, Strings> = {
       cta: "Open club",
       ps: "If you accept, you become the new owner and the previous owner stays as a co-admin.",
     },
+    venue_comment_added: {
+      subject: "New comment on your venue «{venue}»",
+      intro:
+        "{author} left a comment on the venue «{venue}» you added: {excerpt} Maybe something is out of date — check and update the venue details.",
+      cta: "Open venue",
+    },
     footer:
       "You're getting this because you're registered on PlayTennis.by. Change your preferences in profile settings.",
   },
@@ -335,6 +343,12 @@ const COPY: Record<Locale, Strings> = {
         "{previous} предлагает тебе стать владельцем клуба «{club}». Прими предложение в течение 14 дней, иначе оно сгорит.",
       cta: "Открыть клуб",
       ps: "Если ты примешь — станешь новым владельцем, а текущий владелец станет со-администратором.",
+    },
+    venue_comment_added: {
+      subject: "Новый комментарий к твоей площадке «{venue}»",
+      intro:
+        "{author} оставил комментарий к площадке «{venue}», которую ты добавил: {excerpt} Возможно, что-то устарело — проверь и обнови данные площадки.",
+      cta: "Открыть площадку",
     },
     footer:
       "Ты получаешь это письмо, потому что зарегистрирован на PlayTennis.by. Настроить уведомления можно в профиле.",
@@ -740,6 +754,24 @@ export function renderTemplate(
          <p>${escape(fill(t.intro, vars))}</p>
          <p style="margin:18px 0">${btn(url, t.cta)}</p>
          <p style="color:#6b7280;font-size:13px">${escape(t.ps)}</p>`,
+        ftr,
+      );
+      return { subject, html };
+    }
+    case "venue_comment_added": {
+      const t = L.venue_comment_added;
+      const vars = {
+        venue: String(payload.venue_name ?? ""),
+        author: String(payload.author_name ?? ""),
+        excerpt: payload.excerpt ? `«${String(payload.excerpt)}»` : "",
+      };
+      const url = `${SITE}/${locale}/venues/${payload.venue_id ?? ""}`;
+      const subject = fill(t.subject, vars);
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">💬 ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>`,
         ftr,
       );
       return { subject, html };

@@ -11,7 +11,10 @@ import {
   Building2,
   CalendarClock,
   CloudSun,
+  Globe,
   MapPin,
+  Pencil,
+  Phone,
   Sparkles,
   Trophy,
 } from "lucide-react";
@@ -22,9 +25,11 @@ import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
+import { VenueComments } from "@/components/venues/venue-comments";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CourtSurface } from "@/lib/venues/schema";
 import { loadVenueDetail } from "./actions";
+import { loadVenueComments } from "./comment-actions";
 import { VenueTabs } from "./venue-tabs";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
@@ -62,7 +67,10 @@ export default async function VenueDetailPage({ params }: Props) {
   const tFormats = await getTranslations("tournamentsPublic");
   const tOpen = await getTranslations("openMatches");
   const tLevels = await getTranslations("levels");
-  const dateFmtCompact = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
+  const dateFmtCompact = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 
   const venue = await loadVenueDetail(id);
   if (!venue) notFound();
@@ -72,6 +80,19 @@ export default async function VenueDetailPage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
   const isGuest = user == null;
+
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = (await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle()) as { data: { is_admin: boolean } | null };
+    isAdmin = profile?.is_admin === true;
+  }
+  const canEdit = user != null && (venue.created_by === user.id || isAdmin);
+
+  const comments = await loadVenueComments(id);
 
   const mapsHref =
     venue.lat != null && venue.lng != null
@@ -100,9 +121,7 @@ export default async function VenueDetailPage({ params }: Props) {
 
   const courtsTab = (
     <Surface variant="card" as="section">
-      <h2 className="section-title text-[18px] md:text-[20px]">
-        {tDetail("courts.title")}
-      </h2>
+      <h2 className="section-title text-[18px] md:text-[20px]">{tDetail("courts.title")}</h2>
       {venue.courts.length === 0 ? (
         <p className="mt-3 text-sm text-ink-500">{tDetail("courts.empty")}</p>
       ) : (
@@ -118,14 +137,12 @@ export default async function VenueDetailPage({ params }: Props) {
                   (isMaint ? "bg-ink-50/40 text-ink-500" : "text-ink-800")
                 }
               >
-                <span className="font-mono w-8 tabular-nums text-ink-500">#{c.number}</span>
+                <span className="w-8 font-mono tabular-nums text-ink-500">#{c.number}</span>
                 <span className="flex-1 truncate">{c.name ?? "—"}</span>
                 <span
                   className={
                     "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
-                    (c.is_indoor
-                      ? "bg-grass-100 text-grass-800"
-                      : "bg-ball-100 text-ball-800")
+                    (c.is_indoor ? "bg-grass-100 text-grass-800" : "bg-ball-100 text-ball-800")
                   }
                   aria-label={c.is_indoor ? t("indoor") : t("outdoor")}
                 >
@@ -185,10 +202,7 @@ export default async function VenueDetailPage({ params }: Props) {
       ) : (
         <ul className="mt-3 space-y-2">
           {venue.open_matches.map((om) => (
-            <li
-              key={om.id}
-              className="surface-row lift-on-hover"
-            >
+            <li key={om.id} className="surface-row lift-on-hover">
               <Link
                 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                 href={`/open-matches/${om.id}` as any}
@@ -227,9 +241,7 @@ export default async function VenueDetailPage({ params }: Props) {
 
   const tournamentsTab = (
     <Surface variant="card" as="section">
-      <h2 className="section-title text-[18px] md:text-[20px]">
-        {tDetail("tournaments.title")}
-      </h2>
+      <h2 className="section-title text-[18px] md:text-[20px]">{tDetail("tournaments.title")}</h2>
       {venue.tournaments.length === 0 ? (
         <div className="mt-3">
           <EmptyState
@@ -261,12 +273,15 @@ export default async function VenueDetailPage({ params }: Props) {
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <h3 className="font-display text-base font-semibold text-ink-900 truncate">
+                    <h3 className="truncate font-display text-base font-semibold text-ink-900">
                       {tnm.name}
                     </h3>
                     {tnm.surface && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-0.5 text-[11px] text-ink-700 ring-1 ring-ink-100">
-                        <span aria-hidden className={`h-2 w-2 rounded-full ${SURFACE_DOT[tnm.surface]}`} />
+                        <span
+                          aria-hidden
+                          className={`h-2 w-2 rounded-full ${SURFACE_DOT[tnm.surface]}`}
+                        />
                         {tSurfaces(tnm.surface)}
                       </span>
                     )}
@@ -274,7 +289,9 @@ export default async function VenueDetailPage({ params }: Props) {
                   <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
                     <span className="inline-flex items-center gap-1">
                       <CalendarClock className="h-3.5 w-3.5" />
-                      {tDetail("tournaments.starts_on", { date: dateFmt.format(new Date(tnm.starts_on)) })}
+                      {tDetail("tournaments.starts_on", {
+                        date: dateFmt.format(new Date(tnm.starts_on)),
+                      })}
                     </span>
                     <span>{tDetail("tournaments.format_label", { format: formatLabel })}</span>
                   </p>
@@ -364,6 +381,26 @@ export default async function VenueDetailPage({ params }: Props) {
                     {t("open_in_maps")}
                   </a>
                 )}
+                {venue.website && (
+                  <a
+                    href={venue.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-grass-700 hover:underline"
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    {tDetail("website")}
+                  </a>
+                )}
+                {venue.phone && (
+                  <a
+                    href={`tel:${venue.phone.replace(/[^+\d]/g, "")}`}
+                    className="inline-flex items-center gap-1 text-ink-600 hover:text-grass-700"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    {venue.phone}
+                  </a>
+                )}
                 <span className="inline-flex items-center gap-2 text-xs text-ink-500">
                   <Sparkles className="h-3 w-3" />
                   {tDetail("courts_count", { n: venue.courts.length })}
@@ -388,11 +425,40 @@ export default async function VenueDetailPage({ params }: Props) {
                 result={[t("help.result.1"), t("help.result.2")]}
               />
             }
+            actions={
+              canEdit ? (
+                <Button asChild variant="secondary" size="sm">
+                  <Link
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    href={`/venues/${venue.id}/edit` as any}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    {tDetail("edit_venue")}
+                  </Link>
+                </Button>
+              ) : undefined
+            }
           />
         </div>
       </div>
 
+      {venue.photos.length > 0 && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={venue.photos[0]}
+          alt={venue.name}
+          className="h-48 w-full rounded-xl2 border border-ink-100 object-cover sm:h-64"
+        />
+      )}
+
       <VenueTabs defaultTab="courts" tabs={tabs} />
+
+      <VenueComments
+        venueId={venue.id}
+        comments={comments}
+        currentUserId={user?.id ?? null}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }
