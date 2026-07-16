@@ -133,7 +133,8 @@ npm run cap:assets                        # fan out to all densities
 
 ## OAuth setup (Google + Apple sign-in)
 
-"Continue with Google" and "Continue with Apple" appear on the login screen on
+"Continue with Google" and "Sign in with Apple" (official HIG button, see
+`components/auth/provider-logos.tsx`) appear on the login screen on
 **web, iOS and Android**. The flows differ by platform (gated on
 `Capacitor.isNativePlatform()`):
 
