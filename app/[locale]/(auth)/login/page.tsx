@@ -63,7 +63,7 @@ export default async function LoginPage({ params }: Props) {
                   auth_error_generic: t("auth_error_generic"),
                   or_divider: t("or_divider"),
                   continue_google: t("continue_google"),
-                  continue_apple: t("continue_apple"),
+                  signin_apple: t("signin_apple"),
                   oauth_error: t("oauth_error"),
                   oauth_unavailable: t("oauth_unavailable"),
                   oauth_error_detail: t("oauth_error_detail"),

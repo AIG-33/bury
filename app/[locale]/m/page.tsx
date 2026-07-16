@@ -83,7 +83,9 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
           legal_and: t("start.legal_and"),
           legal_privacy: t("start.legal_privacy"),
           oauth: {
-            apple: "Apple",
+            // Apple's official localized button title (HIG: use only the
+            // official titles, e.g. «Вход с Apple» / "Sign in with Apple").
+            apple: t("start.oauth_apple"),
             google: "Google",
             error: t("start.oauth_error"),
             unavailable: t("start.oauth_unavailable"),
