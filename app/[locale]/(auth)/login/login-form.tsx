@@ -38,7 +38,7 @@ export type LoginLabels = {
   auth_error_generic: string;
   or_divider: string;
   continue_google: string;
-  continue_apple: string;
+  signin_apple: string;
   oauth_error: string;
   oauth_unavailable: string;
   oauth_error_detail: string;
@@ -229,7 +229,7 @@ export function LoginForm({ labels, locale }: { labels: LoginLabels; locale: str
             labels={{
               or_divider: labels.or_divider,
               continue_google: labels.continue_google,
-              continue_apple: labels.continue_apple,
+              signin_apple: labels.signin_apple,
             }}
             onProvider={handleOAuth}
             busyProvider={oauthBusy}

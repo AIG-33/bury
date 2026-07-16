@@ -1039,7 +1039,7 @@
     "auth_error_generic": "The link is invalid or has expired. Request a new one below.",
     "or_divider": "or",
     "continue_google": "Continue with Google",
-    "continue_apple": "Continue with Apple",
+    "signin_apple": "Sign in with Apple",
     "oauth_error": "Sign-in was cancelled or failed. Please try again.",
     "oauth_unavailable": "This sign-in method isn't available on your device.",
     "oauth_error_detail": "Details:"
@@ -4830,6 +4830,7 @@
       "chip_elo": "ELO rating",
       "proof": "{players}+ players · {clubs} clubs online",
       "login_email": "Sign in with e-mail or phone",
+      "oauth_apple": "Sign in with Apple",
       "or": "or",
       "new_here": "New here?",
       "signup": "Create account",

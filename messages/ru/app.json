@@ -1039,7 +1039,7 @@
     "auth_error_generic": "Ссылка недействительна или устарела. Запроси новую ниже.",
     "or_divider": "или",
     "continue_google": "Продолжить с Google",
-    "continue_apple": "Продолжить с Apple",
+    "signin_apple": "Вход с Apple",
     "oauth_error": "Вход отменён или не удался. Попробуйте ещё раз.",
     "oauth_unavailable": "Этот способ входа недоступен на вашем устройстве.",
     "oauth_error_detail": "Детали:"
@@ -4837,6 +4837,7 @@
       "chip_elo": "ELO-рейтинг",
       "proof": "{players}+ игроков · {clubs} клубов онлайн",
       "login_email": "Войти по e-mail или телефону",
+      "oauth_apple": "Вход с Apple",
       "or": "или",
       "new_here": "Впервые у нас?",
       "signup": "Создать аккаунт",
