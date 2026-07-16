@@ -592,6 +592,55 @@ renamed to 1.1.0, build 5 attached, resubmitted with a reviewer note).
 >
 > Thank you!
 
+### 2026-07-16 — iOS 1.1.0 (6) rejected: Guideline 4 (Sign in with Apple button design)
+
+- **Submission ID:** `3fb78100-dc87-4c23-b991-a9cbb7bd9806` · reviewed on iPad
+  Air 11-inch (M3).
+- **Issue:** "The app offers Sign in with Apple as a login option but does not
+  follow the design and user experience requirements… Sign in with Apple
+  button includes logo artwork that is not downloaded from Apple Design
+  Resources." Both Apple buttons (mobile start screen and `/login`) used a
+  **hand-drawn Apple-logo SVG approximation** instead of Apple's official
+  artwork.
+- **Fix (web-layer, no new binary needed):** shipped to prod on `main`:
+  - New `components/auth/provider-logos.tsx` — the Apple glyph path is taken
+    **verbatim from Apple's official Sign in with Apple web button asset**
+    (`appleid.cdn-apple.com/appleauth/static/jsapi/appleid/…/appleid.auth.js`,
+    the same artwork as Apple Design Resources); provenance documented in a
+    code comment, glyph never modified or recolored (black/white only).
+  - Both buttons restyled per the HIG for Sign in with Apple: **black button,
+    white official logo + white title** (capsule corner radius — an allowed
+    HIG variant matching the app's button shape), equal prominence with the
+    Google button, minimum-size rules respected.
+  - Titles switched to **Apple's official localized button titles**:
+    «Вход с Apple» (ru) / "Sign in with Apple" (en) — verified against the
+    official button renderer at `appleid.cdn-apple.com/appleid/button?locale=ru_RU`.
+    New i18n keys `login.signin_apple` + `mobile.start.oauth_apple` in both
+    `messages/ru/app.json` and `messages/en/app.json`.
+  - Commit `fix(auth): HIG-compliant Sign in with Apple button`; verified in
+    ru/en on 402×874 (start screen + `/login`) against Apple's official
+    button image.
+- **Reply:** sent in App Store Connect on the rejected submission:
+
+> Hello,
+>
+> Thank you for the review. We have corrected the Sign in with Apple button
+> to fully follow the Human Interface Guidelines.
+>
+> The button now uses the official Apple logo artwork (the exact logo
+> geometry from Apple's official Sign in with Apple button resources — not a
+> custom drawing), displayed white on a black button with no modifications
+> or recoloring, and the official button title ("Sign in with Apple" in
+> English, «Вход с Apple» in Russian). The same corrected button is used
+> everywhere Sign in with Apple is offered: the app's start screen and the
+> login page.
+>
+> Because the app renders content from our platform, this fix is already
+> live in the build you have under review (1.1.0, build 6) — no new binary
+> is required. Launching the app now shows the corrected button.
+>
+> Thank you!
+
 ---
 
 ## 10. Release log
