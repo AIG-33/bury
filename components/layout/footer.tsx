@@ -66,7 +66,7 @@ export async function Footer({ authed }: Props) {
 
           <FooterColumn title={t("groups.browse")}>
             <FooterLink href="/venues">{t("links.venues")}</FooterLink>
-            {authed ? <FooterLink href="/players">{t("links.players")}</FooterLink> : null}
+            <FooterLink href="/players">{t("links.players")}</FooterLink>
             <FooterLink href="/matches">{t("links.matches")}</FooterLink>
             <FooterLink href="/leaderboard">{t("links.leaderboard")}</FooterLink>
           </FooterColumn>

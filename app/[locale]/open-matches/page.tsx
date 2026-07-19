@@ -113,6 +113,32 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
         }
       />
 
+      {/* Evergreen copy so an empty feed is not treated as a soft 404 by Google. */}
+      <section className="space-y-3 rounded-2xl border border-grass-100 bg-grass-50/40 px-4 py-5 sm:px-5">
+        <h2 className="font-display text-lg font-bold text-grass-900">{t("about.title")}</h2>
+        <p className="max-w-3xl text-sm leading-relaxed text-ink-700">{t("about.body")}</p>
+        <ol className="grid gap-2 text-sm text-ink-700 sm:grid-cols-3">
+          <li className="rounded-xl bg-white/70 px-3 py-2.5 ring-1 ring-grass-100">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-grass-700">
+              1
+            </span>
+            <p className="mt-1">{t("about.step_1")}</p>
+          </li>
+          <li className="rounded-xl bg-white/70 px-3 py-2.5 ring-1 ring-grass-100">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-grass-700">
+              2
+            </span>
+            <p className="mt-1">{t("about.step_2")}</p>
+          </li>
+          <li className="rounded-xl bg-white/70 px-3 py-2.5 ring-1 ring-grass-100">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-grass-700">
+              3
+            </span>
+            <p className="mt-1">{t("about.step_3")}</p>
+          </li>
+        </ol>
+      </section>
+
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-ink-500">
           {t("filters.results_count", { count: rows.length })}

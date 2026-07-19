@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { Link } from "@/i18n/routing";
@@ -38,7 +37,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: "/players",
     title: t("title"),
     description: t("subtitle"),
-    index: false,
   });
 }
 
@@ -50,14 +48,6 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
-
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect(`/${locale}/login?next=/${locale}/players`);
-  }
 
   const t = await getTranslations("playersPublic");
 
@@ -72,7 +62,8 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
     : "";
   const slotApplied = Boolean(weekday) && Boolean(daypart);
 
-  const [{ results, total, truncated }, districts] = await Promise.all([
+  const supabase = await createSupabaseServerClient();
+  const [{ results, total, truncated }, districts, authRes] = await Promise.all([
     loadPublicPlayers({
       level,
       districtId: districtId || undefined,
@@ -81,13 +72,15 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
       daypart: slotApplied ? daypart : "",
     }),
     loadPublicDistrictOptions(),
+    supabase.auth.getUser(),
   ]);
+  const user = authRes.data.user;
+  const isGuest = user == null;
 
   const hasFilter = level !== "any" || Boolean(districtId) || hand !== "both" || slotApplied;
 
   const primaryClubByUserId = await (async () => {
     if (results.length === 0) return new Map<string, never>();
-    const supabase = await createSupabaseServerClient();
     return loadPrimaryClubsForUsers(
       supabase,
       results.map((p) => p.id),
@@ -370,7 +363,11 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                   <Button asChild variant="primary" className="w-full justify-center">
                     <Link
                       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                      href={`/me/find?focus=${p.id}` as any}
+                      href={
+                        (isGuest
+                          ? `/login?next=/${locale}/me/find?focus=${p.id}`
+                          : `/me/find?focus=${p.id}`) as any
+                      }
                     >
                       {t("card.propose_login")}
                     </Link>
