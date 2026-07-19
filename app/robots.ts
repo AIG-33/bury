@@ -21,8 +21,6 @@ const PROTECTED_PATHS = [
   "clubs/join/",
   // Internal developer reference page.
   "help-demo",
-  // Player directory — auth-gated (redirects unauth users to /login).
-  "players",
 ];
 
 export default function robots(): MetadataRoute.Robots {

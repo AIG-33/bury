@@ -14,11 +14,18 @@
   },
   "openMatches": {
     "title": "Open matches",
-    "subtitle": "Players post when and where they want to play. Apply to a match that fits and agree on the details.",
+    "subtitle": "Find a tennis sparring partner in Belarus: players post when and where they want to play, you apply, and you agree on the details.",
     "create_cta": "Post an open match",
     "guest_cta": "Sign in to post",
-    "empty_title": "Quiet here for now",
-    "empty_body": "No one has posted yet. Be first — it's better than waiting.",
+    "empty_title": "No open invites right now",
+    "empty_body": "Open matches are how amateurs in Belarus find sparring partners by time, venue and level. When the feed is quiet, posting your own invite is the fastest way to get a match — or browse tournaments and coaches while you wait.",
+    "about": {
+      "title": "How open matches work",
+      "body": "PlayTennis.by open matches are public invitations to play tennis — singles or doubles — on courts across Belarus. Each post shows the host's level, preferred time, venue or district, and how many opponents they need. Matching players apply in one click; the host reviews profiles and accepts the right fit. No chat spam, no guessing someone's Elo.",
+      "step_1": "Browse invites by format and level, or filter by venue.",
+      "step_2": "Apply to a post that fits — the host sees your public profile first.",
+      "step_3": "Or publish your own invite and let opponents come to you."
+    },
     "format_singles": "Singles",
     "format_doubles": "Doubles",
     "duration_short": "{min} min",
@@ -3895,8 +3902,8 @@
     "title": "Players",
     "subtitle": "Real amateur players in Belarus. Pick the right level and district — and propose a sparring.",
     "guest_banner": {
-      "title": "Sign in to browse players",
-      "body": "The directory is only available to registered users — this keeps the community from casual scraping.",
+      "title": "Sign in to propose a match",
+      "body": "Browsing is open to everyone. To propose a sparring you need a free account — contacts stay private until you connect.",
       "cta": "Sign in / register"
     },
     "controls": {
@@ -3994,6 +4001,8 @@
     },
     "detail": {
       "back": "All players",
+      "meta_description": "{name} — amateur tennis player on PlayTennis.by. Level, recent matches and schedule for sparring in Belarus.",
+      "meta_description_place": "{name} — amateur tennis in {place}. Level, recent matches and schedule on PlayTennis.by.",
       "stats": {
         "elo": "Current Elo",
         "rated_matches": "Rated matches",

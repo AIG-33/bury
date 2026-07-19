@@ -16,6 +16,7 @@ const STATIC_PUBLIC_PATHS: Array<{
   { path: "", priority: 1.0, changeFrequency: "daily" },
   { path: "/open-matches", priority: 0.95, changeFrequency: "hourly" },
   { path: "/tournaments", priority: 0.95, changeFrequency: "daily" },
+  { path: "/players", priority: 0.9, changeFrequency: "daily" },
   { path: "/coaches", priority: 0.9, changeFrequency: "weekly" },
   { path: "/coaches/map", priority: 0.75, changeFrequency: "weekly" },
   { path: "/venues", priority: 0.9, changeFrequency: "weekly" },
@@ -53,22 +54,28 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
   try {
     const supabase = createSupabaseAnonClient();
 
-    const [tournamentsRes, venuesRes, clubsRes, coachesRes, openMatchesRes] = await Promise.all([
-      supabase
-        .from("tournaments")
-        .select("id, updated_at")
-        .eq("privacy", "public")
-        .in("status", ["registration", "in_progress", "finished"])
-        .limit(2000),
-      supabase.from("venues").select("id, updated_at").eq("country", "BY").limit(500),
-      supabase.from("clubs").select("slug, updated_at").limit(500),
-      supabase.from("public_coach_directory").select("id").limit(500),
-      supabase
-        .from("open_matches")
-        .select("id, updated_at")
-        .in("status", ["open", "filled"])
-        .limit(500),
-    ]);
+    const [tournamentsRes, venuesRes, clubsRes, coachesRes, openMatchesRes, playersRes] =
+      await Promise.all([
+        supabase
+          .from("tournaments")
+          .select("id, updated_at")
+          .eq("privacy", "public")
+          .in("status", ["registration", "in_progress", "finished"])
+          .limit(2000),
+        supabase.from("venues").select("id, updated_at").eq("country", "BY").limit(500),
+        supabase.from("clubs").select("slug, updated_at").limit(500),
+        supabase.from("public_coach_directory").select("id").limit(500),
+        supabase
+          .from("open_matches")
+          .select("id, updated_at")
+          .in("status", ["open", "filled"])
+          .limit(500),
+        supabase
+          .from("public_player_directory")
+          .select("id, last_match_at")
+          .order("current_elo", { ascending: false })
+          .limit(1000),
+      ]);
 
     const pushPaths = (
       paths: string[],
@@ -97,6 +104,7 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
     const openMatchPaths = ((openMatchesRes.data ?? []) as IdRow[]).map(
       (r) => `/open-matches/${r.id}`,
     );
+    const playerPaths = ((playersRes.data ?? []) as IdRow[]).map((r) => `/players/${r.id}`);
 
     pushPaths(tournamentPaths, 0.75, "weekly");
     pushPaths(venuePaths, 0.7, "monthly");
@@ -104,6 +112,7 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
     pushPaths(clubRatingPaths, 0.6, "weekly");
     pushPaths(coachPaths, 0.65, "weekly");
     pushPaths(openMatchPaths, 0.7, "daily");
+    pushPaths(playerPaths, 0.6, "weekly");
   } catch {
     // Sitemap still returns static routes if Supabase is unavailable at build time.
   }

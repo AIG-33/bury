@@ -39,8 +39,32 @@ function nativeAppRedirect(request: NextRequest): NextResponse | null {
   return NextResponse.redirect(url);
 }
 
+/**
+ * next-intl issues temporary redirects for `/` → `/{locale}`. Upgrade the
+ * bare-root case to 308 so Search Console consolidates ranking signals on
+ * the canonical locale URL (and stops flagging www root as a soft redirect).
+ */
+function upgradeRootLocaleRedirect(
+  request: NextRequest,
+  response: NextResponse,
+): NextResponse {
+  if (response.status !== 307 && response.status !== 302) return response;
+  if (request.nextUrl.pathname !== "/") return response;
+  const location = response.headers.get("location");
+  if (!location) return response;
+
+  const upgraded = NextResponse.redirect(new URL(location, request.url), 308);
+  response.cookies.getAll().forEach((cookie) => {
+    upgraded.cookies.set(cookie.name, cookie.value);
+  });
+  return upgraded;
+}
+
 export default async function proxy(request: NextRequest) {
-  const response = nativeAppRedirect(request) ?? intlMiddleware(request);
+  const response = upgradeRootLocaleRedirect(
+    request,
+    nativeAppRedirect(request) ?? intlMiddleware(request),
+  );
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
