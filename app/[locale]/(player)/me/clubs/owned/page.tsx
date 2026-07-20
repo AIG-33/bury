@@ -119,6 +119,8 @@ function getLabels(t: T, tCommon: T) {
         district: t("dialog.fields.district"),
         district_any: t("dialog.fields.district_any"),
         join_policy: t("dialog.fields.join_policy"),
+        hide_owner: t("dialog.fields.hide_owner"),
+        hide_owner_hint: t("dialog.fields.hide_owner_hint"),
       },
       hints: {
         approval: t("dialog.fields.join_policy_hints.approval"),

@@ -70,6 +70,8 @@ export function OwnerPanel({ locale, club, pending, members, districts }: Props)
       district: tDialog("fields.district"),
       district_any: tDialog("fields.district_any"),
       join_policy: tDialog("fields.join_policy"),
+      hide_owner: tDialog("fields.hide_owner"),
+      hide_owner_hint: tDialog("fields.hide_owner_hint"),
     },
     hints: {
       approval: tDialog("fields.join_policy_hints.approval"),

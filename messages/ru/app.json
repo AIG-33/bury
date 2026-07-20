@@ -1437,7 +1437,8 @@
       "badge_invited": "Принял приглашение",
       "badge_booked": "Записывался",
       "badge_not_in_club": "Не в твоём клубе",
-      "stat_elo": "Elo",
+      "stat_elo": "Elo · одиночный",
+      "stat_elo_doubles": "Elo · парный",
       "stat_matches": "Матчи",
       "stat_bookings": "Записи (актив./всего)",
       "help": {
@@ -1823,6 +1824,8 @@
     "header": {
       "rating_cta": "Мой рейтинг и матчи",
       "stats": {
+        "elo_singles": "ELO · одиночный",
+        "elo_doubles": "ELO · парный",
         "matches": "Матчи",
         "wins": "Победы",
         "winrate": "Винрейт"
@@ -4043,6 +4046,13 @@
         "last_match": "Последний матч",
         "never": "—"
       },
+      "clubs": {
+        "title": "Клубы",
+        "primary": "Основной",
+        "unrated": "Внутреннего рейтинга пока нет",
+        "rating_singles": "Одиночный {rating}",
+        "rating_doubles": "Парный {rating}"
+      },
       "schedule": {
         "title": "Когда играет",
         "empty": "Расписание не указано."
@@ -4132,6 +4142,7 @@
   "clubPublic": {
     "back": "Ко всем клубам",
     "created_at": "Создан {date}",
+    "roster_elo": "Elo {singles} · пара {doubles}",
     "sponsors": "Партнёры",
     "owner": "Владелец",
     "join_cta": {
@@ -4343,7 +4354,9 @@
           "approval": "Игрок подаёт заявку, ты или со-админ одобряет.",
           "open": "Любой желающий вступает автоматически.",
           "closed": "Только по приглашению — ссылка генерируется в настройках."
-        }
+        },
+        "hide_owner": "Скрывать создателя клуба",
+        "hide_owner_hint": "Создатель не будет показан в составе на публичной странице клуба."
       },
       "save": "Сохранить",
       "saving": "Сохраняю…",
@@ -4894,7 +4907,7 @@
       "greeting": "С возвращением,",
       "player_fallback": "Игрок",
       "notifications": "Уведомления",
-      "elo_label": "ELO РЕЙТИНГ",
+      "elo_label": "ELO · ОДИНОЧНЫЙ",
       "club_rank": "#{rank}",
       "club_rank_label": "в клубе",
       "no_club": "—",
@@ -5081,6 +5094,8 @@
     "profile": {
       "title": "Профиль",
       "edit": "Редактировать",
+      "stat_elo_singles": "ELO · одиночный",
+      "stat_elo_doubles": "ELO · парный",
       "stat_matches": "матчей",
       "stat_wins": "побед",
       "stat_winrate": "винрейт",
@@ -5189,6 +5204,8 @@
       "logout": "Выйти",
       "version": "PlayTennis.by · версия {version}",
       "club_place": "#{rank} в клубе",
+      "elo_singles": "ELO {elo}",
+      "elo_doubles": "Пара {elo}",
       "guest_title": "Ты ещё не вошёл",
       "guest_body": "Войди, чтобы играть и следить за рейтингом"
     },

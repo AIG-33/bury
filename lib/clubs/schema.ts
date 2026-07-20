@@ -44,6 +44,7 @@ export const ClubFormSchema = z.object({
     z.string().uuid().nullable(),
   ),
   join_policy: z.enum(JOIN_POLICIES).default("approval"),
+  hide_owner: z.boolean().default(false),
 });
 
 export type ClubForm = z.infer<typeof ClubFormSchema>;

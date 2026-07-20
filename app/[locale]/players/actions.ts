@@ -389,3 +389,89 @@ export async function loadPublicPlayerProfile(
 
   return { ...card, recent_matches: recentMatches };
 }
+
+// =============================================================================
+// Player clubs + per-club internal ratings (public profile section).
+//
+// Everything read here is world-readable per RLS: approved club_members rows,
+// clubs, and club_member_ratings (the club standings are public pages).
+// =============================================================================
+
+export type PlayerClubEntry = {
+  club_id: string;
+  slug: string;
+  name: string;
+  logo_url: string | null;
+  is_primary: boolean;
+  /** Internal club rating per ladder; null while the player is unrated there. */
+  rating_singles: number | null;
+  rating_singles_status: "provisional" | "established" | null;
+  rating_doubles: number | null;
+  rating_doubles_status: "provisional" | "established" | null;
+};
+
+export async function loadPlayerClubs(playerId: string): Promise<PlayerClubEntry[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: memberships } = (await supabase
+    .from("club_members")
+    .select("club_id, is_primary")
+    .eq("user_id", playerId)
+    .eq("status", "approved")) as {
+    data: Array<{ club_id: string; is_primary: boolean }> | null;
+  };
+  if (!memberships || memberships.length === 0) return [];
+
+  const clubIds = memberships.map((m) => m.club_id);
+  const [{ data: clubs }, { data: ratings }] = await Promise.all([
+    supabase
+      .from("clubs")
+      .select("id, slug, name, logo_url")
+      .in("id", clubIds) as unknown as Promise<{
+      data: Array<{ id: string; slug: string; name: string; logo_url: string | null }> | null;
+    }>,
+    supabase
+      .from("club_member_ratings")
+      .select("club_id, discipline, rating, rating_status")
+      .eq("player_id", playerId)
+      .in("club_id", clubIds) as unknown as Promise<{
+      data: Array<{
+        club_id: string;
+        discipline: "singles" | "doubles";
+        rating: number;
+        rating_status: "provisional" | "established";
+      }> | null;
+    }>,
+  ]);
+
+  const clubById = new Map((clubs ?? []).map((c) => [c.id, c] as const));
+  const ratingByClubDiscipline = new Map(
+    (ratings ?? []).map((r) => [`${r.club_id}:${r.discipline}`, r] as const),
+  );
+
+  const entries: PlayerClubEntry[] = [];
+  for (const m of memberships) {
+    const club = clubById.get(m.club_id);
+    if (!club) continue;
+    const singles = ratingByClubDiscipline.get(`${m.club_id}:singles`) ?? null;
+    const doubles = ratingByClubDiscipline.get(`${m.club_id}:doubles`) ?? null;
+    entries.push({
+      club_id: club.id,
+      slug: club.slug,
+      name: club.name,
+      logo_url: club.logo_url,
+      is_primary: m.is_primary,
+      rating_singles: singles?.rating ?? null,
+      rating_singles_status: singles?.rating_status ?? null,
+      rating_doubles: doubles?.rating ?? null,
+      rating_doubles_status: doubles?.rating_status ?? null,
+    });
+  }
+
+  // Primary club first, then alphabetically.
+  entries.sort((a, b) => {
+    if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  return entries;
+}

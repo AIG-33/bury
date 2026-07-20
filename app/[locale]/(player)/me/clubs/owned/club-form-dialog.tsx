@@ -22,6 +22,8 @@ type DialogLabels = {
     district: string;
     district_any: string;
     join_policy: string;
+    hide_owner: string;
+    hide_owner_hint: string;
   };
   hints: Record<JoinPolicy, string>;
   save: string;
@@ -70,6 +72,7 @@ export function ClubFormDialog({
           city: initial.city,
           district_id: initial.district_id,
           join_policy: initial.join_policy,
+          hide_owner: initial.hide_owner,
         }
       : {
           name: "",
@@ -79,6 +82,7 @@ export function ClubFormDialog({
           city: null,
           district_id: null,
           join_policy: "approval",
+          hide_owner: false,
         },
   });
 
@@ -105,6 +109,7 @@ export function ClubFormDialog({
               city: initial.city,
               district_id: initial.district_id,
               join_policy: initial.join_policy,
+              hide_owner: initial.hide_owner,
             }
           : {
               name: "",
@@ -114,6 +119,7 @@ export function ClubFormDialog({
               city: null,
               district_id: null,
               join_policy: "approval",
+              hide_owner: false,
             },
       );
       setSlugTouched(!!initial);
@@ -253,6 +259,29 @@ export function ClubFormDialog({
               )}
             />
           </Field>
+
+          <Controller
+            name="hide_owner"
+            control={control}
+            render={({ field }) => (
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-ink-200 p-3 text-sm transition hover:border-grass-300">
+                <input
+                  type="checkbox"
+                  checked={field.value ?? false}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-ink-300 text-grass-600 focus:ring-grass-500"
+                />
+                <span>
+                  <span className="block font-semibold text-ink-900">
+                    {labels.fields.hide_owner}
+                  </span>
+                  <span className="block text-[11px] text-ink-500">
+                    {labels.fields.hide_owner_hint}
+                  </span>
+                </span>
+              </label>
+            )}
+          />
 
           {submitError && (
             <p className="rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-800">

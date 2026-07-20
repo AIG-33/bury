@@ -1437,7 +1437,8 @@
       "badge_invited": "Accepted invitation",
       "badge_booked": "Has bookings",
       "badge_not_in_club": "Not in your club",
-      "stat_elo": "Elo",
+      "stat_elo": "Elo · singles",
+      "stat_elo_doubles": "Elo · doubles",
       "stat_matches": "Matches",
       "stat_bookings": "Bookings (active/total)",
       "help": {
@@ -1823,6 +1824,8 @@
     "header": {
       "rating_cta": "My rating & matches",
       "stats": {
+        "elo_singles": "ELO · singles",
+        "elo_doubles": "ELO · doubles",
         "matches": "Matches",
         "wins": "Wins",
         "winrate": "Win rate"
@@ -4036,6 +4039,13 @@
         "last_match": "Last match",
         "never": "—"
       },
+      "clubs": {
+        "title": "Clubs",
+        "primary": "Primary",
+        "unrated": "No internal rating yet",
+        "rating_singles": "Singles {rating}",
+        "rating_doubles": "Doubles {rating}"
+      },
       "schedule": {
         "title": "When they play",
         "empty": "No schedule set."
@@ -4125,6 +4135,7 @@
   "clubPublic": {
     "back": "All clubs",
     "created_at": "Created {date}",
+    "roster_elo": "Elo {singles} · doubles {doubles}",
     "sponsors": "Sponsors",
     "owner": "Owner",
     "join_cta": {
@@ -4336,7 +4347,9 @@
           "approval": "Player applies, you or a co-admin approves.",
           "open": "Anyone can join — instant approval.",
           "closed": "Invite-only — the link is generated in settings."
-        }
+        },
+        "hide_owner": "Hide the club creator",
+        "hide_owner_hint": "The creator will not be shown in the roster on the public club page."
       },
       "save": "Save",
       "saving": "Saving…",
@@ -4887,7 +4900,7 @@
       "greeting": "Welcome back,",
       "player_fallback": "Player",
       "notifications": "Notifications",
-      "elo_label": "ELO RATING",
+      "elo_label": "ELO · SINGLES",
       "club_rank": "#{rank}",
       "club_rank_label": "in club",
       "no_club": "—",
@@ -5074,6 +5087,8 @@
     "profile": {
       "title": "Profile",
       "edit": "Edit",
+      "stat_elo_singles": "ELO · singles",
+      "stat_elo_doubles": "ELO · doubles",
       "stat_matches": "matches",
       "stat_wins": "wins",
       "stat_winrate": "winrate",
@@ -5182,6 +5197,8 @@
       "logout": "Sign out",
       "version": "PlayTennis.by · version {version}",
       "club_place": "#{rank} in club",
+      "elo_singles": "ELO {elo}",
+      "elo_doubles": "Doubles {elo}",
       "guest_title": "You are not signed in",
       "guest_body": "Sign in to play and track your rating"
     },

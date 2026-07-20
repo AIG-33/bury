@@ -36,6 +36,7 @@ import {
   type LtSearchCandidate,
 } from "@/lib/rating/external/liga-tennisa";
 import { sanitiseLtPayload } from "@/lib/validators/external-ratings";
+import { syncLigaTennisaClubMembership } from "@/lib/clubs/liga-tennisa";
 
 // ---------------------------------------------------------------------------
 // Types returned to the UI.
@@ -547,6 +548,23 @@ export async function confirmImportFromLt(
     }
   }
 
+  // Connecting an LT rating makes the player a member of the Liga Tennisa
+  // club (when it exists) and mirrors their LT points into that club's
+  // internal rating. Failures are logged inside and never break the import.
+  try {
+    await syncLigaTennisaClubMembership(service, user.id, {
+      singlesElo: safe.elo_points,
+      doublesElo: safe.doubles_elo_points,
+      calibratingSingles: safe.is_calibrating_singles,
+      calibratingDoubles: safe.is_calibrating_doubles,
+    });
+  } catch (err) {
+    console.error("[import-lt] liga-tennisa club sync failed (non-fatal)", {
+      user_id: user.id,
+      message: err instanceof Error ? err.message : "unknown",
+    });
+  }
+
   return {
     ok: true,
     external_rating_id: erRow.id,
@@ -722,6 +740,21 @@ export async function refreshExternalRating(): Promise<RefreshResult> {
     } else {
       changed = true;
     }
+  }
+
+  // Keep the Liga Tennisa club rating in sync with the refreshed points.
+  try {
+    await syncLigaTennisaClubMembership(service, user.id, {
+      singlesElo: safe.elo_points,
+      doublesElo: safe.doubles_elo_points,
+      calibratingSingles: safe.is_calibrating_singles,
+      calibratingDoubles: safe.is_calibrating_doubles,
+    });
+  } catch (err) {
+    console.error("[refresh-lt] liga-tennisa club sync failed (non-fatal)", {
+      user_id: user.id,
+      message: err instanceof Error ? err.message : "unknown",
+    });
   }
 
   return {

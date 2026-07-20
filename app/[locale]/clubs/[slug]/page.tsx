@@ -414,7 +414,10 @@ export default async function ClubPage({ params }: Props) {
                       userId={c.user_id}
                       displayName={c.display_name}
                       avatarUrl={c.avatar_url}
-                      elo={c.current_elo}
+                      eloLine={t("roster_elo", {
+                        singles: c.current_elo,
+                        doubles: c.current_elo_doubles,
+                      })}
                       badge={t("coaches_section.open_profile")}
                       accent
                     />
@@ -444,7 +447,10 @@ export default async function ClubPage({ params }: Props) {
                       userId={p.user_id}
                       displayName={p.display_name}
                       avatarUrl={p.avatar_url}
-                      elo={p.current_elo}
+                      eloLine={t("roster_elo", {
+                        singles: p.current_elo,
+                        doubles: p.current_elo_doubles,
+                      })}
                     />
                   ))}
                 </div>
@@ -590,7 +596,7 @@ function RosterCard({
   userId,
   displayName,
   avatarUrl,
-  elo,
+  eloLine,
   badge,
   accent,
 }: {
@@ -598,7 +604,7 @@ function RosterCard({
   userId: string;
   displayName: string | null;
   avatarUrl: string | null;
-  elo: number;
+  eloLine: string;
   badge?: string;
   accent?: boolean;
 }) {
@@ -623,9 +629,7 @@ function RosterCard({
         <p className="truncate font-medium text-ink-900 group-hover:text-grass-800">
           {displayName ?? "—"}
         </p>
-        <p className="text-xs text-ink-500">
-          Elo <span className="font-mono tabular-nums text-ink-700">{elo}</span>
-        </p>
+        <p className="font-mono text-xs tabular-nums text-ink-500">{eloLine}</p>
       </div>
       {accent && badge && (
         <span className="hidden text-xs text-grass-700 sm:inline">

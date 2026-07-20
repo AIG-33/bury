@@ -70,7 +70,12 @@ export default async function MobileMorePage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let me: { name: string | null; avatar: string | null; elo: number } | null = null;
+  let me: {
+    name: string | null;
+    avatar: string | null;
+    elo: number;
+    eloDoubles: number;
+  } | null = null;
   let isCoach = false;
   let isAdmin = false;
   let clubRank: number | null = null;
@@ -80,13 +85,14 @@ export default async function MobileMorePage({ params }: Props) {
     const [profileRes, memberRes, outboxRes] = await Promise.all([
       supabase
         .from("profiles")
-        .select("display_name, avatar_url, current_elo, is_coach, is_admin")
+        .select("display_name, avatar_url, current_elo, current_elo_doubles, is_coach, is_admin")
         .eq("id", user.id)
         .maybeSingle() as unknown as Promise<{
         data: {
           display_name: string | null;
           avatar_url: string | null;
           current_elo: number;
+          current_elo_doubles: number;
           is_coach: boolean;
           is_admin: boolean;
         } | null;
@@ -112,6 +118,7 @@ export default async function MobileMorePage({ params }: Props) {
       name: profileRes.data?.display_name ?? null,
       avatar: profileRes.data?.avatar_url ?? null,
       elo: profileRes.data?.current_elo ?? 1000,
+      eloDoubles: profileRes.data?.current_elo_doubles ?? 1000,
     };
     isCoach = profileRes.data?.is_coach ?? false;
     isAdmin = profileRes.data?.is_admin ?? false;
@@ -214,8 +221,13 @@ export default async function MobileMorePage({ params }: Props) {
               <span className="block truncate font-display text-[18px] font-extrabold leading-tight">
                 {me.name ?? t("home.player_fallback")}
               </span>
-              <span className="mt-0.5 flex items-center gap-2 text-[12px] font-semibold">
-                <span className="font-mono font-bold tabular-nums text-ball-500">ELO {me.elo}</span>
+              <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] font-semibold">
+                <span className="font-mono font-bold tabular-nums text-ball-500">
+                  {t("more.elo_singles", { elo: me.elo })}
+                </span>
+                <span className="font-mono font-bold tabular-nums text-white/80">
+                  {t("more.elo_doubles", { elo: me.eloDoubles })}
+                </span>
                 {clubRank ? (
                   <span className="text-white/70">{t("more.club_place", { rank: clubRank })}</span>
                 ) : null}

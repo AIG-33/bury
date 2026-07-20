@@ -65,7 +65,7 @@ export default async function MobileProfilePage({ params }: Props) {
   const [{ data: profile }, rating, headerStats, { data: primaryClub }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("display_name, avatar_url, city, current_elo")
+      .select("display_name, avatar_url, city, current_elo, current_elo_doubles")
       .eq("id", user.id)
       .maybeSingle() as unknown as Promise<{
       data: {
@@ -73,6 +73,7 @@ export default async function MobileProfilePage({ params }: Props) {
         avatar_url: string | null;
         city: string | null;
         current_elo: number;
+        current_elo_doubles: number;
       } | null;
     }>,
     loadMyRatingTab(),
@@ -89,6 +90,7 @@ export default async function MobileProfilePage({ params }: Props) {
   ]);
 
   const elo = rating?.hero.current_elo ?? profile?.current_elo ?? 1000;
+  const eloDoubles = profile?.current_elo_doubles ?? 1000;
   const band = getLevelBand(elo);
   const clubRef = primaryClub?.clubs;
   const clubName = Array.isArray(clubRef) ? clubRef[0]?.name : clubRef?.name;
@@ -126,8 +128,11 @@ export default async function MobileProfilePage({ params }: Props) {
       </MDarkHeader>
 
       <MContent className="flex-1 pt-4">
-        <div className="grid grid-cols-4 gap-2">
-          <MStatTile value={elo} label="ELO" accent />
+        <div className="grid grid-cols-2 gap-2">
+          <MStatTile value={elo} label={t("profile.stat_elo_singles")} accent />
+          <MStatTile value={eloDoubles} label={t("profile.stat_elo_doubles")} />
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-2">
           <MStatTile value={headerStats.matches_total} label={t("profile.stat_matches")} />
           <MStatTile value={headerStats.wins} label={t("profile.stat_wins")} />
           <MStatTile

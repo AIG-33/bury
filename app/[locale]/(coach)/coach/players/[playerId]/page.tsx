@@ -35,6 +35,8 @@ type PlayerBasicRow = {
   current_elo: number | null;
   elo_status: "provisional" | "established" | null;
   rated_matches_count: number | null;
+  current_elo_doubles: number | null;
+  elo_status_doubles: "provisional" | "established" | null;
   city: string | null;
   district_name: string | null;
   created_at: string | null;
@@ -89,7 +91,7 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
       .from("public_player_basic")
       .select(
         "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
-          "city, district_name, created_at",
+          "current_elo_doubles, elo_status_doubles, city, district_name, created_at",
       )
       .eq("id", playerId)
       .maybeSingle() as unknown as Promise<{ data: PlayerBasicRow | null }>,
@@ -232,7 +234,7 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <Stat
               label={t("stat_elo")}
               value={
@@ -262,6 +264,15 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
               }
               hint={
                 player.elo_status === "provisional" ? t("elo_provisional") : undefined
+              }
+            />
+            <Stat
+              label={t("stat_elo_doubles")}
+              value={
+                player.current_elo_doubles == null ? "—" : String(player.current_elo_doubles)
+              }
+              hint={
+                player.elo_status_doubles === "provisional" ? t("elo_provisional") : undefined
               }
             />
             <Stat

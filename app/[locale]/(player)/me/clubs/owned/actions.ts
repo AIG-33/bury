@@ -48,6 +48,7 @@ export type OwnedClubDetail = {
   district_id: string | null;
   district_name: string | null;
   join_policy: JoinPolicy;
+  hide_owner: boolean;
   invite_token_present: boolean;
   invite_expires_at: string | null;
   pending_owner_id: string | null;
@@ -254,7 +255,7 @@ export async function loadOwnedClubDetail(
   const { data: full } = (await supabase
     .from("clubs")
     .select(
-      "id, slug, name, description, logo_url, city, district_id, join_policy, " +
+      "id, slug, name, description, logo_url, city, district_id, join_policy, hide_owner, " +
         "invite_token_hash, invite_expires_at, pending_owner_id, pending_owner_at, " +
         "owner_id, created_at",
     )
@@ -269,6 +270,7 @@ export async function loadOwnedClubDetail(
       city: string | null;
       district_id: string | null;
       join_policy: JoinPolicy;
+      hide_owner: boolean;
       invite_token_hash: string | null;
       invite_expires_at: string | null;
       pending_owner_id: string | null;
@@ -400,6 +402,7 @@ export async function loadOwnedClubDetail(
       district_id: full.district_id,
       district_name,
       join_policy: full.join_policy,
+      hide_owner: full.hide_owner,
       invite_token_present: !!full.invite_token_hash,
       invite_expires_at: full.invite_expires_at,
       pending_owner_id: full.pending_owner_id,
@@ -469,6 +472,7 @@ export async function createClub(input: unknown): Promise<SaveResult<{ id: strin
       city: v.city,
       district_id: v.district_id,
       join_policy: v.join_policy,
+      hide_owner: v.hide_owner,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
     .select("id, slug")
@@ -528,6 +532,7 @@ export async function updateClub(
       city: v.city,
       district_id: v.district_id,
       join_policy: v.join_policy,
+      hide_owner: v.hide_owner,
     } as never)
     .eq("id", id);
   if (error) return { ok: false, error: error.message };

@@ -15,7 +15,7 @@ import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { SITE_URL } from "@/lib/seo/site";
-import { loadPublicPlayerProfile } from "../actions";
+import { loadPlayerClubs, loadPublicPlayerProfile } from "../actions";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
@@ -97,8 +97,9 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations("playersPublic");
-  const [profile, supabase] = await Promise.all([
+  const [profile, playerClubs, supabase] = await Promise.all([
     loadPublicPlayerProfile(id),
+    loadPlayerClubs(id),
     createSupabaseServerClient(),
   ]);
   if (!profile) notFound();
@@ -280,6 +281,66 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
           </Surface>
         );
       })()}
+
+      {/* Clubs + per-club internal ratings */}
+      {playerClubs.length > 0 && (
+        <Surface variant="card" as="section">
+          <h2 className="inline-flex items-center gap-2 font-display text-base font-bold text-grass-900">
+            <Users className="h-4 w-4 text-grass-700" />
+            {t("detail.clubs.title")}
+          </h2>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {playerClubs.map((c) => (
+              <li key={c.club_id} className="surface-row lift-on-hover">
+                <div className="flex items-center gap-3">
+                  {c.logo_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={c.logo_url}
+                      alt=""
+                      className="h-10 w-10 shrink-0 rounded-xl border border-ink-100 bg-white object-contain"
+                    />
+                  ) : (
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-grass-50 text-grass-700">
+                      <Users className="h-4 w-4" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-1.5">
+                      <Link
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        href={`/clubs/${c.slug}` as any}
+                        className="truncate font-semibold text-ink-900 transition hover:text-grass-700"
+                      >
+                        {c.name}
+                      </Link>
+                      {c.is_primary && (
+                        <span className="rounded-full bg-ball-100 px-1.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.12em] text-ink-800">
+                          {t("detail.clubs.primary")}
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[11px] tabular-nums text-ink-500">
+                      {c.rating_singles == null && c.rating_doubles == null
+                        ? t("detail.clubs.unrated")
+                        : [
+                            c.rating_singles != null
+                              ? t("detail.clubs.rating_singles", { rating: c.rating_singles })
+                              : null,
+                            c.rating_doubles != null
+                              ? t("detail.clubs.rating_doubles", { rating: c.rating_doubles })
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Surface>
+      )}
 
       {/* Schedule grid */}
       <Surface variant="card" as="section">

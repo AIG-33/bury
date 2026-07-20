@@ -24,6 +24,9 @@ export type ProfileSnapshot = ProfileForm & {
   current_elo: number;
   elo_status: "provisional" | "established";
   rated_matches_count: number;
+  current_elo_doubles: number;
+  elo_status_doubles: "provisional" | "established";
+  rated_matches_count_doubles: number;
   email: string | null;
 };
 
@@ -44,6 +47,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
     .from("profiles")
     .select(
       "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
+        "current_elo_doubles, elo_status_doubles, rated_matches_count_doubles, " +
         "first_name, last_name, date_of_birth, gender, motto, favorite_player, " +
         "phone, whatsapp, telegram_username, social_links, city, district_id, " +
         "dominant_hand, backhand_style, favorite_surface, availability, " +
@@ -77,6 +81,11 @@ export async function loadMyProfile(): Promise<LoadResult> {
     current_elo: (row.current_elo as number) ?? 1000,
     elo_status: ((row.elo_status as string) ?? "provisional") as "provisional" | "established",
     rated_matches_count: (row.rated_matches_count as number) ?? 0,
+    current_elo_doubles: (row.current_elo_doubles as number) ?? 1000,
+    elo_status_doubles: ((row.elo_status_doubles as string) ?? "provisional") as
+      | "provisional"
+      | "established",
+    rated_matches_count_doubles: (row.rated_matches_count_doubles as number) ?? 0,
     email: user.email ?? null,
 
     first_name: (row.first_name as string | null) ?? null,

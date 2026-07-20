@@ -43,6 +43,7 @@ export type ClubDetail = {
   district_name: string | null;
   join_policy: JoinPolicy;
   owner_id: string;
+  hide_owner: boolean;
   created_at: string;
   brand_color: string | null;
   cover_url: string | null;
@@ -57,6 +58,7 @@ export type ClubRosterEntry = {
   display_name: string | null;
   avatar_url: string | null;
   current_elo: number;
+  current_elo_doubles: number;
   is_coach: boolean;
   joined_at: string;
 };
@@ -243,7 +245,7 @@ export async function loadClubBySlug(slug: string): Promise<
   const { data: club } = (await supabase
     .from("clubs")
     .select(
-      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, created_at, brand_color, cover_url, page_blocks, branding",
+      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, hide_owner, created_at, brand_color, cover_url, page_blocks, branding",
     )
     .eq("slug", slug)
     .maybeSingle()) as {
@@ -307,24 +309,31 @@ export async function loadClubBySlug(slug: string): Promise<
     }> | null;
   };
 
-  const memberIds = (members ?? []).map((m) => m.user_id);
+  // Owner privacy: when hide_owner is on, the creator is excluded from the
+  // public roster lists below.
+  const visibleMembers = (members ?? []).filter(
+    (m) => !(club.hide_owner && m.user_id === club.owner_id),
+  );
+
+  const memberIds = visibleMembers.map((m) => m.user_id);
   type Basic = {
     id: string;
     display_name: string | null;
     avatar_url: string | null;
     current_elo: number | null;
+    current_elo_doubles: number | null;
     is_coach: boolean;
   };
   let basicById = new Map<string, Basic>();
   if (memberIds.length > 0) {
     const { data: basics } = (await supabase
       .from("public_player_basic")
-      .select("id, display_name, avatar_url, current_elo, is_coach")
+      .select("id, display_name, avatar_url, current_elo, current_elo_doubles, is_coach")
       .in("id", memberIds)) as { data: Basic[] | null };
     basicById = new Map((basics ?? []).map((b) => [b.id, b] as const));
   }
 
-  const allEntries: ClubRosterEntry[] = (members ?? []).map((m) => {
+  const allEntries: ClubRosterEntry[] = visibleMembers.map((m) => {
     const b = basicById.get(m.user_id);
     return {
       member_id: m.id,
@@ -332,6 +341,7 @@ export async function loadClubBySlug(slug: string): Promise<
       display_name: b?.display_name ?? null,
       avatar_url: b?.avatar_url ?? null,
       current_elo: b?.current_elo ?? 1000,
+      current_elo_doubles: b?.current_elo_doubles ?? 1000,
       is_coach: b?.is_coach ?? false,
       joined_at: m.decided_at ?? m.applied_at,
     };
@@ -418,6 +428,7 @@ export async function loadClubBySlug(slug: string): Promise<
       district_name,
       join_policy: club.join_policy,
       owner_id: club.owner_id,
+      hide_owner: club.hide_owner,
       created_at: club.created_at,
       brand_color: club.brand_color,
       cover_url: club.cover_url,

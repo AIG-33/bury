@@ -236,9 +236,13 @@ export default async function ProfilePage({ params }: Props) {
           </div>
         </div>
 
-        <dl className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[
-            { label: "ELO", value: String(profile.current_elo) },
+            { label: t("header.stats.elo_singles"), value: String(profile.current_elo) },
+            {
+              label: t("header.stats.elo_doubles"),
+              value: String(profile.current_elo_doubles),
+            },
             { label: t("header.stats.matches"), value: String(headerStats.matches_total) },
             { label: t("header.stats.wins"), value: String(headerStats.wins) },
             {
