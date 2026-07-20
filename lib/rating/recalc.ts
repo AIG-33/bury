@@ -1,8 +1,16 @@
 // =============================================================================
 // Server-side Elo recalculation for a single match.
 //
-// Called from setMatchScore (tournaments/actions.ts) and — eventually — from
-// any place a match transitions to a "decided" outcome.
+// Called from setMatchScore (tournaments/actions.ts) and from the friendly
+// confirm flow — any place a match transitions to a "decided" outcome.
+//
+// Disciplines:
+//   – Singles (is_doubles = false) rates two players on the SINGLES ladder
+//     (profiles.current_elo).
+//   – Doubles (is_doubles = true, both partner columns set) rates FOUR
+//     players on the DOUBLES ladder (profiles.current_elo_doubles). Team
+//     strength = average of the two members; each player keeps their own
+//     K-factor.
 //
 // Idempotent: if rating_history already has a row for this match, we skip.
 // That makes it safe to call multiple times during testing or after a re-edit
@@ -12,6 +20,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  computeDoublesMatchEloDelta,
   computeMatchEloDelta,
   eloStatusFor,
   type MatchKind,
@@ -34,7 +43,14 @@ const FINISHED_OUTCOMES = new Set([
 ]);
 
 export type RecalcResult =
-  | { ok: true; skipped: false; p1Delta: number; p2Delta: number }
+  | {
+      ok: true;
+      skipped: false;
+      p1Delta: number;
+      p2Delta: number;
+      /** Per-player deltas, keyed by profile id (2 entries for singles, 4 for doubles). */
+      deltas: Record<string, number>;
+    }
   | { ok: true; skipped: true; reason: string }
   | { ok: false; error: string };
 
@@ -44,8 +60,11 @@ type MatchRow = {
   round: number | null;
   outcome: string;
   winner_side: "p1" | "p2" | null;
+  is_doubles: boolean;
   p1_id: string;
+  p1_partner_id: string | null;
   p2_id: string | null;
+  p2_partner_id: string | null;
   played_at: string | null;
 };
 
@@ -53,6 +72,8 @@ type ProfileRow = {
   id: string;
   current_elo: number;
   rated_matches_count: number;
+  current_elo_doubles: number;
+  rated_matches_count_doubles: number;
 };
 
 /**
@@ -63,7 +84,7 @@ type ProfileRow = {
  */
 async function classifyKind(
   supabase: AnySupabase,
-  match: MatchRow,
+  match: Pick<MatchRow, "tournament_id" | "round">,
 ): Promise<MatchKind> {
   if (match.tournament_id == null) return "friendly";
   if (match.round == null) return "tournament";
@@ -87,7 +108,8 @@ export async function recalcMatchElo(
   const { data: match, error: mErr } = (await supabase
     .from("matches")
     .select(
-      "id, tournament_id, round, outcome, winner_side, p1_id, p2_id, played_at",
+      "id, tournament_id, round, outcome, winner_side, is_doubles, " +
+        "p1_id, p1_partner_id, p2_id, p2_partner_id, played_at",
     )
     .eq("id", matchId)
     .maybeSingle()) as {
@@ -107,6 +129,10 @@ export async function recalcMatchElo(
     // E.g. an auto-bye walkover (p2 = null). Nothing to rate.
     return { ok: true, skipped: true, reason: "no_opponent" };
   }
+  if (match.is_doubles && (!match.p1_partner_id || !match.p2_partner_id)) {
+    // A doubles match without both partners cannot be rated fairly.
+    return { ok: true, skipped: true, reason: "missing_partner" };
+  }
 
   // 2. Idempotency guard.
   const { data: existing } = (await supabase
@@ -118,96 +144,150 @@ export async function recalcMatchElo(
     return { ok: true, skipped: true, reason: "already_rated" };
   }
 
-  // 3. Load both profiles.
-  const { data: profiles } = (await supabase
-    .from("profiles")
-    .select("id, current_elo, rated_matches_count")
-    .in("id", [match.p1_id, match.p2_id])) as {
-    data: ProfileRow[] | null;
-  };
-  const p1 = (profiles ?? []).find((p) => p.id === match.p1_id);
-  const p2 = (profiles ?? []).find((p) => p.id === match.p2_id);
-  if (!p1 || !p2) return { ok: false, error: "profile_not_found" };
-
-  // 4. Compute the update with the admin-activated config (falls back to
-  //    DEFAULT_RATING_CONFIG when no active row exists / parsing fails).
   const cfg = await loadActiveRatingConfig(supabase);
   const kind = await classifyKind(supabase, match);
-  const update = computeMatchEloDelta({
-    p1Elo: p1.current_elo,
-    p2Elo: p2.current_elo,
-    p1Matches: p1.rated_matches_count,
-    p2Matches: p2.rated_matches_count,
-    winnerSide: match.winner_side,
-    kind,
-    cfg,
-  });
-
   const ts = match.played_at ?? new Date().toISOString();
 
-  // 5. Persist atomically-as-possible. We do four writes in sequence:
-  //    – update p1 profile
-  //    – update p2 profile
-  //    – insert two rating_history rows
-  //    Postgres transaction would be nicer; in MVP we tolerate the rare
-  //    partial-failure (caller may retry; idempotency guard above covers it).
-  const newP1Matches = p1.rated_matches_count + 1;
-  const newP2Matches = p2.rated_matches_count + 1;
+  const participantIds = match.is_doubles
+    ? [match.p1_id, match.p1_partner_id!, match.p2_id, match.p2_partner_id!]
+    : [match.p1_id, match.p2_id];
 
-  const { error: p1Err } = await supabase
+  // 3. Load all profiles involved.
+  const { data: profiles } = (await supabase
     .from("profiles")
-    .update({
-      current_elo: update.p1NewElo,
-      rated_matches_count: newP1Matches,
-      elo_status: eloStatusFor(newP1Matches, cfg),
-    } as never)
-    .eq("id", p1.id);
-  if (p1Err) return { ok: false, error: p1Err.message };
+    .select(
+      "id, current_elo, rated_matches_count, current_elo_doubles, rated_matches_count_doubles",
+    )
+    .in("id", participantIds)) as { data: ProfileRow[] | null };
+  const byId = new Map((profiles ?? []).map((p) => [p.id, p] as const));
+  if (participantIds.some((id) => !byId.has(id))) {
+    return { ok: false, error: "profile_not_found" };
+  }
 
-  const { error: p2Err } = await supabase
-    .from("profiles")
-    .update({
-      current_elo: update.p2NewElo,
-      rated_matches_count: newP2Matches,
-      elo_status: eloStatusFor(newP2Matches, cfg),
-    } as never)
-    .eq("id", p2.id);
-  if (p2Err) return { ok: false, error: p2Err.message };
+  // 4. Compute per-player updates for the right ladder.
+  type PlayerWrite = {
+    id: string;
+    oldElo: number;
+    newElo: number;
+    newCount: number;
+    delta: number;
+    k: number;
+  };
+  let writes: PlayerWrite[];
+  let multiplier: number;
 
-  const { error: histErr } = await supabase.from("rating_history").insert([
-    {
-      player_id: p1.id,
+  if (match.is_doubles) {
+    const [t1a, t1b, t2a, t2b] = participantIds.map((id) => byId.get(id)!);
+    const update = computeDoublesMatchEloDelta({
+      team1: [
+        { elo: t1a.current_elo_doubles, matches: t1a.rated_matches_count_doubles },
+        { elo: t1b.current_elo_doubles, matches: t1b.rated_matches_count_doubles },
+      ],
+      team2: [
+        { elo: t2a.current_elo_doubles, matches: t2a.rated_matches_count_doubles },
+        { elo: t2b.current_elo_doubles, matches: t2b.rated_matches_count_doubles },
+      ],
+      winnerSide: match.winner_side,
+      kind,
+      cfg,
+    });
+    multiplier = update.multiplier;
+    const flat = [...update.team1, ...update.team2];
+    writes = participantIds.map((id, i) => {
+      const p = byId.get(id)!;
+      return {
+        id,
+        oldElo: p.current_elo_doubles,
+        newElo: flat[i].newElo,
+        newCount: p.rated_matches_count_doubles + 1,
+        delta: flat[i].delta,
+        k: flat[i].k,
+      };
+    });
+  } else {
+    const p1 = byId.get(match.p1_id)!;
+    const p2 = byId.get(match.p2_id)!;
+    const update = computeMatchEloDelta({
+      p1Elo: p1.current_elo,
+      p2Elo: p2.current_elo,
+      p1Matches: p1.rated_matches_count,
+      p2Matches: p2.rated_matches_count,
+      winnerSide: match.winner_side,
+      kind,
+      cfg,
+    });
+    multiplier = update.multiplier;
+    writes = [
+      {
+        id: p1.id,
+        oldElo: p1.current_elo,
+        newElo: update.p1NewElo,
+        newCount: p1.rated_matches_count + 1,
+        delta: update.p1Delta,
+        k: update.k1,
+      },
+      {
+        id: p2.id,
+        oldElo: p2.current_elo,
+        newElo: update.p2NewElo,
+        newCount: p2.rated_matches_count + 1,
+        delta: update.p2Delta,
+        k: update.k2,
+      },
+    ];
+  }
+
+  // 5. Persist. Sequential writes; the idempotency guard above makes retries
+  //    after a partial failure safe.
+  const discipline = match.is_doubles ? "doubles" : "singles";
+  for (const w of writes) {
+    const patch = match.is_doubles
+      ? {
+          current_elo_doubles: w.newElo,
+          rated_matches_count_doubles: w.newCount,
+          elo_status_doubles: eloStatusFor(w.newCount, cfg),
+        }
+      : {
+          current_elo: w.newElo,
+          rated_matches_count: w.newCount,
+          elo_status: eloStatusFor(w.newCount, cfg),
+        };
+    const { error } = await supabase
+      .from("profiles")
+      .update(patch as never)
+      .eq("id", w.id);
+    if (error) return { ok: false, error: error.message };
+  }
+
+  const { error: histErr } = await supabase.from("rating_history").insert(
+    writes.map((w) => ({
+      player_id: w.id,
       match_id: match.id,
-      old_elo: p1.current_elo,
-      new_elo: update.p1NewElo,
-      k_factor: update.k1,
-      multiplier: update.multiplier,
+      old_elo: w.oldElo,
+      new_elo: w.newElo,
+      k_factor: w.k,
+      multiplier,
       reason: "match",
+      discipline,
       created_at: ts,
-    },
-    {
-      player_id: p2.id,
-      match_id: match.id,
-      old_elo: p2.current_elo,
-      new_elo: update.p2NewElo,
-      k_factor: update.k2,
-      multiplier: update.multiplier,
-      reason: "match",
-      created_at: ts,
-    },
-  ] as never);
+    })) as never,
+  );
   if (histErr) return { ok: false, error: histErr.message };
 
   // 6. Update the match row with the multiplier actually used (audit).
   await supabase
     .from("matches")
-    .update({ multiplier: update.multiplier } as never)
+    .update({ multiplier } as never)
     .eq("id", match.id);
+
+  const deltas: Record<string, number> = {};
+  for (const w of writes) deltas[w.id] = w.delta;
 
   return {
     ok: true,
     skipped: false,
-    p1Delta: update.p1Delta,
-    p2Delta: update.p2Delta,
+    p1Delta: deltas[match.p1_id],
+    p2Delta: deltas[match.p2_id],
+    deltas,
   };
 }

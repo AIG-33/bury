@@ -10,6 +10,7 @@ import {
   Loader2,
   MessageCircle,
   Trophy,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { whatsappLink } from "@/lib/contact/whatsapp";
@@ -138,6 +139,12 @@ export function MatchCard({
                 {t("cancelled")}
               </span>
             )}
+            {m.is_doubles && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-grass-50 px-2 py-0.5 text-[11px] font-medium text-grass-800 ring-1 ring-grass-200">
+                <Users className="h-3 w-3" />
+                {t("doubles_badge")}
+              </span>
+            )}
             {m.tournament_id && (
               <span className="inline-flex items-center gap-1 rounded-full bg-ball-50 px-2 py-0.5 text-[11px] font-medium text-ball-800 ring-1 ring-ball-200">
                 <Trophy className="h-3 w-3" />
@@ -145,6 +152,14 @@ export function MatchCard({
               </span>
             )}
           </div>
+          {m.is_doubles && (
+            <p className="mt-0.5 text-xs text-ink-600">
+              {t("doubles_teams", {
+                partner: m.my_partner_name ?? "—",
+                opponents: `${opponentName} / ${m.opponent_partner_name ?? "—"}`,
+              })}
+            </p>
+          )}
           <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-500">
             <Clock className="h-3 w-3" />
             {dateTime}

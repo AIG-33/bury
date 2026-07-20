@@ -65,6 +65,8 @@ const PublicFiltersSchema = z.object({
     .optional()
     .transform((v): string | null => (v && v !== "" ? v : null)),
   level: z.enum(LEVEL_BUCKETS).default("any"),
+  /** Which ladder drives the level filter, sort order and the big number. */
+  discipline: z.enum(["singles", "doubles"]).default("singles"),
   hand: z.enum(["both", "R", "L"]).default("both"),
   /** Optional weekday/daypart slot the user is interested in playing. */
   weekday: z
@@ -119,16 +121,21 @@ export async function loadPublicPlayers(input: PublicFiltersInput): Promise<Publ
 
   const supabase = await createSupabaseServerClient();
 
+  // The active discipline decides which Elo column filters/sorts the list.
+  const eloColumn =
+    filters.discipline === "doubles" ? "current_elo_doubles" : "current_elo";
+
   let q = supabase
     .from("public_player_directory")
     .select(
       "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
-        "rated_matches_count, dominant_hand, backhand_style, favorite_surface, " +
-        "availability, last_match_at, is_coach",
+        "rated_matches_count, current_elo_doubles, elo_status_doubles, " +
+        "rated_matches_count_doubles, dominant_hand, backhand_style, " +
+        "favorite_surface, availability, last_match_at, is_coach",
     )
-    .gte("current_elo", range.min)
-    .lte("current_elo", range.max)
-    .order("current_elo", { ascending: false })
+    .gte(eloColumn, range.min)
+    .lte(eloColumn, range.max)
+    .order(eloColumn, { ascending: false })
     .limit(PAGE_LIMIT + 1);
 
   if (filters.districtId) q = q.eq("district_id", filters.districtId);
@@ -253,8 +260,9 @@ export async function loadPublicPlayerProfile(
     .from("public_player_directory")
     .select(
       "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
-        "rated_matches_count, dominant_hand, backhand_style, favorite_surface, " +
-        "availability, last_match_at, is_coach",
+        "rated_matches_count, current_elo_doubles, elo_status_doubles, " +
+        "rated_matches_count_doubles, dominant_hand, backhand_style, " +
+        "favorite_surface, availability, last_match_at, is_coach",
     )
     .eq("id", playerId)
     .maybeSingle()) as { data: PublicDirectoryRow | null };

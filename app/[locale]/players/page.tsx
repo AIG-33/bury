@@ -26,6 +26,7 @@ type Props = {
     hand?: string;
     weekday?: string;
     daypart?: string;
+    discipline?: string;
   }>;
 };
 
@@ -52,6 +53,8 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const t = await getTranslations("playersPublic");
 
   const level: LevelBucket = isLevelBucket(sp.level) ? sp.level : "any";
+  const discipline: "singles" | "doubles" =
+    sp.discipline === "doubles" ? "doubles" : "singles";
   const districtId = sp.district ?? "";
   const hand = sp.hand === "R" || sp.hand === "L" || sp.hand === "both" ? sp.hand : "both";
   const weekday = (WEEKDAYS as readonly string[]).includes(sp.weekday ?? "")
@@ -66,6 +69,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const [{ results, total, truncated }, districts, authRes] = await Promise.all([
     loadPublicPlayers({
       level,
+      discipline,
       districtId: districtId || undefined,
       hand,
       weekday: slotApplied ? weekday : "",
@@ -77,7 +81,12 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const user = authRes.data.user;
   const isGuest = user == null;
 
-  const hasFilter = level !== "any" || Boolean(districtId) || hand !== "both" || slotApplied;
+  const hasFilter =
+    level !== "any" ||
+    Boolean(districtId) ||
+    hand !== "both" ||
+    slotApplied ||
+    discipline !== "singles";
 
   const primaryClubByUserId = await (async () => {
     if (results.length === 0) return new Map<string, never>();
@@ -108,8 +117,22 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
         <form
           action={`/${locale}/players`}
           method="get"
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"
         >
+          <label className="text-xs font-medium text-ink-700">
+            <span className="mb-1 block label-eyebrow">
+              {t("controls.discipline_label")}
+            </span>
+            <select
+              name="discipline"
+              defaultValue={discipline}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="singles">{t("controls.discipline.singles")}</option>
+              <option value="doubles">{t("controls.discipline.doubles")}</option>
+            </select>
+          </label>
+
           <label className="text-xs font-medium text-ink-700">
             <span className="mb-1 block label-eyebrow">
               {t("controls.level_label")}
@@ -198,7 +221,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             </select>
           </label>
 
-          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-5 lg:justify-end">
+          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-6 lg:justify-end">
             <Button type="submit" variant="primary" size="sm">
               {t("controls.apply")}
             </Button>
@@ -240,7 +263,19 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {results.map((p) => {
-            const isProvisional = p.elo_status !== "established";
+            // Show the numbers of the ACTIVE ladder; the other one appears
+            // as a small secondary line so both ratings stay visible.
+            const displayElo = discipline === "doubles" ? p.current_elo_doubles : p.current_elo;
+            const displayStatus =
+              discipline === "doubles" ? p.elo_status_doubles : p.elo_status;
+            const displayMatches =
+              discipline === "doubles" ? p.rated_matches_count_doubles : p.rated_matches_count;
+            const otherElo = discipline === "doubles" ? p.current_elo : p.current_elo_doubles;
+            const otherLabel =
+              discipline === "doubles"
+                ? t("card.other_singles", { elo: otherElo })
+                : t("card.other_doubles", { elo: otherElo });
+            const isProvisional = displayStatus !== "established";
             const locationParts = [p.city, p.district_name].filter(Boolean) as string[];
             return (
               <li
@@ -295,9 +330,9 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <RatingDisplay
-                      internalElo={p.current_elo}
+                      internalElo={displayElo}
                       external={
-                        p.external_rating
+                        p.external_rating && discipline === "singles"
                           ? {
                               source: "liga_tennisa",
                               elo: p.external_rating.external_elo,
@@ -309,7 +344,10 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                       variant="stacked"
                       size="md"
                     />
-                    <LevelBadge elo={p.current_elo} showRange={false} />
+                    <span className="font-mono text-[10.5px] tabular-nums text-ink-500">
+                      {otherLabel}
+                    </span>
+                    <LevelBadge elo={displayElo} showRange={false} />
                     {isProvisional && (
                       <span
                         title={t("card.status_provisional_hint")}
@@ -325,7 +363,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                 <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-700">
                   <WinRatePill wins={p.stats.wins_count} losses={p.stats.losses_count} />
                   <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 tabular-nums">
-                    {t("card.matches_short", { count: p.rated_matches_count })}
+                    {t("card.matches_short", { count: displayMatches })}
                   </span>
                   {p.dominant_hand && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5">
@@ -362,11 +400,11 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                 <div className="mt-auto pt-1">
                   <Button asChild variant="primary" className="w-full justify-center">
                     <Link
-                      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                       href={
                         (isGuest
                           ? `/login?next=/${locale}/me/find?focus=${p.id}`
-                          : `/me/find?focus=${p.id}`) as any
+                          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (`/me/find?focus=${p.id}` as any))
                       }
                     >
                       {t("card.propose_login")}

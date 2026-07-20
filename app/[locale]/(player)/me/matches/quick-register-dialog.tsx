@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { Loader2, Plus, Search, Trash2, User, Users, X } from "lucide-react";
 import {
   loadOpponentOptions,
   quickRegisterMatch,
@@ -31,8 +31,11 @@ export function QuickRegisterDialog({
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [opponents, setOpponents] = useState<OpponentOption[]>([]);
+  const [options, setOptions] = useState<OpponentOption[]>([]);
+  const [isDoubles, setIsDoubles] = useState(false);
   const [opponentId, setOpponentId] = useState<string | null>(null);
+  const [myPartnerId, setMyPartnerId] = useState<string | null>(null);
+  const [opponentPartnerId, setOpponentPartnerId] = useState<string | null>(null);
   const [playedAt, setPlayedAt] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [sets, setSets] = useState<SetRow[]>([NEW_SET(), NEW_SET()]);
@@ -41,7 +44,7 @@ export function QuickRegisterDialog({
     if (!open) return;
     const id = setTimeout(async () => {
       const list = await loadOpponentOptions(query);
-      setOpponents(list);
+      setOptions(list);
     }, 200);
     return () => clearTimeout(id);
   }, [open, query]);
@@ -50,7 +53,10 @@ export function QuickRegisterDialog({
     if (!open) {
       setError(null);
       setQuery("");
+      setIsDoubles(false);
       setOpponentId(null);
+      setMyPartnerId(null);
+      setOpponentPartnerId(null);
       setPlayedAt("");
       setNotes("");
       setSets([NEW_SET(), NEW_SET()]);
@@ -72,6 +78,10 @@ export function QuickRegisterDialog({
       setError(t("error_no_opponent"));
       return;
     }
+    if (isDoubles && (!myPartnerId || !opponentPartnerId)) {
+      setError(t("error_no_partner"));
+      return;
+    }
     setError(null);
     start(async () => {
       const cleanSets = sets
@@ -84,6 +94,9 @@ export function QuickRegisterDialog({
         }));
       const res = await quickRegisterMatch({
         opponent_id: opponentId,
+        is_doubles: isDoubles,
+        my_partner_id: isDoubles ? myPartnerId : null,
+        opponent_partner_id: isDoubles ? opponentPartnerId : null,
         sets: cleanSets,
         played_at: playedAt ? new Date(playedAt).toISOString() : null,
         notes: notes || null,
@@ -97,7 +110,10 @@ export function QuickRegisterDialog({
     });
   }
 
-  const selectedOpponent = opponents.find((o) => o.id === opponentId);
+  // Every picker excludes players already selected in the other slots.
+  const takenIds = new Set(
+    [opponentId, myPartnerId, opponentPartnerId].filter((x): x is string => x != null),
+  );
 
   return (
     <div
@@ -128,9 +144,48 @@ export function QuickRegisterDialog({
           </p>
         )}
 
+        {/* Format toggle: singles ↔ doubles */}
+        <fieldset className="mb-4">
+          <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-700">
+            {t("format")}
+          </legend>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setIsDoubles(false)}
+              className={
+                "inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border text-sm font-medium transition " +
+                (!isDoubles
+                  ? "border-grass-500 bg-grass-50 text-grass-900"
+                  : "border-ink-200 bg-white text-ink-600 hover:bg-ink-50")
+              }
+            >
+              <User className="h-4 w-4" />
+              {t("format_singles")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsDoubles(true)}
+              className={
+                "inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border text-sm font-medium transition " +
+                (isDoubles
+                  ? "border-grass-500 bg-grass-50 text-grass-900"
+                  : "border-ink-200 bg-white text-ink-600 hover:bg-ink-50")
+              }
+            >
+              <Users className="h-4 w-4" />
+              {t("format_doubles")}
+            </button>
+          </div>
+          {isDoubles && (
+            <p className="mt-1.5 text-xs text-ink-500">{t("doubles_hint")}</p>
+          )}
+        </fieldset>
+
+        {/* Shared search box feeding all pickers */}
         <fieldset className="mb-4 rounded-xl border border-ink-100 p-3">
           <legend className="px-2 text-xs font-semibold uppercase tracking-wider text-ink-700">
-            {t("opponent")}
+            {isDoubles ? t("players") : t("opponent")}
           </legend>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
@@ -141,39 +196,37 @@ export function QuickRegisterDialog({
               className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm"
             />
           </div>
-          <ul className="mt-2 max-h-44 overflow-y-auto rounded-md border border-ink-100">
-            {opponents.length === 0 ? (
-              <li className="px-3 py-2 text-xs text-ink-500">
-                {t("opponent_none")}
-              </li>
-            ) : (
-              opponents.map((o) => (
-                <li key={o.id}>
-                  <button
-                    onClick={() => setOpponentId(o.id)}
-                    className={
-                      "flex w-full items-center justify-between px-3 py-2 text-left text-sm transition " +
-                      (opponentId === o.id
-                        ? "bg-grass-50 text-grass-900"
-                        : "hover:bg-ink-50")
-                    }
-                  >
-                    <span>{o.display_name ?? "—"}</span>
-                    <span className="font-mono text-xs text-ink-500">
-                      {o.current_elo} · {o.city ?? "—"}
-                    </span>
-                  </button>
-                </li>
-              ))
+
+          <div className="mt-3 space-y-3">
+            <PlayerSlot
+              label={t("opponent")}
+              options={options}
+              selectedId={opponentId}
+              takenIds={takenIds}
+              emptyLabel={t("opponent_none")}
+              onSelect={setOpponentId}
+            />
+            {isDoubles && (
+              <>
+                <PlayerSlot
+                  label={t("my_partner")}
+                  options={options}
+                  selectedId={myPartnerId}
+                  takenIds={takenIds}
+                  emptyLabel={t("opponent_none")}
+                  onSelect={setMyPartnerId}
+                />
+                <PlayerSlot
+                  label={t("opponent_partner")}
+                  options={options}
+                  selectedId={opponentPartnerId}
+                  takenIds={takenIds}
+                  emptyLabel={t("opponent_none")}
+                  onSelect={setOpponentPartnerId}
+                />
+              </>
             )}
-          </ul>
-          {selectedOpponent && (
-            <p className="mt-2 text-xs text-ink-600">
-              {t("opponent_selected", {
-                name: selectedOpponent.display_name ?? "—",
-              })}
-            </p>
-          )}
+          </div>
         </fieldset>
 
         <label className="mb-4 block text-sm">
@@ -192,9 +245,11 @@ export function QuickRegisterDialog({
             {t("sets")}
           </legend>
           <div className="grid grid-cols-[1fr_auto_1fr_auto_auto_36px] items-center gap-2 text-xs text-ink-500">
-            <span className="text-center">{t("you")}</span>
+            <span className="text-center">{isDoubles ? t("your_pair") : t("you")}</span>
             <span></span>
-            <span className="text-center">{t("opponent_short")}</span>
+            <span className="text-center">
+              {isDoubles ? t("their_pair") : t("opponent_short")}
+            </span>
             <span className="text-center">{t("tb_you")}</span>
             <span className="text-center">{t("tb_them")}</span>
             <span></span>
@@ -286,7 +341,7 @@ export function QuickRegisterDialog({
         </label>
 
         <div className="flex items-center justify-between gap-3 rounded-lg bg-grass-50 px-3 py-2 text-xs text-grass-800">
-          <span>{t("two_party_warning")}</span>
+          <span>{isDoubles ? t("two_party_warning_doubles") : t("two_party_warning")}</span>
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
@@ -299,7 +354,9 @@ export function QuickRegisterDialog({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={pending || !opponentId}
+            disabled={
+              pending || !opponentId || (isDoubles && (!myPartnerId || !opponentPartnerId))
+            }
             className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card hover:bg-grass-600 disabled:opacity-50"
           >
             {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
@@ -307,6 +364,78 @@ export function QuickRegisterDialog({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * One "pick a player" slot. Shows the current selection as a chip; expanding
+ * lists the shared search results minus players taken by the other slots.
+ */
+function PlayerSlot({
+  label,
+  options,
+  selectedId,
+  takenIds,
+  emptyLabel,
+  onSelect,
+}: {
+  label: string;
+  options: OpponentOption[];
+  selectedId: string | null;
+  takenIds: Set<string>;
+  emptyLabel: string;
+  onSelect: (id: string | null) => void;
+}) {
+  const selected = options.find((o) => o.id === selectedId);
+  const available = options.filter(
+    (o) => o.id === selectedId || !takenIds.has(o.id),
+  );
+
+  return (
+    <div>
+      <p className="mb-1 text-xs font-medium text-ink-700">{label}</p>
+      {selectedId ? (
+        <div className="flex items-center justify-between rounded-lg border border-grass-300 bg-grass-50 px-3 py-2 text-sm text-grass-900">
+          <span className="truncate font-medium">
+            {selected?.display_name ?? "—"}
+            {selected && (
+              <span className="ml-2 font-mono text-xs text-ink-500">
+                {selected.current_elo}
+              </span>
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={() => onSelect(null)}
+            className="ml-2 rounded-md p-0.5 text-ink-500 hover:bg-white"
+            aria-label="✕"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <ul className="max-h-36 overflow-y-auto rounded-md border border-ink-100">
+          {available.length === 0 ? (
+            <li className="px-3 py-2 text-xs text-ink-500">{emptyLabel}</li>
+          ) : (
+            available.map((o) => (
+              <li key={o.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(o.id)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-ink-50"
+                >
+                  <span>{o.display_name ?? "—"}</span>
+                  <span className="font-mono text-xs text-ink-500">
+                    {o.current_elo} · {o.city ?? "—"}
+                  </span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
     </div>
   );
 }

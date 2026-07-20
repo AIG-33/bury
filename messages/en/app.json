@@ -303,12 +303,21 @@
       "two_party_warning_inline": "Your opponent will be asked to confirm before Elo changes.",
       "confirm_dispute": "Clear the reported score and ask the other side to enter it again?",
       "confirm_cancel": "Cancel this match? It won't affect Elo.",
-      "error_empty_sets": "Enter at least one set with games played."
+      "error_empty_sets": "Enter at least one set with games played.",
+      "doubles_badge": "Doubles",
+      "doubles_teams": "You + {partner} vs {opponents}"
     },
     "quick": {
       "title": "Register played match",
-      "subtitle": "Log a friendly match you've already finished. Both players will need to confirm before Elo moves.",
+      "subtitle": "Log a friendly match you've already finished. The other side will need to confirm before Elo moves.",
+      "format": "Format",
+      "format_singles": "Singles",
+      "format_doubles": "Doubles",
+      "doubles_hint": "A doubles match affects the separate doubles rating of all four players.",
+      "players": "Players",
       "opponent": "Opponent",
+      "my_partner": "My partner",
+      "opponent_partner": "Opponent's partner",
       "opponent_search_placeholder": "Search by name…",
       "opponent_none": "No matching players visible to you.",
       "opponent_selected": "Selected: {name}",
@@ -316,6 +325,8 @@
       "played_at_hint": "Leave empty to use “now”.",
       "sets": "Score by sets",
       "you": "You",
+      "your_pair": "Your pair",
+      "their_pair": "Opponents",
       "opponent_short": "Opp.",
       "tb_you": "TB you",
       "tb_them": "TB opp.",
@@ -323,9 +334,11 @@
       "notes": "Notes (optional)",
       "notes_placeholder": "Anything worth remembering about this match",
       "two_party_warning": "Heads up: your opponent must confirm this score before it counts toward Elo.",
+      "two_party_warning_doubles": "Heads up: someone from the opposing pair must confirm this score before it affects the doubles Elo of all four players.",
       "submit": "Save match",
       "cancel": "Cancel",
-      "error_no_opponent": "Pick an opponent first."
+      "error_no_opponent": "Pick an opponent first.",
+      "error_no_partner": "Pick both partners for a doubles match."
     }
   },
   "adminNav": {
@@ -1561,20 +1574,25 @@
   "rating": {
     "title": "My rating",
     "subtitle": "Your Elo and recent match history.",
+    "discipline": {
+      "singles": "Singles",
+      "doubles": "Doubles"
+    },
     "help": {
-      "why": "This is where you see how your true level changes with every match. One rating — all matches.",
+      "why": "This is where you see how your true level changes with every match. You have two separate ratings — singles and doubles — switch between them with the tabs above.",
       "what": {
-        "1": "Check current Elo and the 30-day delta.",
+        "1": "Check current Elo (singles or doubles) and the 30-day delta.",
         "2": "See how Elo grew / dropped on the chart (last 20 matches).",
         "3": "Browse your recent matches: opponent, score, and the Elo +/- you got from each."
       },
       "result": {
-        "1": "After each confirmed match Elo updates automatically.",
+        "1": "After each confirmed match the matching ladder updates: a singles match moves singles Elo, a doubles match moves doubles Elo.",
         "2": "First 10 matches count more — the system quickly finds your true level."
       }
     },
     "hero": {
       "label": "Your Elo",
+      "label_doubles": "Your doubles Elo",
       "matches": "{n, plural, =0 {no matches} =1 {1 match} other {# matches}}",
       "status": {
         "provisional": "Provisional (first matches)",
@@ -1626,7 +1644,8 @@
       "cancelled": "Cancelled",
       "no_change": "no Elo",
       "new_elo_label": "Elo",
-      "tournament_generic": "Tournament"
+      "tournament_generic": "Tournament",
+      "with_partner": "Partnered with {partner}"
     },
     "quiz_cta": {
       "eyebrow": "Action required",
@@ -3907,6 +3926,11 @@
       "cta": "Sign in / register"
     },
     "controls": {
+      "discipline_label": "Rating",
+      "discipline": {
+        "singles": "Singles",
+        "doubles": "Doubles"
+      },
       "level_label": "Level",
       "level": {
         "any": "Any level",
@@ -3977,7 +4001,9 @@
       "lt_external_hint": "Profile on ligatennisa.com",
       "propose_login": "Propose a match",
       "open_profile": "Open profile",
-      "open_coach": "Open coach profile"
+      "open_coach": "Open coach profile",
+      "other_singles": "Singles: {elo}",
+      "other_doubles": "Doubles: {elo}"
     },
     "results": {
       "showing": "{count, plural, =0 {No players found} one {# player found} other {# players found}}",
@@ -4004,7 +4030,8 @@
       "meta_description": "{name} — amateur tennis player on PlayTennis.by. Level, recent matches and schedule for sparring in Belarus.",
       "meta_description_place": "{name} — amateur tennis in {place}. Level, recent matches and schedule on PlayTennis.by.",
       "stats": {
-        "elo": "Current Elo",
+        "elo": "Elo · singles",
+        "elo_doubles": "Elo · doubles",
         "rated_matches": "Rated matches",
         "last_match": "Last match",
         "never": "—"
@@ -4170,7 +4197,12 @@
     "subtitle": "Internal standings of «{club}» — separate from the site-wide Elo.",
     "meta_description": "Internal player rating of the «{club}» tennis club on PlayTennis.by.",
     "see_full": "Full table",
+    "discipline": {
+      "singles": "Singles",
+      "doubles": "Doubles"
+    },
     "empty": "No rated matches yet. The rating fills up as the club plays tournaments and friendlies.",
+    "empty_doubles": "No rated doubles matches yet. The doubles table fills up once club members play 2×2 matches.",
     "disabled": "This club does not keep an internal rating.",
     "tournaments_title": "Club tournaments",
     "table": {

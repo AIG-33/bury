@@ -2,7 +2,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // =============================================================================
 // Read-only helpers for the player's "Rating" tab.
+//
+// The tab is discipline-aware: singles and doubles are two fully separate
+// ladders, so every query (profile columns, history rows, match list) is
+// filtered by the requested discipline.
 // =============================================================================
+
+export type RatingDiscipline = "singles" | "doubles";
 
 export type EloPoint = {
   id: string;
@@ -36,6 +42,9 @@ export type RatingMatchRow = {
   id: string;
   played_at: string;
   is_p1: boolean;
+  is_doubles: boolean;
+  my_partner_name: string | null;
+  opponent_partner_name: string | null;
   i_am_winner: boolean | null;
   outcome: "completed" | "cancelled";
   sets: RatingMatchSet[] | null;
@@ -54,6 +63,7 @@ export type RatingMatchRow = {
 };
 
 export type RatingTabPayload = {
+  discipline: RatingDiscipline;
   hero: EloHero;
   history: EloPoint[];
   recentMatches: RatingMatchRow[];
@@ -65,52 +75,80 @@ export type RatingTabPayload = {
 const HISTORY_LIMIT = 20;
 const MATCHES_LIMIT = 30;
 
-export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
+export async function loadMyRatingTab(
+  discipline: RatingDiscipline = "singles",
+): Promise<RatingTabPayload | null> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const isDoubles = discipline === "doubles";
+
   const [profileRes, historyRes, matchesRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("current_elo, elo_status, rated_matches_count, onboarding_completed_at")
+      .select(
+        "current_elo, elo_status, rated_matches_count, " +
+          "current_elo_doubles, elo_status_doubles, rated_matches_count_doubles, " +
+          "onboarding_completed_at",
+      )
       .eq("id", user.id)
       .single(),
     supabase
       .from("rating_history")
       .select("id, created_at, old_elo, new_elo, delta, k_factor, multiplier, reason, match_id")
       .eq("player_id", user.id)
+      .eq("discipline", discipline)
       .order("created_at", { ascending: false })
       .limit(HISTORY_LIMIT),
     supabase
       .from("matches")
       .select(
-        "id, p1_id, p2_id, p1_partner_id, p2_partner_id, outcome, sets, " +
+        "id, p1_id, p2_id, p1_partner_id, p2_partner_id, is_doubles, outcome, sets, " +
           "winner_side, played_at, created_at, tournament_id",
       )
       .or(
         `p1_id.eq.${user.id},p2_id.eq.${user.id},` +
           `p1_partner_id.eq.${user.id},p2_partner_id.eq.${user.id}`,
       )
+      .eq("is_doubles", isDoubles)
       .in("outcome", ["completed", "cancelled"])
       .order("played_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(MATCHES_LIMIT),
   ]);
 
-  const profile = (profileRes.data as {
+  const rawProfile = (profileRes.data as {
     current_elo: number;
     elo_status: "provisional" | "established";
     rated_matches_count: number;
+    current_elo_doubles: number;
+    elo_status_doubles: "provisional" | "established";
+    rated_matches_count_doubles: number;
     onboarding_completed_at: string | null;
   } | null) ?? {
     current_elo: 1000,
     elo_status: "provisional" as const,
     rated_matches_count: 0,
+    current_elo_doubles: 1000,
+    elo_status_doubles: "provisional" as const,
+    rated_matches_count_doubles: 0,
     onboarding_completed_at: null,
   };
+
+  const profile = isDoubles
+    ? {
+        current_elo: rawProfile.current_elo_doubles,
+        elo_status: rawProfile.elo_status_doubles,
+        rated_matches_count: rawProfile.rated_matches_count_doubles,
+      }
+    : {
+        current_elo: rawProfile.current_elo,
+        elo_status: rawProfile.elo_status,
+        rated_matches_count: rawProfile.rated_matches_count,
+      };
 
   const history = ((historyRes.data ?? []) as EloPoint[])
     // chart consumes oldest → newest
@@ -138,6 +176,7 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
     p2_id: string;
     p1_partner_id: string | null;
     p2_partner_id: string | null;
+    is_doubles: boolean;
     outcome: "completed" | "cancelled";
     sets: RatingMatchSet[] | null;
     winner_side: "p1" | "p2" | null;
@@ -149,19 +188,35 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
   const sideOf = (m: (typeof matchRows)[number]) =>
     m.p1_id === user.id || m.p1_partner_id === user.id ? "p1" : "p2";
 
+  // Everyone but the viewer — opposing captain plus (for doubles) both
+  // partner slots and possibly the viewer's own captain.
   const opponentIds = Array.from(
-    new Set(matchRows.map((m) => (sideOf(m) === "p1" ? m.p2_id : m.p1_id))),
+    new Set(
+      matchRows
+        .flatMap((m) => [m.p1_id, m.p2_id, m.p1_partner_id, m.p2_partner_id])
+        .filter((x): x is string => x != null && x !== user.id),
+    ),
   );
 
   const opponentById = new Map<string, RatingMatchRow["opponent"]>();
   if (opponentIds.length > 0) {
     const { data } = (await supabase
       .from("profiles")
-      .select("id, display_name, avatar_url, current_elo")
+      .select("id, display_name, avatar_url, current_elo, current_elo_doubles")
       .in("id", opponentIds)) as {
-      data: Array<RatingMatchRow["opponent"]> | null;
+      data: Array<
+        RatingMatchRow["opponent"] & { current_elo_doubles: number }
+      > | null;
     };
-    for (const p of data ?? []) opponentById.set(p.id, p);
+    for (const p of data ?? []) {
+      opponentById.set(p.id, {
+        id: p.id,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+        // Show the opponent's rating on the SAME ladder as the tab.
+        current_elo: isDoubles ? p.current_elo_doubles : p.current_elo,
+      });
+    }
   }
 
   const tournamentIds = Array.from(
@@ -188,6 +243,7 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
       .select("match_id, delta, new_elo, created_at")
       .eq("player_id", user.id)
       .eq("reason", "match")
+      .eq("discipline", discipline)
       .in("match_id", matchIds)
       .order("created_at", { ascending: false })) as {
       data: Array<{
@@ -211,6 +267,9 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
     const otherId = isP1 ? m.p2_id : m.p1_id;
     const opponent = opponentById.get(otherId);
     if (!opponent) return [];
+    const mySideIds = isP1 ? [m.p1_id, m.p1_partner_id] : [m.p2_id, m.p2_partner_id];
+    const myPartnerId = mySideIds.find((x) => x != null && x !== user.id) ?? null;
+    const opponentPartnerId = isP1 ? m.p2_partner_id : m.p1_partner_id;
     const iAmWinner =
       m.winner_side == null ? null : (m.winner_side === "p1") === isP1 ? true : false;
     const elo = eloByMatch.get(m.id);
@@ -219,6 +278,13 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
         id: m.id,
         played_at: m.played_at ?? m.created_at,
         is_p1: isP1,
+        is_doubles: m.is_doubles,
+        my_partner_name: myPartnerId
+          ? (opponentById.get(myPartnerId)?.display_name ?? null)
+          : null,
+        opponent_partner_name: opponentPartnerId
+          ? (opponentById.get(opponentPartnerId)?.display_name ?? null)
+          : null,
         i_am_winner: iAmWinner,
         outcome: m.outcome,
         sets: m.sets,
@@ -232,9 +298,10 @@ export async function loadMyRatingTab(): Promise<RatingTabPayload | null> {
   });
 
   return {
+    discipline,
     hero,
     history,
     recentMatches,
-    needs_onboarding_quiz: !profile.onboarding_completed_at,
+    needs_onboarding_quiz: !rawProfile.onboarding_completed_at,
   };
 }

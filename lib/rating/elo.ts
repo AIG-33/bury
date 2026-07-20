@@ -157,6 +157,85 @@ export function computeMatchEloDelta(args: {
   };
 }
 
+// =============================================================================
+// Doubles
+// =============================================================================
+
+export type DoublesPlayerInput = {
+  elo: number;
+  /** Rated DOUBLES matches count (the doubles ladder has its own K schedule). */
+  matches: number;
+};
+
+export type DoublesPlayerUpdate = {
+  delta: number;
+  k: number;
+  newElo: number;
+};
+
+export type DoublesEloUpdate = {
+  /** Updates in the same order as the input: [t1a, t1b, t2a, t2b]. */
+  team1: [DoublesPlayerUpdate, DoublesPlayerUpdate];
+  team2: [DoublesPlayerUpdate, DoublesPlayerUpdate];
+  multiplier: number;
+  /** Team-1 expected score (0..1), computed from the team averages. */
+  team1Expected: number;
+};
+
+/**
+ * Compute Elo deltas for a doubles match (2 vs 2).
+ *
+ * Model:
+ *   – A team's strength is the AVERAGE of its two members' doubles Elo.
+ *     Average (not sum) keeps the expected-score curve on the same 400-point
+ *     scale as singles.
+ *   – The expected score is computed once per team; every player then gets
+ *     their own K-factor applied to the same (S − E) term. A provisional
+ *     player therefore moves faster than their veteran partner even though
+ *     they won/lost the same match.
+ *   – Multiplier and floor behave exactly like singles.
+ */
+export function computeDoublesMatchEloDelta(args: {
+  team1: [DoublesPlayerInput, DoublesPlayerInput];
+  team2: [DoublesPlayerInput, DoublesPlayerInput];
+  winnerSide: "p1" | "p2";
+  kind: MatchKind;
+  cfg?: RatingConfig;
+}): DoublesEloUpdate {
+  const cfg = args.cfg ?? DEFAULT_RATING_CONFIG;
+  const m = multiplierFor(args.kind, cfg);
+
+  const t1Avg = (args.team1[0].elo + args.team1[1].elo) / 2;
+  const t2Avg = (args.team2[0].elo + args.team2[1].elo) / 2;
+
+  const e1 = expectedScore(t1Avg, t2Avg, cfg);
+  const s1 = args.winnerSide === "p1" ? 1 : 0;
+
+  const updateFor = (
+    p: DoublesPlayerInput,
+    s: number,
+    e: number,
+  ): DoublesPlayerUpdate => {
+    const k = kFactorFor(p.matches, p.elo, cfg);
+    const raw = Math.round(k * (s - e) * m);
+    const newElo = Math.max(cfg.floor, p.elo + raw);
+    return { delta: newElo - p.elo, k, newElo };
+  };
+
+  return {
+    team1: [
+      updateFor(args.team1[0], s1, e1),
+      updateFor(args.team1[1], s1, e1),
+    ],
+    team2: [
+      updateFor(args.team2[0], 1 - s1, 1 - e1),
+      updateFor(args.team2[1], 1 - s1, 1 - e1),
+    ],
+    multiplier: m,
+    team1Expected: e1,
+  };
+}
+
 /**
  * Decide whether a player's `elo_status` should flip to "established"
  * after their N-th rated match. Idempotent — caller passes the new count.

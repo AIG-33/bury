@@ -3,6 +3,7 @@ import {
   expectedScore,
   kFactorFor,
   computeMatchEloDelta,
+  computeDoublesMatchEloDelta,
   eloStatusFor,
   DEFAULT_RATING_CONFIG,
 } from "../elo";
@@ -122,6 +123,91 @@ describe("computeMatchEloDelta", () => {
     });
     expect(u.p1Delta).toBeLessThan(8);
     expect(u.p1Delta).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("computeDoublesMatchEloDelta", () => {
+  const veteran = (elo: number) => ({ elo, matches: 50 });
+
+  it("moves winners up and losers down; equal teams & Ks are symmetric", () => {
+    const u = computeDoublesMatchEloDelta({
+      team1: [veteran(1500), veteran(1500)],
+      team2: [veteran(1500), veteran(1500)],
+      winnerSide: "p1",
+      kind: "tournament",
+    });
+    for (const p of u.team1) expect(p.delta).toBeGreaterThan(0);
+    for (const p of u.team2) expect(p.delta).toBeLessThan(0);
+    // All four have K=20 and the same expected score → same magnitude.
+    expect(u.team1[0].delta).toBe(u.team1[1].delta);
+    expect(u.team1[0].delta).toBe(-u.team2[0].delta);
+  });
+
+  it("uses the TEAM AVERAGE for the expected score", () => {
+    const u = computeDoublesMatchEloDelta({
+      team1: [veteran(1800), veteran(1200)], // avg 1500
+      team2: [veteran(1500), veteran(1500)], // avg 1500
+      winnerSide: "p1",
+      kind: "tournament",
+    });
+    expect(u.team1Expected).toBeCloseTo(0.5, 5);
+  });
+
+  it("gives a provisional player a bigger swing than their veteran partner", () => {
+    const u = computeDoublesMatchEloDelta({
+      team1: [
+        { elo: 1400, matches: 0 }, // provisional → K=40
+        { elo: 1400, matches: 100 }, // established → K=20
+      ],
+      team2: [veteran(1400), veteran(1400)],
+      winnerSide: "p1",
+      kind: "tournament",
+    });
+    expect(u.team1[0].delta).toBeGreaterThan(u.team1[1].delta);
+    expect(u.team1[0].k).toBe(DEFAULT_RATING_CONFIG.k_provisional);
+    expect(u.team1[1].k).toBe(DEFAULT_RATING_CONFIG.k_established);
+  });
+
+  it("scales with the match-kind multiplier", () => {
+    const run = (kind: "friendly" | "tournament") =>
+      computeDoublesMatchEloDelta({
+        team1: [veteran(1500), veteran(1500)],
+        team2: [veteran(1500), veteran(1500)],
+        winnerSide: "p1",
+        kind,
+      }).team1[0].delta;
+    expect(run("friendly")).toBeLessThan(run("tournament"));
+  });
+
+  it("underdog pair gains meaningfully after an upset", () => {
+    const u = computeDoublesMatchEloDelta({
+      team1: [veteran(1200), veteran(1200)],
+      team2: [veteran(1800), veteran(1800)],
+      winnerSide: "p1",
+      kind: "tournament",
+    });
+    for (const p of u.team1) expect(p.delta).toBeGreaterThan(15);
+  });
+
+  it("never lets anyone drop below the floor", () => {
+    const u = computeDoublesMatchEloDelta({
+      team1: [veteran(105), veteran(2000)],
+      team2: [veteran(1500), veteran(1500)],
+      winnerSide: "p2",
+      kind: "tournament",
+    });
+    expect(u.team1[0].newElo).toBeGreaterThanOrEqual(DEFAULT_RATING_CONFIG.floor);
+  });
+
+  it("winnerSide p2 mirrors the result", () => {
+    const u = computeDoublesMatchEloDelta({
+      team1: [veteran(1500), veteran(1500)],
+      team2: [veteran(1500), veteran(1500)],
+      winnerSide: "p2",
+      kind: "tournament",
+    });
+    for (const p of u.team1) expect(p.delta).toBeLessThan(0);
+    for (const p of u.team2) expect(p.delta).toBeGreaterThan(0);
   });
 });
 

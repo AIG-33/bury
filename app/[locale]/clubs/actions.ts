@@ -458,7 +458,10 @@ export type ClubRatingBoard = {
 };
 
 /** Public, read-only club standings (club_member_ratings is world-readable). */
-export async function loadClubRatingBoard(clubId: string): Promise<ClubRatingBoard> {
+export async function loadClubRatingBoard(
+  clubId: string,
+  discipline: "singles" | "doubles" = "singles",
+): Promise<ClubRatingBoard> {
   const supabase = await createSupabaseServerClient();
 
   const { data: settings } = (await supabase
@@ -474,6 +477,7 @@ export async function loadClubRatingBoard(clubId: string): Promise<ClubRatingBoa
     .from("club_member_ratings")
     .select("player_id, rating, rating_status, rated_matches_count, wins, losses")
     .eq("club_id", clubId)
+    .eq("discipline", discipline)
     .order("rating", { ascending: false })) as {
     data: Array<Omit<ClubStandingRow, "display_name" | "avatar_url">> | null;
   };

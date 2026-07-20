@@ -15,6 +15,7 @@ import { loadClubBySlug, loadClubRatingBoard } from "../../actions";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ discipline?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,20 +31,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function ClubRatingPage({ params }: Props) {
+export default async function ClubRatingPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
 
   const t = await getTranslations("clubRating");
   const tNav = await getTranslations("nav");
   const tCrumb = await getTranslations("breadcrumbs");
 
+  const discipline: "singles" | "doubles" =
+    sp.discipline === "doubles" ? "doubles" : "singles";
+
   const res = await loadClubBySlug(slug);
   if (!res.ok) notFound();
   const { club } = res;
   const accent = club.brand_color ?? null;
 
-  const board = await loadClubRatingBoard(club.id);
+  const board = await loadClubRatingBoard(club.id, discipline);
 
   const labels = {
     rank: t("table.rank"),
@@ -105,11 +110,40 @@ export default async function ClubRatingPage({ params }: Props) {
         </div>
       </Surface>
 
+      {/* Singles / doubles ladders are fully separate inside the club too. */}
+      <nav className="inline-flex rounded-xl border border-ink-200 bg-white p-1 text-sm font-medium">
+        <Link
+          href={`/${locale}/clubs/${slug}/rating`}
+          className={
+            "rounded-lg px-4 py-2 transition " +
+            (discipline === "singles"
+              ? "bg-grass-500 text-white shadow-card"
+              : "text-ink-600 hover:bg-ink-50")
+          }
+        >
+          {t("discipline.singles")}
+        </Link>
+        <Link
+          href={`/${locale}/clubs/${slug}/rating?discipline=doubles`}
+          className={
+            "rounded-lg px-4 py-2 transition " +
+            (discipline === "doubles"
+              ? "bg-grass-500 text-white shadow-card"
+              : "text-ink-600 hover:bg-ink-50")
+          }
+        >
+          {t("discipline.doubles")}
+        </Link>
+      </nav>
+
       <Surface variant="card" as="section">
         {!board.enabled ? (
           <EmptyState title={t("title")} description={t("disabled")} />
         ) : board.standings.length === 0 ? (
-          <EmptyState title={t("title")} description={t("empty")} />
+          <EmptyState
+            title={t("title")}
+            description={discipline === "doubles" ? t("empty_doubles") : t("empty")}
+          />
         ) : (
           <ClubRatingTable
             rows={board.standings}

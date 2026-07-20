@@ -113,12 +113,14 @@ export async function loadClubPageSettings(
 
 export async function loadClubStandings(
   clubId: string,
+  discipline: "singles" | "doubles" = "singles",
 ): Promise<ClubRatingStandingRow[]> {
   const supabase = await createSupabaseServerClient();
   const { data: rows } = (await supabase
     .from("club_member_ratings")
     .select("player_id, rating, rating_status, rated_matches_count, wins, losses")
     .eq("club_id", clubId)
+    .eq("discipline", discipline)
     .order("rating", { ascending: false })) as {
     data: Array<{
       player_id: string;
@@ -222,11 +224,14 @@ export async function adjustClubRating(input: unknown): Promise<Result> {
   const settings = await loadClubRatingSettings(v.club_id);
   const cfg = clubRatingConfigToRatingConfig(settings.config);
 
+  // Manual adjustments target the SINGLES ladder (the owner editor edits the
+  // main club table). Doubles ratings are match-driven only for now.
   const { data: existing } = (await service
     .from("club_member_ratings")
     .select("rating, rated_matches_count, wins, losses")
     .eq("club_id", v.club_id)
     .eq("player_id", v.player_id)
+    .eq("discipline", "singles")
     .maybeSingle()) as {
     data: { rating: number; rated_matches_count: number; wins: number; losses: number } | null;
   };
@@ -241,13 +246,14 @@ export async function adjustClubRating(input: unknown): Promise<Result> {
     {
       club_id: v.club_id,
       player_id: v.player_id,
+      discipline: "singles",
       rating: v.new_rating,
       rating_status: eloStatusFor(old.rated_matches_count, cfg),
       rated_matches_count: old.rated_matches_count,
       wins: old.wins,
       losses: old.losses,
     } as never,
-    { onConflict: "club_id,player_id" } as never,
+    { onConflict: "club_id,player_id,discipline" } as never,
   );
   if (upErr) return { ok: false, error: upErr.message };
 
@@ -258,6 +264,7 @@ export async function adjustClubRating(input: unknown): Promise<Result> {
     old_rating: old.rating,
     new_rating: v.new_rating,
     reason: "manual_adjustment",
+    discipline: "singles",
     note: v.note,
     created_by: auth.userId,
   } as never);

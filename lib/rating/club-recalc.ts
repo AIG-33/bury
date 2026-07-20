@@ -3,20 +3,30 @@
 //
 // Mirrors lib/rating/recalc.ts but writes to the club-scoped tables
 // (club_member_ratings / club_rating_history) and never touches the global
-// profiles.current_elo. A match can feed more than one club's rating, so the
+// profiles Elo columns. A match can feed more than one club's rating, so the
 // public entry point is `recalcClubRatingsForMatch`.
+//
+// Disciplines: like the global rating, every club runs TWO independent
+// ladders — singles and doubles. `club_member_ratings` is keyed by
+// (club_id, player_id, discipline).
 //
 // Which clubs a match feeds:
 //   – Tournament match → the tournament's club (tournaments.club_id), if set.
-//   – Friendly match   → every club where BOTH players are approved members
-//                        and the club rating is enabled.
+//   – Friendly match   → every club where ALL participants (2 for singles,
+//                        4 for doubles) are approved members and the club
+//                        rating is enabled.
 //
 // Idempotent per (club, match): a unique index on club_rating_history backs
 // the in-code guard, so retries are safe.
 // =============================================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { computeMatchEloDelta, eloStatusFor, type MatchKind } from "./elo";
+import {
+  computeDoublesMatchEloDelta,
+  computeMatchEloDelta,
+  eloStatusFor,
+  type MatchKind,
+} from "./elo";
 import {
   clubRatingConfigFromRow,
   clubRatingConfigToRatingConfig,
@@ -41,8 +51,11 @@ type MatchRow = {
   round: number | null;
   outcome: string;
   winner_side: "p1" | "p2" | null;
+  is_doubles: boolean;
   p1_id: string;
+  p1_partner_id: string | null;
   p2_id: string | null;
+  p2_partner_id: string | null;
   played_at: string | null;
 };
 
@@ -61,7 +74,7 @@ export type ClubRecalcResult =
 
 async function classifyKind(
   supabase: AnySupabase,
-  match: MatchRow,
+  match: Pick<MatchRow, "tournament_id" | "round">,
 ): Promise<MatchKind> {
   if (match.tournament_id == null) return "friendly";
   if (match.round == null) return "tournament";
@@ -79,6 +92,7 @@ async function loadOrSeedRating(
   service: AnySupabase,
   clubId: string,
   playerId: string,
+  discipline: "singles" | "doubles",
   startRating: number,
 ): Promise<ClubRatingRow> {
   const { data } = (await service
@@ -86,6 +100,7 @@ async function loadOrSeedRating(
     .select("player_id, rating, rated_matches_count, wins, losses")
     .eq("club_id", clubId)
     .eq("player_id", playerId)
+    .eq("discipline", discipline)
     .maybeSingle()) as { data: ClubRatingRow | null };
   return (
     data ?? {
@@ -124,7 +139,8 @@ export async function recalcClubMatchElo(
   const { data: match, error: mErr } = (await service
     .from("matches")
     .select(
-      "id, tournament_id, round, outcome, winner_side, p1_id, p2_id, played_at",
+      "id, tournament_id, round, outcome, winner_side, is_doubles, " +
+        "p1_id, p1_partner_id, p2_id, p2_partner_id, played_at",
     )
     .eq("id", matchId)
     .maybeSingle()) as {
@@ -138,6 +154,9 @@ export async function recalcClubMatchElo(
   }
   if (!match.winner_side) return { ok: true, skipped: true, reason: "no_winner_side" };
   if (!match.p2_id) return { ok: true, skipped: true, reason: "no_opponent" };
+  if (match.is_doubles && (!match.p1_partner_id || !match.p2_partner_id)) {
+    return { ok: true, skipped: true, reason: "missing_partner" };
+  }
 
   // Idempotency guard (DB unique index backs this).
   const { data: existing } = (await service
@@ -150,85 +169,124 @@ export async function recalcClubMatchElo(
     return { ok: true, skipped: true, reason: "already_rated" };
   }
 
-  const p1 = await loadOrSeedRating(service, clubId, match.p1_id, clubConfig.start_rating);
-  const p2 = await loadOrSeedRating(service, clubId, match.p2_id, clubConfig.start_rating);
-
   const kind = await classifyKind(service, match);
-  const update = computeMatchEloDelta({
-    p1Elo: p1.rating,
-    p2Elo: p2.rating,
-    p1Matches: p1.rated_matches_count,
-    p2Matches: p2.rated_matches_count,
-    winnerSide: match.winner_side,
-    kind,
-    cfg,
-  });
+  const discipline: "singles" | "doubles" = match.is_doubles ? "doubles" : "singles";
+
+  const side1Ids = match.is_doubles
+    ? [match.p1_id, match.p1_partner_id!]
+    : [match.p1_id];
+  const side2Ids = match.is_doubles
+    ? [match.p2_id, match.p2_partner_id!]
+    : [match.p2_id];
+  const participantIds = [...side1Ids, ...side2Ids];
+
+  const ratings = new Map<string, ClubRatingRow>();
+  for (const id of participantIds) {
+    ratings.set(
+      id,
+      await loadOrSeedRating(service, clubId, id, discipline, clubConfig.start_rating),
+    );
+  }
+
+  type PlayerWrite = {
+    id: string;
+    old: ClubRatingRow;
+    newRating: number;
+    delta: number;
+    k: number;
+    won: boolean;
+  };
+  const p1Won = match.winner_side === "p1";
+  let writes: PlayerWrite[];
+  let multiplier: number;
+
+  if (match.is_doubles) {
+    const [t1a, t1b, t2a, t2b] = participantIds.map((id) => ratings.get(id)!);
+    const update = computeDoublesMatchEloDelta({
+      team1: [
+        { elo: t1a.rating, matches: t1a.rated_matches_count },
+        { elo: t1b.rating, matches: t1b.rated_matches_count },
+      ],
+      team2: [
+        { elo: t2a.rating, matches: t2a.rated_matches_count },
+        { elo: t2b.rating, matches: t2b.rated_matches_count },
+      ],
+      winnerSide: match.winner_side,
+      kind,
+      cfg,
+    });
+    multiplier = update.multiplier;
+    const flat = [...update.team1, ...update.team2];
+    writes = participantIds.map((id, i) => ({
+      id,
+      old: ratings.get(id)!,
+      newRating: flat[i].newElo,
+      delta: flat[i].delta,
+      k: flat[i].k,
+      won: i < 2 ? p1Won : !p1Won,
+    }));
+  } else {
+    const p1 = ratings.get(match.p1_id)!;
+    const p2 = ratings.get(match.p2_id)!;
+    const update = computeMatchEloDelta({
+      p1Elo: p1.rating,
+      p2Elo: p2.rating,
+      p1Matches: p1.rated_matches_count,
+      p2Matches: p2.rated_matches_count,
+      winnerSide: match.winner_side,
+      kind,
+      cfg,
+    });
+    multiplier = update.multiplier;
+    writes = [
+      { id: match.p1_id, old: p1, newRating: update.p1NewElo, delta: update.p1Delta, k: update.k1, won: p1Won },
+      { id: match.p2_id, old: p2, newRating: update.p2NewElo, delta: update.p2Delta, k: update.k2, won: !p1Won },
+    ];
+  }
 
   const ts = match.played_at ?? new Date().toISOString();
-  const p1Won = match.winner_side === "p1";
-  const newP1Count = p1.rated_matches_count + 1;
-  const newP2Count = p2.rated_matches_count + 1;
 
-  const { error: up1 } = await service.from("club_member_ratings").upsert(
-    {
-      club_id: clubId,
-      player_id: p1.player_id,
-      rating: update.p1NewElo,
-      rating_status: eloStatusFor(newP1Count, cfg),
-      rated_matches_count: newP1Count,
-      wins: p1.wins + (p1Won ? 1 : 0),
-      losses: p1.losses + (p1Won ? 0 : 1),
-    } as never,
-    { onConflict: "club_id,player_id" } as never,
-  );
-  if (up1) return { ok: false, error: up1.message };
+  for (const w of writes) {
+    const newCount = w.old.rated_matches_count + 1;
+    const { error } = await service.from("club_member_ratings").upsert(
+      {
+        club_id: clubId,
+        player_id: w.id,
+        discipline,
+        rating: w.newRating,
+        rating_status: eloStatusFor(newCount, cfg),
+        rated_matches_count: newCount,
+        wins: w.old.wins + (w.won ? 1 : 0),
+        losses: w.old.losses + (w.won ? 0 : 1),
+      } as never,
+      { onConflict: "club_id,player_id,discipline" } as never,
+    );
+    if (error) return { ok: false, error: error.message };
+  }
 
-  const { error: up2 } = await service.from("club_member_ratings").upsert(
-    {
+  const { error: histErr } = await service.from("club_rating_history").insert(
+    writes.map((w) => ({
       club_id: clubId,
-      player_id: p2.player_id,
-      rating: update.p2NewElo,
-      rating_status: eloStatusFor(newP2Count, cfg),
-      rated_matches_count: newP2Count,
-      wins: p2.wins + (p1Won ? 0 : 1),
-      losses: p2.losses + (p1Won ? 1 : 0),
-    } as never,
-    { onConflict: "club_id,player_id" } as never,
-  );
-  if (up2) return { ok: false, error: up2.message };
-
-  const { error: histErr } = await service.from("club_rating_history").insert([
-    {
-      club_id: clubId,
-      player_id: p1.player_id,
+      player_id: w.id,
       match_id: match.id,
-      old_rating: p1.rating,
-      new_rating: update.p1NewElo,
-      k_factor: update.k1,
-      multiplier: update.multiplier,
+      old_rating: w.old.rating,
+      new_rating: w.newRating,
+      k_factor: w.k,
+      multiplier,
       reason: "match",
+      discipline,
       created_at: ts,
-    },
-    {
-      club_id: clubId,
-      player_id: p2.player_id,
-      match_id: match.id,
-      old_rating: p2.rating,
-      new_rating: update.p2NewElo,
-      k_factor: update.k2,
-      multiplier: update.multiplier,
-      reason: "match",
-      created_at: ts,
-    },
-  ] as never);
+    })) as never,
+  );
   if (histErr) return { ok: false, error: histErr.message };
 
+  const deltaById = new Map(writes.map((w) => [w.id, w.delta] as const));
   return {
     ok: true,
     skipped: false,
     clubId,
-    p1Delta: update.p1Delta,
-    p2Delta: update.p2Delta,
+    p1Delta: deltaById.get(match.p1_id) ?? 0,
+    p2Delta: deltaById.get(match.p2_id) ?? 0,
   };
 }
 
@@ -254,10 +312,20 @@ export async function recalcClubRatingsForMatch(
 ): Promise<ClubRecalcResult[]> {
   const { data: match } = (await service
     .from("matches")
-    .select("id, tournament_id, p1_id, p2_id")
+    .select("id, tournament_id, is_doubles, p1_id, p1_partner_id, p2_id, p2_partner_id")
     .eq("id", matchId)
     .maybeSingle()) as {
-    data: { id: string; tournament_id: string | null; p1_id: string; p2_id: string | null } | null;
+    data:
+      | {
+          id: string;
+          tournament_id: string | null;
+          is_doubles: boolean;
+          p1_id: string;
+          p1_partner_id: string | null;
+          p2_id: string | null;
+          p2_partner_id: string | null;
+        }
+      | null;
   };
   if (!match || !match.p2_id) return [];
 
@@ -271,12 +339,21 @@ export async function recalcClubRatingsForMatch(
       .maybeSingle()) as { data: { club_id: string | null } | null };
     if (t?.club_id) clubIds.add(t.club_id);
   } else {
-    // Friendly: every club where BOTH players are approved members.
-    const [a, b] = await Promise.all([
-      approvedMemberClubIds(service, match.p1_id),
-      approvedMemberClubIds(service, match.p2_id),
-    ]);
-    for (const id of a) if (b.has(id)) clubIds.add(id);
+    // Friendly: every club where ALL participants are approved members.
+    const participantIds = match.is_doubles
+      ? [match.p1_id, match.p1_partner_id, match.p2_id, match.p2_partner_id].filter(
+          (x): x is string => x != null,
+        )
+      : [match.p1_id, match.p2_id];
+    if (match.is_doubles && participantIds.length !== 4) return [];
+
+    const memberSets = await Promise.all(
+      participantIds.map((id) => approvedMemberClubIds(service, id)),
+    );
+    const [first, ...rest] = memberSets;
+    for (const id of first ?? new Set<string>()) {
+      if (rest.every((s) => s.has(id))) clubIds.add(id);
+    }
   }
 
   const results: ClubRecalcResult[] = [];

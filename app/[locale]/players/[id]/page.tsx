@@ -220,11 +220,11 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
             actions={
               <Button asChild variant="primary" size="sm">
                 <Link
-                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                   href={
                     (isGuest
                       ? `/login?next=/${locale}/me/find?focus=${profile.id}`
-                      : `/me/find?focus=${profile.id}`) as any
+                      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (`/me/find?focus=${profile.id}` as any))
                   }
                 >
                   {t("card.propose_login")}
@@ -234,8 +234,8 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
           />
         </div>
 
-        {/* Stats trio — sits to the right of the lower half of the portrait */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {/* Stats — sits to the right of the lower half of the portrait */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat
             label={t("detail.stats.elo")}
             value={
@@ -244,7 +244,18 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
                 : t("card.elo_provisional", { elo: profile.current_elo })
             }
           />
-          <Stat label={t("detail.stats.rated_matches")} value={String(profile.rated_matches_count)} />
+          <Stat
+            label={t("detail.stats.elo_doubles")}
+            value={
+              profile.elo_status_doubles === "established"
+                ? t("card.elo_established", { elo: profile.current_elo_doubles })
+                : t("card.elo_provisional", { elo: profile.current_elo_doubles })
+            }
+          />
+          <Stat
+            label={t("detail.stats.rated_matches")}
+            value={String(profile.rated_matches_count + profile.rated_matches_count_doubles)}
+          />
           <Stat
             label={t("detail.stats.last_match")}
             value={

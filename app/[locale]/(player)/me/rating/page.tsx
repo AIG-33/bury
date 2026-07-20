@@ -1,10 +1,24 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { ArrowDown, ArrowUp, Clock, Minus, Sparkles, Trophy, ArrowRight } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Clock,
+  Minus,
+  Sparkles,
+  Trophy,
+  ArrowRight,
+  User,
+  Users,
+} from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { EmptyState } from "@/components/help/empty-state";
-import { loadMyRatingTab, type RatingMatchRow } from "@/lib/rating/history";
+import {
+  loadMyRatingTab,
+  type RatingDiscipline,
+  type RatingMatchRow,
+} from "@/lib/rating/history";
 import { loadMyExternalRating } from "@/lib/rating/external/actions-impl";
 import { loadMyExternalRatingTimeline } from "@/lib/rating/external/history";
 import { PageHeader } from "@/components/layout/page-header";
@@ -14,15 +28,23 @@ import { RatingDisplay } from "@/components/rating/rating-display";
 import { ExternalEloChart } from "@/components/rating/external-elo-chart";
 import { EloChart } from "./elo-chart";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ discipline?: string }>;
+};
 
-export default async function MyRatingPage({ params }: Props) {
+export default async function MyRatingPage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("rating");
   const tExt = await getTranslations("externalRating");
 
-  const data = await loadMyRatingTab();
+  const discipline: RatingDiscipline =
+    sp.discipline === "doubles" ? "doubles" : "singles";
+  const isDoubles = discipline === "doubles";
+
+  const data = await loadMyRatingTab(discipline);
   if (!data) redirect(`/${locale}/login`);
 
   const externalRating = await loadMyExternalRating();
@@ -99,11 +121,42 @@ export default async function MyRatingPage({ params }: Props) {
         </section>
       )}
 
+      {/* Discipline switcher: singles ↔ doubles are separate ladders. */}
+      <nav className="inline-flex rounded-xl border border-ink-200 bg-white p-1 text-sm font-medium">
+        <Link
+          href="/me/rating"
+          className={
+            "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 transition " +
+            (!isDoubles
+              ? "bg-grass-500 text-white shadow-card"
+              : "text-ink-600 hover:bg-ink-50")
+          }
+        >
+          <User className="h-4 w-4" />
+          {t("discipline.singles")}
+        </Link>
+        <Link
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          href={"/me/rating?discipline=doubles" as any}
+          className={
+            "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 transition " +
+            (isDoubles
+              ? "bg-grass-500 text-white shadow-card"
+              : "text-ink-600 hover:bg-ink-50")
+          }
+        >
+          <Users className="h-4 w-4" />
+          {t("discipline.doubles")}
+        </Link>
+      </nav>
+
       {/* Hero: current Elo */}
       <section className="surface-card overflow-hidden bg-gradient-to-br from-grass-50 via-white to-white">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="label-eyebrow">{t("hero.label")}</p>
+            <p className="label-eyebrow">
+              {isDoubles ? t("hero.label_doubles") : t("hero.label")}
+            </p>
             <div className="mt-2 flex items-center gap-4">
               <Trophy className="h-12 w-12 text-ball-500 drop-shadow-[0_4px_12px_rgba(31,138,76,0.25)]" />
               <RatingDisplay
@@ -111,14 +164,25 @@ export default async function MyRatingPage({ params }: Props) {
                 internalStatus={hero.elo_status}
                 external={
                   externalRating
-                    ? {
-                        source: "liga_tennisa",
-                        elo: externalRating.external_elo,
-                        displayTier: externalRating.display_tier,
-                        externalUrl: externalRating.external_url,
-                        lastRefreshedAt: externalRating.last_refreshed_at,
-                        isCalibrating: externalRating.is_calibrating_singles,
-                      }
+                    ? isDoubles
+                      ? externalRating.external_elo_doubles != null
+                        ? {
+                            source: "liga_tennisa",
+                            elo: externalRating.external_elo_doubles,
+                            displayTier: externalRating.display_tier,
+                            externalUrl: externalRating.external_url,
+                            lastRefreshedAt: externalRating.last_refreshed_at,
+                            isCalibrating: externalRating.is_calibrating_doubles,
+                          }
+                        : null
+                      : {
+                          source: "liga_tennisa",
+                          elo: externalRating.external_elo,
+                          displayTier: externalRating.display_tier,
+                          externalUrl: externalRating.external_url,
+                          lastRefreshedAt: externalRating.last_refreshed_at,
+                          isCalibrating: externalRating.is_calibrating_singles,
+                        }
                     : null
                 }
                 variant="stacked"
@@ -293,6 +357,7 @@ export default async function MyRatingPage({ params }: Props) {
                   no_change: t("matches.no_change"),
                   new_elo_label: t("matches.new_elo_label"),
                   tournament_generic: t("matches.tournament_generic"),
+                  with_partner: t("matches.with_partner"),
                 }}
                 dateFmt={dateFmt}
               />
@@ -351,6 +416,8 @@ function MatchListRow({
     no_change: string;
     new_elo_label: string;
     tournament_generic: string;
+    /** "с {partner}" line for doubles rows. */
+    with_partner: string;
   };
   dateFmt: Intl.DateTimeFormat;
 }) {
@@ -379,6 +446,9 @@ function MatchListRow({
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-display text-base font-semibold text-ink-900">
               {m.opponent.display_name ?? "—"}
+              {m.is_doubles && m.opponent_partner_name && (
+                <span className="text-ink-600"> / {m.opponent_partner_name}</span>
+              )}
             </p>
             <span className="font-mono text-xs tabular-nums text-ink-500">
               {m.opponent.current_elo}
@@ -407,6 +477,11 @@ function MatchListRow({
             )}
           </div>
 
+          {m.is_doubles && m.my_partner_name && (
+            <p className="mt-0.5 text-xs text-ink-600">
+              {copy.with_partner.replace("{partner}", m.my_partner_name)}
+            </p>
+          )}
           <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-500">
             <Clock className="h-3 w-3" />
             {dateFmt.format(new Date(m.played_at))}

@@ -27,6 +27,9 @@ export const PUBLIC_DIRECTORY_COLUMNS = [
   "current_elo",
   "elo_status",
   "rated_matches_count",
+  "current_elo_doubles",
+  "elo_status_doubles",
+  "rated_matches_count_doubles",
   "availability",
   "last_match_at",
   "is_coach",
@@ -45,6 +48,9 @@ export type PublicDirectoryRow = {
   current_elo: number;
   elo_status: "provisional" | "established";
   rated_matches_count: number;
+  current_elo_doubles: number;
+  elo_status_doubles: "provisional" | "established";
+  rated_matches_count_doubles: number;
   availability: Partial<Availability> | null;
   last_match_at: string | null;
   is_coach: boolean;
@@ -75,6 +81,9 @@ export type PublicPlayerCard = {
   current_elo: number;
   elo_status: "provisional" | "established";
   rated_matches_count: number;
+  current_elo_doubles: number;
+  elo_status_doubles: "provisional" | "established";
+  rated_matches_count_doubles: number;
   dominant_hand: "R" | "L" | null;
   backhand_style: "one_handed" | "two_handed" | null;
   favorite_surface: "hard" | "clay" | "grass" | "carpet" | null;
@@ -99,6 +108,9 @@ export const PUBLIC_CARD_KEYS = [
   "current_elo",
   "elo_status",
   "rated_matches_count",
+  "current_elo_doubles",
+  "elo_status_doubles",
+  "rated_matches_count_doubles",
   "dominant_hand",
   "backhand_style",
   "favorite_surface",
@@ -168,6 +180,9 @@ export function toPublicPlayerCard(
     current_elo: row.current_elo,
     elo_status: row.elo_status,
     rated_matches_count: row.rated_matches_count,
+    current_elo_doubles: row.current_elo_doubles,
+    elo_status_doubles: row.elo_status_doubles,
+    rated_matches_count_doubles: row.rated_matches_count_doubles,
     dominant_hand: row.dominant_hand,
     backhand_style: row.backhand_style,
     favorite_surface: row.favorite_surface,

@@ -7,6 +7,7 @@ import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { recalcMatchElo } from "@/lib/rating/recalc";
 import { recalcClubRatingsForMatch } from "@/lib/rating/club-recalc";
 import { inferWinnerFromSets as inferWinner } from "@/lib/matches/score";
+import { validateMatchParticipants } from "@/lib/matches/participants";
 
 // =============================================================================
 // Friendly matches — "report → confirm" flow with two-party verification.
@@ -55,6 +56,9 @@ function inferWinnerFromSets(
 
 const QuickRegisterSchema = z.object({
   opponent_id: z.string().uuid(),
+  is_doubles: z.boolean().optional().default(false),
+  my_partner_id: z.string().uuid().optional().nullable(),
+  opponent_partner_id: z.string().uuid().optional().nullable(),
   played_at: z.string().datetime().optional().nullable(),
   sets: SetsSchema,
   notes: z.string().trim().max(300).optional().nullable(),
@@ -68,6 +72,8 @@ export type QuickRegisterResult =
         | "not_authenticated"
         | "invalid_payload"
         | "self_match"
+        | "missing_partner"
+        | "duplicate_player"
         | "winner_unknown"
         | "opponent_not_found"
         | "db_error";
@@ -86,30 +92,41 @@ export async function quickRegisterMatch(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "not_authenticated" };
 
-  if (parsed.data.opponent_id === user.id) return { ok: false, error: "self_match" };
+  const participants = validateMatchParticipants({
+    reporterId: user.id,
+    opponentId: parsed.data.opponent_id,
+    isDoubles: parsed.data.is_doubles,
+    myPartnerId: parsed.data.my_partner_id,
+    opponentPartnerId: parsed.data.opponent_partner_id,
+  });
+  if (!participants.ok) return { ok: false, error: participants.error };
 
   const winner = inferWinnerFromSets(parsed.data.sets);
   if (!winner) return { ok: false, error: "winner_unknown" };
 
-  const { data: opp } = (await supabase
+  const otherIds = participants.allIds.filter((id) => id !== user.id);
+  const { data: others } = (await supabase
     .from("profiles")
     .select("id")
-    .eq("id", parsed.data.opponent_id)
-    .maybeSingle()) as { data: { id: string } | null };
-  if (!opp) return { ok: false, error: "opponent_not_found" };
+    .in("id", otherIds)) as { data: Array<{ id: string }> | null };
+  if ((others ?? []).length !== otherIds.length) {
+    return { ok: false, error: "opponent_not_found" };
+  }
 
   const service = createSupabaseServiceClient();
   const { data: inserted, error } = (await service
     .from("matches")
     .insert({
-      p1_id: user.id,
-      p2_id: parsed.data.opponent_id,
-      is_doubles: false,
+      p1_id: participants.p1_id,
+      p1_partner_id: participants.p1_partner_id,
+      p2_id: participants.p2_id,
+      p2_partner_id: participants.p2_partner_id,
+      is_doubles: parsed.data.is_doubles,
       outcome: "scheduled",
       sets: parsed.data.sets,
       winner_side: winner,
       played_at: parsed.data.played_at ?? new Date().toISOString(),
-      // Reporter is auto-confirmed; opponent must still confirm.
+      // Reporter's side is auto-confirmed; the opposing side must confirm.
       confirmed_by_p1: true,
       confirmed_by_p2: false,
       notes: parsed.data.notes ?? null,
@@ -163,7 +180,8 @@ export async function reportFriendlyResult(input: unknown): Promise<ReportResult
   const { data: m } = (await supabase
     .from("matches")
     .select(
-      "id, p1_id, p2_id, outcome, tournament_id, confirmed_by_p1, confirmed_by_p2",
+      "id, p1_id, p1_partner_id, p2_id, p2_partner_id, outcome, tournament_id, " +
+        "confirmed_by_p1, confirmed_by_p2",
     )
     .eq("id", parsed.data.match_id)
     .maybeSingle()) as {
@@ -171,7 +189,9 @@ export async function reportFriendlyResult(input: unknown): Promise<ReportResult
       | {
           id: string;
           p1_id: string;
+          p1_partner_id: string | null;
           p2_id: string;
+          p2_partner_id: string | null;
           outcome: string;
           tournament_id: string | null;
           confirmed_by_p1: boolean;
@@ -183,8 +203,9 @@ export async function reportFriendlyResult(input: unknown): Promise<ReportResult
   if (m.tournament_id != null) return { ok: false, error: "wrong_state" };
   if (m.outcome !== "scheduled") return { ok: false, error: "wrong_state" };
 
-  const isP1 = m.p1_id === user.id;
-  const isP2 = m.p2_id === user.id;
+  // Doubles: a partner acts with the same rights as their side's captain.
+  const isP1 = m.p1_id === user.id || m.p1_partner_id === user.id;
+  const isP2 = m.p2_id === user.id || m.p2_partner_id === user.id;
   if (!isP1 && !isP2) return { ok: false, error: "not_authorized" };
 
   const winner = inferWinnerFromSets(parsed.data.sets);
@@ -240,8 +261,8 @@ export async function confirmFriendlyResult(
   const { data: m } = (await supabase
     .from("matches")
     .select(
-      "id, p1_id, p2_id, outcome, tournament_id, sets, winner_side, " +
-        "confirmed_by_p1, confirmed_by_p2",
+      "id, p1_id, p1_partner_id, p2_id, p2_partner_id, outcome, tournament_id, " +
+        "sets, winner_side, confirmed_by_p1, confirmed_by_p2",
     )
     .eq("id", matchId)
     .maybeSingle()) as {
@@ -249,7 +270,9 @@ export async function confirmFriendlyResult(
       | {
           id: string;
           p1_id: string;
+          p1_partner_id: string | null;
           p2_id: string;
+          p2_partner_id: string | null;
           outcome: string;
           tournament_id: string | null;
           sets: unknown;
@@ -265,8 +288,8 @@ export async function confirmFriendlyResult(
   if (m.outcome !== "scheduled") return { ok: false, error: "wrong_state" };
   if (!m.sets || !m.winner_side) return { ok: false, error: "result_not_reported" };
 
-  const isP1 = m.p1_id === user.id;
-  const isP2 = m.p2_id === user.id;
+  const isP1 = m.p1_id === user.id || m.p1_partner_id === user.id;
+  const isP2 = m.p2_id === user.id || m.p2_partner_id === user.id;
   if (!isP1 && !isP2) return { ok: false, error: "not_authorized" };
 
   const reporterIsP1 = m.confirmed_by_p1 && !m.confirmed_by_p2;
@@ -290,7 +313,7 @@ export async function confirmFriendlyResult(
   let eloDelta: number | null = null;
   const recalc = await recalcMatchElo(service, matchId);
   if (recalc.ok && !recalc.skipped) {
-    eloDelta = isP1 ? recalc.p1Delta : recalc.p2Delta;
+    eloDelta = recalc.deltas[user.id] ?? (isP1 ? recalc.p1Delta : recalc.p2Delta);
   }
 
   // Per-club rating: a friendly feeds every club where both players are
@@ -332,7 +355,8 @@ export async function disputeFriendlyResult(
   const { data: m } = (await supabase
     .from("matches")
     .select(
-      "id, p1_id, p2_id, outcome, tournament_id, confirmed_by_p1, confirmed_by_p2",
+      "id, p1_id, p1_partner_id, p2_id, p2_partner_id, outcome, tournament_id, " +
+        "confirmed_by_p1, confirmed_by_p2",
     )
     .eq("id", matchId)
     .maybeSingle()) as {
@@ -340,7 +364,9 @@ export async function disputeFriendlyResult(
       | {
           id: string;
           p1_id: string;
+          p1_partner_id: string | null;
           p2_id: string;
+          p2_partner_id: string | null;
           outcome: string;
           tournament_id: string | null;
           confirmed_by_p1: boolean;
@@ -352,8 +378,8 @@ export async function disputeFriendlyResult(
   if (m.tournament_id != null) return { ok: false, error: "wrong_state" };
   if (m.outcome !== "scheduled") return { ok: false, error: "wrong_state" };
 
-  const isP1 = m.p1_id === user.id;
-  const isP2 = m.p2_id === user.id;
+  const isP1 = m.p1_id === user.id || m.p1_partner_id === user.id;
+  const isP2 = m.p2_id === user.id || m.p2_partner_id === user.id;
   if (!isP1 && !isP2) return { ok: false, error: "not_authorized" };
 
   // Cannot dispute your own report — only the opposite side can.
@@ -392,14 +418,16 @@ export async function cancelScheduledMatch(
 
   const { data: m } = (await supabase
     .from("matches")
-    .select("id, p1_id, p2_id, outcome, tournament_id, sets")
+    .select("id, p1_id, p1_partner_id, p2_id, p2_partner_id, outcome, tournament_id, sets")
     .eq("id", matchId)
     .maybeSingle()) as {
     data:
       | {
           id: string;
           p1_id: string;
+          p1_partner_id: string | null;
           p2_id: string;
+          p2_partner_id: string | null;
           outcome: string;
           tournament_id: string | null;
           sets: unknown;
@@ -410,8 +438,12 @@ export async function cancelScheduledMatch(
   if (m.tournament_id != null) return { ok: false, error: "wrong_state" };
   if (m.outcome !== "scheduled") return { ok: false, error: "wrong_state" };
   if (m.sets) return { ok: false, error: "result_already_reported" };
-  if (m.p1_id !== user.id && m.p2_id !== user.id)
-    return { ok: false, error: "not_authorized" };
+  const participates =
+    m.p1_id === user.id ||
+    m.p2_id === user.id ||
+    m.p1_partner_id === user.id ||
+    m.p2_partner_id === user.id;
+  if (!participates) return { ok: false, error: "not_authorized" };
 
   const service = createSupabaseServiceClient();
   const { error } = await service
@@ -435,6 +467,11 @@ export type MatchListItem = {
   scheduled_at: string | null;
   created_at: string;
   is_p1: boolean;
+  is_doubles: boolean;
+  /** Display name of the viewer's partner (doubles only). */
+  my_partner_name: string | null;
+  /** Display name of the opponent's partner (doubles only). */
+  opponent_partner_name: string | null;
   i_am_winner: boolean | null;
   sets: Array<{
     p1_games: number;
@@ -511,9 +548,9 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
   const { data: rows } = (await supabase
     .from("matches")
     .select(
-      "id, p1_id, p2_id, p1_partner_id, p2_partner_id, outcome, sets, winner_side, " +
-        "played_at, scheduled_at, created_at, confirmed_by_p1, confirmed_by_p2, " +
-        "tournament_id",
+      "id, p1_id, p2_id, p1_partner_id, p2_partner_id, is_doubles, outcome, sets, " +
+        "winner_side, played_at, scheduled_at, created_at, confirmed_by_p1, " +
+        "confirmed_by_p2, tournament_id",
     )
     .or(
       `p1_id.eq.${user.id},p2_id.eq.${user.id},` +
@@ -528,6 +565,7 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
       p2_id: string;
       p1_partner_id: string | null;
       p2_partner_id: string | null;
+      is_doubles: boolean;
       outcome: string;
       // sets is a free-form jsonb in the DB. Friendly matches store
       // `{p1_games, p2_games}`; tournament matches (organised flow) store
@@ -565,8 +603,15 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
   const sideOf = (m: (typeof list)[number]) =>
     m.p1_id === user.id || m.p1_partner_id === user.id ? "p1" : "p2";
 
+  // Every participant except the viewer: opposing captain + (for doubles)
+  // both partner slots and the viewer's own captain when the viewer is the
+  // partner. One lookup covers all name displays.
   const otherIds = Array.from(
-    new Set(list.map((m) => (sideOf(m) === "p1" ? m.p2_id : m.p1_id))),
+    new Set(
+      list
+        .flatMap((m) => [m.p1_id, m.p2_id, m.p1_partner_id, m.p2_partner_id])
+        .filter((x): x is string => x != null && x !== user.id),
+    ),
   );
 
   const peopleById = new Map<string, MatchListItem["opponent"]>();
@@ -605,6 +650,12 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
     const otherId = isP1 ? m.p2_id : m.p1_id;
     const opponent = peopleById.get(otherId);
     if (!opponent) return [];
+    // Doubles display: my partner = the other member of my side (the viewer
+    // may be the captain OR the partner slot); opponent partner = the second
+    // member of the opposing side.
+    const mySideIds = isP1 ? [m.p1_id, m.p1_partner_id] : [m.p2_id, m.p2_partner_id];
+    const myPartnerId = mySideIds.find((x) => x != null && x !== user.id) ?? null;
+    const opponentPartnerId = isP1 ? m.p2_partner_id : m.p1_partner_id;
     const iConfirmed = isP1 ? m.confirmed_by_p1 : m.confirmed_by_p2;
     const otherConfirmed = isP1 ? m.confirmed_by_p2 : m.confirmed_by_p1;
     const hasResult = m.sets != null && m.winner_side != null;
@@ -625,6 +676,13 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
         scheduled_at: m.scheduled_at,
         created_at: m.created_at,
         is_p1: isP1,
+        is_doubles: m.is_doubles,
+        my_partner_name: myPartnerId
+          ? (peopleById.get(myPartnerId)?.display_name ?? null)
+          : null,
+        opponent_partner_name: opponentPartnerId
+          ? (peopleById.get(opponentPartnerId)?.display_name ?? null)
+          : null,
         i_am_winner: iAmWinner,
         sets: normaliseSets(m.sets),
         i_confirmed: iConfirmed,
