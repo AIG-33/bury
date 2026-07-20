@@ -99,22 +99,28 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
     .join(" · ");
 
   const city = tournament.venues[0]?.city ?? null;
-  const jsonLd = buildTournamentEventJsonLd({
-    id,
-    locale,
-    name: tournament.name,
-    description: tournament.description,
-    startsOn: tournament.starts_on,
-    startTime: tournament.start_time,
-    city,
-    status: tournament.status,
-  });
-
   const theme = buildRoomTheme(tournament.branding);
   const accent = theme.accentColor;
   const heroTitle = tournament.branding.title_override ?? tournament.name;
   const sponsors = tournament.branding.sponsors;
   const activeParticipants = participants.filter((p) => !p.withdrawn);
+  const jsonLd = buildTournamentEventJsonLd({
+    id,
+    locale,
+    name: tournament.name,
+    description: tournament.description ?? tournament.branding.tagline,
+    startsOn: tournament.starts_on,
+    startTime: tournament.start_time,
+    endsOn: tournament.ends_on,
+    city,
+    status: tournament.status,
+    image: tournament.branding.banner_url ?? tournament.branding.logo_url,
+    entryFeeByn: tournament.entry_fee_byn,
+    organizerName: tournament.organizer_name,
+    performers: activeParticipants
+      .map((p) => (p.name ? { name: p.name } : null))
+      .filter((p): p is { name: string } => p != null),
+  });
   const freeSlots = tournament.max_participants
     ? Math.max(0, tournament.max_participants - tournament.participants_count)
     : null;

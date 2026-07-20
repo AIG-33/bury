@@ -89,13 +89,46 @@ type TournamentJsonLdInput = {
   description?: string | null;
   startsOn: string;
   startTime?: string | null;
+  /** Calendar end date (`YYYY-MM-DD`). Falls back to `startsOn` when omitted. */
+  endsOn?: string | null;
   city?: string | null;
   status: string;
+  /** Absolute https image URL (banner / logo / OG fallback). */
+  image?: string | null;
+  /** Entry fee in BYN; null/0 → free Offer with price 0. */
+  entryFeeByn?: number | null;
+  /** Human organizer display name (club owner / coach). */
+  organizerName?: string | null;
+  /** Participant display names used as Event `performer` list. */
+  performers?: Array<{ name: string }> | null;
 };
+
+/** Build an ISO-8601 / date value Google Event rich results accept as endDate. */
+function tournamentEndDate(t: TournamentJsonLdInput, start: string): string {
+  if (t.endsOn && t.endsOn !== t.startsOn) return t.endsOn;
+  if (t.endsOn) {
+    // Same calendar day: if we have a wall-clock start, give a same-day end
+    // a few hours later so endDate > startDate (Google warns on equal instants).
+    if (t.startTime) {
+      const [hh, mm] = t.startTime.split(":").map((x) => Number(x));
+      const endH = Math.min(23, (hh || 0) + 6);
+      return `${t.endsOn}T${String(endH).padStart(2, "0")}:${String(mm || 0).padStart(2, "0")}:00`;
+    }
+    return t.endsOn;
+  }
+  if (t.startTime) {
+    const [hh, mm] = t.startTime.split(":").map((x) => Number(x));
+    const endH = Math.min(23, (hh || 0) + 6);
+    return `${t.startsOn}T${String(endH).padStart(2, "0")}:${String(mm || 0).padStart(2, "0")}:00`;
+  }
+  // All-day single-day event — endDate may equal startDate for date-only values.
+  return start;
+}
 
 export function buildTournamentEventJsonLd(t: TournamentJsonLdInput) {
   const url = `${SITE_URL}/${t.locale}/tournaments/${t.id}`;
   const start = t.startTime ? `${t.startsOn}T${t.startTime}` : t.startsOn;
+  const end = tournamentEndDate(t, start);
   const eventStatus =
     t.status === "finished"
       ? "https://schema.org/EventCompleted"
@@ -103,16 +136,62 @@ export function buildTournamentEventJsonLd(t: TournamentJsonLdInput) {
         ? "https://schema.org/EventCancelled"
         : "https://schema.org/EventScheduled";
 
+  const fallbackDescription =
+    t.locale === "en"
+      ? `Amateur tennis tournament on ${SITE_NAME}.`
+      : `Любительский теннисный турнир на ${SITE_NAME}.`;
+  const description = (t.description?.trim() || fallbackDescription) as string;
+
+  const image =
+    t.image?.trim() ||
+    `${SITE_URL}${t.locale === "en" ? "/en" : "/ru"}/opengraph-image`;
+
+  const price = t.entryFeeByn != null && t.entryFeeByn > 0 ? t.entryFeeByn : 0;
+  const availability =
+    t.status === "finished" || t.status === "cancelled"
+      ? "https://schema.org/SoldOut"
+      : "https://schema.org/InStock";
+
+  const namedPerformers = (t.performers ?? [])
+    .map((p) => p.name.trim())
+    .filter((name) => name.length > 0)
+    .slice(0, 32)
+    .map((name) => ({ "@type": "Person" as const, name }));
+
+  const performer =
+    namedPerformers.length > 0
+      ? namedPerformers
+      : [
+          {
+            "@type": "SportsTeam" as const,
+            name:
+              t.locale === "en"
+                ? "Amateur tennis players"
+                : "Любительские теннисисты",
+          },
+        ];
+
+  // Inline name+url — Google does not always resolve bare `@id` references
+  // across separate JSON-LD blocks, which surfaces as missing organizer fields.
+  const organizer = {
+    "@type": "SportsOrganization" as const,
+    "@id": `${SITE_URL}/#organization`,
+    name: t.organizerName?.trim() || SITE_NAME,
+    url: SITE_URL,
+  };
+
   return {
     "@context": "https://schema.org",
     "@type": "SportsEvent",
     "@id": url,
     name: t.name,
-    description: t.description ?? undefined,
+    description,
     url,
+    image,
     sport: "Tennis",
     eventStatus,
     startDate: start,
+    endDate: end,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: t.city
       ? {
@@ -125,7 +204,16 @@ export function buildTournamentEventJsonLd(t: TournamentJsonLdInput) {
           name: "Belarus",
           address: { "@type": "PostalAddress", addressCountry: COUNTRY_CODE },
         },
-    organizer: { "@id": `${SITE_URL}/#organization` },
+    organizer,
+    offers: {
+      "@type": "Offer",
+      url,
+      price,
+      priceCurrency: "BYN",
+      availability,
+      validFrom: t.startsOn,
+    },
+    performer,
   };
 }
 
