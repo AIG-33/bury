@@ -8,8 +8,9 @@ import {
   applyToTournament,
   type TournamentViewerState,
 } from "@/app/[locale]/(player)/me/tournaments/actions";
+import { TournamentPartnerPicker } from "@/components/domain/tournament-partner-picker";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
-import type { TournamentStatus } from "@/lib/tournaments/schema";
+import type { TournamentStatus, TournamentDiscipline } from "@/lib/tournaments/schema";
 
 export type ApplyButtonCopy = {
   title: string;
@@ -28,12 +29,14 @@ export function TournamentApplyButton({
   locale,
   tournamentId,
   status,
+  discipline = "singles",
   viewer,
   copy,
 }: {
   locale: string;
   tournamentId: string;
   status: TournamentStatus;
+  discipline?: TournamentDiscipline;
   viewer: TournamentViewerState;
   copy: ApplyButtonCopy;
 }) {
@@ -41,6 +44,7 @@ export function TournamentApplyButton({
   const tErrors = useTranslations("tournamentsPlayer.errors");
   const [pending, startT] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Anonymous visitor — route through login, then bounce back to this page.
   if (!viewer.authenticated) {
@@ -93,13 +97,25 @@ export function TournamentApplyButton({
     );
   }
 
-  function onApply() {
+  function submit(partnerId?: string) {
     setError(null);
     startT(async () => {
-      const r = await applyToTournament(tournamentId);
-      if (r.ok) router.refresh();
-      else setError(localizeActionError(tErrors, r.error));
+      const r = await applyToTournament(tournamentId, { partnerId: partnerId ?? null });
+      if (r.ok) {
+        setPickerOpen(false);
+        router.refresh();
+      } else setError(localizeActionError(tErrors, r.error));
     });
+  }
+
+  function onApply() {
+    // Doubles tournaments register a PAIR — pick the partner first.
+    if (discipline === "doubles") {
+      setError(null);
+      setPickerOpen(true);
+      return;
+    }
+    submit();
   }
 
   return (
@@ -117,6 +133,12 @@ export function TournamentApplyButton({
         {pending ? copy.applying : copy.cta}
       </button>
       {error && <span className="text-xs text-clay-700">{error}</span>}
+      <TournamentPartnerPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={(partnerId) => submit(partnerId)}
+        submitting={pending}
+      />
     </div>
   );
 }

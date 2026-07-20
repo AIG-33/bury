@@ -1,6 +1,7 @@
 import {
   TOURNAMENT_FORMATS,
   TOURNAMENT_STATUSES,
+  TOURNAMENT_DISCIPLINES,
   SURFACES,
   SEEDING_METHODS,
   PRIVACY_OPTIONS,
@@ -8,6 +9,7 @@ import {
   MATCH_RULE_KINDS,
   type TournamentFormat,
   type TournamentStatus,
+  type TournamentDiscipline,
   type Surface,
   type SeedingMethod,
   type Privacy,
@@ -29,6 +31,14 @@ export function buildFormatLabels(t: OrganizedTranslator): Record<TournamentForm
     TournamentFormat,
     string
   >;
+}
+
+export function buildDisciplineLabels(
+  t: OrganizedTranslator,
+): Record<TournamentDiscipline, string> {
+  return Object.fromEntries(
+    TOURNAMENT_DISCIPLINES.map((d) => [d, t(`disciplines.${d}`)]),
+  ) as Record<TournamentDiscipline, string>;
 }
 
 export function buildStatusLabels(t: OrganizedTranslator): Record<TournamentStatus, string> {
@@ -77,6 +87,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
       name: t("dialog.fields.name"),
       description: t("dialog.fields.description"),
       format: t("dialog.fields.format"),
+      discipline: t("dialog.fields.discipline"),
       surface: t("dialog.fields.surface"),
       starts_on: t("dialog.fields.starts_on"),
       start_time: t("dialog.fields.start_time"),
@@ -101,6 +112,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
     },
     hints: {
       format: t("dialog.hints.format"),
+      discipline: t("dialog.hints.discipline"),
       privacy: t("dialog.hints.privacy"),
       application_mode: t("dialog.hints.application_mode"),
       draw_method: t("dialog.hints.draw_method"),
@@ -113,6 +125,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
       club: t("dialog.hints.club"),
     },
     format_labels: formatLabels,
+    discipline_labels: buildDisciplineLabels(t),
     surface_labels: surfaceLabels,
     draw_method_labels: drawMethodLabels,
     privacy_labels: privacyLabels,

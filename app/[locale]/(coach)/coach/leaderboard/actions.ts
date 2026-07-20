@@ -184,10 +184,12 @@ export async function loadCoachLeaderboard(opts: {
   const extByPlayer = new Map<string, LeaderboardRow["external_rating"]>();
   if (profileIds.length > 0) {
     const [{ data: hist }, { data: ext }] = await Promise.all([
+      // Leaderboard ranks the SINGLES Elo → deltas come from that ladder only.
       supabase
         .from("rating_history")
         .select("player_id, delta, created_at")
         .in("player_id", profileIds)
+        .eq("discipline", "singles")
         .gte("created_at", sinceIso) as unknown as Promise<{
         data: Array<{
           player_id: string;

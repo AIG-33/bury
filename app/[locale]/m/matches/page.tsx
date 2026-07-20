@@ -34,8 +34,17 @@ export default async function MobileMatchesPage({ params, searchParams }: Props)
     data: { user },
   } = await supabase.auth.getUser();
 
-  const rating = user ? await loadMyRatingTab() : null;
-  let matches = (rating?.recentMatches ?? []).filter((m) => m.outcome === "completed");
+  // Two independent ladders → two loads, merged into one timeline. Each row
+  // carries is_doubles + partner names, so the list can label pair matches.
+  const [singlesTab, doublesTab] = user
+    ? await Promise.all([loadMyRatingTab("singles"), loadMyRatingTab("doubles")])
+    : [null, null];
+  let matches = [
+    ...(singlesTab?.recentMatches ?? []),
+    ...(doublesTab?.recentMatches ?? []),
+  ]
+    .filter((m) => m.outcome === "completed")
+    .sort((a, b) => Date.parse(b.played_at) - Date.parse(a.played_at));
 
   // -- Filters ---------------------------------------------------------------
   const q = sp.q?.trim().toLowerCase() ?? "";
@@ -302,13 +311,18 @@ export default async function MobileMatchesPage({ params, searchParams }: Props)
                             </span>
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-[14px] font-bold text-ink-900">
-                                {m.opponent.display_name ?? t("common.player_unknown")}
+                                {m.is_doubles && m.opponent_partner_name
+                                  ? `${m.opponent.display_name ?? t("common.player_unknown")} / ${m.opponent_partner_name}`
+                                  : (m.opponent.display_name ?? t("common.player_unknown"))}
                               </p>
                               <p className="mt-0.5 truncate text-[11px] font-semibold text-ink-500">
                                 {[
                                   dateFmt.format(new Date(m.played_at)),
+                                  m.is_doubles ? t("matches.doubles_badge") : null,
                                   m.tournament_name ?? t("feed.friendly_match"),
-                                ].join(" · ")}
+                                ]
+                                  .filter(Boolean)
+                                  .join(" · ")}
                               </p>
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-0.5">

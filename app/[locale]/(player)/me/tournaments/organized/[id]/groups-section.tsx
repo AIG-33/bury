@@ -187,7 +187,10 @@ export function GroupsSection({
                 <ul className="mt-1 space-y-1.5">
                   {members.map((m) => (
                     <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span className="truncate text-ink-800">{m.display_name ?? m.player_id}</span>
+                      <span className="truncate text-ink-800">
+                        {m.display_name ?? m.player_id}
+                        {m.partner_name ? ` / ${m.partner_name}` : ""}
+                      </span>
                       {!anyGroupResults && groups.length > 1 ? (
                         <MoveSelector
                           participantId={m.id}

@@ -18,6 +18,12 @@ export const SUPPORTED_FORMATS_MVP: TournamentFormat[] = [
   "group_playoff",
 ];
 
+// Singles (default) vs doubles. In a doubles tournament every participant
+// row is a PAIR (player_id = captain, partner_id = partner); matches are
+// written with is_doubles + partner columns and rate the doubles Elo ladder.
+export const TOURNAMENT_DISCIPLINES = ["singles", "doubles"] as const;
+export type TournamentDiscipline = (typeof TOURNAMENT_DISCIPLINES)[number];
+
 // Power-of-two bracket sizes that can be picked when the organiser closes the
 // group stage of a hybrid tournament. 2 = direct final, 4 = semis, etc.
 export const PLAYOFF_SIZES = [2, 4, 8, 16, 32] as const;
@@ -170,6 +176,9 @@ export const TournamentFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: optionalText,
   format: z.enum(TOURNAMENT_FORMATS).default("single_elimination"),
+  // Locked once the tournament has participants — flipping it would orphan
+  // solo registrations (or strand pairs in a singles draw).
+  discipline: z.enum(TOURNAMENT_DISCIPLINES).default("singles"),
   surface: z.enum(SURFACES).optional().nullable(),
   starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD"),
   start_time: optionalTimeOfDay,
@@ -278,5 +287,8 @@ export type ScoreForm = z.infer<typeof ScoreFormSchema>;
 export const AddParticipantSchema = z.object({
   tournament_id: z.string().uuid(),
   player_id: z.string().uuid(),
+  // Required (validated in the action) when the tournament is doubles;
+  // must stay null for singles.
+  partner_id: z.string().uuid().optional().nullable(),
   seed: z.coerce.number().int().min(1).max(256).optional().nullable(),
 });

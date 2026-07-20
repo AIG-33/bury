@@ -14,6 +14,7 @@ import {
   MoveToGroupSchema,
   type TournamentFormat,
   type TournamentStatus,
+  type TournamentDiscipline,
   type SeedingMethod,
   type Privacy,
   type ApplicationMode,
@@ -21,6 +22,11 @@ import {
   type MatchRules,
   type MatchStage,
 } from "@/lib/tournaments/schema";
+import {
+  validatePairRegistration,
+  pairSeedElo,
+  composePairName,
+} from "@/lib/tournaments/pairs";
 import { canSetParticipantStatus } from "@/lib/tournaments/applications";
 import {
   buildRoundRobinSchedule,
@@ -58,6 +64,7 @@ export type TournamentRow = {
   name: string;
   description: string | null;
   format: TournamentFormat;
+  discipline: TournamentDiscipline;
   surface: Surface | null;
   starts_on: string;
   start_time: string | null;
@@ -105,7 +112,12 @@ export type ParticipantRow = {
   player_id: string;
   display_name: string | null;
   avatar_url: string | null;
+  /** Ladder-appropriate rating: singles Elo, or the pair's average doubles
+   * Elo in a doubles tournament. */
   current_elo: number;
+  /** Doubles tournaments only — the second player of the pair. */
+  partner_id: string | null;
+  partner_name: string | null;
   seed: number | null;
   status: ParticipantStatus;
   withdrawn: boolean;
@@ -119,8 +131,13 @@ export type MatchRow = {
   bracket_slot: number | null;
   p1_id: string | null;
   p2_id: string | null;
+  /** In a doubles tournament the names are pre-composed pair lines
+   * ("Иванов / Петров") so every list/bracket renders pairs for free. */
   p1_name: string | null;
   p2_name: string | null;
+  is_doubles: boolean;
+  p1_partner_id: string | null;
+  p2_partner_id: string | null;
   winner_side: "p1" | "p2" | null;
   outcome: string;
   sets: Array<{ p1: number; p2: number; tb_p1?: number | null; tb_p2?: number | null }> | null;
@@ -133,6 +150,7 @@ export type MatchRow = {
 export type PlayerOption = {
   id: string;
   display_name: string | null;
+  /** Ladder-appropriate: doubles Elo when the tournament is doubles. */
   current_elo: number;
 };
 
@@ -165,7 +183,7 @@ export async function loadOrganizedTournaments(): Promise<
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
-      "id, name, description, format, surface, starts_on, start_time, ends_on, " +
+      "id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
         "draw_method, prizes_description, match_rules, branding, created_at, " +
         "groups_count, advance_per_group, playoff_size, third_place_match",
@@ -296,7 +314,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
   const { data: t } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_id, name, description, format, surface, starts_on, start_time, " +
+      "id, owner_id, name, description, format, discipline, surface, starts_on, start_time, " +
         "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
         "draw_method, prizes_description, match_rules, branding, created_at, " +
         "groups_count, advance_per_group, playoff_size, third_place_match",
@@ -328,10 +346,12 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     .filter((v): v is { id: string; name: string; city: string | null } => v != null)
     .map((v) => ({ id: v.id, name: v.name, city: v.city }));
 
+  const isDoubles = t.discipline === "doubles";
+
   // NOTE: no `profiles` join — use the RLS-bypassing public projection.
   const { data: parts } = (await supabase
     .from("tournament_participants")
-    .select("id, player_id, seed, status, withdrawn, registered_at, group_id")
+    .select("id, player_id, partner_id, seed, status, withdrawn, registered_at, group_id")
     .eq("tournament_id", tournamentId)
     .order("status", { ascending: true })
     .order("seed", { ascending: true, nullsFirst: false })
@@ -339,6 +359,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
     data: Array<{
       id: string;
       player_id: string;
+      partner_id: string | null;
       seed: number | null;
       status: ParticipantStatus;
       withdrawn: boolean;
@@ -356,27 +377,35 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
   };
   const groups: GroupRow[] = groupRows ?? [];
 
-  const playerIds = Array.from(new Set((parts ?? []).map((p) => p.player_id)));
+  const playerIds = Array.from(
+    new Set(
+      (parts ?? []).flatMap((p) => [p.player_id, p.partner_id]).filter((x): x is string => !!x),
+    ),
+  );
   type Basic = {
     id: string;
     display_name: string | null;
     avatar_url: string | null;
     current_elo: number | null;
+    current_elo_doubles: number | null;
   };
   let basicById = new Map<string, Basic>();
   if (playerIds.length > 0) {
     const { data: basics } = (await supabase
       .from("public_player_basic")
-      .select("id, display_name, avatar_url, current_elo")
+      .select("id, display_name, avatar_url, current_elo, current_elo_doubles")
       .in("id", playerIds)) as { data: Basic[] | null };
     basicById = new Map((basics ?? []).map((b) => [b.id, b] as const));
   }
 
   const participants: ParticipantRow[] = (parts ?? []).map((p) => {
     const b = basicById.get(p.player_id);
+    const partner = p.partner_id ? basicById.get(p.partner_id) : undefined;
     return {
       id: p.id,
       player_id: p.player_id,
+      partner_id: p.partner_id,
+      partner_name: partner?.display_name ?? null,
       seed: p.seed,
       status: p.status,
       withdrawn: p.withdrawn,
@@ -384,15 +413,17 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       group_id: p.group_id,
       display_name: b?.display_name ?? null,
       avatar_url: b?.avatar_url ?? null,
-      current_elo: b?.current_elo ?? 1000,
+      current_elo: isDoubles
+        ? pairSeedElo(b?.current_elo_doubles ?? null, partner?.current_elo_doubles ?? null)
+        : (b?.current_elo ?? 1000),
     };
   });
 
   const { data: ms } = (await supabase
     .from("matches")
     .select(
-      "id, round, bracket_slot, p1_id, p2_id, winner_side, outcome, sets, scheduled_at, played_at, " +
-        "stage, group_id",
+      "id, round, bracket_slot, p1_id, p2_id, is_doubles, p1_partner_id, p2_partner_id, " +
+        "winner_side, outcome, sets, scheduled_at, played_at, stage, group_id",
     )
     .eq("tournament_id", tournamentId)
     .order("stage", { ascending: true, nullsFirst: true })
@@ -402,25 +433,39 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
   };
 
   const nameById = new Map<string, string | null>();
-  for (const p of participants) nameById.set(p.player_id, p.display_name);
+  for (const [id, b] of basicById) nameById.set(id, b.display_name);
+
+  const sideName = (playerId: string | null, partnerId: string | null): string | null => {
+    if (!playerId) return null;
+    const name = nameById.get(playerId) ?? null;
+    if (!isDoubles) return name;
+    return composePairName(name, partnerId ? (nameById.get(partnerId) ?? null) : null);
+  };
 
   const matches: MatchRow[] = (ms ?? []).map((m) => ({
     ...m,
-    p1_name: m.p1_id ? (nameById.get(m.p1_id) ?? null) : null,
-    p2_name: m.p2_id ? (nameById.get(m.p2_id) ?? null) : null,
+    p1_name: sideName(m.p1_id, m.p1_partner_id),
+    p2_name: sideName(m.p2_id, m.p2_partner_id),
   }));
 
-  // "Add participant" picker — exclude anyone with an existing (any-status) row.
-  const registeredIds = new Set(participants.map((p) => p.player_id));
+  // "Add participant" picker — exclude anyone with an existing (any-status)
+  // row, in either slot of a pair.
+  const registeredIds = new Set(playerIds);
   const { data: pool } = (await supabase
     .from("public_player_basic")
-    .select("id, display_name, current_elo")
+    .select("id, display_name, current_elo, current_elo_doubles")
     .eq("visible_in_leaderboard", true)
-    .order("current_elo", { ascending: false })
+    .order(isDoubles ? "current_elo_doubles" : "current_elo", { ascending: false })
     .limit(200)) as {
-    data: Array<PlayerOption> | null;
+    data: Array<PlayerOption & { current_elo_doubles: number }> | null;
   };
-  const playerOptions = (pool ?? []).filter((p) => !registeredIds.has(p.id));
+  const playerOptions: PlayerOption[] = (pool ?? [])
+    .filter((p) => !registeredIds.has(p.id))
+    .map((p) => ({
+      id: p.id,
+      display_name: p.display_name,
+      current_elo: isDoubles ? p.current_elo_doubles : p.current_elo,
+    }));
 
   const participants_count = participants.filter(
     (p) => p.status === "approved" && !p.withdrawn,
@@ -434,6 +479,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       name: t.name,
       description: t.description,
       format: t.format,
+      discipline: t.discipline,
       surface: t.surface,
       starts_on: t.starts_on,
       start_time: t.start_time,
@@ -560,6 +606,7 @@ export async function createTournament(
       name: v.name,
       description: v.description,
       format: v.format,
+      discipline: v.discipline,
       surface: v.surface ?? null,
       starts_on: v.starts_on,
       start_time: v.start_time,
@@ -618,7 +665,9 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
 
   const { data: current } = (await supabase
     .from("tournaments")
-    .select("id, owner_id, status, format, draw_method, match_rules, third_place_match")
+    .select(
+      "id, owner_id, status, format, discipline, draw_method, match_rules, third_place_match",
+    )
     .eq("id", id)
     .single()) as {
     data: {
@@ -626,6 +675,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       owner_id: string;
       status: TournamentStatus;
       format: TournamentFormat;
+      discipline: TournamentDiscipline;
       draw_method: SeedingMethod | null;
       match_rules: MatchRules;
       third_place_match: boolean;
@@ -638,6 +688,19 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
     return { ok: false, error: "not_club_admin" };
   }
 
+  // Discipline flips would orphan the existing registrations (solo entries
+  // in a doubles draw or stranded pairs in singles) — block once anyone is in.
+  if (v.discipline !== current.discipline) {
+    const { data: anyPart } = (await supabase
+      .from("tournament_participants")
+      .select("id")
+      .eq("tournament_id", id)
+      .limit(1)) as { data: Array<{ id: string }> | null };
+    if ((anyPart?.length ?? 0) > 0) {
+      return { ok: false, error: "discipline_locked" };
+    }
+  }
+
   // Once the draw exists (in_progress) or the tournament is over, changing
   // the format / seeding / match rules would silently invalidate played
   // matches and the bracket. Harmless edits (description, dates, fee,
@@ -646,6 +709,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
   if (locked) {
     const drawAffectingChanged =
       v.format !== current.format ||
+      v.discipline !== current.discipline ||
       v.draw_method !== (current.draw_method ?? "rating") ||
       stableStringify(v.match_rules) !== stableStringify(current.match_rules) ||
       (v.format === "group_playoff" && v.third_place_match !== current.third_place_match);
@@ -660,6 +724,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       name: v.name,
       description: v.description,
       format: v.format,
+      discipline: v.discipline,
       surface: v.surface ?? null,
       starts_on: v.starts_on,
       start_time: v.start_time,
@@ -809,13 +874,14 @@ export async function addParticipant(input: unknown): Promise<SaveResult> {
 
   const { data: t } = (await supabase
     .from("tournaments")
-    .select("id, owner_id, status, max_participants")
+    .select("id, owner_id, status, discipline, max_participants")
     .eq("id", v.tournament_id)
     .single()) as {
     data: {
       id: string;
       owner_id: string;
       status: TournamentStatus;
+      discipline: TournamentDiscipline;
       max_participants: number | null;
     } | null;
   };
@@ -823,6 +889,25 @@ export async function addParticipant(input: unknown): Promise<SaveResult> {
   if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
   if (t.status === "in_progress" || t.status === "finished") {
     return { ok: false, error: "tournament_locked" };
+  }
+
+  // Doubles: the row is a pair — validate it against everyone already in
+  // (any slot, any status). Singles: never persist a stray partner.
+  let partnerId: string | null = null;
+  if (t.discipline === "doubles") {
+    const { data: existing } = (await supabase
+      .from("tournament_participants")
+      .select("player_id, partner_id")
+      .eq("tournament_id", v.tournament_id)) as {
+      data: Array<{ player_id: string; partner_id: string | null }> | null;
+    };
+    const pair = validatePairRegistration({
+      captainId: v.player_id,
+      partnerId: v.partner_id,
+      existing: existing ?? [],
+    });
+    if (!pair.ok) return { ok: false, error: pair.error };
+    partnerId = pair.partnerId;
   }
 
   if (t.max_participants != null) {
@@ -842,6 +927,7 @@ export async function addParticipant(input: unknown): Promise<SaveResult> {
     .insert({
       tournament_id: v.tournament_id,
       player_id: v.player_id,
+      partner_id: partnerId,
       seed: v.seed,
       status: "approved",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1024,20 +1110,26 @@ async function loadPlayerBasics(
 ): Promise<
   Map<
     string,
-    { display_name: string | null; avatar_url: string | null; current_elo: number | null }
+    {
+      display_name: string | null;
+      avatar_url: string | null;
+      current_elo: number | null;
+      current_elo_doubles: number | null;
+    }
   >
 > {
   const unique = Array.from(new Set(playerIds));
   if (unique.length === 0) return new Map();
   const { data } = (await supabase
     .from("public_player_basic")
-    .select("id, display_name, avatar_url, current_elo")
+    .select("id, display_name, avatar_url, current_elo, current_elo_doubles")
     .in("id", unique)) as {
     data: Array<{
       id: string;
       display_name: string | null;
       avatar_url: string | null;
       current_elo: number | null;
+      current_elo_doubles: number | null;
     }> | null;
   };
   return new Map(
@@ -1047,6 +1139,7 @@ async function loadPlayerBasics(
         display_name: b.display_name,
         avatar_url: b.avatar_url,
         current_elo: b.current_elo,
+        current_elo_doubles: b.current_elo_doubles,
       },
     ]),
   );
@@ -1062,13 +1155,14 @@ export async function generateBracket(
 
   const { data: t } = (await supabase
     .from("tournaments")
-    .select("id, owner_id, format, status, draw_method, match_rules")
+    .select("id, owner_id, format, discipline, status, draw_method, match_rules")
     .eq("id", tournamentId)
     .single()) as {
     data: {
       id: string;
       owner_id: string;
       format: TournamentFormat;
+      discipline: TournamentDiscipline;
       status: TournamentStatus;
       draw_method: SeedingMethod | null;
       match_rules: MatchRules;
@@ -1093,28 +1187,44 @@ export async function generateBracket(
   // (same pattern as loadTournamentDetail).
   const { data: parts } = (await supabase
     .from("tournament_participants")
-    .select("player_id, seed, withdrawn, status")
+    .select("player_id, partner_id, seed, withdrawn, status")
     .eq("tournament_id", tournamentId)
     .eq("status", "approved")
     .eq("withdrawn", false)) as {
     data: Array<{
       player_id: string;
+      partner_id: string | null;
       seed: number | null;
       withdrawn: boolean;
       status: ParticipantStatus;
     }> | null;
   };
 
+  const isDoubles = t.discipline === "doubles";
+  // Doubles draws are keyed by the pair captain (player_id); the partner is
+  // re-attached to every match row via this map.
+  const partnerByCaptain = new Map<string, string>();
+  if (isDoubles) {
+    for (const p of parts ?? []) {
+      if (!p.partner_id) return { ok: false, error: "pair_incomplete" };
+      partnerByCaptain.set(p.player_id, p.partner_id);
+    }
+  }
+
   const basicById = await loadPlayerBasics(
     supabase,
-    (parts ?? []).map((p) => p.player_id),
+    (parts ?? []).flatMap((p) => [p.player_id, p.partner_id]).filter((x): x is string => !!x),
   );
   const players: DrawPlayer[] = (parts ?? []).map((p) => {
     const b = basicById.get(p.player_id);
+    const partner = p.partner_id ? basicById.get(p.partner_id) : undefined;
     return {
       id: p.player_id,
       display_name: b?.display_name ?? null,
-      current_elo: b?.current_elo ?? 1000,
+      // Rating seeding: doubles pairs seed by their average doubles Elo.
+      current_elo: isDoubles
+        ? pairSeedElo(b?.current_elo_doubles ?? null, partner?.current_elo_doubles ?? null)
+        : (b?.current_elo ?? 1000),
     };
   });
   if (players.length < 2) return { ok: false, error: "need_at_least_2_players" };
@@ -1132,12 +1242,22 @@ export async function generateBracket(
     orderedPlayers = ordering.map((id) => byId.get(id)!).filter(Boolean);
   }
 
+  // Partner columns for a bracket side; no-ops for singles tournaments.
+  const pairCols = (p1: string | null, p2: string | null) => ({
+    is_doubles: isDoubles,
+    p1_partner_id: isDoubles && p1 ? (partnerByCaptain.get(p1) ?? null) : null,
+    p2_partner_id: isDoubles && p2 ? (partnerByCaptain.get(p2) ?? null) : null,
+  });
+
   let rows: Array<{
     tournament_id: string;
     round: number;
     bracket_slot: number;
     p1_id: string | null;
     p2_id: string | null;
+    is_doubles: boolean;
+    p1_partner_id: string | null;
+    p2_partner_id: string | null;
     outcome: "pending" | "walkover_p1";
     winner_side: "p1" | null;
     match_rules: MatchRules;
@@ -1151,6 +1271,7 @@ export async function generateBracket(
       bracket_slot: m.bracket_slot,
       p1_id: m.p1_id,
       p2_id: m.p2_id,
+      ...pairCols(m.p1_id, m.p2_id),
       outcome: "pending" as const,
       winner_side: null,
       match_rules: t.match_rules,
@@ -1178,6 +1299,7 @@ export async function generateBracket(
         bracket_slot: m.bracket_slot,
         p1_id: p1,
         p2_id: p2,
+        ...pairCols(p1, p2),
         outcome: isAutoBye ? ("walkover_p1" as const) : ("pending" as const),
         winner_side: isAutoBye ? ("p1" as const) : null,
         match_rules: t.match_rules,
@@ -1201,32 +1323,58 @@ export async function generateBracket(
 // Hybrid (group + playoff) flow
 // =============================================================================
 
-// Helpers shared by generate/close/move.
+// Helpers shared by generate/close/move. For doubles tournaments the returned
+// DrawPlayer is the pair CAPTAIN (rated by the pair's average doubles Elo) and
+// `partnerByCaptain` re-attaches partners to match rows. `incomplete` flags a
+// pair that is missing its partner — the caller must refuse to draw.
 async function loadApprovedDrawPlayers(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   tournamentId: string,
-): Promise<DrawPlayer[]> {
+  discipline: TournamentDiscipline,
+): Promise<{
+  players: DrawPlayer[];
+  partnerByCaptain: Map<string, string>;
+  incomplete: boolean;
+}> {
   // Same RLS caveat as in generateBracket: read Elo via public_player_basic,
   // never via a `profiles` join.
   const { data } = (await supabase
     .from("tournament_participants")
-    .select("player_id")
+    .select("player_id, partner_id")
     .eq("tournament_id", tournamentId)
     .eq("status", "approved")
     .eq("withdrawn", false)) as {
-    data: Array<{ player_id: string }> | null;
+    data: Array<{ player_id: string; partner_id: string | null }> | null;
   };
-  const ids = (data ?? []).map((p) => p.player_id);
-  const basicById = await loadPlayerBasics(supabase, ids);
-  return ids.map((id) => {
-    const b = basicById.get(id);
+  const rows = data ?? [];
+  const isDoubles = discipline === "doubles";
+
+  const partnerByCaptain = new Map<string, string>();
+  let incomplete = false;
+  if (isDoubles) {
+    for (const r of rows) {
+      if (!r.partner_id) incomplete = true;
+      else partnerByCaptain.set(r.player_id, r.partner_id);
+    }
+  }
+
+  const basicById = await loadPlayerBasics(
+    supabase,
+    rows.flatMap((r) => [r.player_id, r.partner_id]).filter((x): x is string => !!x),
+  );
+  const players = rows.map((r) => {
+    const b = basicById.get(r.player_id);
+    const partner = r.partner_id ? basicById.get(r.partner_id) : undefined;
     return {
-      id,
+      id: r.player_id,
       display_name: b?.display_name ?? null,
-      current_elo: b?.current_elo ?? 1000,
+      current_elo: isDoubles
+        ? pairSeedElo(b?.current_elo_doubles ?? null, partner?.current_elo_doubles ?? null)
+        : (b?.current_elo ?? 1000),
     };
   });
+  return { players, partnerByCaptain, incomplete };
 }
 
 function groupName(position: number): string {
@@ -1259,13 +1407,14 @@ export async function generateGroups(
 
   const { data: t } = (await supabase
     .from("tournaments")
-    .select("id, owner_id, format, status, match_rules")
+    .select("id, owner_id, format, discipline, status, match_rules")
     .eq("id", v.tournament_id)
     .single()) as {
     data: {
       id: string;
       owner_id: string;
       format: TournamentFormat;
+      discipline: TournamentDiscipline;
       status: TournamentStatus;
       match_rules: MatchRules;
     } | null;
@@ -1274,10 +1423,16 @@ export async function generateGroups(
   if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
   if (t.status === "finished") return { ok: false, error: "already_finished" };
 
-  const players = await loadApprovedDrawPlayers(supabase, v.tournament_id);
+  const {
+    players,
+    partnerByCaptain,
+    incomplete,
+  } = await loadApprovedDrawPlayers(supabase, v.tournament_id, t.discipline);
+  if (incomplete) return { ok: false, error: "pair_incomplete" };
   if (players.length < v.groups_count * 2) {
     return { ok: false, error: "need_at_least_2_players_per_group" };
   }
+  const isDoubles = t.discipline === "doubles";
 
   // Wipe previous state (matches first, then groups; participants get their
   // group_id unset by the ON DELETE SET NULL FK).
@@ -1331,6 +1486,9 @@ export async function generateGroups(
     bracket_slot: number;
     p1_id: string;
     p2_id: string | null;
+    is_doubles: boolean;
+    p1_partner_id: string | null;
+    p2_partner_id: string | null;
     outcome: "pending";
     winner_side: null;
     match_rules: MatchRules;
@@ -1349,6 +1507,10 @@ export async function generateGroups(
         bracket_slot: m.bracket_slot,
         p1_id: m.p1_id,
         p2_id: m.p2_id,
+        is_doubles: isDoubles,
+        p1_partner_id: isDoubles ? (partnerByCaptain.get(m.p1_id) ?? null) : null,
+        p2_partner_id:
+          isDoubles && m.p2_id ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
         outcome: "pending",
         winner_side: null,
         match_rules: t.match_rules,
@@ -1397,7 +1559,7 @@ export async function reassignToGroup(
     .from("tournament_participants")
     .select(
       "id, tournament_id, group_id, status, withdrawn, " +
-        "tournaments!inner(id, owner_id, format)",
+        "tournaments!inner(id, owner_id, format, discipline)",
     )
     .eq("id", v.participant_id)
     .single()) as {
@@ -1407,7 +1569,12 @@ export async function reassignToGroup(
       group_id: string | null;
       status: ParticipantStatus;
       withdrawn: boolean;
-      tournaments: { id: string; owner_id: string; format: TournamentFormat } | null;
+      tournaments: {
+        id: string;
+        owner_id: string;
+        format: TournamentFormat;
+        discipline: TournamentDiscipline;
+      } | null;
     } | null;
   };
   if (!p || !p.tournaments) return { ok: false, error: "participant_not_found" };
@@ -1458,25 +1625,40 @@ export async function reassignToGroup(
   if (upErr) return { ok: false, error: upErr.message };
 
   // Re-schedule RR for both affected groups (old + new).
+  const isDoubles = p.tournaments.discipline === "doubles";
   const affected = [oldGroupId, v.group_id].filter((g): g is string => Boolean(g));
   for (const gid of affected) {
     const { data: members } = (await supabase
       .from("tournament_participants")
-      .select("player_id")
+      .select("player_id, partner_id")
       .eq("tournament_id", p.tournament_id)
       .eq("group_id", gid)
       .eq("status", "approved")
       .eq("withdrawn", false)) as {
-      data: Array<{ player_id: string }> | null;
+      data: Array<{ player_id: string; partner_id: string | null }> | null;
     };
-    const memberIds = (members ?? []).map((m) => m.player_id);
-    const memberBasics = await loadPlayerBasics(supabase, memberIds);
+    const memberRows = members ?? [];
+    const partnerByCaptain = new Map<string, string>();
+    if (isDoubles) {
+      for (const m of memberRows) {
+        if (m.partner_id) partnerByCaptain.set(m.player_id, m.partner_id);
+      }
+    }
+    const memberIds = memberRows.map((m) => m.player_id);
+    const memberBasics = await loadPlayerBasics(
+      supabase,
+      memberRows.flatMap((m) => [m.player_id, m.partner_id]).filter((x): x is string => !!x),
+    );
     const roster: DrawPlayer[] = memberIds.map((id) => {
       const b = memberBasics.get(id);
+      const partnerId = partnerByCaptain.get(id) ?? null;
+      const partner = partnerId ? memberBasics.get(partnerId) : undefined;
       return {
         id,
         display_name: b?.display_name ?? null,
-        current_elo: b?.current_elo ?? 1000,
+        current_elo: isDoubles
+          ? pairSeedElo(b?.current_elo_doubles ?? null, partner?.current_elo_doubles ?? null)
+          : (b?.current_elo ?? 1000),
       };
     });
     if (roster.length < 2) continue;
@@ -1495,6 +1677,9 @@ export async function reassignToGroup(
       bracket_slot: m.bracket_slot,
       p1_id: m.p1_id,
       p2_id: m.p2_id,
+      is_doubles: isDoubles,
+      p1_partner_id: isDoubles ? (partnerByCaptain.get(m.p1_id) ?? null) : null,
+      p2_partner_id: isDoubles ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
       outcome: "pending" as const,
       winner_side: null,
       match_rules: tt.match_rules,
@@ -1531,13 +1716,16 @@ export async function closeGroupsAndStartPlayoff(
 
   const { data: t } = (await supabase
     .from("tournaments")
-    .select("id, owner_id, format, status, match_rules, groups_count, third_place_match")
+    .select(
+      "id, owner_id, format, discipline, status, match_rules, groups_count, third_place_match",
+    )
     .eq("id", v.tournament_id)
     .single()) as {
     data: {
       id: string;
       owner_id: string;
       format: TournamentFormat;
+      discipline: TournamentDiscipline;
       status: TournamentStatus;
       match_rules: MatchRules;
       groups_count: number | null;
@@ -1575,7 +1763,13 @@ export async function closeGroupsAndStartPlayoff(
   };
 
   // Pre-load every approved player's profile once for the bracket display.
-  const allPlayers = await loadApprovedDrawPlayers(supabase, v.tournament_id);
+  const {
+    players: allPlayers,
+    partnerByCaptain,
+    incomplete,
+  } = await loadApprovedDrawPlayers(supabase, v.tournament_id, t.discipline);
+  if (incomplete) return { ok: false, error: "pair_incomplete" };
+  const isDoubles = t.discipline === "doubles";
   const playerById = new Map(allPlayers.map((p) => [p.id, p] as const));
 
   const qualifiers: GroupQualifier[] = [];
@@ -1660,6 +1854,9 @@ export async function closeGroupsAndStartPlayoff(
       bracket_slot: m.bracket_slot,
       p1_id: p1,
       p2_id: p2,
+      is_doubles: isDoubles,
+      p1_partner_id: isDoubles && p1 ? (partnerByCaptain.get(p1) ?? null) : null,
+      p2_partner_id: isDoubles && p2 ? (partnerByCaptain.get(p2) ?? null) : null,
       outcome: isAutoBye ? "walkover_p1" : "pending",
       winner_side: isAutoBye ? "p1" : null,
       match_rules: t.match_rules,
@@ -1681,6 +1878,9 @@ export async function closeGroupsAndStartPlayoff(
       bracket_slot: 99, // sentinel slot — clearly outside the main tree
       p1_id: null,
       p2_id: null,
+      is_doubles: isDoubles,
+      p1_partner_id: null,
+      p2_partner_id: null,
       outcome: "pending",
       winner_side: null,
       match_rules: t.match_rules,
@@ -1730,7 +1930,8 @@ export async function setMatchScore(
   const { data: m } = (await supabase
     .from("matches")
     .select(
-      "id, tournament_id, round, bracket_slot, p1_id, p2_id, stage, group_id, match_rules, " +
+      "id, tournament_id, round, bracket_slot, p1_id, p2_id, is_doubles, " +
+        "p1_partner_id, p2_partner_id, stage, group_id, match_rules, " +
         "tournaments(owner_id, format)",
     )
     .eq("id", v.match_id)
@@ -1742,6 +1943,9 @@ export async function setMatchScore(
       bracket_slot: number | null;
       p1_id: string | null;
       p2_id: string | null;
+      is_doubles: boolean;
+      p1_partner_id: string | null;
+      p2_partner_id: string | null;
       stage: MatchStage | null;
       group_id: string | null;
       match_rules: MatchRules | null;
@@ -1798,17 +2002,19 @@ export async function setMatchScore(
     .eq("id", v.match_id);
   if (upErr) return { ok: false, error: upErr.message };
 
+  // Elo writes (profiles + rating_history) are service-role-only by RLS, so
+  // both recalcs run with the service client. Ownership was verified above.
+  const eloService = createSupabaseServiceClient();
   let eloP1Delta: number | null = null;
   let eloP2Delta: number | null = null;
-  const recalc = await recalcMatchElo(supabase, v.match_id);
+  const recalc = await recalcMatchElo(eloService, v.match_id);
   if (recalc.ok && !recalc.skipped) {
     eloP1Delta = recalc.p1Delta;
     eloP2Delta = recalc.p2Delta;
   }
 
   // Per-club rating: a club tournament's matches feed that club's ladder.
-  // Service role (club rating tables deny non-admin writes); idempotent.
-  await recalcClubRatingsForMatch(createSupabaseServiceClient(), v.match_id);
+  await recalcClubRatingsForMatch(eloService, v.match_id);
 
   // ── ROUND-ROBIN (pure RR tournaments and group-stage matches inside a hybrid)
   if (isRoundRobin) {
@@ -1844,10 +2050,12 @@ export async function setMatchScore(
   // anywhere — they're a leaf — so we skip propagation for stage='third_place'.
   if (m.stage !== "third_place") {
     const winnerId = winner === "p1" ? m.p1_id : m.p2_id;
+    // Doubles: the whole PAIR advances, so the partner column travels along.
+    const winnerPartnerId = winner === "p1" ? m.p1_partner_id : m.p2_partner_id;
     if (winnerId) {
       const nextRound = m.round + 1;
       const nextSlot = Math.ceil(m.bracket_slot / 2);
-      const side: "p1_id" | "p2_id" = m.bracket_slot % 2 === 1 ? "p1_id" : "p2_id";
+      const toP1 = m.bracket_slot % 2 === 1;
 
       // Look up the next match within the same tree (same stage). For legacy
       // tournaments stage is null on both sides, so we don't constrain by it.
@@ -1864,9 +2072,12 @@ export async function setMatchScore(
       };
 
       if (nextMatch) {
+        const patch = toP1
+          ? { p1_id: winnerId, ...(m.is_doubles ? { p1_partner_id: winnerPartnerId } : {}) }
+          : { p2_id: winnerId, ...(m.is_doubles ? { p2_partner_id: winnerPartnerId } : {}) };
         await supabase
           .from("matches")
-          .update({ [side]: winnerId } as never)
+          .update(patch as never)
           .eq("id", nextMatch.id);
       }
     }
@@ -1886,6 +2097,7 @@ export async function setMatchScore(
 
       if (finalRound != null && m.round === finalRound - 1) {
         const loserId = winner === "p1" ? m.p2_id : m.p1_id;
+        const loserPartnerId = winner === "p1" ? m.p2_partner_id : m.p1_partner_id;
         if (loserId) {
           const { data: tp } = (await supabase
             .from("matches")
@@ -1896,7 +2108,16 @@ export async function setMatchScore(
             data: { id: string; p1_id: string | null; p2_id: string | null } | null;
           };
           if (tp) {
-            const patch = tp.p1_id == null ? { p1_id: loserId } : { p2_id: loserId };
+            const patch =
+              tp.p1_id == null
+                ? {
+                    p1_id: loserId,
+                    ...(m.is_doubles ? { p1_partner_id: loserPartnerId } : {}),
+                  }
+                : {
+                    p2_id: loserId,
+                    ...(m.is_doubles ? { p2_partner_id: loserPartnerId } : {}),
+                  };
             await supabase
               .from("matches")
               .update(patch as never)
@@ -1971,15 +2192,23 @@ export async function loadGroupStandings(tournamentId: string): Promise<GroupSta
     .order("position", { ascending: true })) as { data: Array<GroupRow> | null };
   if (!groups || groups.length === 0) return [];
 
+  const { data: tRow } = (await supabase
+    .from("tournaments")
+    .select("discipline")
+    .eq("id", tournamentId)
+    .maybeSingle()) as { data: { discipline: TournamentDiscipline } | null };
+  const isDoubles = tRow?.discipline === "doubles";
+
   // RLS: read names/Elo via public_player_basic, not a `profiles` join.
   const { data: members } = (await supabase
     .from("tournament_participants")
-    .select("player_id, group_id, status, withdrawn")
+    .select("player_id, partner_id, group_id, status, withdrawn")
     .eq("tournament_id", tournamentId)
     .eq("status", "approved")
     .eq("withdrawn", false)) as {
     data: Array<{
       player_id: string;
+      partner_id: string | null;
       group_id: string | null;
     }> | null;
   };
@@ -2001,8 +2230,36 @@ export async function loadGroupStandings(tournamentId: string): Promise<GroupSta
 
   const profileById = await loadPlayerBasics(
     supabase,
-    (members ?? []).map((m) => m.player_id),
+    (members ?? []).flatMap((m) => [m.player_id, m.partner_id]).filter((x): x is string => !!x),
   );
+  const partnerByCaptain = new Map<string, string>();
+  for (const m of members ?? []) {
+    if (m.partner_id) partnerByCaptain.set(m.player_id, m.partner_id);
+  }
+
+  const lineFor = (captainId: string): Pick<
+    StandingsLine,
+    "display_name" | "avatar_url" | "current_elo"
+  > => {
+    const prof = profileById.get(captainId);
+    if (!isDoubles) {
+      return {
+        display_name: prof?.display_name ?? null,
+        avatar_url: prof?.avatar_url ?? null,
+        current_elo: prof?.current_elo ?? 1000,
+      };
+    }
+    const partnerId = partnerByCaptain.get(captainId) ?? null;
+    const partner = partnerId ? profileById.get(partnerId) : undefined;
+    return {
+      display_name: composePairName(prof?.display_name ?? null, partner?.display_name ?? null),
+      avatar_url: prof?.avatar_url ?? null,
+      current_elo: pairSeedElo(
+        prof?.current_elo_doubles ?? null,
+        partner?.current_elo_doubles ?? null,
+      ),
+    };
+  };
 
   return groups.map((g) => {
     const groupPlayerIds = (members ?? [])
@@ -2020,15 +2277,7 @@ export async function loadGroupStandings(tournamentId: string): Promise<GroupSta
     const standings = computeRoundRobinStandings(groupPlayerIds, groupMatches);
     return {
       group: g,
-      rows: standings.map((s) => {
-        const prof = profileById.get(s.player_id);
-        return {
-          ...s,
-          display_name: prof?.display_name ?? null,
-          avatar_url: prof?.avatar_url ?? null,
-          current_elo: prof?.current_elo ?? 1000,
-        };
-      }),
+      rows: standings.map((s) => ({ ...s, ...lineFor(s.player_id) })),
     };
   });
 }
@@ -2036,15 +2285,23 @@ export async function loadGroupStandings(tournamentId: string): Promise<GroupSta
 export async function loadRoundRobinStandings(tournamentId: string): Promise<StandingsLine[]> {
   const supabase = await createSupabaseServerClient();
 
+  const { data: tRow } = (await supabase
+    .from("tournaments")
+    .select("discipline")
+    .eq("id", tournamentId)
+    .maybeSingle()) as { data: { discipline: TournamentDiscipline } | null };
+  const isDoubles = tRow?.discipline === "doubles";
+
   // RLS: read names/Elo via public_player_basic, not a `profiles` join.
   const { data: parts } = (await supabase
     .from("tournament_participants")
-    .select("player_id, status, withdrawn")
+    .select("player_id, partner_id, status, withdrawn")
     .eq("tournament_id", tournamentId)
     .eq("status", "approved")
     .eq("withdrawn", false)) as {
     data: Array<{
       player_id: string;
+      partner_id: string | null;
       status: ParticipantStatus;
       withdrawn: boolean;
     }> | null;
@@ -2079,15 +2336,35 @@ export async function loadRoundRobinStandings(tournamentId: string): Promise<Sta
       })),
   );
 
-  const profileById = await loadPlayerBasics(supabase, playerIds);
+  const profileById = await loadPlayerBasics(
+    supabase,
+    (parts ?? []).flatMap((p) => [p.player_id, p.partner_id]).filter((x): x is string => !!x),
+  );
+  const partnerByCaptain = new Map<string, string>();
+  for (const p of parts ?? []) {
+    if (p.partner_id) partnerByCaptain.set(p.player_id, p.partner_id);
+  }
 
   return standings.map((s) => {
     const prof = profileById.get(s.player_id);
+    if (!isDoubles) {
+      return {
+        ...s,
+        display_name: prof?.display_name ?? null,
+        avatar_url: prof?.avatar_url ?? null,
+        current_elo: prof?.current_elo ?? 1000,
+      };
+    }
+    const partnerId = partnerByCaptain.get(s.player_id) ?? null;
+    const partner = partnerId ? profileById.get(partnerId) : undefined;
     return {
       ...s,
-      display_name: prof?.display_name ?? null,
+      display_name: composePairName(prof?.display_name ?? null, partner?.display_name ?? null),
       avatar_url: prof?.avatar_url ?? null,
-      current_elo: prof?.current_elo ?? 1000,
+      current_elo: pairSeedElo(
+        prof?.current_elo_doubles ?? null,
+        partner?.current_elo_doubles ?? null,
+      ),
     };
   });
 }

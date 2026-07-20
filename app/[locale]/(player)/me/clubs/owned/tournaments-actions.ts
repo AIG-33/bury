@@ -7,6 +7,7 @@ import {
 } from "@/lib/validators/tournament-branding";
 import type {
   TournamentFormat,
+  TournamentDiscipline,
   TournamentStatus,
   SeedingMethod,
   Privacy,
@@ -29,6 +30,7 @@ export type ClubTournamentRow = {
   name: string;
   description: string | null;
   format: TournamentFormat;
+  discipline: TournamentDiscipline;
   surface: Surface | null;
   starts_on: string;
   start_time: string | null;
@@ -130,7 +132,7 @@ export async function loadClubTournamentsForAdmin(clubId: string): Promise<
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
-      "id, name, description, format, surface, starts_on, start_time, ends_on, " +
+      "id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, status, " +
         "draw_method, prizes_description, match_rules, third_place_match, branding, created_at, owner_id",
     )
@@ -252,6 +254,7 @@ export async function loadClubTournamentsForAdmin(clubId: string): Promise<
       name: t.name,
       description: t.description,
       format: t.format,
+      discipline: t.discipline,
       surface: t.surface,
       starts_on: t.starts_on,
       start_time: t.start_time,

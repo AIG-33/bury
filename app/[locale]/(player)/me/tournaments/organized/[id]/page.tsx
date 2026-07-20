@@ -82,6 +82,11 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     add_placeholder: t("participants.add_placeholder"),
     add_button: t("participants.add_button"),
     adding: t("participants.adding"),
+    select_button: t("participants.select_button"),
+    add_pair_button: t("participants.add_pair_button"),
+    pair_first_hint: t("participants.pair_first_hint"),
+    pair_second_hint: t("participants.pair_second_hint"),
+    cancel_pair: t("participants.cancel_pair"),
     empty: t("participants.empty"),
     remove: t("participants.remove"),
     remove_confirm: t("participants.remove_confirm"),
@@ -236,6 +241,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         <p className="inline-flex items-center gap-1 text-sm text-ink-600">
           <Trophy className="h-3.5 w-3.5" />
           {formatLabels[tournament.format]}
+          {` · ${t(`disciplines.${tournament.discipline}`)}`}
           {tournament.surface && ` · ${surfaceLabels[tournament.surface]}`}
         </p>
 
@@ -347,6 +353,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         copy={participantsCopy}
         locked={locked}
         applicationMode={tournament.application_mode}
+        isDoubles={tournament.discipline === "doubles"}
       />
 
       {tournament.format === "group_playoff" && (

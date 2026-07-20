@@ -334,6 +334,7 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
         <TournamentApplyCta
           tournamentId={id}
           state={ctaState}
+          discipline={tournament.discipline}
           accentColor={accent}
           labels={{
             apply: t("tournament.cta_apply"),

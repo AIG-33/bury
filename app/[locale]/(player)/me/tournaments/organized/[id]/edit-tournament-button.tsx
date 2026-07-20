@@ -15,6 +15,7 @@ function tournamentToForm(t: TournamentRow): TournamentForm {
     name: t.name,
     description: t.description,
     format: t.format,
+    discipline: t.discipline,
     surface: t.surface,
     starts_on: t.starts_on,
     start_time: t.start_time ? t.start_time.slice(0, 5) : null,

@@ -116,6 +116,7 @@ export default async function MobileRatingPage({ params, searchParams }: Props) 
   }
 
   // 30-day ELO deltas for the visible players (single grouped query).
+  // The board ranks the SINGLES ladder, so only singles history counts.
   if (rows.length > 0) {
     const { data: hist } = (await supabase
       .from("rating_history")
@@ -124,6 +125,7 @@ export default async function MobileRatingPage({ params, searchParams }: Props) 
         "player_id",
         rows.map((r) => r.id),
       )
+      .eq("discipline", "singles")
       .gte("created_at", new Date(Date.now() - 30 * 24 * 3600_000).toISOString())) as {
       data: Array<{ player_id: string; delta: number }> | null;
     };

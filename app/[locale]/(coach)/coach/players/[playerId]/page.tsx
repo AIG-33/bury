@@ -141,10 +141,13 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
       .eq("player_id", playerId)
       .order("created_at", { ascending: false })
       .limit(50) as unknown as Promise<{ data: BookingRow[] | null }>,
+    // The rating section shows the SINGLES Elo hero, so the timeline and the
+    // 30-day delta stay on the singles ladder (doubles has its own columns).
     supabase
       .from("rating_history")
       .select("id, old_elo, new_elo, delta, k_factor, reason, created_at, match_id")
       .eq("player_id", playerId)
+      .eq("discipline", "singles")
       .order("created_at", { ascending: false })
       .limit(20) as unknown as Promise<{ data: RatingHistoryRow[] | null }>,
   ]);

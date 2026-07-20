@@ -7,6 +7,8 @@ import {
   applyToTournament,
   withdrawFromTournament,
 } from "@/app/[locale]/(player)/me/tournaments/actions";
+import { TournamentPartnerPicker } from "@/components/domain/tournament-partner-picker";
+import type { TournamentDiscipline } from "@/lib/tournaments/schema";
 
 // =============================================================================
 // CTA button for the tournament detail screen (ТЗ Mobile §7.03).
@@ -18,6 +20,8 @@ import {
 type Props = {
   tournamentId: string;
   state: "guest" | "none" | "pending" | "approved" | "closed" | "owner";
+  /** Doubles tournaments ask for a partner before submitting the application. */
+  discipline?: TournamentDiscipline;
   /** Branding accent (#RRGGBB, pre-sanitized) — overrides the primary button color. */
   accentColor?: string | null;
   labels: {
@@ -39,10 +43,17 @@ const PRIMARY =
 const NEUTRAL =
   "flex h-12 w-full items-center justify-center gap-1.5 rounded-[15px] border border-[rgba(20,60,30,0.12)] bg-white font-display text-[14px] font-extrabold text-ink-500";
 
-export function TournamentApplyCta({ tournamentId, state, accentColor, labels }: Props) {
+export function TournamentApplyCta({
+  tournamentId,
+  state,
+  discipline = "singles",
+  accentColor,
+  labels,
+}: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState(false);
   const accentStyle = accentColor
     ? { background: accentColor, boxShadow: "0 10px 22px rgba(0,0,0,0.18)" }
@@ -67,6 +78,15 @@ export function TournamentApplyCta({ tournamentId, state, accentColor, labels }:
   }
 
   if (state === "none") {
+    const submit = (partnerId?: string) =>
+      startTransition(async () => {
+        setError(false);
+        const res = await applyToTournament(tournamentId, { partnerId: partnerId ?? null });
+        if (res.ok) {
+          setPickerOpen(false);
+          router.refresh();
+        } else setError(true);
+      });
     return (
       <div>
         <button
@@ -74,14 +94,15 @@ export function TournamentApplyCta({ tournamentId, state, accentColor, labels }:
           disabled={pending}
           className={PRIMARY}
           style={accentStyle}
-          onClick={() =>
-            startTransition(async () => {
+          onClick={() => {
+            // Doubles: the application is for a pair — pick the partner first.
+            if (discipline === "doubles") {
               setError(false);
-              const res = await applyToTournament(tournamentId);
-              if (res.ok) router.refresh();
-              else setError(true);
-            })
-          }
+              setPickerOpen(true);
+              return;
+            }
+            submit();
+          }}
         >
           {labels.apply}
           <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
@@ -89,6 +110,12 @@ export function TournamentApplyCta({ tournamentId, state, accentColor, labels }:
         {error ? (
           <p className="mt-1.5 text-center text-[11.5px] font-bold text-clay-500">{labels.error}</p>
         ) : null}
+        <TournamentPartnerPicker
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={(partnerId) => submit(partnerId)}
+          submitting={pending}
+        />
       </div>
     );
   }

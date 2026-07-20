@@ -10,6 +10,7 @@ import {
   TournamentFormSchema,
   type TournamentForm,
   TOURNAMENT_FORMATS,
+  TOURNAMENT_DISCIPLINES,
   SUPPORTED_FORMATS_MVP,
   SEEDING_METHODS,
   PRIVACY_OPTIONS,
@@ -18,6 +19,7 @@ import {
   MATCH_RULE_KINDS,
   DEFAULT_MATCH_RULES,
   type TournamentFormat,
+  type TournamentDiscipline,
   type SeedingMethod,
   type Privacy,
   type ApplicationMode,
@@ -39,6 +41,7 @@ export type TournamentDialogCopy = {
     name: string;
     description: string;
     format: string;
+    discipline: string;
     surface: string;
     starts_on: string;
     start_time: string;
@@ -63,6 +66,7 @@ export type TournamentDialogCopy = {
   };
   hints: {
     format: string;
+    discipline: string;
     privacy: string;
     application_mode: string;
     draw_method: string;
@@ -75,6 +79,7 @@ export type TournamentDialogCopy = {
     club: string;
   };
   format_labels: Record<TournamentFormat, string>;
+  discipline_labels: Record<TournamentDiscipline, string>;
   surface_labels: Record<Surface, string>;
   draw_method_labels: Record<SeedingMethod, string>;
   privacy_labels: Record<Privacy, string>;
@@ -138,6 +143,7 @@ export function TournamentFormDialog({
         name: "",
         description: null,
         format: "single_elimination",
+        discipline: "singles",
         surface: null,
         starts_on: new Date().toISOString().slice(0, 10),
         start_time: null,
@@ -256,6 +262,30 @@ export function TournamentFormDialog({
                 )}
               />
               <p className="mt-1 text-[11px] text-ink-500">{copy.hints.format}</p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink-700">
+                {copy.fields.discipline}
+              </label>
+              <Controller
+                control={form.control}
+                name="discipline"
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    value={field.value ?? "singles"}
+                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                  >
+                    {TOURNAMENT_DISCIPLINES.map((d) => (
+                      <option key={d} value={d}>
+                        {copy.discipline_labels[d]}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+              <p className="mt-1 text-[11px] text-ink-500">{copy.hints.discipline}</p>
             </div>
 
             <div>

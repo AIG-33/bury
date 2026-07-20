@@ -237,6 +237,11 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                 <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-white/90 backdrop-blur-[6px]">
                   {t(`format.${tournament.format}`)}
                 </span>
+                {tournament.discipline === "doubles" && (
+                  <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-white/90 backdrop-blur-[6px]">
+                    {t("detail.discipline_doubles")}
+                  </span>
+                )}
                 {tournament.surface && (
                   <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-white/90 backdrop-blur-[6px]">
                     {t(`surfaces.${tournament.surface}`)}
@@ -444,6 +449,7 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                   locale={locale}
                   tournamentId={id}
                   status={tournament.status}
+                  discipline={tournament.discipline}
                   viewer={viewer}
                   copy={applyCopy}
                 />

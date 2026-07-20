@@ -27,6 +27,7 @@ import {
   type MyTournamentRow,
 } from "./actions";
 import type { TournamentRow as OrganizedTournamentRow } from "./organized/actions";
+import { TournamentPartnerPicker } from "@/components/domain/tournament-partner-picker";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
 import type { TournamentFormat, TournamentStatus, Surface } from "@/lib/tournaments/schema";
 
@@ -232,13 +233,25 @@ function OpenTournamentCard({
   const tErrors = useTranslations("tournamentsPlayer.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  function submit(partnerId?: string) {
+    startT(async () => {
+      const r = await applyToTournament(tournament.id, { partnerId: partnerId ?? null });
+      if (r.ok) {
+        setPickerOpen(false);
+        router.refresh();
+      } else alert(localizeActionError(tErrors, r.error));
+    });
+  }
 
   function onApply() {
-    startT(async () => {
-      const r = await applyToTournament(tournament.id);
-      if (r.ok) router.refresh();
-      else alert(localizeActionError(tErrors, r.error));
-    });
+    // Doubles tournaments register a PAIR — pick the partner first.
+    if (tournament.discipline === "doubles") {
+      setPickerOpen(true);
+      return;
+    }
+    submit();
   }
 
   function onCancel() {
@@ -257,6 +270,7 @@ function OpenTournamentCard({
           <h3 className="font-display text-lg font-semibold text-ink-900">{tournament.name}</h3>
           <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-600">
             <Trophy className="h-3 w-3" /> {copy.format_labels[tournament.format]}
+            {tournament.discipline === "doubles" && ` · ${t("discipline_doubles")}`}
           </p>
         </div>
         {tournament.application_status !== "none" && (
@@ -341,6 +355,13 @@ function OpenTournamentCard({
           </button>
         )}
       </div>
+
+      <TournamentPartnerPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={(partnerId) => submit(partnerId)}
+        submitting={pending}
+      />
     </li>
   );
 }
@@ -352,6 +373,7 @@ function MyTournamentCard({
   tournament: MyTournamentRow;
   copy: PlayerTournamentsCopy;
 }) {
+  const t = useTranslations("tournamentsPlayer");
   const tErrors = useTranslations("tournamentsPlayer.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
@@ -372,6 +394,7 @@ function MyTournamentCard({
           <h3 className="font-display text-lg font-semibold text-ink-900">{tournament.name}</h3>
           <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-600">
             <Trophy className="h-3 w-3" /> {copy.format_labels[tournament.format]}
+            {tournament.discipline === "doubles" && ` · ${t("discipline_doubles")}`}
           </p>
         </div>
         <span

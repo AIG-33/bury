@@ -8,11 +8,13 @@ import type { Locale } from "@/lib/notifications/templates";
 import type {
   TournamentFormat,
   TournamentStatus,
+  TournamentDiscipline,
   Surface,
   Privacy,
   ApplicationMode,
   MatchRules,
 } from "@/lib/tournaments/schema";
+import { validatePairRegistration } from "@/lib/tournaments/pairs";
 import { decideApplication } from "@/lib/tournaments/applications";
 import {
   tournamentBrandingFromRow,
@@ -30,6 +32,7 @@ export type OpenTournamentRow = {
   name: string;
   description: string | null;
   format: TournamentFormat;
+  discipline: TournamentDiscipline;
   surface: Surface | null;
   starts_on: string;
   ends_on: string | null;
@@ -94,11 +97,13 @@ export async function loadTournamentViewerState(
     .eq("id", tournamentId)
     .maybeSingle()) as { data: { owner_id: string } | null };
 
+  // A doubles pair occupies one row; being someone's partner counts as
+  // being registered too (blocks double-application, shows the status pill).
   const { data: part } = (await supabase
     .from("tournament_participants")
     .select("status, withdrawn")
     .eq("tournament_id", tournamentId)
-    .eq("player_id", user.id)
+    .or(`player_id.eq.${user.id},partner_id.eq.${user.id}`)
     .maybeSingle()) as {
     data: { status: "pending" | "approved" | "rejected"; withdrawn: boolean } | null;
   };
@@ -126,7 +131,7 @@ export async function loadOpenTournaments(): Promise<
   const { data: rows } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_id, name, description, format, surface, starts_on, ends_on, registration_deadline, " +
+      "id, owner_id, name, description, format, discipline, surface, starts_on, ends_on, registration_deadline, " +
         "max_participants, privacy, status, match_rules",
     )
     .eq("privacy", "public")
@@ -162,11 +167,12 @@ export async function loadOpenTournaments(): Promise<
   if (ids.length > 0) {
     const { data: parts } = (await supabase
       .from("tournament_participants")
-      .select("tournament_id, player_id, status, withdrawn")
+      .select("tournament_id, player_id, partner_id, status, withdrawn")
       .in("tournament_id", ids)) as {
       data: Array<{
         tournament_id: string;
         player_id: string;
+        partner_id: string | null;
         status: "pending" | "approved" | "rejected";
         withdrawn: boolean;
       }> | null;
@@ -176,7 +182,10 @@ export async function loadOpenTournaments(): Promise<
       if (p.status === "approved" && !p.withdrawn) {
         counts.set(p.tournament_id, (counts.get(p.tournament_id) ?? 0) + 1);
       }
-      if (p.player_id === userId) myStatus.set(p.tournament_id, p.status);
+      // Registered either as the pair captain or as somebody's partner.
+      if (p.player_id === userId || p.partner_id === userId) {
+        myStatus.set(p.tournament_id, p.status);
+      }
     }
   }
 
@@ -205,10 +214,11 @@ export async function loadMyTournaments(): Promise<
     .from("tournament_participants")
     .select(
       "tournament_id, status, withdrawn, " +
-        "tournaments(id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
+        "tournaments(id, owner_id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding)",
     )
-    .eq("player_id", userId)) as {
+    // Doubles pairs occupy one row — the partner sees the tournament too.
+    .or(`player_id.eq.${userId},partner_id.eq.${userId}`)) as {
     data: Array<{
       tournament_id: string;
       status: "pending" | "approved" | "rejected";
@@ -219,6 +229,7 @@ export async function loadMyTournaments(): Promise<
         name: string;
         description: string | null;
         format: TournamentFormat;
+        discipline: TournamentDiscipline;
         surface: Surface | null;
         starts_on: string;
         start_time: string | null;
@@ -291,9 +302,11 @@ export async function loadMyTournaments(): Promise<
   if (ids.length > 0) {
     const { data: ms } = (await supabase
       .from("matches")
-      .select("id, tournament_id, round, p1_id, p2_id, outcome, scheduled_at")
+      .select("id, tournament_id, round, p1_id, p2_id, p1_partner_id, p2_partner_id, outcome, scheduled_at")
       .in("tournament_id", ids)
-      .or(`p1_id.eq.${userId},p2_id.eq.${userId}`)
+      .or(
+        `p1_id.eq.${userId},p2_id.eq.${userId},p1_partner_id.eq.${userId},p2_partner_id.eq.${userId}`,
+      )
       .in("outcome", ["pending", "scheduled"])
       .order("round", { ascending: true })
       .order("scheduled_at", { ascending: true, nullsFirst: false })) as {
@@ -303,13 +316,17 @@ export async function loadMyTournaments(): Promise<
         round: number | null;
         p1_id: string;
         p2_id: string | null;
+        p1_partner_id: string | null;
+        p2_partner_id: string | null;
         outcome: string;
         scheduled_at: string | null;
       }> | null;
     };
     for (const m of ms ?? []) {
       if (nextMatches.has(m.tournament_id)) continue;
-      const opponentId = m.p1_id === userId ? m.p2_id : m.p1_id;
+      // "Opponent" = the other side's captain (pairs show the captain's name).
+      const onP1Side = m.p1_id === userId || m.p1_partner_id === userId;
+      const opponentId = onP1Side ? m.p2_id : m.p1_id;
       nextMatches.set(m.tournament_id, {
         id: m.id,
         round: m.round,
@@ -341,6 +358,7 @@ export async function loadMyTournaments(): Promise<
       name: t.name,
       description: t.description,
       format: t.format,
+      discipline: t.discipline,
       surface: t.surface,
       starts_on: t.starts_on,
       ends_on: t.ends_on,
@@ -386,6 +404,7 @@ export async function loadMyTournaments(): Promise<
  */
 export async function applyToTournament(
   tournamentId: string,
+  opts: { partnerId?: string | null } = {},
 ): Promise<{ ok: true; status: "pending" | "approved" } | { ok: false; error: string }> {
   const auth = await requireUser();
   if (!auth.ok) return auth;
@@ -394,7 +413,7 @@ export async function applyToTournament(
   const { data: t } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_id, name, status, max_participants, registration_deadline, application_mode",
+      "id, owner_id, name, status, discipline, max_participants, registration_deadline, application_mode",
     )
     .eq("id", tournamentId)
     .single()) as {
@@ -403,6 +422,7 @@ export async function applyToTournament(
       owner_id: string;
       name: string;
       status: TournamentStatus;
+      discipline: TournamentDiscipline;
       max_participants: number | null;
       registration_deadline: string | null;
       application_mode: ApplicationMode;
@@ -427,6 +447,26 @@ export async function applyToTournament(
     .maybeSingle()) as {
     data: { id: string; status: "pending" | "approved" | "rejected"; withdrawn: boolean } | null;
   };
+
+  // Doubles: the application is for a PAIR. Validate the partner against
+  // everyone already registered (in either slot). The applicant's own captain
+  // row is excluded — re-applying with a different partner is legitimate.
+  let partnerId: string | null = null;
+  if (t.discipline === "doubles") {
+    const { data: allRows } = (await supabase
+      .from("tournament_participants")
+      .select("player_id, partner_id")
+      .eq("tournament_id", tournamentId)) as {
+      data: Array<{ player_id: string; partner_id: string | null }> | null;
+    };
+    const pair = validatePairRegistration({
+      captainId: userId,
+      partnerId: opts.partnerId,
+      existing: (allRows ?? []).filter((r) => r.player_id !== userId),
+    });
+    if (!pair.ok) return { ok: false, error: pair.error };
+    partnerId = pair.partnerId;
+  }
 
   const decision = decideApplication({
     mode: t.application_mode,
@@ -453,13 +493,19 @@ export async function applyToTournament(
     if (existing) {
       const { error } = await writer
         .from("tournament_participants")
-        .update({ status: decision.nextStatus, withdrawn: false } as never)
+        .update({
+          status: decision.nextStatus,
+          withdrawn: false,
+          // Re-application may name a different partner — refresh the pair.
+          ...(t.discipline === "doubles" ? { partner_id: partnerId } : {}),
+        } as never)
         .eq("id", existing.id);
       if (error) return { ok: false, error: error.message };
     } else {
       const { error } = await writer.from("tournament_participants").insert({
         tournament_id: tournamentId,
         player_id: userId,
+        partner_id: partnerId,
         status: decision.nextStatus,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
@@ -540,21 +586,35 @@ export async function withdrawFromTournament(
     .single()) as { data: { id: string; status: TournamentStatus } | null };
   if (!t) return { ok: false, error: "not_found" };
 
+  // Either member of a doubles pair may withdraw — the pair can't play
+  // without them anyway. Find the row where the caller occupies any slot.
+  const { data: row } = (await supabase
+    .from("tournament_participants")
+    .select("id, player_id, partner_id")
+    .eq("tournament_id", tournamentId)
+    .or(`player_id.eq.${userId},partner_id.eq.${userId}`)
+    .maybeSingle()) as {
+    data: { id: string; player_id: string; partner_id: string | null } | null;
+  };
+  if (!row) return { ok: false, error: "not_registered" };
+
   const wantHardDelete = t.status === "draft" || t.status === "registration";
+  // RLS write policies only know the captain (`player_id = auth.uid()`), so
+  // a partner-initiated withdrawal goes through the service role AFTER the
+  // membership check above. The soft update always needs it (players have no
+  // UPDATE policy on this table at all).
+  const writer = row.player_id === userId && wantHardDelete
+    ? supabase
+    : createSupabaseServiceClient();
 
   if (wantHardDelete) {
-    const { error } = await supabase
-      .from("tournament_participants")
-      .delete()
-      .eq("tournament_id", tournamentId)
-      .eq("player_id", userId);
+    const { error } = await writer.from("tournament_participants").delete().eq("id", row.id);
     if (error) return { ok: false, error: error.message };
   } else {
-    const { error } = await supabase
+    const { error } = await writer
       .from("tournament_participants")
       .update({ withdrawn: true } as never)
-      .eq("tournament_id", tournamentId)
-      .eq("player_id", userId);
+      .eq("id", row.id);
     if (error) return { ok: false, error: error.message };
   }
 

@@ -4,10 +4,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   TournamentFormat,
   TournamentStatus,
+  TournamentDiscipline,
   Surface,
   Privacy,
   MatchRules,
 } from "@/lib/tournaments/schema";
+import { composePairName, pairSeedElo } from "@/lib/tournaments/pairs";
 import {
   tournamentBrandingFromRow,
   type TournamentBranding,
@@ -45,6 +47,7 @@ export type PublicTournamentRow = {
   name: string;
   description: string | null;
   format: TournamentFormat;
+  discipline: TournamentDiscipline;
   surface: Surface | null;
   starts_on: string;
   start_time: string | null;
@@ -94,7 +97,7 @@ export async function loadPublicTournaments(opts: {
   let query = supabase
     .from("tournaments")
     .select(
-      "id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
+      "id, owner_id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding",
     )
     .eq("privacy", "public")
@@ -130,6 +133,7 @@ export async function loadPublicTournaments(opts: {
       name: string;
       description: string | null;
       format: TournamentFormat;
+      discipline: TournamentDiscipline;
       surface: Surface | null;
       starts_on: string;
       start_time: string | null;
@@ -198,6 +202,7 @@ export async function loadPublicTournaments(opts: {
     name: r.name,
     description: r.description,
     format: r.format,
+    discipline: r.discipline,
     surface: r.surface,
     starts_on: r.starts_on,
     start_time: r.start_time,
@@ -273,7 +278,7 @@ export async function loadPublicTournamentDetail(
   const { data: row } = (await supabase
     .from("tournaments")
     .select(
-      "id, owner_id, name, description, format, surface, starts_on, start_time, ends_on, " +
+      "id, owner_id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding",
     )
     .eq("id", tournamentId)
@@ -284,6 +289,7 @@ export async function loadPublicTournamentDetail(
       name: string;
       description: string | null;
       format: TournamentFormat;
+      discipline: TournamentDiscipline;
       surface: Surface | null;
       starts_on: string;
       start_time: string | null;
@@ -299,6 +305,7 @@ export async function loadPublicTournamentDetail(
   };
 
   if (!row) return null;
+  const isDoubles = row.discipline === "doubles";
 
   // Organizer name via the RLS-bypassing public projection (the raw
   // `profiles` table is self-only).
@@ -329,12 +336,13 @@ export async function loadPublicTournamentDetail(
   const [{ data: parts }, { data: matches }] = await Promise.all([
     supabase
       .from("tournament_participants")
-      .select("player_id, seed, status, withdrawn")
+      .select("player_id, partner_id, seed, status, withdrawn")
       .eq("tournament_id", tournamentId)
       .eq("status", "approved")
       .order("seed", { ascending: true, nullsFirst: false }) as unknown as Promise<{
       data: Array<{
         player_id: string;
+        partner_id: string | null;
         seed: number | null;
         status: "pending" | "approved" | "rejected";
         withdrawn: boolean;
@@ -343,7 +351,7 @@ export async function loadPublicTournamentDetail(
     supabase
       .from("matches")
       .select(
-        "id, round, bracket_slot, p1_id, p2_id, winner_side, sets, outcome, scheduled_at, played_at",
+        "id, round, bracket_slot, p1_id, p2_id, p1_partner_id, p2_partner_id, winner_side, sets, outcome, scheduled_at, played_at",
       )
       .eq("tournament_id", tournamentId)
       .order("round", { ascending: true })
@@ -354,6 +362,8 @@ export async function loadPublicTournamentDetail(
         bracket_slot: number | null;
         p1_id: string | null;
         p2_id: string | null;
+        p1_partner_id: string | null;
+        p2_partner_id: string | null;
         winner_side: "p1" | "p2" | null;
         sets: Array<{
           p1?: number;
@@ -376,8 +386,8 @@ export async function loadPublicTournamentDetail(
   const playerIds = Array.from(
     new Set(
       [
-        ...(parts ?? []).map((p) => p.player_id),
-        ...(matches ?? []).flatMap((m) => [m.p1_id, m.p2_id]),
+        ...(parts ?? []).flatMap((p) => [p.player_id, p.partner_id]),
+        ...(matches ?? []).flatMap((m) => [m.p1_id, m.p2_id, m.p1_partner_id, m.p2_partner_id]),
       ].filter((x): x is string => !!x),
     ),
   );
@@ -385,6 +395,7 @@ export async function loadPublicTournamentDetail(
     id: string;
     display_name: string | null;
     current_elo: number | null;
+    current_elo_doubles: number | null;
     avatar_url: string | null;
     is_coach: boolean | null;
     city: string | null;
@@ -398,7 +409,7 @@ export async function loadPublicTournamentDetail(
     const [{ data: basics }, { data: extRows }] = await Promise.all([
       supabase
         .from("public_player_basic")
-        .select("id, display_name, current_elo, avatar_url, is_coach, city")
+        .select("id, display_name, current_elo, current_elo_doubles, avatar_url, is_coach, city")
         .in("id", playerIds) as unknown as Promise<{ data: Basic[] | null }>,
       supabase
         .from("external_ratings")
@@ -428,15 +439,22 @@ export async function loadPublicTournamentDetail(
 
   const participants = (parts ?? []).map((p) => {
     const b = basicById.get(p.player_id);
+    const partner = p.partner_id ? basicById.get(p.partner_id) : undefined;
     return {
       id: p.player_id,
-      name: b?.display_name ?? null,
+      // Doubles: the row is a pair — show both names and the pair's average
+      // doubles Elo. The LT badge stays captain-only, so hide it for pairs.
+      name: isDoubles
+        ? composePairName(b?.display_name ?? null, partner?.display_name ?? null)
+        : (b?.display_name ?? null),
       seed: p.seed,
-      elo: b?.current_elo ?? 1000,
+      elo: isDoubles
+        ? pairSeedElo(b?.current_elo_doubles ?? null, partner?.current_elo_doubles ?? null)
+        : (b?.current_elo ?? 1000),
       avatar_url: b?.avatar_url ?? null,
       city: b?.city ?? null,
       withdrawn: p.withdrawn,
-      external_rating: extByPlayer.get(p.player_id) ?? null,
+      external_rating: isDoubles ? null : (extByPlayer.get(p.player_id) ?? null),
     };
   });
 
@@ -454,14 +472,22 @@ export async function loadPublicTournamentDetail(
           }));
     const p1 = m.p1_id ? basicById.get(m.p1_id) : undefined;
     const p2 = m.p2_id ? basicById.get(m.p2_id) : undefined;
+    const p1Partner = m.p1_partner_id ? basicById.get(m.p1_partner_id) : undefined;
+    const p2Partner = m.p2_partner_id ? basicById.get(m.p2_partner_id) : undefined;
     return {
       id: m.id,
       round: m.round,
       bracket_position: m.bracket_slot,
       p1_id: m.p1_id,
       p2_id: m.p2_id,
-      p1_name: p1?.display_name ?? null,
-      p2_name: p2?.display_name ?? null,
+      p1_name:
+        isDoubles && m.p1_id
+          ? composePairName(p1?.display_name ?? null, p1Partner?.display_name ?? null)
+          : (p1?.display_name ?? null),
+      p2_name:
+        isDoubles && m.p2_id
+          ? composePairName(p2?.display_name ?? null, p2Partner?.display_name ?? null)
+          : (p2?.display_name ?? null),
       p1_avatar: p1?.avatar_url ?? null,
       p2_avatar: p2?.avatar_url ?? null,
       p1_is_coach: p1?.is_coach ?? null,
@@ -482,6 +508,7 @@ export async function loadPublicTournamentDetail(
       name: row.name,
       description: row.description,
       format: row.format,
+      discipline: row.discipline,
       surface: row.surface,
       starts_on: row.starts_on,
       start_time: row.start_time,

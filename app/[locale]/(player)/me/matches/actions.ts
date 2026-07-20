@@ -614,13 +614,14 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
     ),
   );
 
-  const peopleById = new Map<string, MatchListItem["opponent"]>();
+  type PersonRow = MatchListItem["opponent"] & { current_elo_doubles: number };
+  const peopleById = new Map<string, PersonRow>();
   if (otherIds.length > 0) {
     const { data: people } = (await supabase
       .from("profiles")
-      .select("id, display_name, avatar_url, current_elo, whatsapp")
+      .select("id, display_name, avatar_url, current_elo, current_elo_doubles, whatsapp")
       .in("id", otherIds)) as {
-      data: Array<MatchListItem["opponent"]> | null;
+      data: Array<PersonRow> | null;
     };
     for (const p of people ?? []) peopleById.set(p.id, p);
   }
@@ -648,8 +649,16 @@ export async function loadMyMatches(): Promise<MyMatchesPayload | null> {
     const side = sideOf(m);
     const isP1 = side === "p1";
     const otherId = isP1 ? m.p2_id : m.p1_id;
-    const opponent = peopleById.get(otherId);
-    if (!opponent) return [];
+    const person = peopleById.get(otherId);
+    if (!person) return [];
+    // Show the opponent's rating on the SAME ladder as the match.
+    const opponent: MatchListItem["opponent"] = {
+      id: person.id,
+      display_name: person.display_name,
+      avatar_url: person.avatar_url,
+      current_elo: m.is_doubles ? person.current_elo_doubles : person.current_elo,
+      whatsapp: person.whatsapp,
+    };
     // Doubles display: my partner = the other member of my side (the viewer
     // may be the captain OR the partner slot); opponent partner = the second
     // member of the opposing side.

@@ -29,6 +29,12 @@ export type ParticipantsCopy = {
   add_placeholder: string;
   add_button: string;
   adding: string;
+  // Doubles-only copy: two-step pair selection.
+  select_button: string;
+  add_pair_button: string;
+  pair_first_hint: string;
+  pair_second_hint: string;
+  cancel_pair: string;
   empty: string;
   remove: string;
   remove_confirm: string;
@@ -59,6 +65,7 @@ export function ParticipantsSection({
   copy,
   locked,
   applicationMode,
+  isDoubles = false,
 }: {
   tournamentId: string;
   participants: ParticipantRow[];
@@ -66,6 +73,7 @@ export function ParticipantsSection({
   copy: ParticipantsCopy;
   locked: boolean;
   applicationMode: "auto" | "manual";
+  isDoubles?: boolean;
 }) {
   const t = useTranslations("tournamentsOrganized.participants");
   const tErrors = useTranslations("tournamentsOrganized.errors");
@@ -73,14 +81,17 @@ export function ParticipantsSection({
   const [pending, startT] = useTransition();
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Doubles: pairs are added in two clicks — captain first, then partner.
+  const [pairFirst, setPairFirst] = useState<PlayerOption | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (q.length === 0) return options.slice(0, 20);
-    return options
+    const pool = pairFirst ? options.filter((o) => o.id !== pairFirst.id) : options;
+    if (q.length === 0) return pool.slice(0, 20);
+    return pool
       .filter((o) => (o.display_name ?? "").toLowerCase().includes(q))
       .slice(0, 20);
-  }, [search, options]);
+  }, [search, options, pairFirst]);
 
   const grouped = useMemo(() => {
     const pendingArr: ParticipantRow[] = [];
@@ -94,14 +105,34 @@ export function ParticipantsSection({
     return { pending: pendingArr, approved: approvedArr, rejected: rejectedArr };
   }, [participants]);
 
-  function onAdd(playerId: string) {
+  function onAdd(playerId: string, partnerId?: string) {
     setBusyId(playerId);
     startT(async () => {
-      const r = await addParticipant({ tournament_id: tournamentId, player_id: playerId });
+      const r = await addParticipant({
+        tournament_id: tournamentId,
+        player_id: playerId,
+        partner_id: partnerId ?? null,
+      });
       setBusyId(null);
-      if (r.ok) router.refresh();
-      else alert(localizeActionError(tErrors, r.error));
+      if (r.ok) {
+        setPairFirst(null);
+        setSearch("");
+        router.refresh();
+      } else alert(localizeActionError(tErrors, r.error));
     });
+  }
+
+  function onPick(p: PlayerOption) {
+    if (!isDoubles) {
+      onAdd(p.id);
+      return;
+    }
+    if (!pairFirst) {
+      setPairFirst(p);
+      setSearch("");
+      return;
+    }
+    onAdd(pairFirst.id, p.id);
   }
 
   function onDecide(participantId: string, status: "approved" | "rejected") {
@@ -165,6 +196,7 @@ export function ParticipantsSection({
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-ink-900">
                           {p.display_name ?? "—"}
+                          {isDoubles && ` / ${p.partner_name ?? "—"}`}
                         </p>
                         <p className="text-[11px] text-ink-500">
                           Elo {p.current_elo} · {new Date(p.registered_at).toLocaleDateString()}
@@ -211,6 +243,30 @@ export function ParticipantsSection({
       {!locked && (
         <div className="mt-4">
           <p className="mb-2 text-[11px] text-ink-500">{copy.add_directly_hint}</p>
+          {isDoubles && (
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              {pairFirst ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-grass-300 bg-grass-50 px-3 py-1 text-xs font-semibold text-grass-800">
+                    {pairFirst.display_name ?? "—"}
+                    <button
+                      type="button"
+                      onClick={() => setPairFirst(null)}
+                      className="rounded-full p-0.5 text-grass-700 transition hover:bg-grass-100"
+                      aria-label={copy.cancel_pair}
+                    >
+                      <XIcon className="h-3 w-3" />
+                    </button>
+                  </span>
+                  <span className="text-[11px] text-ink-600">
+                    {copy.pair_second_hint}
+                  </span>
+                </>
+              ) : (
+                <span className="text-[11px] text-ink-600">{copy.pair_first_hint}</span>
+              )}
+            </div>
+          )}
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input
@@ -240,7 +296,7 @@ export function ParticipantsSection({
                     </span>
                     <button
                       type="button"
-                      onClick={() => onAdd(p.id)}
+                      onClick={() => onPick(p)}
                       disabled={busy}
                       className="inline-flex h-7 items-center gap-1 rounded-md bg-grass-500 px-2 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
                     >
@@ -249,7 +305,13 @@ export function ParticipantsSection({
                       ) : (
                         <Plus className="h-3 w-3" />
                       )}
-                      {busy ? copy.adding : copy.add_button}
+                      {busy
+                        ? copy.adding
+                        : !isDoubles
+                          ? copy.add_button
+                          : pairFirst
+                            ? copy.add_pair_button
+                            : copy.select_button}
                     </button>
                   </li>
                 );
@@ -279,6 +341,7 @@ export function ParticipantsSection({
                     </span>
                     <span className="truncate text-sm text-ink-900">
                       {p.display_name ?? "—"}
+                      {isDoubles && ` / ${p.partner_name ?? "—"}`}
                     </span>
                     {p.withdrawn && (
                       <span className="rounded-md bg-clay-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-clay-800">
@@ -331,7 +394,10 @@ export function ParticipantsSection({
               return (
                 <li key={p.id} className="flex items-center justify-between gap-2 py-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm text-ink-700">{p.display_name ?? "—"}</p>
+                    <p className="truncate text-sm text-ink-700">
+                      {p.display_name ?? "—"}
+                      {isDoubles && ` / ${p.partner_name ?? "—"}`}
+                    </p>
                     <p className="text-[11px] text-ink-400">Elo {p.current_elo}</p>
                   </div>
                   {!locked && (

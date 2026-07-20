@@ -2559,6 +2559,10 @@
       "swiss": "Swiss",
       "compass": "Compass draw"
     },
+    "disciplines": {
+      "singles": "Singles",
+      "doubles": "Doubles"
+    },
     "statuses": {
       "draft": "Draft",
       "registration": "Registration open",
@@ -2647,7 +2651,13 @@
       "score_extra_sets": "Extra set: the match was already decided in the previous sets.",
       "score_set_tie": "A set can't end in a tie — every set needs a winner.",
       "score_invalid_set": "Implausible set score. Valid examples: 6-4, 7-5, 7-6.",
-      "score_invalid_super_tiebreak": "The deciding super tiebreak is played to 10 points with a margin of at least 2 (e.g. 10-8)."
+      "score_invalid_super_tiebreak": "The deciding super tiebreak is played to 10 points with a margin of at least 2 (e.g. 10-8).",
+      "discipline_locked": "The tournament already has participants — the discipline (singles/doubles) can't be changed.",
+      "partner_required": "A doubles tournament requires picking a partner.",
+      "partner_is_self": "A player can't partner with themselves.",
+      "already_registered": "This player is already in the tournament.",
+      "partner_already_registered": "The selected partner is already in the tournament.",
+      "pair_incomplete": "Some pairs are missing a partner — the draw can't be generated. Check the participant list."
     },
     "match_rule_kinds": {
       "best_of_3": "Best of 3 sets",
@@ -2695,6 +2705,7 @@
         "name": "Name",
         "description": "Description",
         "format": "Format",
+        "discipline": "Discipline",
         "surface": "Surface",
         "starts_on": "Start date",
         "start_time": "Start time",
@@ -2719,6 +2730,7 @@
       },
       "hints": {
         "format": "Single elimination is supported in MVP; other formats are coming soon.",
+        "discipline": "Doubles tournament: entries are registered as pairs, seeded by the average doubles Elo, and results feed the doubles rating. The discipline is locked once participants exist.",
         "privacy": "Public tournaments appear in /me/tournaments → Open registrations for any player.",
         "application_mode": "\"Manually\" — every application waits for your approval. \"Automatically\" — a player joins the field right away while registration is open and seats remain.",
         "draw_method": "How to assign positions in the bracket. You can override per draw.",
@@ -2763,7 +2775,12 @@
       "reapprove": "Restore",
       "add_directly_hint": "You can add a player directly (no application needed). They'll go straight into the approved roster.",
       "mode_hint_auto": "Applications are confirmed automatically: players join the roster right away while seats remain. You can change this in the tournament settings.",
-      "mode_hint_manual": "You confirm every application: each one waits for your Approve or Reject decision. You can change this in the tournament settings."
+      "mode_hint_manual": "You confirm every application: each one waits for your Approve or Reject decision. You can change this in the tournament settings.",
+      "select_button": "Select",
+      "add_pair_button": "Add pair",
+      "pair_first_hint": "Doubles tournament: pick the first player of the pair.",
+      "pair_second_hint": "Now pick the partner — the whole pair will be added.",
+      "cancel_pair": "Reset"
     },
     "bracket": {
       "title": "Bracket",
@@ -2917,6 +2934,17 @@
     "open_organizer": "Manage",
     "seats": "{n}/{max, plural, =0 {∞} other {#}} seats",
     "error": "Error",
+    "discipline_doubles": "Doubles",
+    "partner_picker": {
+      "title": "Pick your partner",
+      "hint": "This is a doubles tournament — the application is submitted for a pair. Your partner joins the roster with you.",
+      "search_placeholder": "Search players…",
+      "searching": "Searching…",
+      "empty": "No players found. Try another name.",
+      "cancel": "Cancel",
+      "confirm": "Apply as a pair",
+      "submitting": "Sending…"
+    },
     "errors": {
       "generic": "Something went wrong ({code}). Please try again.",
       "not_authenticated": "You need to sign in.",
@@ -2924,7 +2952,12 @@
       "cant_apply_to_own_tournament": "You can't apply to your own tournament.",
       "registration_closed": "Registration for this tournament is currently closed.",
       "deadline_passed": "The application deadline has passed.",
-      "full": "All seats are taken — the tournament is full."
+      "full": "All seats are taken — the tournament is full.",
+      "not_registered": "You're not in this tournament.",
+      "partner_required": "A doubles tournament requires picking a partner.",
+      "partner_is_self": "You can't partner with yourself.",
+      "already_registered": "You're already in this tournament (as a player or a partner).",
+      "partner_already_registered": "The selected partner is already in this tournament."
     },
     "formats": {
       "single_elimination": "Single elimination",
@@ -3767,6 +3800,7 @@
       "matches_count": "{n, plural, one {# match} other {# matches}}",
       "round_short": "R",
       "reg_open": "Registration open",
+      "discipline_doubles": "Doubles",
       "participation": "entry",
       "slots_left": "{count, plural, one {# spot left} other {# spots left}}",
       "share": "Share",
@@ -5146,6 +5180,7 @@
       "summary_form": "Form",
       "group_friendly": "Friendlies",
       "group_no_club": "No club",
+      "doubles_badge": "Doubles",
       "empty_title": "No matches found",
       "empty_body": "Play a match or clear the filters — your history will appear here.",
       "no_score": "no score"

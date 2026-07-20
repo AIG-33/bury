@@ -123,10 +123,13 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
         current_elo: number;
       } | null;
     }>,
+    // The home hero shows the SINGLES Elo, so the 30-day delta must not mix
+    // in doubles-ladder rows.
     supabase
       .from("rating_history")
       .select("delta")
       .eq("player_id", user.id)
+      .eq("discipline", "singles")
       .gte("created_at", new Date(Date.now() - 30 * 24 * 3600_000).toISOString())
       .limit(50) as unknown as Promise<{ data: Array<{ delta: number }> | null }>,
     // Completed matches, newest first — the win streak source.
