@@ -47,6 +47,9 @@ platform :ios do
   lane :upload_metadata do
     deliver(
       api_key: app_store_api_key,
+      # Set APP_VERSION to create/target that version when no editable version
+      # exists in App Store Connect (otherwise deliver retries and fails).
+      app_version: ENV["APP_VERSION"],
       metadata_path: "./fastlane/metadata",
       screenshots_path: "./fastlane/screenshots/ios",
       skip_binary_upload: true,
