@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Handshake,
   HelpCircle,
+  Instagram,
   KeyRound,
   LayoutDashboard,
   LifeBuoy,
@@ -34,6 +35,7 @@ import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MAvatar, MContent, MDarkHeader, MEyebrow } from "@/components/mobile/m-ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
+import { INSTAGRAM_URL } from "@/lib/social-links";
 import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 import pkg from "@/package.json";
 
@@ -58,6 +60,8 @@ type MoreItem = {
   icon: LucideIcon;
   tone?: "sun";
   badge?: number;
+  /** Absolute URL rendered as <a target="_blank"> instead of an internal Link. */
+  external?: boolean;
 };
 
 export default async function MobileMorePage({ params }: Props) {
@@ -206,6 +210,7 @@ export default async function MobileMorePage({ params }: Props) {
       : []),
     { href: "/help", label: t("more.help"), icon: HelpCircle },
     { href: "/support", label: t("more.support"), icon: LifeBuoy },
+    { href: INSTAGRAM_URL, label: t("more.instagram"), icon: Instagram, external: true },
   ];
 
   return (
@@ -299,33 +304,48 @@ function MoreGroup({ eyebrow, items }: { eyebrow: string; items: MoreItem[] }) {
       <ul className="space-y-[8px]">
         {items.map((item) => {
           const Icon = item.icon;
+          const rowClassName =
+            "flex items-center gap-3 rounded-[15px] border border-[rgba(20,60,30,0.06)] bg-white p-[11px] shadow-[0_1px_2px_rgba(20,60,30,0.04)] transition-opacity active:opacity-85";
+          const rowContent = (
+            <>
+              <span
+                className={[
+                  "grid h-[36px] w-[36px] shrink-0 place-items-center rounded-[11px]",
+                  item.tone === "sun" ? "bg-sun-50 text-sun-600" : "bg-pt-icon text-grass-600",
+                ].join(" ")}
+              >
+                <Icon className="h-[17px] w-[17px]" strokeWidth={1.8} />
+              </span>
+              <span className="flex-1 truncate font-display text-[14.5px] font-bold text-ink-900">
+                {item.label}
+              </span>
+              {item.badge ? (
+                <span className="grid h-[20px] min-w-[20px] shrink-0 place-items-center rounded-full bg-grass-600 px-1.5 font-mono text-[10.5px] font-bold tabular-nums text-white">
+                  {item.badge > 9 ? "9+" : item.badge}
+                </span>
+              ) : null}
+              <ChevronRight
+                className="h-[16px] w-[16px] shrink-0 text-[#A7B5A9]"
+                strokeWidth={2}
+              />
+            </>
+          );
           return (
             <li key={item.href}>
-              <Link
-                href={item.href as never}
-                className="flex items-center gap-3 rounded-[15px] border border-[rgba(20,60,30,0.06)] bg-white p-[11px] shadow-[0_1px_2px_rgba(20,60,30,0.04)] transition-opacity active:opacity-85"
-              >
-                <span
-                  className={[
-                    "grid h-[36px] w-[36px] shrink-0 place-items-center rounded-[11px]",
-                    item.tone === "sun" ? "bg-sun-50 text-sun-600" : "bg-pt-icon text-grass-600",
-                  ].join(" ")}
+              {item.external ? (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={rowClassName}
                 >
-                  <Icon className="h-[17px] w-[17px]" strokeWidth={1.8} />
-                </span>
-                <span className="flex-1 truncate font-display text-[14.5px] font-bold text-ink-900">
-                  {item.label}
-                </span>
-                {item.badge ? (
-                  <span className="grid h-[20px] min-w-[20px] shrink-0 place-items-center rounded-full bg-grass-600 px-1.5 font-mono text-[10.5px] font-bold tabular-nums text-white">
-                    {item.badge > 9 ? "9+" : item.badge}
-                  </span>
-                ) : null}
-                <ChevronRight
-                  className="h-[16px] w-[16px] shrink-0 text-[#A7B5A9]"
-                  strokeWidth={2}
-                />
-              </Link>
+                  {rowContent}
+                </a>
+              ) : (
+                <Link href={item.href as never} className={rowClassName}>
+                  {rowContent}
+                </Link>
+              )}
             </li>
           );
         })}

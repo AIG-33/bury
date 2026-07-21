@@ -2,9 +2,11 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { TelegramIcon } from "@/components/icons/telegram";
+import { InstagramIcon } from "@/components/icons/instagram";
 import { StoreBadges } from "./store-badges";
 import { HideInNativeApp } from "./hide-in-native-app";
 import { telegramBotUrl } from "@/lib/telegram/bot-link";
+import { INSTAGRAM_URL } from "@/lib/social-links";
 
 type Props = { authed: boolean };
 
@@ -45,17 +47,28 @@ export async function Footer({ authed }: Props) {
             <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600">
               {t("contact.body")}
             </p>
-            {botUrl && (
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+              {botUrl && (
+                <a
+                  href={botUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-[#229ED9] transition-colors hover:text-[#1d8bc0]"
+                >
+                  <TelegramIcon className="h-4 w-4" />
+                  {t("telegram.link_label")}
+                </a>
+              )}
               <a
-                href={botUrl}
+                href={INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#229ED9] transition-colors hover:text-[#1d8bc0]"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#E1306C] transition-colors hover:text-[#c02458]"
               >
-                <TelegramIcon className="h-4 w-4" />
-                {t("telegram.link_label")}
+                <InstagramIcon className="h-4 w-4" />
+                {t("instagram.link_label")}
               </a>
-            )}
+            </div>
           </div>
 
           <FooterColumn title={t("groups.play")}>

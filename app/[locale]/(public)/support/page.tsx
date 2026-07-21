@@ -4,7 +4,9 @@ import { Link } from "@/i18n/routing";
 import { PageHeader } from "@/components/layout/page-header";
 import { Surface, SectionTitle } from "@/components/ui/surface";
 import { TelegramIcon } from "@/components/icons/telegram";
+import { InstagramIcon } from "@/components/icons/instagram";
 import { telegramBotUrl } from "@/lib/telegram/bot-link";
+import { INSTAGRAM_URL } from "@/lib/social-links";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -67,6 +69,22 @@ export default async function SupportPage({ params }: Props) {
             </a>
           </Surface>
         )}
+
+        <Surface variant="card" className="space-y-2">
+          <h2 className="font-display text-base font-semibold text-grass-900">
+            {t("instagram_title")}
+          </h2>
+          <p className="text-sm text-ink-600">{t("instagram_body")}</p>
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#E1306C] transition-colors hover:text-[#c02458]"
+          >
+            <InstagramIcon className="h-4 w-4" />
+            {t("instagram_cta")}
+          </a>
+        </Surface>
       </div>
 
       <div className="court-line" aria-hidden />

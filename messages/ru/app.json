@@ -3921,6 +3921,9 @@
     "telegram": {
       "link_label": "Мы в Telegram"
     },
+    "instagram": {
+      "link_label": "Мы в Instagram"
+    },
     "install": {
       "title_short": "Скачай приложение",
       "prompt_headline": "Приложение PlayTennis.by",
@@ -4889,6 +4892,9 @@
     "telegram_title": "Написать в Telegram",
     "telegram_body": "Самый быстрый способ связаться — наш Telegram-бот.",
     "telegram_cta": "Открыть Telegram",
+    "instagram_title": "Мы в Instagram",
+    "instagram_body": "Новости платформы, анонсы турниров и жизнь сообщества.",
+    "instagram_cta": "Открыть Instagram",
     "topics_title": "Частые вопросы",
     "topics": [
       {
@@ -5274,6 +5280,7 @@
       "settings": "Настройки",
       "help": "Помощь",
       "support": "Поддержка",
+      "instagram": "Мы в Instagram",
       "logout": "Выйти",
       "version": "PlayTennis.by · версия {version}",
       "club_place": "#{rank} в клубе",

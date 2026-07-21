@@ -3914,6 +3914,9 @@
     "telegram": {
       "link_label": "We're on Telegram"
     },
+    "instagram": {
+      "link_label": "We're on Instagram"
+    },
     "install": {
       "title_short": "Get the app",
       "prompt_headline": "PlayTennis.by app",
@@ -4882,6 +4885,9 @@
     "telegram_title": "Message on Telegram",
     "telegram_body": "The fastest way to reach us is our Telegram bot.",
     "telegram_cta": "Open Telegram",
+    "instagram_title": "We're on Instagram",
+    "instagram_body": "Platform news, tournament announcements and community life.",
+    "instagram_cta": "Open Instagram",
     "topics_title": "Common questions",
     "topics": [
       {
@@ -5267,6 +5273,7 @@
       "settings": "Settings",
       "help": "Help",
       "support": "Support",
+      "instagram": "We're on Instagram",
       "logout": "Sign out",
       "version": "PlayTennis.by · version {version}",
       "club_place": "#{rank} in club",
