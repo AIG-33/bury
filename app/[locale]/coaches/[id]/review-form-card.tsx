@@ -159,7 +159,7 @@ export function ReviewFormCard({ coachId, eligibility }: Props) {
             maxLength={1000}
             rows={4}
             placeholder={t("text_placeholder")}
-            className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-400 focus:outline-none"
+            className="mt-1 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-400 focus:outline-none"
           />
           <p className="mt-1 text-right text-xs text-ink-400">
             {text.length} / 1000
@@ -182,7 +182,7 @@ export function ReviewFormCard({ coachId, eligibility }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-10 items-center rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600 disabled:opacity-60"
+          className="inline-flex h-10 items-center rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white transition hover:-translate-y-0.5 disabled:opacity-60"
         >
           {pending ? t("submitting") : submitLabel}
         </button>

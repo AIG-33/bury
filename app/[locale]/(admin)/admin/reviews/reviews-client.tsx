@@ -141,7 +141,7 @@ export function ReviewsModerationClient({ initialRows, initialFilter }: Props) {
                 onClick={() => {
                   if (confirm(t("confirm_publish"))) action(r.id, "publish");
                 }}
-                className="inline-flex items-center gap-1 rounded-lg bg-grass-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-grass-600 disabled:opacity-60"
+                className="inline-flex items-center gap-1 rounded-[13px] bg-pt-primary px-3 py-1.5 text-xs font-medium text-white transition hover:-translate-y-0.5 disabled:opacity-60"
               >
                 <Eye className="h-3.5 w-3.5" />
                 {t("actions.publish")}

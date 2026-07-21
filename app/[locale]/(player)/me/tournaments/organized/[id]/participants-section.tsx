@@ -208,7 +208,7 @@ export function ParticipantsSection({
                         type="button"
                         onClick={() => onDecide(p.id, "approved")}
                         disabled={busy}
-                        className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-600 px-2.5 text-xs font-semibold text-white transition hover:bg-grass-700 disabled:opacity-60"
+                        className="inline-flex h-8 items-center gap-1 rounded-[11px] bg-pt-primary px-2.5 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
                       >
                         {busy ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -273,7 +273,7 @@ export function ParticipantsSection({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={copy.add_placeholder}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+              className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] pl-9 pr-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
           </div>
 
@@ -298,7 +298,7 @@ export function ParticipantsSection({
                       type="button"
                       onClick={() => onPick(p)}
                       disabled={busy}
-                      className="inline-flex h-7 items-center gap-1 rounded-md bg-grass-500 px-2 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
+                      className="inline-flex h-7 items-center gap-1 rounded-[11px] bg-pt-primary px-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
                     >
                       {busy ? (
                         <Loader2 className="h-3 w-3 animate-spin" />

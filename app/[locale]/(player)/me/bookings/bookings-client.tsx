@@ -472,7 +472,7 @@ function SlotMeta({ slot, copy }: { slot: AvailableSlot; copy: BookingsCopy }) {
 }
 
 const inputCls =
-  "h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30";
+  "h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30";
 
 function statusPillCls(s: MyBookingRow["status"]): string {
   switch (s) {

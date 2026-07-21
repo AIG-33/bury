@@ -199,7 +199,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
           <button
             type="submit"
             disabled={isPending || !form.formState.isDirty}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+            className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-5 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
           >
             {isPending ? (
               <>
@@ -469,7 +469,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
           <textarea
             {...form.register("health_notes")}
             rows={3}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+            className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
             placeholder="—"
           />
         </Field>
@@ -571,7 +571,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
       <input
         ref={ref}
         {...rest}
-        className={`h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 ${
+        className={`h-11 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 ${
           className ?? ""
         }`}
       />
@@ -592,7 +592,7 @@ function Select({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+      className="h-11 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>

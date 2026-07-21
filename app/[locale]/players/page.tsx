@@ -126,7 +126,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             <select
               name="discipline"
               defaultValue={discipline}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="singles">{t("controls.discipline.singles")}</option>
               <option value="doubles">{t("controls.discipline.doubles")}</option>
@@ -140,7 +140,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             <select
               name="level"
               defaultValue={level}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               {LEVEL_BUCKETS.map((b) => (
                 <option key={b} value={b}>
@@ -157,7 +157,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             <select
               name="district"
               defaultValue={districtId}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("controls.any_district")}</option>
               {districts.map((d) => (
@@ -175,7 +175,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             <select
               name="hand"
               defaultValue={hand}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               {(["both", "R", "L"] as const).map((h) => (
                 <option key={h} value={h}>
@@ -192,7 +192,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             <select
               name="weekday"
               defaultValue={weekday}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("controls.any_weekday")}</option>
               {WEEKDAYS.map((d) => (
@@ -210,7 +210,7 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
             <select
               name="daypart"
               defaultValue={daypart}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("controls.any_daypart")}</option>
               {TIME_SLOTS.map((s) => (
@@ -398,7 +398,9 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                 </div>
 
                 <div className="mt-auto pt-1">
-                  <Button asChild variant="primary" className="w-full justify-center">
+                  {/* Soft CTA per target ref (catalogs.png) — a grid of cards
+                      shouldn't repeat the loud primary gradient. */}
+                  <Button asChild variant="soft" className="w-full justify-center">
                     <Link
                       href={
                         (isGuest

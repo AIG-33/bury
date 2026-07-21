@@ -25,7 +25,7 @@ export function LeaderboardTabs({
   paramName?: string;
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-ink-200 bg-white p-1 shadow-card">
+    <div className="inline-flex rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] p-1 shadow-card">
       <Tab
         active={active === "mine"}
         href={`${basePath}?${paramName}=mine`}

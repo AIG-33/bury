@@ -247,7 +247,7 @@ export function FindClient({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={copy.query_placeholder}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
               />
             </div>
           </FieldBlock>
@@ -406,7 +406,7 @@ export function FindClient({
               type="button"
               onClick={runSearch}
               disabled={isSearching}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
             >
               {isSearching ? (
                 <>
@@ -676,7 +676,7 @@ function CandidateCard({
             rows={2}
             maxLength={500}
             placeholder=""
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+            className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
           />
           {status === "error" && errCode && (
             <p className="mt-2 inline-flex items-center gap-1 text-xs text-clay-700">
@@ -700,7 +700,7 @@ function CandidateCard({
               type="button"
               onClick={send}
               disabled={isSending}
-              className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-500 px-4 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:opacity-50"
+              className="inline-flex h-8 items-center gap-1 rounded-[11px] bg-pt-primary px-4 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-50"
             >
               {isSending ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -769,7 +769,7 @@ function DistrictPicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-full items-center justify-between rounded-lg border border-ink-200 bg-white px-3 text-left text-sm outline-none transition focus:border-grass-500"
+        className="flex h-10 w-full items-center justify-between rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-left text-sm outline-none transition focus:border-grass-500"
       >
         <span className="truncate text-ink-700">
           {selected.length === 0
@@ -782,7 +782,7 @@ function DistrictPicker({
       </button>
 
       {open && (
-        <div className="shadow-pop absolute z-20 mt-1 w-full rounded-lg border border-ink-200 bg-white">
+        <div className="shadow-pop absolute z-20 mt-1 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9]">
           <div className="border-b border-ink-100 p-2">
             <input
               autoFocus
@@ -997,7 +997,7 @@ function MyAvailabilityCard({
             type="button"
             onClick={save}
             disabled={isSaving || !dirty}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-4 text-xs font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-[13px] bg-pt-primary px-4 text-xs font-semibold text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
           >
             {isSaving ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

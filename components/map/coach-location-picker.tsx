@@ -136,7 +136,7 @@ export function CoachLocationPicker({ lat, lng, onPick, onClear, labels }: Props
             }
           }}
           placeholder={labels.search_placeholder}
-          className="h-10 min-w-[200px] flex-1 rounded-lg border border-ink-200 bg-white px-3 text-sm focus:border-grass-400 focus:outline-none"
+          className="h-10 min-w-[200px] flex-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm focus:border-grass-400 focus:outline-none"
         />
         <button
           type="button"

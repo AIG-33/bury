@@ -87,7 +87,7 @@ export function QuizClient({ locale, versionId, questions, copy }: Props) {
         <button
           type="button"
           onClick={() => router.push("/me/rating")}
-          className="mt-5 inline-flex h-11 items-center rounded-lg bg-grass-500 px-6 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
+          className="mt-5 inline-flex h-11 items-center rounded-[13px] bg-pt-primary px-6 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5"
         >
           {copy.done_cta}
         </button>
@@ -143,7 +143,7 @@ export function QuizClient({ locale, versionId, questions, copy }: Props) {
               type="button"
               onClick={submit}
               disabled={isPending}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60"
+              className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-5 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-60"
             >
               {isPending ? (
                 <>
@@ -158,7 +158,7 @@ export function QuizClient({ locale, versionId, questions, copy }: Props) {
               type="button"
               onClick={next}
               disabled={isPending}
-              className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60"
+              className="inline-flex h-10 items-center gap-1 rounded-[13px] bg-pt-primary px-5 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-60"
             >
               {copy.next} <ArrowRight className="h-4 w-4" />
             </button>
@@ -276,7 +276,7 @@ function QuestionInput({
           onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder={placeholder}
           // 16px on phones — prevents the iOS focus auto-zoom.
-          className="h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
+          className="h-11 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
         />
       );
     }

@@ -155,7 +155,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             <select
               name="city"
               defaultValue={city ?? ""}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("filters.any_city")}</option>
               {cities.map((c) => (
@@ -173,7 +173,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             <select
               name="format"
               defaultValue={format ?? ""}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("filters.any_format")}</option>
               {TOURNAMENT_FORMATS.map((f) => (
@@ -191,7 +191,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             <select
               name="surface"
               defaultValue={surface ?? ""}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("filters.any_surface")}</option>
               {SURFACES.map((s) => (
@@ -209,7 +209,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
             <select
               name="fee"
               defaultValue={fee ?? ""}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("filters.fee_options.any")}</option>
               <option value="free">{t("filters.fee_options.free")}</option>

@@ -215,7 +215,7 @@ export function ClubFormDialog({
                   <select
                     value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value || null)}
-                    className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+                    className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
                   >
                     <option value="">{labels.fields.district_any}</option>
                     {districts.map((d) => (
@@ -294,14 +294,14 @@ export function ClubFormDialog({
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+              className="inline-flex h-9 items-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
             >
               {labels.cancel}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex h-9 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-9 items-center gap-1 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isPending ? labels.saving : labels.save}

@@ -73,7 +73,7 @@ export function TournamentPartnerPicker({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search_placeholder")}
             // 16px on phones — prevents the iOS focus auto-zoom.
-            className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-[16px] outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200 sm:text-sm"
+            className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] pl-9 pr-3 text-[16px] outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200 sm:text-sm"
           />
         </div>
 
@@ -129,7 +129,7 @@ export function TournamentPartnerPicker({
             type="button"
             disabled={!selected || submitting}
             onClick={() => selected && onConfirm(selected.id)}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-60"
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {submitting ? t("submitting") : t("confirm")}

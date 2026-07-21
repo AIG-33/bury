@@ -111,7 +111,7 @@ export default async function ClubsPage({ params, searchParams }: Props) {
             <select
               name="city"
               defaultValue={city ?? ""}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("filters.any_city")}</option>
               {cities.map((c) => (
@@ -129,7 +129,7 @@ export default async function ClubsPage({ params, searchParams }: Props) {
             <select
               name="district"
               defaultValue={districtId ?? ""}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("filters.any_district")}</option>
               {districts.map((d) => (

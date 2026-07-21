@@ -120,7 +120,7 @@ export function CreateOpenMatchForm({
   };
 
   const inputClass =
-    "w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500";
+    "w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500";
   const errorClass = "mt-1 text-xs text-clay-700";
 
   return (
@@ -263,7 +263,7 @@ export function CreateOpenMatchForm({
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-11 items-center justify-center rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
       >
         {pending ? copy.submitting : copy.submit}
       </button>

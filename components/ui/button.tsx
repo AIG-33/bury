@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
  *  - `secondary` → glass white pill with grass hover
  *  - `accent`    → ball-yellow pill (used sparingly for celebratory moments)
  *  - `ghost`     → transparent, no border (in-row links / table actions)
+ *  - `soft`      → tinted grass wash, green label (quiet in-card CTA)
  *  - `danger`    → soft clay-tinted pill for destructive actions
  *
  * Sizes:
@@ -23,6 +24,7 @@ export type ButtonVariant =
   | "secondary"
   | "accent"
   | "ghost"
+  | "soft"
   | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
@@ -31,6 +33,7 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
   secondary: "btn-secondary",
   accent: "btn-accent",
   ghost: "btn-ghost",
+  soft: "btn-soft",
   danger: "btn-danger",
 };
 

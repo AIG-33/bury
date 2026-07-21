@@ -174,7 +174,7 @@ export function CourtsManager({
             type="button"
             onClick={onAdd}
             disabled={isAdding}
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
           >
             {isAdding ? (
               <>
@@ -308,7 +308,7 @@ function CourtRowEditor({
           type="button"
           onClick={save}
           disabled={!dirty || busy}
-          className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-500 px-3 text-xs font-medium text-white transition hover:bg-grass-600 disabled:opacity-40"
+          className="inline-flex h-8 items-center gap-1 rounded-[11px] bg-pt-primary px-3 text-xs font-medium text-white transition hover:-translate-y-0.5 disabled:opacity-40"
         >
           {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
           {busy ? copy.saving : copy.save}

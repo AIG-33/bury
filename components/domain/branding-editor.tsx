@@ -34,11 +34,11 @@ import {
 
 const SECTION = "rounded-xl2 border border-ink-100 bg-white p-4 shadow-card";
 const INPUT =
-  "h-9 w-full rounded-lg border border-ink-200 bg-white px-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none";
+  "h-9 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none";
 const BTN_PRIMARY =
   "inline-flex h-9 items-center gap-1 rounded-lg bg-grass-700 px-3 text-sm font-semibold text-white transition hover:bg-grass-800 disabled:cursor-not-allowed disabled:opacity-60";
 const BTN_GHOST =
-  "inline-flex h-9 cursor-pointer items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50";
+  "inline-flex h-9 cursor-pointer items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50";
 
 const DEFAULT_ACCENT = "#16a34a";
 const DEFAULT_BG = "#0f1b14";
@@ -511,7 +511,7 @@ function RemoveButton({ label, onClick }: { label: string; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
+      className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
     >
       <Trash2 className="h-4 w-4" />
       {label}

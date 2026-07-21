@@ -163,7 +163,7 @@ export function TableClient({
                   placeholder={t("search_placeholder", {
                     fields: table.searchColumns.join(", "),
                   })}
-                  className="w-full rounded-lg border border-ink-200 bg-white py-2 pl-8 pr-3 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200"
+                  className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] py-2 pl-8 pr-3 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200"
                 />
               </div>
             </div>
@@ -176,7 +176,7 @@ export function TableClient({
             <select
               value={pageSize}
               onChange={(e) => setParam("pageSize", e.target.value)}
-              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200"
+              className="rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200"
             >
               {[10, 25, 50, 100, 200].map((n) => (
                 <option key={n} value={n}>
@@ -197,7 +197,7 @@ export function TableClient({
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 transition hover:bg-ink-50"
+              className="inline-flex items-center gap-1.5 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm text-ink-700 transition hover:bg-ink-50"
             >
               <X className="h-3.5 w-3.5" />
               {t("clear")}
@@ -276,7 +276,7 @@ export function TableClient({
                   {!table.disableInsert && (
                     <Link
                       href={`/admin/db/${table.name}/new`}
-                      className="mt-3 inline-flex h-9 items-center rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600"
+                      className="mt-3 inline-flex h-9 items-center rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white transition hover:-translate-y-0.5"
                     >
                       {t("empty_cta")}
                     </Link>
@@ -297,7 +297,7 @@ export function TableClient({
                       <div className="inline-flex items-center gap-1">
                         <Link
                           href={`/admin/db/${table.name}/${id}`}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white text-ink-700 transition hover:border-grass-300 hover:bg-grass-50 hover:text-grass-800"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] text-ink-700 transition hover:border-grass-300 hover:bg-grass-50 hover:text-grass-800"
                           title={t("edit")}
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -314,7 +314,7 @@ export function TableClient({
                             type="button"
                             onClick={() => onDelete(id)}
                             disabled={pending}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white text-clay-700 transition hover:border-clay-400 hover:bg-clay-50 disabled:opacity-50"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] text-clay-700 transition hover:border-clay-400 hover:bg-clay-50 disabled:opacity-50"
                             title={t("delete")}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -340,7 +340,7 @@ export function TableClient({
             type="button"
             onClick={() => setPage(page - 1)}
             disabled={page <= 1 || pending}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white disabled:opacity-40"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] disabled:opacity-40"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -351,7 +351,7 @@ export function TableClient({
             type="button"
             onClick={() => setPage(page + 1)}
             disabled={page >= totalPages || pending}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white disabled:opacity-40"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] disabled:opacity-40"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -370,7 +370,7 @@ function FilterInput({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const tBase = "rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200";
+  const tBase = "rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200";
   if (col.type === "boolean") {
     return (
       <select value={value} onChange={(e) => onChange(e.target.value)} className={tBase}>

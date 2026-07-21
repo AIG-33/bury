@@ -159,7 +159,7 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
                   <select
                     value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
                   >
                     <option value="">{copy.none}</option>
                     {districts.map((d) => (
@@ -258,14 +258,14 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 items-center rounded-lg border border-ink-200 bg-white px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+              className="inline-flex h-10 items-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
             >
               {copy.cancel}
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-5 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+              className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-5 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
             >
               {pending ? (
                 <>
@@ -313,7 +313,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+      className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
     />
   );
 }

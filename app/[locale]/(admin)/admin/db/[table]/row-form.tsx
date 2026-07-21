@@ -191,14 +191,14 @@ function Field({
   fullWidth?: boolean;
 }) {
   const inputCls =
-    "w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200 disabled:bg-ink-50 disabled:text-ink-500";
+    "w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-2 focus:ring-grass-200 disabled:bg-ink-50 disabled:text-ink-500";
   const wrapperCls = cn(fullWidth && "md:col-span-2");
   const disabled = !!col.readonly;
 
   let input: React.ReactNode = null;
   if (col.type === "boolean") {
     input = (
-      <label className="inline-flex items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm">
+      <label className="inline-flex items-center gap-2 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm">
         <input
           type="checkbox"
           checked={value === true || value === "true"}

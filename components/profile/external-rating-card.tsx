@@ -165,7 +165,7 @@ function NotConnected({ locale, copy }: { locale: "ru" | "en"; copy: ExternalRat
       <p className="mt-1 text-xs text-grass-800">{copy.not_connected_body}</p>
       <a
         href={`/${locale}/onboarding/import-lt`}
-        className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-3 text-xs font-semibold text-white shadow-card transition hover:bg-grass-600"
+        className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-[13px] bg-pt-primary px-3 text-xs font-semibold text-white shadow-card transition hover:-translate-y-0.5"
       >
         <Plus className="h-3.5 w-3.5" /> {copy.not_connected_cta}
       </a>
@@ -215,7 +215,7 @@ function Connected({
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing || isDisconnecting}
-            className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-50"
           >
             {isRefreshing ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

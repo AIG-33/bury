@@ -193,7 +193,7 @@ export function QuickRegisterDialog({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("opponent_search_placeholder")}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm"
+              className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] pl-9 pr-3 text-sm"
             />
           </div>
 
@@ -357,7 +357,7 @@ export function QuickRegisterDialog({
             disabled={
               pending || !opponentId || (isDoubles && (!myPartnerId || !opponentPartnerId))
             }
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card hover:bg-grass-600 disabled:opacity-50"
+            className="inline-flex h-10 items-center gap-1.5 rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white shadow-card hover:-translate-y-0.5 disabled:opacity-50"
           >
             {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {t("submit")}

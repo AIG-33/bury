@@ -195,7 +195,7 @@ export default async function VenuesCatalogPage({ params }: Props) {
           <Link
             /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             href={"/venues/new" as any}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600"
+            className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5"
           >
             <MapPinPlus className="h-4 w-4" />
             {t("add_venue")}

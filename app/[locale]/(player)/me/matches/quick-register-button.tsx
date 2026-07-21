@@ -12,7 +12,7 @@ export function QuickRegisterButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-grass-500 px-3 text-sm font-medium text-white shadow-card hover:bg-grass-600"
+        className="inline-flex h-9 items-center gap-1.5 rounded-[13px] bg-pt-primary px-3 text-sm font-medium text-white shadow-card hover:-translate-y-0.5"
       >
         <Plus className="h-4 w-4" />
         {t("quick_register_cta")}

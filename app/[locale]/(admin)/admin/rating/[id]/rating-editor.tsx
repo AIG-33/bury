@@ -392,7 +392,7 @@ function NumberField({
         step={step ?? 1}
         onChange={(e) => onChange(Number(e.target.value))}
         disabled={disabled}
-        className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm font-mono disabled:bg-ink-50"
+        className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-mono disabled:bg-ink-50"
       />
     </label>
   );
@@ -478,7 +478,7 @@ function Simulator({ config }: { config: AlgorithmConfig | null }) {
                 onClick={() => setWinner(s)}
                 className={
                   winner === s
-                    ? "rounded-md bg-grass-500 py-1.5 text-xs font-medium text-white"
+                    ? "rounded-[11px] bg-pt-primary py-1.5 text-xs font-medium text-white"
                     : "rounded-md py-1.5 text-xs text-ink-600 hover:bg-ink-50"
                 }
               >

@@ -162,7 +162,7 @@ function SlotCard({
         ) : !viewerSignedIn ? (
           <a
             href={`/${locale}/login?next=/${locale}/coaches/${coachId}`}
-            className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-800 transition hover:bg-ink-50"
+            className="inline-flex items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-1.5 text-xs font-medium text-ink-800 transition hover:bg-ink-50"
           >
             {t("login_to_book")}
           </a>
@@ -171,7 +171,7 @@ function SlotCard({
             type="button"
             onClick={onBook}
             disabled={pending || isFull}
-            className="inline-flex items-center gap-1 rounded-lg bg-grass-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-grass-600 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-[13px] bg-pt-primary px-3 py-1.5 text-xs font-medium text-white transition hover:-translate-y-0.5 disabled:opacity-50"
           >
             {pending ? (
               <>

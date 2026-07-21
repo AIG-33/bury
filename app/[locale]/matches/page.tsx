@@ -196,7 +196,7 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
                 name="q"
                 defaultValue={playerSearch ?? ""}
                 placeholder={t("filter.player_placeholder")}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
               />
             </span>
           </label>
@@ -207,7 +207,7 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
             <select
               name="tournament"
               defaultValue={tournamentFilter ?? ""}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
+              className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
             >
               <option value="">{t("filter.all_tournaments")}</option>
               {tournaments.map((tt) => (
@@ -224,7 +224,7 @@ export default async function PublicMatchesPage({ params, searchParams }: Props)
             <select
               name="venue"
               defaultValue={venueFilter ?? ""}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
+              className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-500 focus:ring-2 focus:ring-grass-100"
             >
               <option value="">{t("filter.all_venues")}</option>
               {venues.map((v) => (
@@ -456,7 +456,7 @@ function PaginationLink({
   return (
     <a
       href={href}
-      className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-800 transition hover:bg-ink-50"
+      className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-800 transition hover:bg-ink-50"
     >
       {iconLeading && <ChevronLeft className="h-3.5 w-3.5" />}
       {label}

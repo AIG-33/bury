@@ -30,7 +30,7 @@ type Props = {
 };
 
 const INPUT =
-  "h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30";
+  "h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30";
 
 export function UserVenueForm({ userId, districts, initial }: Props) {
   const t = useTranslations("venuesCatalog.form");
@@ -283,7 +283,7 @@ export function UserVenueForm({ userId, districts, initial }: Props) {
             />
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
               {uploading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -337,7 +337,7 @@ export function UserVenueForm({ userId, districts, initial }: Props) {
                 is_indoor: false,
               })
             }
-            className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+            className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
           >
             <Plus className="h-4 w-4" />
             {t("courts.add")}
@@ -434,14 +434,14 @@ export function UserVenueForm({ userId, districts, initial }: Props) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="inline-flex h-11 items-center rounded-lg border border-ink-200 bg-white px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+          className="inline-flex h-11 items-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
         >
           {t("cancel")}
         </button>
         <button
           type="submit"
           disabled={pending || uploading}
-          className="inline-flex h-11 items-center gap-2 rounded-lg bg-grass-500 px-6 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-2 rounded-[13px] bg-pt-primary px-6 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
           {pending ? t("saving") : isEdit ? t("save_edit") : t("save_create")}

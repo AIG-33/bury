@@ -283,7 +283,7 @@ export function TournamentFormDialog({
             </label>
             <input
               {...form.register("name")}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+              className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
             {form.formState.errors.name && (
               <p className="mt-1 text-xs text-clay-700">{form.formState.errors.name.message}</p>
@@ -297,7 +297,7 @@ export function TournamentFormDialog({
             <textarea
               {...form.register("description")}
               rows={2}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
           </div>
 
@@ -313,7 +313,7 @@ export function TournamentFormDialog({
                   <select
                     {...field}
                     value={field.value ?? "single_elimination"}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     {TOURNAMENT_FORMATS.map((f) => (
                       <option key={f} value={f} disabled={!SUPPORTED_FORMATS_MVP.includes(f)}>
@@ -338,7 +338,7 @@ export function TournamentFormDialog({
                   <select
                     {...field}
                     value={field.value ?? "singles"}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     {TOURNAMENT_DISCIPLINES.map((d) => (
                       <option key={d} value={d}>
@@ -362,7 +362,7 @@ export function TournamentFormDialog({
                   <select
                     {...field}
                     value={field.value ?? "rating"}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     {SEEDING_METHODS.map((m) => (
                       <option key={m} value={m}>
@@ -388,7 +388,7 @@ export function TournamentFormDialog({
                     onChange={(e) =>
                       field.onChange(e.target.value === "" ? null : (e.target.value as Surface))
                     }
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     <option value="">{copy.none}</option>
                     {SURFACES.map((s) => (
@@ -412,7 +412,7 @@ export function TournamentFormDialog({
                   <select
                     {...field}
                     value={field.value ?? "club"}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     {PRIVACY_OPTIONS.map((p) => (
                       <option key={p} value={p}>
@@ -436,7 +436,7 @@ export function TournamentFormDialog({
                   <select
                     {...field}
                     value={field.value ?? "manual"}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   >
                     {APPLICATION_MODES.map((m) => (
                       <option key={m} value={m}>
@@ -463,7 +463,7 @@ export function TournamentFormDialog({
                       onChange={(e) =>
                         field.onChange(e.target.value === "" ? null : e.target.value)
                       }
-                      className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                      className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                     >
                       <option value="">{copy.none}</option>
                       {clubOptions.map((c) => (
@@ -485,7 +485,7 @@ export function TournamentFormDialog({
               <input
                 type="date"
                 {...form.register("starts_on")}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
               />
             </div>
 
@@ -502,7 +502,7 @@ export function TournamentFormDialog({
                     step={300}
                     value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
-                    className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   />
                 )}
               />
@@ -516,7 +516,7 @@ export function TournamentFormDialog({
               <input
                 type="date"
                 {...form.register("ends_on")}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
               />
             </div>
 
@@ -527,7 +527,7 @@ export function TournamentFormDialog({
               <input
                 type="date"
                 {...form.register("registration_deadline")}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
               />
             </div>
 
@@ -540,7 +540,7 @@ export function TournamentFormDialog({
                 min={2}
                 max={128}
                 {...form.register("max_participants")}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
               />
             </div>
 
@@ -555,7 +555,7 @@ export function TournamentFormDialog({
                   max={100000}
                   step={10}
                   {...form.register("entry_fee_byn")}
-                  className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                  className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm tabular-nums outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                 />
                 <span className="text-xs text-ink-500">{copy.fields.entry_fee_currency}</span>
               </div>
@@ -674,7 +674,7 @@ export function TournamentFormDialog({
                           });
                         }
                       }}
-                      className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                      className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                     >
                       {MATCH_RULE_KINDS.map((k) => (
                         <option key={k} value={k}>
@@ -713,7 +713,7 @@ export function TournamentFormDialog({
                         }
                       },
                     })}
-                    className="h-9 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-9 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   />
                 </div>
               )}
@@ -729,7 +729,7 @@ export function TournamentFormDialog({
                     max={15}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     {...form.register("match_rules.target_games" as any, { valueAsNumber: true })}
-                    className="h-9 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-9 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   />
                 </div>
               )}
@@ -745,7 +745,7 @@ export function TournamentFormDialog({
                     max={180}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     {...form.register("match_rules.minutes" as any, { valueAsNumber: true })}
-                    className="h-9 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+                    className="h-9 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
                   />
                 </div>
               )}
@@ -785,7 +785,7 @@ export function TournamentFormDialog({
             <textarea
               {...form.register("prizes_description")}
               rows={2}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
           </div>
 
@@ -800,7 +800,7 @@ export function TournamentFormDialog({
             <textarea
               {...form.register("regulations_text")}
               rows={4}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
             />
             <p className="mt-1 text-[11px] text-ink-500">{copy.regulations.text_hint}</p>
 
@@ -829,14 +829,14 @@ export function TournamentFormDialog({
                           field.onChange(null);
                           setFileError(null);
                         }}
-                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
+                        className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
                       >
                         <Trash2 className="h-4 w-4" />
                         {copy.regulations.remove}
                       </button>
                     </>
                   )}
-                  <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
+                  <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
                     {fileUploading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -912,7 +912,7 @@ export function TournamentFormDialog({
             <button
               type="submit"
               disabled={pending || fileUploading}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60"
+              className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-60"
             >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {pending ? copy.saving : copy.save}

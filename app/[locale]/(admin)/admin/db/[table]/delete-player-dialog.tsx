@@ -77,7 +77,7 @@ export function DeletePlayerButton({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white text-clay-700 transition hover:border-clay-400 hover:bg-clay-50"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] text-clay-700 transition hover:border-clay-400 hover:bg-clay-50"
           title={t("trigger")}
         >
           <Trash2 className="h-3.5 w-3.5" />

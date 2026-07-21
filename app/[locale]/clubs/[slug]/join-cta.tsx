@@ -41,7 +41,7 @@ export function JoinCta({ locale, clubId, clubName, joinPolicy, viewer }: Props)
     return (
       <a
         href={`/${locale}/login`}
-        className="inline-flex h-10 items-center rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600"
+        className="inline-flex h-10 items-center rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5"
       >
         {t("login")}
       </a>
@@ -101,7 +101,7 @@ export function JoinCta({ locale, clubId, clubName, joinPolicy, viewer }: Props)
           }
         }}
         disabled={isPending}
-        className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-10 items-center gap-1 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
         {isOpen ? t("open") : t("approval")}
@@ -162,7 +162,7 @@ export function JoinCta({ locale, clubId, clubName, joinPolicy, viewer }: Props)
                   setError(null);
                   setOpen(false);
                 }}
-                className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+                className="inline-flex h-9 items-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
               >
                 {tDlg("cancel")}
               </button>
@@ -185,7 +185,7 @@ export function JoinCta({ locale, clubId, clubName, joinPolicy, viewer }: Props)
                     }
                   });
                 }}
-                className="inline-flex h-9 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 items-center gap-1 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isPending ? tDlg("submitting") : tDlg("submit")}

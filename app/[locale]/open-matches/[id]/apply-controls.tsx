@@ -224,7 +224,7 @@ export function ApplyControls({
                       <button
                         onClick={() => onDecide(a.id, "accepted")}
                         disabled={pending}
-                        className="inline-flex h-9 items-center rounded-md bg-grass-500 px-3 text-xs font-semibold text-white hover:bg-grass-600 disabled:opacity-60"
+                        className="inline-flex h-9 items-center rounded-[11px] bg-pt-primary px-3 text-xs font-semibold text-white hover:-translate-y-0.5 disabled:opacity-60"
                       >
                         {copy.decide_accept}
                       </button>
@@ -282,7 +282,7 @@ export function ApplyControls({
                   {copy.apply_message_label}
                 </span>
                 <textarea
-                  className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+                  className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
                   rows={3}
                   maxLength={400}
                   placeholder={copy.apply_message_placeholder}
@@ -294,7 +294,7 @@ export function ApplyControls({
                 <button
                   onClick={onApply}
                   disabled={pending}
-                  className="inline-flex h-10 items-center rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white hover:bg-grass-600 disabled:opacity-60"
+                  className="inline-flex h-10 items-center rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white hover:-translate-y-0.5 disabled:opacity-60"
                 >
                   {pending ? copy.apply_sending : copy.apply_send}
                 </button>
@@ -310,7 +310,7 @@ export function ApplyControls({
           ) : (
             <button
               onClick={() => setShowApplyForm(true)}
-              className="inline-flex h-11 items-center rounded-lg bg-grass-500 px-5 text-sm font-semibold text-white hover:bg-grass-600"
+              className="inline-flex h-11 items-center rounded-[13px] bg-pt-primary px-5 text-sm font-semibold text-white hover:-translate-y-0.5"
             >
               {copy.apply_cta}
             </button>

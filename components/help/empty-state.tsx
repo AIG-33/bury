@@ -32,7 +32,7 @@ export function EmptyState({
         (ctaLabel && ctaHref && (
           <Link
             href={ctaHref}
-            className="inline-flex h-10 items-center rounded-lg bg-grass-500 px-4 text-sm font-medium text-white transition hover:bg-grass-600"
+            className="inline-flex h-10 items-center rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white transition hover:-translate-y-0.5"
           >
             {ctaLabel}
           </Link>

@@ -80,7 +80,7 @@ export function VenueComments({ venueId, comments, currentUserId, isAdmin }: Pro
             rows={3}
             maxLength={VENUE_COMMENT_MAX}
             placeholder={t("placeholder")}
-            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+            className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[11px] tabular-nums text-ink-400">
@@ -90,7 +90,7 @@ export function VenueComments({ venueId, comments, currentUserId, isAdmin }: Pro
               type="button"
               onClick={submit}
               disabled={!canSubmit || pending}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-medium text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+              className="inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-medium text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
             >
               {pending && deletingId == null ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -106,7 +106,7 @@ export function VenueComments({ venueId, comments, currentUserId, isAdmin }: Pro
           <p className="text-sm text-ink-600">{t("guest_hint")}</p>
           <Link
             href="/login"
-            className="inline-flex h-9 items-center rounded-lg bg-grass-500 px-3 text-sm font-medium text-white transition hover:bg-grass-600"
+            className="inline-flex h-9 items-center rounded-[13px] bg-pt-primary px-3 text-sm font-bold text-white shadow-glow transition hover:-translate-y-0.5"
           >
             {t("guest_cta")}
           </Link>

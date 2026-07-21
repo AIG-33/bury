@@ -172,7 +172,7 @@ export function LtQuickImport({
         </p>
         <a
           href={`/${locale}/me/rating`}
-          className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-grass-500 px-6 text-sm font-semibold text-white shadow-card transition hover:bg-grass-600"
+          className="mt-5 inline-flex h-11 items-center gap-2 rounded-[13px] bg-pt-primary px-6 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5"
         >
           {copy.done.cta} <ArrowRight className="h-4 w-4" />
         </a>
@@ -212,7 +212,7 @@ export function LtQuickImport({
               autoComplete="off"
               // 16px on phones: iOS Safari auto-zooms the page when focusing
               // an input with a smaller font, breaking the one-screen layout.
-              className="h-11 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-9 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
+              className="h-11 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] pl-9 pr-9 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
             />
             {(isSearching || isPreviewing) && (
               <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-grass-600" />
@@ -284,7 +284,7 @@ export function LtQuickImport({
         </p>
         <Link
           href={`/${locale}/onboarding/quiz`}
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-ink-200 bg-white px-4 text-sm font-semibold text-ink-800 shadow-card transition hover:border-grass-300 hover:bg-grass-50/60"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-4 text-sm font-semibold text-ink-800 shadow-card transition hover:border-grass-300 hover:bg-grass-50/60"
         >
           <Sparkles className="h-4 w-4 text-grass-600" />
           {copy.quiz_cta}
@@ -399,7 +399,7 @@ function ConfirmCard({
           type="button"
           onClick={onConfirm}
           disabled={isImporting}
-          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-50"
+          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-50"
         >
           {isImporting ? (
             <>

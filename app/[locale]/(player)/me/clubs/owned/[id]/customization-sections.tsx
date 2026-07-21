@@ -30,7 +30,7 @@ type Props = {
 
 const SECTION = "rounded-xl2 border border-ink-100 bg-white p-4 shadow-card";
 const INPUT =
-  "h-9 w-full rounded-lg border border-ink-200 bg-white px-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none";
+  "h-9 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none";
 const BTN_PRIMARY =
   "inline-flex h-9 items-center gap-1 rounded-lg bg-grass-700 px-3 text-sm font-semibold text-white transition hover:bg-grass-800 disabled:cursor-not-allowed disabled:opacity-60";
 

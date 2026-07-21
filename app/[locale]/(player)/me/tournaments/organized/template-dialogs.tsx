@@ -14,9 +14,9 @@ import type { ClubOption } from "./actions";
 const OVERLAY = "fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 px-4 py-8";
 const CARD = "shadow-pop max-h-full w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6";
 const INPUT =
-  "h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200";
+  "h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200";
 const BTN_PRIMARY =
-  "inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60";
+  "inline-flex h-10 items-center gap-2 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 disabled:opacity-60";
 const BTN_SECONDARY =
   "inline-flex h-10 items-center rounded-lg border border-ink-200 px-4 text-sm font-medium text-ink-700 transition hover:bg-ink-50";
 

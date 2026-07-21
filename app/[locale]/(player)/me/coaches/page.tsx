@@ -160,7 +160,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
             <select
               name="venue"
               defaultValue={venueId}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{tc("controls.any_venue")}</option>
               {venues.map((v) => (
@@ -178,7 +178,7 @@ export default async function MyCoachesPage({ params, searchParams }: Props) {
             <select
               name="district"
               defaultValue={districtId}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500 disabled:bg-ink-50 disabled:text-ink-400"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500 disabled:bg-ink-50 disabled:text-ink-400"
               disabled={Boolean(venueId)}
             >
               <option value="">{tc("controls.any_district")}</option>

@@ -160,7 +160,7 @@ function SettingsHeader({
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+          className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
         >
           <Pencil className="h-4 w-4" />
           <Settings className="h-4 w-4" />
@@ -243,7 +243,7 @@ function ApplicationRowItem({ row }: { row: ApplicationRow }) {
               else setError(r.error);
             })
           }
-          className="inline-flex h-8 items-center gap-1 rounded-lg bg-grass-500 px-3 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-8 items-center gap-1 rounded-[13px] bg-pt-primary px-3 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending && <Loader2 className="h-3 w-3 animate-spin" />}
           <Check className="h-3 w-3" />
@@ -253,7 +253,7 @@ function ApplicationRowItem({ row }: { row: ApplicationRow }) {
           type="button"
           disabled={isPending}
           onClick={() => setShowReject(true)}
-          className="inline-flex h-8 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-xs font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-8 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-xs font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <X className="h-3 w-3" />
           {t("reject")}
@@ -333,7 +333,7 @@ function RejectDialog({
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+            className="inline-flex h-9 items-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
           >
             {t("cancel")}
           </button>
@@ -462,7 +462,7 @@ function MemberRowItem({
                 else setError(r.error);
               })
             }
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-ink-200 bg-white px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-8 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Shield className="h-3 w-3" />
             {row.role === "admin" ? t("demote") : t("promote")}
@@ -481,7 +481,7 @@ function MemberRowItem({
                 else setError(r.error);
               });
             }}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-ink-200 bg-white px-2 text-xs font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-8 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-2 text-xs font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <UserMinus className="h-3 w-3" />
             {t("kick")}
@@ -507,7 +507,7 @@ function LogoSection({ club }: { club: OwnedClubDetail }) {
       <div className="flex items-center gap-4">
         <ClubLogo url={club.logo_url} name={club.name} size="lg" />
         <div className="space-y-2">
-          <label className="inline-flex h-9 cursor-pointer items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
+          <label className="inline-flex h-9 cursor-pointer items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {isPending ? t("uploading") : t("upload")}
             <input
@@ -550,7 +550,7 @@ function LogoSection({ club }: { club: OwnedClubDetail }) {
                   else setError(r.error);
                 })
               }
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Trash2 className="h-4 w-4" />
               {t("remove")}
@@ -612,7 +612,7 @@ function InviteSection({ club }: { club: OwnedClubDetail }) {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
               }}
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+              className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
             >
               <Copy className="h-4 w-4" />
               {copied ? t("copied") : t("copy")}
@@ -655,7 +655,7 @@ function InviteSection({ club }: { club: OwnedClubDetail }) {
               }
             })
           }
-          className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 items-center gap-1 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           <RefreshCw className="h-4 w-4" />
@@ -676,7 +676,7 @@ function InviteSection({ club }: { club: OwnedClubDetail }) {
                 } else setError(r.error);
               });
             }}
-            className="inline-flex h-10 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Link2 className="h-4 w-4" />
             {t("revoke")}
@@ -731,7 +731,7 @@ function TransferSection({ club, members }: { club: OwnedClubDetail; members: Me
                 else setError(r.error);
               })
             }
-            className="mt-2 inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
+            className="mt-2 inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
           >
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {isPending ? t("cancelling") : t("cancel")}
@@ -746,7 +746,7 @@ function TransferSection({ club, members }: { club: OwnedClubDetail; members: Me
             <select
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
-              className="w-72 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="w-72 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
               <option value="">{t("select_placeholder")}</option>
               {eligible.map((m) => (
@@ -770,7 +770,7 @@ function TransferSection({ club, members }: { club: OwnedClubDetail; members: Me
                 else setError(r.error);
               })
             }
-            className="inline-flex h-10 items-center gap-1 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-1 rounded-[13px] bg-pt-primary px-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             <Send className="h-4 w-4" />
@@ -838,7 +838,7 @@ function DangerZone({ club, locale }: { club: OwnedClubDetail; locale: string })
                 type="button"
                 onClick={() => setOpen(false)}
                 disabled={isPending}
-                className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+                className="inline-flex h-9 items-center rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
               >
                 {t("cancel")}
               </button>

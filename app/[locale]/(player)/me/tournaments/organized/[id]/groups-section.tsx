@@ -383,7 +383,7 @@ function SetupGroupsCard({
                 else alert(localizeActionError(tErrors, r.error));
               });
             }}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-grass-500 px-3 text-sm font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-[11px] bg-pt-primary px-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
           >
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shuffle className="h-4 w-4" />}
             {pending ? copy.generating : copy.generate}

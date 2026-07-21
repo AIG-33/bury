@@ -352,7 +352,7 @@ export function CoachApplicationsClient({
               onChange={(e) => setComment(e.target.value)}
               rows={5}
               placeholder={copy.dialog.comment_placeholder}
-              className="mt-1 block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+              className="mt-1 block w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             />
             {error && (
               <Surface variant="soft" className="mt-2 inline-flex items-center gap-2 px-3 py-2 text-sm text-clay-700 border border-clay-200">

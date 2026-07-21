@@ -86,7 +86,7 @@ export function PlayerTournamentsClient({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex flex-wrap rounded-lg border border-ink-200 bg-white p-1 shadow-card">
+        <div className="inline-flex flex-wrap rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] p-1 shadow-card">
           <TabButton active={tab === "mine"} onClick={() => setTab("mine")}>
             {copy.tab_mine}{" "}
             {mine.length > 0 && (
@@ -344,7 +344,7 @@ function OpenTournamentCard({
             type="button"
             onClick={onApply}
             disabled={pending}
-            className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-500 px-3 text-xs font-semibold text-white hover:bg-grass-600 disabled:opacity-60"
+            className="inline-flex h-8 items-center gap-1 rounded-[11px] bg-pt-primary px-3 text-xs font-semibold text-white hover:-translate-y-0.5 disabled:opacity-60"
           >
             {pending ? (
               <Loader2 className="h-3 w-3 animate-spin" />

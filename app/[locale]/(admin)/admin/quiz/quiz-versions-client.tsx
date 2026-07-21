@@ -231,7 +231,7 @@ export function QuizVersionsClient({
               <select
                 value={cloneFrom}
                 onChange={(e) => setCloneFrom(e.target.value)}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm"
+                className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm"
               >
                 <option value="">{t("clone_none")}</option>
                 {initialVersions.map((v) => (
@@ -256,7 +256,7 @@ export function QuizVersionsClient({
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder={t("notes_placeholder")}
-                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+                className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm"
               />
             </label>
 

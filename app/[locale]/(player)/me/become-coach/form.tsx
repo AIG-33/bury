@@ -137,7 +137,7 @@ export function BecomeCoachForm({ copy }: { copy: BecomeCoachCopy }) {
           placeholder={copy.message_placeholder}
           rows={8}
           required
-          className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+          className="block w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm text-ink-900 focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
         />
         <p className="text-xs text-ink-500">{copy.message_hint}</p>
       </div>
@@ -166,7 +166,7 @@ export function BecomeCoachForm({ copy }: { copy: BecomeCoachCopy }) {
           type="button"
           onClick={pickFiles}
           disabled={files.length >= copy.max_files}
-          className="inline-flex items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-50"
         >
           <Paperclip className="h-4 w-4" />
           {copy.files_add}
@@ -214,7 +214,7 @@ export function BecomeCoachForm({ copy }: { copy: BecomeCoachCopy }) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center gap-2 rounded-lg bg-grass-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-grass-600 disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-[13px] bg-pt-primary px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 disabled:opacity-60"
       >
         <Send className="h-4 w-4" />
         {pending ? copy.submitting : copy.submit}

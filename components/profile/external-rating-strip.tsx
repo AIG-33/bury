@@ -156,7 +156,7 @@ export function ExternalRatingStrip({
           href={snapshot.external_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
+          className="inline-flex h-9 items-center gap-1 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
         >
           {copy.open_on_lt}
           <ExternalLink className="h-3 w-3" />

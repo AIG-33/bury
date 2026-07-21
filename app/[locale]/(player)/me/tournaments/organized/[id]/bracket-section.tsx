@@ -149,7 +149,7 @@ export function BracketSection({
               type="button"
               onClick={onGenerate}
               disabled={pending || participantsCount < 2}
-              className="inline-flex h-8 items-center gap-1 rounded-md bg-grass-500 px-3 text-xs font-semibold text-white transition hover:bg-grass-600 disabled:opacity-60"
+              className="inline-flex h-8 items-center gap-1 rounded-[11px] bg-pt-primary px-3 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
             >
               {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shuffle className="h-3 w-3" />}
               {pending ? copy.generating : copy.generate}
@@ -543,7 +543,7 @@ function ScoreEditor({
               sets: outcome === "completed" ? sets : [],
             })
           }
-          className="inline-flex h-9 items-center gap-1 rounded-md bg-grass-500 px-4 text-sm font-semibold text-white hover:bg-grass-600 disabled:opacity-60"
+          className="inline-flex h-9 items-center gap-1 rounded-[11px] bg-pt-primary px-4 text-sm font-semibold text-white hover:-translate-y-0.5 disabled:opacity-60"
         >
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {pending ? copy.saving : copy.save}

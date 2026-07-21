@@ -62,7 +62,7 @@ export function HelpTooltip({
       {open && (
         <span
           role="tooltip"
-          className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-lg border border-ink-200 bg-white p-3 text-left text-xs shadow-card"
+          className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-white p-3 text-left text-xs shadow-card"
         >
           <span className="mb-1 block font-semibold text-ink-900">{title}</span>
           <span className="block text-ink-700">{body}</span>

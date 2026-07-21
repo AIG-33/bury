@@ -70,7 +70,7 @@ export function CoachProfileForm({ initial }: Props) {
               rows={5}
               maxLength={2000}
               placeholder={t("placeholder.bio")}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-grass-400 focus:outline-none"
+              className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-400 focus:outline-none"
             />
             <p className="mt-1 text-right text-xs text-ink-400">{bio.length} / 2000</p>
           </label>
@@ -86,7 +86,7 @@ export function CoachProfileForm({ initial }: Props) {
                 value={rate}
                 onChange={(e) => setRate(e.target.value)}
                 placeholder="120"
-                className="h-11 w-32 rounded-lg border border-ink-200 bg-white px-3 text-sm focus:border-grass-400 focus:outline-none"
+                className="h-11 w-32 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm focus:border-grass-400 focus:outline-none"
               />
               <span className="text-sm text-ink-500">{t("field.rate_currency")}</span>
             </div>

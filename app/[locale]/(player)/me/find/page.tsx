@@ -137,7 +137,7 @@ export default async function FindPlayerPage({ params, searchParams }: Props) {
         <Link
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           href={`/${locale}/me/find/proposals` as any}
-          className="inline-flex h-10 items-center gap-2 rounded-lg border border-ink-200 bg-white px-4 text-sm font-medium text-ink-800 transition hover:bg-ink-50"
+          className="inline-flex h-10 items-center gap-2 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-4 text-sm font-medium text-ink-800 transition hover:bg-ink-50"
         >
           <Inbox className="h-4 w-4" />
           {t("proposals_link")}
