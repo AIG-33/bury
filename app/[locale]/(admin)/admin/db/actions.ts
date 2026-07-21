@@ -1,8 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { isValidConfirmationWord } from "@/lib/account/deletion";
+import { performAccountDeletion } from "@/lib/account/perform-deletion";
 import { getTable, listColumnsForForm, type ColumnDef, type TableDef } from "@/lib/admin/tables";
 
 // =============================================================================
@@ -90,7 +93,7 @@ function coerceValue(col: ColumnDef, raw: unknown): unknown {
 function buildPayload(table: TableDef, raw: FormValues, mode: "insert" | "update"): FormValues {
   const out: FormValues = {};
   for (const col of listColumnsForForm(table)) {
-    if (col.readonly) continue;
+    if (col.readonly || col.virtual) continue;
     if (mode === "update" && !(col.key in raw)) continue;
     const value = coerceValue(col, raw[col.key]);
     // Required fields must be present on insert.
@@ -100,6 +103,38 @@ function buildPayload(table: TableDef, raw: FormValues, mode: "insert" | "update
     out[col.key] = value;
   }
   return out;
+}
+
+// =============================================================================
+// Auth emails (profiles only)
+//
+// `profiles` has no email column — the full email lives in auth.users. For the
+// admin DB editor we merge it into rows as a virtual read-only "email" column
+// and match it on search. Fetched via the service-role client, strictly after
+// the requireAdmin() gate.
+// =============================================================================
+
+async function fetchAuthEmails(): Promise<Map<string, string> | null> {
+  try {
+    const service = createSupabaseServiceClient();
+    const emails = new Map<string, string>();
+    const perPage = 1000;
+    for (let page = 1; page <= 50; page++) {
+      const { data, error } = await service.auth.admin.listUsers({ page, perPage });
+      if (error) {
+        console.error("admin/db: listUsers failed", error.message);
+        return null;
+      }
+      for (const u of data.users) {
+        if (u.email) emails.set(u.id, u.email);
+      }
+      if (data.users.length < perPage) break;
+    }
+    return emails;
+  } catch (e) {
+    console.error("admin/db: auth emails unavailable", (e as Error).message);
+    return null;
+  }
 }
 
 // =============================================================================
@@ -130,19 +165,39 @@ export async function listRows(opts: ListOptions): Promise<ListResult> {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  const authEmails = t.name === "profiles" ? await fetchAuthEmails() : null;
+
   let query = auth.supabase.from(t.name).select("*", { count: "exact" }).range(from, to);
 
-  // Sort
-  const sort = opts.sort ?? t.defaultSort;
+  // Sort. Virtual columns don't exist in the DB — fall back to the default.
+  const requestedSort = opts.sort ?? t.defaultSort;
+  const sort = t.columns.find((c) => c.key === requestedSort?.column)?.virtual
+    ? t.defaultSort
+    : requestedSort;
   if (sort?.column) {
     query = query.order(sort.column, { ascending: sort.ascending, nullsFirst: false });
   }
 
-  // Search across configured text columns: OR of ilike conditions.
+  // Search across configured text columns: OR of ilike conditions. Virtual
+  // columns (auth email) are matched in-memory and joined via id.in.(...).
   if (opts.search && opts.search.trim().length > 0 && t.searchColumns.length > 0) {
     const q = opts.search.trim().replace(/[,()]/g, " ");
-    const orExpr = t.searchColumns.map((c) => `${c}.ilike.%${q}%`).join(",");
-    query = query.or(orExpr);
+    const parts = t.searchColumns
+      .filter((c) => !t.columns.find((cc) => cc.key === c)?.virtual)
+      .map((c) => `${c}.ilike.%${q}%`);
+    if (authEmails) {
+      const ql = q.toLowerCase();
+      const matchedIds: string[] = [];
+      for (const [id, email] of authEmails) {
+        if (email.toLowerCase().includes(ql)) {
+          matchedIds.push(id);
+          // Keep the PostgREST filter URL bounded.
+          if (matchedIds.length >= 500) break;
+        }
+      }
+      if (matchedIds.length > 0) parts.push(`id.in.(${matchedIds.join(",")})`);
+    }
+    if (parts.length > 0) query = query.or(parts.join(","));
   }
 
   // Filters: exact match per column.
@@ -158,9 +213,13 @@ export async function listRows(opts: ListOptions): Promise<ListResult> {
 
   const { data, count, error } = await query;
   if (error) return { ok: false, error: error.message };
+  let rows = (data ?? []) as Array<Record<string, unknown>>;
+  if (authEmails) {
+    rows = rows.map((r) => ({ ...r, email: authEmails.get(String(r[t.pk])) ?? null }));
+  }
   return {
     ok: true,
-    rows: (data ?? []) as Array<Record<string, unknown>>,
+    rows,
     total: count ?? 0,
     page,
     pageSize,
@@ -186,7 +245,19 @@ export async function getRow(
     .maybeSingle();
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, row: data as Record<string, unknown> };
+
+  const row = data as Record<string, unknown>;
+  if (t.name === "profiles") {
+    try {
+      const service = createSupabaseServiceClient();
+      const { data: userData } = await service.auth.admin.getUserById(id);
+      row.email = userData?.user?.email ?? null;
+    } catch (e) {
+      console.error("admin/db: auth email unavailable", (e as Error).message);
+      row.email = null;
+    }
+  }
+  return { ok: true, row };
 }
 
 // =============================================================================
@@ -260,25 +331,11 @@ export async function deleteRow(
   const t = requireValidTable(table);
   if (!t) return { ok: false, error: "unknown_table" };
 
-  // Safety: don't let an admin delete their own profile (would lock them out).
-  if (t.name === "profiles" && id === auth.userId) {
-    return { ok: false, error: "cannot_delete_self" };
-  }
-
-  // Special case: deleting from `profiles` should also remove the matching
-  // auth.users row (FK is profiles.id → auth.users.id ON DELETE CASCADE,
-  // so removing the user wipes the profile too). Otherwise the user would
-  // remain able to sign in but with no profile, which breaks the app.
-  if (t.deleteAlsoAuthUser) {
-    try {
-      const service = createSupabaseServiceClient();
-      const { error } = await service.auth.admin.deleteUser(id);
-      if (error) return { ok: false, error: error.message };
-      revalidatePath(`/admin/db/${t.name}`);
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, error: (e as Error).message };
-    }
+  // Profiles must go through adminDeletePlayer (full deletion: personal rows,
+  // storage, anonymize-or-purge, auth user). A bare row/auth delete would
+  // leave a half-deleted account, so this path is closed for profiles.
+  if (t.name === "profiles" || t.deleteAlsoAuthUser) {
+    return { ok: false, error: "use_player_deletion" };
   }
 
   const { error } = await auth.supabase.from(t.name).delete().eq(t.pk, id);
@@ -286,4 +343,57 @@ export async function deleteRow(
 
   revalidatePath(`/admin/db/${t.name}`);
   return { ok: true };
+}
+
+// =============================================================================
+// Full player deletion (admin-initiated).
+//
+// Reuses the same core as self-deletion (lib/account/perform-deletion.ts):
+// personal rows + storage are deleted, the profile is purged or anonymized
+// («Удалённый игрок» tombstone when shared match/tournament history exists),
+// and the auth.users row is destroyed. Blocked while the player owns clubs
+// or live tournaments.
+// =============================================================================
+
+const AdminDeletePlayerSchema = z.object({
+  userId: z.string().uuid(),
+  confirmation: z.string().min(1),
+});
+
+export type AdminDeletePlayerResult =
+  | { ok: true; mode: "anonymize" | "purge" }
+  | {
+      ok: false;
+      error:
+        | "invalid_payload"
+        | "wrong_confirmation"
+        | "not_authenticated"
+        | "not_admin"
+        | "cannot_delete_self"
+        | "db_error";
+    }
+  | { ok: false; error: "blocked"; clubs: string[]; tournaments: string[] };
+
+export async function adminDeletePlayer(input: unknown): Promise<AdminDeletePlayerResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { ok: false, error: auth.error };
+
+  const parsed = AdminDeletePlayerSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid_payload" };
+  if (!isValidConfirmationWord(parsed.data.confirmation)) {
+    return { ok: false, error: "wrong_confirmation" };
+  }
+
+  // Admins delete their own account via the regular profile flow (which also
+  // signs the session out) — never through the admin panel.
+  if (parsed.data.userId === auth.userId) {
+    return { ok: false, error: "cannot_delete_self" };
+  }
+
+  const service = createSupabaseServiceClient();
+  const result = await performAccountDeletion(service, parsed.data.userId);
+  if (!result.ok) return result;
+
+  revalidatePath("/admin/db/profiles");
+  return result;
 }

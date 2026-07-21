@@ -11,6 +11,7 @@ import {
   type TableDef,
 } from "@/lib/admin/tables";
 import { createRow, deleteRow, updateRow } from "../actions";
+import { DeletePlayerButton } from "./delete-player-dialog";
 
 type Props = {
   table: TableDef;
@@ -114,6 +115,7 @@ export function RowForm({ table, initial }: Props) {
       const known: Record<string, string> = {
         cannot_delete_self: t("errors.cannot_delete_self"),
         insert_disabled: t("errors.insert_disabled"),
+        use_player_deletion: t("errors.use_player_deletion"),
       };
       setError(known[res.error] ?? res.error);
       return;
@@ -151,17 +153,27 @@ export function RowForm({ table, initial }: Props) {
           {isEdit ? t("save_changes") : t("create_row")}
         </button>
 
-        {isEdit && (
-          <button
-            type="button"
-            onClick={onDelete}
-            disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-full border border-clay-300 bg-white px-4 py-2 text-sm font-semibold text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
-          >
-            <Trash2 className="h-4 w-4" />
-            {t("delete")}
-          </button>
-        )}
+        {isEdit &&
+          (table.name === "profiles" ? (
+            <DeletePlayerButton
+              userId={String(initial?.[table.pk] ?? "")}
+              playerName={String(initial?.display_name ?? initial?.[table.pk] ?? "")}
+              variant="button"
+              onDeleted={() =>
+                startTransition(() => router.push(`/${locale}/admin/db/${table.name}` as never))
+              }
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={pending}
+              className="inline-flex items-center gap-1.5 rounded-full border border-clay-300 bg-white px-4 py-2 text-sm font-semibold text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("delete")}
+            </button>
+          ))}
       </div>
     </form>
   );

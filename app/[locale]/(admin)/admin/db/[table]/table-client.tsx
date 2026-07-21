@@ -22,6 +22,7 @@ import {
   type TableDef,
 } from "@/lib/admin/tables";
 import { deleteRow } from "../actions";
+import { DeletePlayerButton } from "./delete-player-dialog";
 
 type Props = {
   table: TableDef;
@@ -126,6 +127,7 @@ export function TableClient({
       const known: Record<string, string> = {
         cannot_delete_self: t("errors.cannot_delete_self"),
         insert_disabled: t("errors.insert_disabled"),
+        use_player_deletion: t("errors.use_player_deletion"),
       };
       setError(known[res.error] ?? res.error);
       return;
@@ -247,14 +249,18 @@ export function TableClient({
                     col.width,
                   )}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setSort(col.key)}
-                    className="inline-flex items-center gap-1 hover:text-grass-700"
-                  >
-                    {col.label}
-                    <SortIcon active={sort?.column === col.key} ascending={sort?.ascending ?? true} />
-                  </button>
+                  {col.virtual ? (
+                    <span>{col.label}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setSort(col.key)}
+                      className="inline-flex items-center gap-1 hover:text-grass-700"
+                    >
+                      {col.label}
+                      <SortIcon active={sort?.column === col.key} ascending={sort?.ascending ?? true} />
+                    </button>
+                  )}
                 </th>
               ))}
               <th className="px-3 py-2 text-right font-mono text-[10.5px] uppercase tracking-[0.18em]">
@@ -296,15 +302,24 @@ export function TableClient({
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => onDelete(id)}
-                          disabled={pending}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white text-clay-700 transition hover:border-clay-400 hover:bg-clay-50 disabled:opacity-50"
-                          title={t("delete")}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        {table.name === "profiles" ? (
+                          <DeletePlayerButton
+                            userId={id}
+                            playerName={String(row.display_name ?? id)}
+                            variant="icon"
+                            onDeleted={() => startTransition(() => router.refresh())}
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onDelete(id)}
+                            disabled={pending}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 bg-white text-clay-700 transition hover:border-clay-400 hover:bg-clay-50 disabled:opacity-50"
+                            title={t("delete")}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

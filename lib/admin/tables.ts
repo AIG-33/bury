@@ -40,6 +40,12 @@ export type ColumnDef = {
   hideInList?: boolean;
   /** Hide from forms entirely (e.g. computed columns). */
   hideInForm?: boolean;
+  /**
+   * Not a real DB column: merged into rows by server actions (e.g.
+   * `profiles.email` comes from auth.users). Excluded from DB-level
+   * search/sort/insert/update.
+   */
+  virtual?: boolean;
   /** Tailwind width class for the list column header. */
   width?: string;
   /** Help text shown under the form input. */
@@ -92,7 +98,9 @@ export const TABLES: readonly TableDef[] = [
     group: "people",
     pk: "id",
     defaultSort: { column: "created_at", ascending: false },
-    searchColumns: ["display_name", "email_local", "first_name", "last_name", "city", "coach_slug"],
+    // "email" is virtual: it lives in auth.users and is merged into rows (and
+    // matched on search) by the admin server actions via the service client.
+    searchColumns: ["display_name", "email", "email_local", "first_name", "last_name", "city", "coach_slug"],
     filterColumns: ["is_admin", "is_coach", "is_player", "country", "locale"],
     description: "Players, coaches and admins. Edit roles, contacts, ratings and visibility.",
     // New profiles are auto-created by the auth.users insert trigger.
@@ -111,7 +119,15 @@ export const TABLES: readonly TableDef[] = [
       },
       { key: "first_name", label: "First name", type: "text" },
       { key: "last_name", label: "Last name", type: "text" },
-      { key: "email_local", label: "Email local", type: "text" },
+      {
+        key: "email",
+        label: "Email",
+        type: "text",
+        readonly: true,
+        virtual: true,
+        hint: "Full email from auth.users (read-only)",
+      },
+      { key: "email_local", label: "Email local", type: "text", hideInList: true },
       { key: "is_admin", label: "Admin", type: "boolean" },
       { key: "is_coach", label: "Coach", type: "boolean" },
       { key: "is_player", label: "Player", type: "boolean" },
