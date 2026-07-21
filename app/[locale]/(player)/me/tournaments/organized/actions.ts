@@ -91,6 +91,12 @@ export type TournamentRow = {
   advance_per_group: number | null;
   playoff_size: number | null;
   third_place_match: boolean;
+  /** Don't show the organizer's name/avatar on the public tournament page. */
+  hide_organizer: boolean;
+  /** Free-form regulations text shown in the public «Регламент» section. */
+  regulations_text: string | null;
+  /** Public URL of the attached regulations document (PDF/DOC/DOCX). */
+  regulations_file_url: string | null;
 };
 
 export type GroupRow = {
@@ -186,7 +192,8 @@ export async function loadOrganizedTournaments(): Promise<
       "id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
         "draw_method, prizes_description, match_rules, branding, created_at, " +
-        "groups_count, advance_per_group, playoff_size, third_place_match",
+        "groups_count, advance_per_group, playoff_size, third_place_match, hide_organizer, " +
+        "regulations_text, regulations_file_url",
     )
     .eq("owner_id", userId)
     .order("created_at", { ascending: false })) as {
@@ -317,7 +324,8 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       "id, owner_id, name, description, format, discipline, surface, starts_on, start_time, " +
         "ends_on, registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
         "draw_method, prizes_description, match_rules, branding, created_at, " +
-        "groups_count, advance_per_group, playoff_size, third_place_match",
+        "groups_count, advance_per_group, playoff_size, third_place_match, hide_organizer, " +
+        "regulations_text, regulations_file_url",
     )
     .eq("id", tournamentId)
     .single()) as {
@@ -503,6 +511,9 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       advance_per_group: t.advance_per_group,
       playoff_size: t.playoff_size,
       third_place_match: t.third_place_match,
+      hide_organizer: t.hide_organizer,
+      regulations_text: t.regulations_text,
+      regulations_file_url: t.regulations_file_url,
     },
     participants,
     matches,
@@ -623,6 +634,9 @@ export async function createTournament(
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
       third_place_match: v.format === "group_playoff" ? v.third_place_match : false,
+      hide_organizer: v.hide_organizer,
+      regulations_text: v.regulations_text,
+      regulations_file_url: v.regulations_file_url,
       status: "draft",
       ...(branding ? { branding } : {}),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -741,6 +755,9 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       prizes_description: v.prizes_description,
       match_rules: v.match_rules,
       third_place_match: v.format === "group_playoff" ? v.third_place_match : false,
+      hide_organizer: v.hide_organizer,
+      regulations_text: v.regulations_text,
+      regulations_file_url: v.regulations_file_url,
     } as never)
     .eq("id", id)
     .eq("owner_id", userId);

@@ -31,6 +31,9 @@ function tournamentToForm(t: TournamentRow): TournamentForm {
     match_rules: t.match_rules as MatchRules,
     venue_ids: t.venues.map((v) => v.id),
     third_place_match: t.third_place_match,
+    hide_organizer: t.hide_organizer,
+    regulations_text: t.regulations_text,
+    regulations_file_url: t.regulations_file_url,
   };
 }
 

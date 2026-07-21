@@ -112,6 +112,9 @@ export function ClubTournamentsSection({
       match_rules: DEFAULT_MATCH_RULES,
       venue_ids: [],
       third_place_match: false,
+      hide_organizer: false,
+      regulations_text: null,
+      regulations_file_url: null,
     };
   }
 
@@ -161,6 +164,9 @@ export function ClubTournamentsSection({
       match_rules: src.match_rules,
       venue_ids: src.venue_ids,
       third_place_match: src.third_place_match,
+      hide_organizer: src.hide_organizer,
+      regulations_text: src.regulations_text,
+      regulations_file_url: src.regulations_file_url,
     });
     setBrandingPrefill(src.branding);
     setDialogOpen(true);

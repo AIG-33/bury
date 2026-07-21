@@ -4,7 +4,8 @@ import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, X, MapPin } from "lucide-react";
+import { Loader2, X, MapPin, FileText, Paperclip, Trash2 } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HelpTooltip } from "@/components/help/help-tooltip";
 import {
   TournamentFormSchema,
@@ -37,6 +38,19 @@ export type TournamentDialogCopy = {
   template_title: string;
   third_place_match_label: string;
   third_place_match_hint: string;
+  hide_organizer_label: string;
+  hide_organizer_hint: string;
+  regulations: {
+    section: string;
+    text_hint: string;
+    file_label: string;
+    file_hint: string;
+    upload: string;
+    uploading: string;
+    remove: string;
+    view: string;
+    file_error: string;
+  };
   fields: {
     name: string;
     description: string;
@@ -94,6 +108,15 @@ export type TournamentDialogCopy = {
 
 export type TournamentDialogMode = "create" | "edit" | "duplicate" | "template";
 
+// Regulations document constraints — mirrored by the `tournament-files`
+// storage bucket (mime types + 10 MB limit enforced server-side).
+const REGULATIONS_MAX_BYTES = 10 * 1024 * 1024;
+const REGULATIONS_MIME_BY_EXT: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -135,6 +158,8 @@ export function TournamentFormDialog({
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const [pending, startT] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fileUploading, setFileUploading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const form = useForm<TournamentForm>({
     resolver: zodResolver(TournamentFormSchema),
@@ -159,6 +184,9 @@ export function TournamentFormDialog({
         match_rules: DEFAULT_MATCH_RULES,
         venue_ids: [],
         third_place_match: false,
+        hide_organizer: false,
+        regulations_text: null,
+        regulations_file_url: null,
       },
   });
 
@@ -177,6 +205,41 @@ export function TournamentFormDialog({
   if (!open) return null;
 
   const matchRulesKind = form.watch("match_rules.kind") as MatchRuleKind;
+
+  async function uploadRegulationsFile(file: File): Promise<string | null> {
+    setFileError(null);
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const contentType = REGULATIONS_MIME_BY_EXT[ext];
+    if (!contentType || file.size > REGULATIONS_MAX_BYTES) {
+      setFileError(copy.regulations.file_error);
+      return null;
+    }
+    setFileUploading(true);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setFileError(copy.error);
+        return null;
+      }
+      // Per-USER folder (not per-tournament): in create mode the tournament
+      // row doesn't exist yet, so storage RLS checks ownership by uid folder.
+      const path = `${user.id}/regulations-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("tournament-files")
+        .upload(path, file, { upsert: true, contentType });
+      if (upErr) {
+        setFileError(upErr.message);
+        return null;
+      }
+      const { data: pub } = supabase.storage.from("tournament-files").getPublicUrl(path);
+      return pub.publicUrl;
+    } finally {
+      setFileUploading(false);
+    }
+  }
 
   function onSubmit(values: TournamentForm) {
     setError(null);
@@ -726,6 +789,86 @@ export function TournamentFormDialog({
             />
           </div>
 
+          {/* Regulations — free-form text + attached PDF/DOC/DOCX document */}
+          <div className="rounded-xl border border-ink-100 bg-white p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-grass-600" />
+              <p className="text-xs font-semibold uppercase tracking-wider text-grass-800">
+                {copy.regulations.section}
+              </p>
+            </div>
+            <textarea
+              {...form.register("regulations_text")}
+              rows={4}
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+            />
+            <p className="mt-1 text-[11px] text-ink-500">{copy.regulations.text_hint}</p>
+
+            <p className="mb-1 mt-3 block text-xs font-semibold text-ink-700">
+              {copy.regulations.file_label}
+            </p>
+            <Controller
+              control={form.control}
+              name="regulations_file_url"
+              render={({ field }) => (
+                <div className="flex flex-wrap items-center gap-2">
+                  {field.value && (
+                    <>
+                      <a
+                        href={field.value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-grass-200 bg-grass-50 px-3 text-sm font-medium text-grass-800 transition hover:bg-grass-100"
+                      >
+                        <FileText className="h-4 w-4" />
+                        {copy.regulations.view}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          field.onChange(null);
+                          setFileError(null);
+                        }}
+                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-clay-50 hover:text-clay-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {copy.regulations.remove}
+                      </button>
+                    </>
+                  )}
+                  <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50">
+                    {fileUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-4 w-4" />
+                    )}
+                    {fileUploading ? copy.regulations.uploading : copy.regulations.upload}
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      disabled={fileUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file) return;
+                        const url = await uploadRegulationsFile(file);
+                        if (url) field.onChange(url);
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+            />
+            <p className="mt-1 text-[11px] text-ink-500">{copy.regulations.file_hint}</p>
+            {fileError && <p className="mt-1 text-xs text-clay-700">{fileError}</p>}
+            {form.formState.errors.regulations_file_url && (
+              <p className="mt-1 text-xs text-clay-700">
+                {form.formState.errors.regulations_file_url.message}
+              </p>
+            )}
+          </div>
+
           {form.watch("format") === "group_playoff" && (
             <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-ink-100 bg-grass-50/30 p-3">
               <input
@@ -739,6 +882,18 @@ export function TournamentFormDialog({
               </span>
             </label>
           )}
+
+          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-ink-100 p-3">
+            <input
+              type="checkbox"
+              {...form.register("hide_organizer")}
+              className="mt-0.5 h-4 w-4 rounded border-ink-300 text-grass-600 focus:ring-grass-200"
+            />
+            <span className="text-xs">
+              <span className="font-semibold text-ink-800">{copy.hide_organizer_label}</span>
+              <span className="mt-0.5 block text-ink-600">{copy.hide_organizer_hint}</span>
+            </span>
+          </label>
 
           {error && (
             <div className="rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-800">
@@ -756,7 +911,7 @@ export function TournamentFormDialog({
             </button>
             <button
               type="submit"
-              disabled={pending}
+              disabled={pending || fileUploading}
               className="inline-flex h-10 items-center gap-2 rounded-lg bg-grass-500 px-4 text-sm font-semibold text-white shadow-card transition hover:bg-grass-600 disabled:opacity-60"
             >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}

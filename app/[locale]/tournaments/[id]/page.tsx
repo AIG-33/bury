@@ -6,7 +6,7 @@ import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { buildTournamentEventJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { SITE_URL } from "@/lib/seo/site";
-import { CalendarDays, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-react";
+import { CalendarDays, FileText, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
@@ -305,11 +305,13 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                 value={feeLabel}
                 mono={Boolean(tournament.entry_fee_byn)}
               />
-              <MetaTile
-                eyebrow={t("detail.organizer")}
-                icon={<UserRound className="h-4 w-4" strokeWidth={2} />}
-                value={shortNameOf(tournament.organizer_name) ?? "—"}
-              />
+              {tournament.organizer_name && (
+                <MetaTile
+                  eyebrow={t("detail.organizer")}
+                  icon={<UserRound className="h-4 w-4" strokeWidth={2} />}
+                  value={shortNameOf(tournament.organizer_name) ?? "—"}
+                />
+              )}
               {venueLabel && (
                 <MetaTile
                   eyebrow={t("detail.venues")}
@@ -318,6 +320,33 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                 />
               )}
             </div>
+
+            {/* Regulations — free-form text and/or a downloadable document */}
+            {(tournament.regulations_text || tournament.regulations_file_url) && (
+              <Surface variant="card" as="section">
+                <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+                  {t("detail.regulations_title")}
+                </h2>
+                {tournament.regulations_text && (
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700">
+                    {tournament.regulations_text}
+                  </p>
+                )}
+                {tournament.regulations_file_url && (
+                  <a
+                    href={tournament.regulations_file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex h-10 items-center gap-2 rounded-lg border border-grass-200 bg-grass-50 px-4 text-sm font-semibold text-grass-800 transition hover:bg-grass-100 ${
+                      tournament.regulations_text ? "mt-4" : ""
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" strokeWidth={2} />
+                    {t("detail.regulations_download")}
+                  </a>
+                )}
+              </Surface>
+            )}
 
             {/* Participants */}
             <Surface variant="card" as="section">
@@ -467,20 +496,22 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               </div>
             </Surface>
 
-            <Surface variant="card" as="section">
-              <p className="label-eyebrow">{t("detail.organizer")}</p>
-              <div className="mt-3 flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-grass-100 text-sm font-extrabold text-grass-700">
-                  {initialsOf(tournament.organizer_name)}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-ink-900">
-                    {tournament.organizer_name ?? "—"}
-                  </p>
-                  <p className="text-xs text-ink-500">{t("detail.organizer_role")}</p>
+            {tournament.organizer_name && (
+              <Surface variant="card" as="section">
+                <p className="label-eyebrow">{t("detail.organizer")}</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-grass-100 text-sm font-extrabold text-grass-700">
+                    {initialsOf(tournament.organizer_name)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-ink-900">
+                      {tournament.organizer_name}
+                    </p>
+                    <p className="text-xs text-ink-500">{t("detail.organizer_role")}</p>
+                  </div>
                 </div>
-              </div>
-            </Surface>
+              </Surface>
+            )}
           </div>
         </div>
       </div>

@@ -536,7 +536,32 @@
     },
     "errors": {
       "cannot_delete_self": "You cannot delete your own profile while signed in.",
-      "insert_disabled": "Inserting rows into this table from the editor is disabled."
+      "insert_disabled": "Inserting rows into this table from the editor is disabled.",
+      "use_player_deletion": "Profiles can only be removed via the “Delete player” button — it deletes the account and related data correctly."
+    },
+    "delete_player": {
+      "trigger": "Delete player",
+      "dialog_title": "Delete player “{name}”?",
+      "dialog_warning": "This cannot be undone. What will happen:",
+      "consequences": {
+        "1": "The account is deleted permanently — the player will no longer be able to sign in.",
+        "2": "Personal data, contacts, avatar, bookings, applications, notifications, quiz answers and the player's Elo history are deleted.",
+        "3": "Played matches and finished tournament results are kept — the name is replaced with an anonymous “Deleted player” tombstone, opponents' Elo history stays intact.",
+        "4": "The player's draft tournaments and registrations for tournaments that haven't started are deleted."
+      },
+      "confirm_hint": "Type {word} to confirm",
+      "confirm_word": "DELETE",
+      "cancel": "Cancel",
+      "confirm_cta": "Delete player",
+      "deleting": "Deleting…",
+      "blocked_title": "Deletion blocked",
+      "blocked_body": "The player owns clubs or live tournaments that other participants depend on. Transfer or delete those first.",
+      "blocked_clubs_label": "Clubs",
+      "blocked_tournaments_label": "Tournaments",
+      "error_generic": "Could not delete the player. Please try again.",
+      "errors": {
+        "cannot_delete_self": "You cannot delete your own account from the admin panel — use account deletion in your profile settings."
+      }
     },
     "table_help": {
       "why": "Raw editor for the “{table}” table. Anything you change here is committed immediately to Postgres.",
@@ -1247,8 +1272,8 @@
     }
   },
   "onboardingHome": {
-    "title": "Pick how to set your starting rating",
-    "subtitle": "A short self-eval quiz, or import an existing rating from Liga Tennisa. Either path gives you a starting Elo; from then on the platform tracks it for you.",
+    "title": "Your starting rating",
+    "subtitle": "Find yourself in Liga Tennisa or take a short quiz — then straight to the game.",
     "help": {
       "why": "Without a starting Elo we can't score matches — every player needs a baseline. We offer two paths: answer 5 quick questions, or import your existing rating from the amateur league at ligatennisa.com.",
       "what": {
@@ -1261,22 +1286,27 @@
         "2": "You'll show up in find-opponent immediately and can book coach sessions."
       }
     },
-    "quiz": {
-      "title": "Self-eval quiz",
-      "body": "5 short questions about your experience, frequency, tournaments and self-rating. Takes 2 minutes.",
-      "bullet_1": "Best for beginners and players new to amateur leagues",
-      "bullet_2": "Starting Elo in the 800–2200 range based on answers",
-      "bullet_3": "First 10 matches count with extra weight",
-      "cta": "Take the quiz"
+    "search": {
+      "label": "Find yourself in the Liga Tennisa rating",
+      "placeholder": "Last name and first name",
+      "no_results": "No one found — try a different spelling or take the quiz."
     },
-    "import_lt": {
-      "title": "Import from Liga Tennisa",
-      "body": "If you already have a profile on ligatennisa.com, we'll copy your Elo, tier and starter profile data.",
-      "bullet_1": "Find yourself by name and surname (city optional)",
-      "bullet_2": "Starting Elo = your Liga Tennisa Elo (clamped to 800–2200)",
-      "bullet_3": "Tier and profile link stay visible on your card",
-      "cta": "Import rating"
+    "confirm": {
+      "lt_elo": "Liga Tennisa Elo",
+      "start_elo": "Your starting Elo: {elo}",
+      "cta": "That's me — import",
+      "cta_busy": "Importing…",
+      "back": "Not me"
     },
+    "done": {
+      "title": "Rating imported!",
+      "body": "Your starting Elo is {elo}. From now on it changes with every played match.",
+      "cta": "To my rating"
+    },
+    "or": "or",
+    "quiz_hint": "No Liga Tennisa profile?",
+    "quiz_cta": "Take the quiz",
+    "skip": "Skip, set up later",
     "source_note": "Rating source:",
     "coach_note": "Coaches can import their rating too — students see it as a credibility signal."
   },
@@ -2701,6 +2731,19 @@
       "template_title": "New tournament from template",
       "third_place_match_label": "3rd-place match",
       "third_place_match_hint": "After the semifinals, the two losing semi-finalists play an extra match for bronze. Only for the «Groups + playoff» format.",
+      "hide_organizer_label": "Hide the organizer",
+      "hide_organizer_hint": "The organizer's name and avatar will not be shown on the public tournament page.",
+      "regulations": {
+        "section": "Regulations",
+        "text_hint": "Regulations text: format, rules, schedule. Shown as a dedicated section on the public tournament page.",
+        "file_label": "Regulations file",
+        "file_hint": "PDF, DOC or DOCX, up to 10 MB.",
+        "upload": "Attach a file",
+        "uploading": "Uploading…",
+        "remove": "Remove",
+        "view": "Open the file",
+        "file_error": "The file must be a PDF, DOC or DOCX up to 10 MB."
+      },
       "fields": {
         "name": "Name",
         "description": "Description",
@@ -2851,6 +2894,8 @@
       "back": "Back to my tournaments",
       "edit": "Edit",
       "edit_locked_hint": "The tournament is already running — you can still edit the description, dates, venues and fee, but not the format, match rules or seeding.",
+      "regulations_title": "Regulations",
+      "regulations_download": "Download the regulations",
       "entry_fee_free": "Free",
       "entry_fee_byn": "{n} BYN",
       "help": {
@@ -3809,6 +3854,8 @@
       "partner_badge": "Partner",
       "sponsors": "Partners",
       "partners_title": "Tournament partners",
+      "regulations_title": "Tournament regulations",
+      "regulations_download": "Download the regulations",
       "tba": "TBD",
       "winner": "Winner",
       "scheduled": "scheduled",
@@ -3868,25 +3915,14 @@
       "link_label": "We're on Telegram"
     },
     "install": {
-      "title": "Install the app on your phone",
-      "title_short": "Install as app",
-      "body": "Open it like a native app — no App Store or Google Play. Works offline after the first visit.",
-      "android_button": "Android",
-      "ios_button": "iPhone",
-      "android_modal_title": "Install on Android",
-      "android_step_1": "Open this page in Chrome.",
-      "android_step_2": "Tap the menu (⋮) in the top-right corner.",
-      "android_step_3": "Choose \"Install app\" or \"Add to Home screen\".",
-      "android_install_native": "Install in one tap",
-      "android_native_hint": "Your browser supports inline install — no extra steps required.",
-      "ios_modal_title": "Install on iPhone / iPad",
-      "ios_step_1": "Open this page in Safari (not Chrome or an in-app browser).",
-      "ios_step_2": "Tap the Share icon at the bottom of the screen.",
-      "ios_step_3": "Choose \"Add to Home Screen\" and confirm.",
-      "close": "Close",
-      "prompt_headline": "Install as an app",
-      "prompt_body": "PlayTennis.by on your home screen — opens in one tap, works offline.",
-      "prompt_dismiss": "Later"
+      "title_short": "Get the app",
+      "prompt_headline": "PlayTennis.by app",
+      "prompt_body": "Get it on the App Store or Google Play — sparrings, tournaments and your rating always at hand.",
+      "prompt_dismiss": "Later",
+      "badge_apple_top": "Download on the",
+      "badge_google_top": "Get it on",
+      "aria_apple": "Download PlayTennis.by on the App Store",
+      "aria_google": "Get PlayTennis.by on Google Play"
     }
   },
   "telegramLink": {
@@ -5069,6 +5105,8 @@
       "share_copied": "Link copied",
       "partners": "Partners",
       "partners_title": "Tournament partners",
+      "regulations_title": "Regulations",
+      "regulations_download": "Download the regulations",
       "cta_fee_label": "Entry",
       "cta_apply": "Apply",
       "cta_login": "Sign in to register",

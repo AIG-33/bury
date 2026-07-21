@@ -45,6 +45,9 @@ export type ClubTournamentRow = {
   prizes_description: string | null;
   match_rules: MatchRules;
   third_place_match: boolean;
+  hide_organizer: boolean;
+  regulations_text: string | null;
+  regulations_file_url: string | null;
   /** Public-page branding — carried into "repeat last" copies. */
   branding: TournamentBranding;
   created_at: string;
@@ -134,7 +137,8 @@ export async function loadClubTournamentsForAdmin(clubId: string): Promise<
     .select(
       "id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
         "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, status, " +
-        "draw_method, prizes_description, match_rules, third_place_match, branding, created_at, owner_id",
+        "draw_method, prizes_description, match_rules, third_place_match, hide_organizer, " +
+        "regulations_text, regulations_file_url, branding, created_at, owner_id",
     )
     .eq("club_id", clubId)
     .order("starts_on", { ascending: false })
@@ -269,6 +273,9 @@ export async function loadClubTournamentsForAdmin(clubId: string): Promise<
       prizes_description: t.prizes_description,
       match_rules: t.match_rules,
       third_place_match: t.third_place_match,
+      hide_organizer: t.hide_organizer,
+      regulations_text: t.regulations_text,
+      regulations_file_url: t.regulations_file_url,
       branding: tournamentBrandingFromRow(t.branding),
       created_at: t.created_at,
       organizer_id: t.owner_id,

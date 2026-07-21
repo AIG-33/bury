@@ -132,12 +132,35 @@ export const DEFAULT_MATCH_RULES: MatchRules = {
 // Using preprocess avoids the "Invalid input" error you get from a chained
 // `.optional().or(z.literal(""))` when react-hook-form sends `null` for an
 // untouched optional field.
-const optionalText = z.preprocess((v) => {
-  if (v == null) return null;
-  if (typeof v !== "string") return v;
-  const trimmed = v.trim();
-  return trimmed.length === 0 ? null : trimmed;
-}, z.string().max(2000).nullable());
+const optionalTextMax = (max: number) =>
+  z.preprocess((v) => {
+    if (v == null) return null;
+    if (typeof v !== "string") return v;
+    const trimmed = v.trim();
+    return trimmed.length === 0 ? null : trimmed;
+  }, z.string().max(max).nullable());
+
+const optionalText = optionalTextMax(2000);
+
+// Public URL of an uploaded regulations document. The bucket enforces mime
+// type + size server-side; here we sanity-check the shape and extension.
+export const REGULATIONS_FILE_EXT_RE = /\.(pdf|doc|docx)$/i;
+
+const optionalRegulationsFileUrl = z.preprocess(
+  (v) => {
+    if (v == null) return null;
+    if (typeof v === "string" && v.trim().length === 0) return null;
+    return v;
+  },
+  z
+    .string()
+    .url()
+    .max(2048)
+    .refine((u) => REGULATIONS_FILE_EXT_RE.test(new URL(u).pathname), {
+      message: "expected a PDF/DOC/DOCX file URL",
+    })
+    .nullable(),
+);
 
 const optionalDateString = z.preprocess(
   (v) => {
@@ -201,6 +224,14 @@ export const TournamentFormSchema = z.object({
   // Hybrid (group + playoff) tournaments only — toggles a 3rd-place match
   // between the two losing semi-finalists. Ignored for other formats.
   third_place_match: z.boolean().default(false),
+  // Privacy: don't show the organizer's name/avatar on the public page.
+  hide_organizer: z.boolean().default(false),
+  // Tournament regulations ("регламент") — free-form text and/or an attached
+  // document. Both optional and independent from description. Kept in the
+  // template payload deliberately: like prizes_description the text is
+  // reusable, and the file URL is public + permanent (branding-image style).
+  regulations_text: optionalTextMax(20000),
+  regulations_file_url: optionalRegulationsFileUrl,
 });
 
 export type TournamentForm = z.infer<typeof TournamentFormSchema>;

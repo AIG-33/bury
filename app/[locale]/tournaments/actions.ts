@@ -230,7 +230,12 @@ export async function loadPublicTournaments(opts: {
 }
 
 export type PublicTournamentDetail = {
-  tournament: PublicTournamentRow;
+  // Detail-only extras on top of the shared list row: the regulations
+  // section (text + attached document) is only rendered on the detail pages.
+  tournament: PublicTournamentRow & {
+    regulations_text: string | null;
+    regulations_file_url: string | null;
+  };
   participants: Array<{
     id: string;
     name: string | null;
@@ -279,7 +284,8 @@ export async function loadPublicTournamentDetail(
     .from("tournaments")
     .select(
       "id, owner_id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding",
+        "registration_deadline, max_participants, entry_fee_byn, privacy, status, match_rules, branding, " +
+        "hide_organizer, regulations_text, regulations_file_url",
     )
     .eq("id", tournamentId)
     .maybeSingle()) as {
@@ -301,6 +307,9 @@ export async function loadPublicTournamentDetail(
       status: TournamentStatus;
       match_rules: MatchRules;
       branding: unknown;
+      hide_organizer: boolean;
+      regulations_text: string | null;
+      regulations_file_url: string | null;
     } | null;
   };
 
@@ -308,12 +317,16 @@ export async function loadPublicTournamentDetail(
   const isDoubles = row.discipline === "doubles";
 
   // Organizer name via the RLS-bypassing public projection (the raw
-  // `profiles` table is self-only).
-  const { data: organizerBasic } = (await supabase
-    .from("public_profile_basic")
-    .select("display_name")
-    .eq("id", row.owner_id)
-    .maybeSingle()) as { data: { display_name: string | null } | null };
+  // `profiles` table is self-only). When the organizer opted out
+  // (hide_organizer) we don't even fetch the name — nothing leaks to the
+  // public pages, which skip the organizer block on a null name.
+  const { data: organizerBasic } = row.hide_organizer
+    ? { data: null }
+    : ((await supabase
+        .from("public_profile_basic")
+        .select("display_name")
+        .eq("id", row.owner_id)
+        .maybeSingle()) as { data: { display_name: string | null } | null });
 
   const { data: tvs } = (await supabase
     .from("tournament_venues")
@@ -523,6 +536,8 @@ export async function loadPublicTournamentDetail(
       match_rules: row.match_rules,
       venues,
       branding: tournamentBrandingFromRow(row.branding),
+      regulations_text: row.regulations_text,
+      regulations_file_url: row.regulations_file_url,
     },
     participants,
     matches: matchesOut,

@@ -1,6 +1,15 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { ArrowLeft, CalendarDays, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  FileText,
+  LayoutGrid,
+  MapPin,
+  Tag,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { Link } from "@/i18n/routing";
 import {
   MAvatar,
@@ -244,11 +253,13 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
             }
             mono={Boolean(tournament.entry_fee_byn)}
           />
-          <MetaTile
-            eyebrow={t("tournament.info_organizer")}
-            icon={<UserRound className="h-[13px] w-[13px]" strokeWidth={2} />}
-            value={shortNameOf(tournament.organizer_name) ?? "—"}
-          />
+          {tournament.organizer_name ? (
+            <MetaTile
+              eyebrow={t("tournament.info_organizer")}
+              icon={<UserRound className="h-[13px] w-[13px]" strokeWidth={2} />}
+              value={shortNameOf(tournament.organizer_name) ?? "—"}
+            />
+          ) : null}
           <MetaTile
             eyebrow={t("tournament.meta_place")}
             icon={<MapPin className="h-[13px] w-[13px]" strokeWidth={2} />}
@@ -499,12 +510,37 @@ function InfoTab({
           </p>
         </div>
       ) : null}
+      {tournament.regulations_text || tournament.regulations_file_url ? (
+        <div className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white p-4 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
+          <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-500">
+            {t("tournament.regulations_title")}
+          </p>
+          {tournament.regulations_text ? (
+            <p className="mt-2 whitespace-pre-line text-[13.5px] leading-[1.4] text-ink-900">
+              {tournament.regulations_text}
+            </p>
+          ) : null}
+          {tournament.regulations_file_url ? (
+            <a
+              href={tournament.regulations_file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-grass-200 bg-grass-50 px-3 text-[13px] font-bold text-grass-800 active:opacity-85"
+            >
+              <FileText className="h-4 w-4" strokeWidth={2} />
+              {t("tournament.regulations_download")}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
       <div className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white p-4 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
         <dl className="space-y-2.5">
-          <InfoRow
-            label={t("tournament.info_organizer")}
-            value={tournament.organizer_name ?? "—"}
-          />
+          {tournament.organizer_name ? (
+            <InfoRow
+              label={t("tournament.info_organizer")}
+              value={tournament.organizer_name}
+            />
+          ) : null}
           <InfoRow
             label={t("tournament.info_format")}
             value={t(`tournament.format_${tournament.format}` as never)}

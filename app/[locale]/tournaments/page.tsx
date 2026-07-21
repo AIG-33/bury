@@ -254,7 +254,7 @@ export default async function PublicTournamentsPage({ params, searchParams }: Pr
       ) : filter === "all" ? (
         <SectionedList tournaments={tournaments} locale={locale} t={t} />
       ) : (
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
+        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {tournaments.map((tn) => (
             <TournamentCard key={tn.id} tn={tn} locale={locale} />
           ))}
@@ -334,7 +334,7 @@ function SectionedGroup({
         <h2 className="section-title text-[18px] md:text-[20px]">{title}</h2>
         <span className="font-mono text-xs tabular-nums text-ink-400">·&nbsp;{items.length}</span>
       </header>
-      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
+      <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {items.map((tn) => (
           <TournamentCard key={tn.id} tn={tn} locale={locale} />
         ))}

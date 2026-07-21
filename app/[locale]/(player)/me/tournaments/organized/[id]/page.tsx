@@ -1,7 +1,16 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect, notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { ArrowLeft, CalendarDays, Clock, Coins, MapPin, Trophy, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Clock,
+  Coins,
+  FileText,
+  MapPin,
+  Trophy,
+  Eye,
+} from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { Chip } from "@/components/ui/surface";
@@ -288,6 +297,30 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
 
         {tournament.description && (
           <p className="mt-3 text-sm text-ink-700">{tournament.description}</p>
+        )}
+
+        {(tournament.regulations_text || tournament.regulations_file_url) && (
+          <div className="mt-4 rounded-xl border border-ink-100 bg-grass-50/30 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-grass-800">
+              {t("detail.regulations_title")}
+            </p>
+            {tournament.regulations_text && (
+              <p className="mt-2 whitespace-pre-line text-sm text-ink-700">
+                {tournament.regulations_text}
+              </p>
+            )}
+            {tournament.regulations_file_url && (
+              <a
+                href={tournament.regulations_file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-grass-700 hover:text-grass-800"
+              >
+                <FileText className="h-4 w-4" />
+                {t("detail.regulations_download")}
+              </a>
+            )}
+          </div>
         )}
       </div>
 
