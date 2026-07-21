@@ -149,6 +149,8 @@ export async function loadMyProfileHeaderStats(): Promise<ProfileHeaderStats> {
   } = await supabase.auth.getUser();
   if (!user) return empty;
 
+  // There is no `winner_id` column — the winner is `winner_side` ("p1"/"p2")
+  // resolved against the side the player is on.
   const [totalRes, winsRes] = await Promise.all([
     supabase
       .from("matches")
@@ -158,7 +160,9 @@ export async function loadMyProfileHeaderStats(): Promise<ProfileHeaderStats> {
     supabase
       .from("matches")
       .select("id", { count: "exact", head: true })
-      .eq("winner_id", user.id)
+      .or(
+        `and(p1_id.eq.${user.id},winner_side.eq.p1),and(p2_id.eq.${user.id},winner_side.eq.p2)`,
+      )
       .eq("outcome", "completed"),
   ]);
 
