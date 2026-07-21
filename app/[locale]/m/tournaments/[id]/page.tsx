@@ -299,10 +299,26 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
                     <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-[8px] bg-pt-icon font-mono text-[12px] font-bold tabular-nums text-grass-700">
                       {p.seed ?? i + 1}
                     </span>
-                    <MAvatar name={p.name} url={p.avatar_url} size={34} />
-                    <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
-                      {p.name ?? t("common.player_unknown")}
-                    </p>
+                    {p.name ? (
+                      <Link
+                        /* No /m/players route — the web profile is responsive. */
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        href={`/players/${p.id}` as any}
+                        className="flex min-w-0 flex-1 items-center gap-3 transition-opacity active:opacity-85"
+                      >
+                        <MAvatar name={p.name} url={p.avatar_url} size={34} />
+                        <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
+                          {p.name}
+                        </p>
+                      </Link>
+                    ) : (
+                      <>
+                        <MAvatar name={p.name} url={p.avatar_url} size={34} />
+                        <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
+                          {t("common.player_unknown")}
+                        </p>
+                      </>
+                    )}
                     {p.city ? (
                       <span className="shrink-0 text-[12.5px] font-semibold text-ink-500">
                         {p.city}
@@ -464,22 +480,18 @@ function DrawList({
                   className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p
-                      className={`min-w-0 truncate text-[13.5px] font-bold ${
-                        m.winner_id && m.winner_id === m.p1_id ? "text-grass-600" : "text-ink-900"
-                      }`}
-                    >
-                      {m.p1_name ?? "—"}
-                    </p>
+                    <DrawPlayerName
+                      id={m.p1_id}
+                      name={m.p1_name}
+                      isWinner={m.winner_id != null && m.winner_id === m.p1_id}
+                    />
                   </div>
                   <div className="mt-0.5 flex items-center justify-between gap-2">
-                    <p
-                      className={`min-w-0 truncate text-[13.5px] font-bold ${
-                        m.winner_id && m.winner_id === m.p2_id ? "text-grass-600" : "text-ink-900"
-                      }`}
-                    >
-                      {m.p2_name ?? "—"}
-                    </p>
+                    <DrawPlayerName
+                      id={m.p2_id}
+                      name={m.p2_name}
+                      isWinner={m.winner_id != null && m.winner_id === m.p2_id}
+                    />
                     <span className="shrink-0 font-mono text-[13.5px] font-bold tabular-nums text-ink-700">
                       {score || t("matches.no_score")}
                     </span>
@@ -491,6 +503,32 @@ function DrawList({
         </div>
       ))}
     </div>
+  );
+}
+
+/** One side of a draw match — links to the public profile when the slot is
+ *  filled (pairs link to the captain). TBD/bye slots stay plain text. */
+function DrawPlayerName({
+  id,
+  name,
+  isWinner,
+}: {
+  id: string | null;
+  name: string | null;
+  isWinner: boolean;
+}) {
+  const cls = `min-w-0 truncate text-[13.5px] font-bold ${
+    isWinner ? "text-grass-600" : "text-ink-900"
+  }`;
+  if (!id || !name) return <p className={cls}>{name ?? "—"}</p>;
+  return (
+    <Link
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      href={`/players/${id}` as any}
+      className={`${cls} transition-opacity active:opacity-85`}
+    >
+      {name}
+    </Link>
   );
 }
 

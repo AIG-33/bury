@@ -15,6 +15,7 @@ import {
   type GroupStandingsBlock,
 } from "../actions";
 import { MatchCard, type BracketCopy } from "./bracket-section";
+import { PlayerNameLink } from "@/components/domain/player-name-link";
 import {
   SEEDING_METHODS,
   PLAYOFF_SIZES,
@@ -188,8 +189,19 @@ export function GroupsSection({
                   {members.map((m) => (
                     <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
                       <span className="truncate text-ink-800">
-                        {m.display_name ?? m.player_id}
-                        {m.partner_name ? ` / ${m.partner_name}` : ""}
+                        <PlayerNameLink
+                          id={m.player_id}
+                          name={m.display_name}
+                          fallback={m.player_id}
+                        />
+                        {m.partner_name ? (
+                          <>
+                            {" / "}
+                            <PlayerNameLink id={m.partner_id} name={m.partner_name} />
+                          </>
+                        ) : (
+                          ""
+                        )}
                       </span>
                       {!anyGroupResults && groups.length > 1 ? (
                         <MoveSelector
@@ -229,7 +241,11 @@ export function GroupsSection({
                             <tr key={r.player_id} className="border-t border-ink-100">
                               <td className="py-1 text-ink-600">{r.position}</td>
                               <td className="truncate py-1 text-ink-800">
-                                {r.display_name ?? r.player_id}
+                                <PlayerNameLink
+                                  id={r.player_id}
+                                  name={r.display_name}
+                                  fallback={r.player_id}
+                                />
                               </td>
                               <td className="py-1 text-center text-ink-700">{r.matches_played}</td>
                               <td className="py-1 text-center font-semibold text-grass-700">

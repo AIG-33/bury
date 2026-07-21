@@ -51,6 +51,7 @@ export type MyTournamentRow = OpenTournamentRow & {
   next_match: {
     id: string;
     round: number | null;
+    opponent_id: string | null;
     opponent_name: string | null;
     scheduled_at: string | null;
   } | null;
@@ -379,6 +380,7 @@ export async function loadMyTournaments(): Promise<
         ? {
             id: next.id,
             round: next.round,
+            opponent_id: next.opponent_id,
             opponent_name: next.opponent_id ? (namesById.get(next.opponent_id) ?? null) : null,
             scheduled_at: next.scheduled_at,
           }

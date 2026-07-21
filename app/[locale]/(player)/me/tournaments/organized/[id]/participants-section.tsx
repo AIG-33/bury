@@ -23,6 +23,7 @@ import {
   type PlayerOption,
 } from "../actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
+import { PlayerNameLink } from "@/components/domain/player-name-link";
 
 export type ParticipantsCopy = {
   title: string;
@@ -195,8 +196,13 @@ export function ParticipantsSection({
                       </span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-ink-900">
-                          {p.display_name ?? "—"}
-                          {isDoubles && ` / ${p.partner_name ?? "—"}`}
+                          <PlayerNameLink id={p.player_id} name={p.display_name} />
+                          {isDoubles && (
+                            <>
+                              {" / "}
+                              <PlayerNameLink id={p.partner_id} name={p.partner_name} />
+                            </>
+                          )}
                         </p>
                         <p className="text-[11px] text-ink-500">
                           Elo {p.current_elo} · {new Date(p.registered_at).toLocaleDateString()}
@@ -340,8 +346,13 @@ export function ParticipantsSection({
                       {p.seed ?? i + 1}
                     </span>
                     <span className="truncate text-sm text-ink-900">
-                      {p.display_name ?? "—"}
-                      {isDoubles && ` / ${p.partner_name ?? "—"}`}
+                      <PlayerNameLink id={p.player_id} name={p.display_name} />
+                      {isDoubles && (
+                        <>
+                          {" / "}
+                          <PlayerNameLink id={p.partner_id} name={p.partner_name} />
+                        </>
+                      )}
                     </span>
                     {p.withdrawn && (
                       <span className="rounded-md bg-clay-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-clay-800">
@@ -395,8 +406,13 @@ export function ParticipantsSection({
                 <li key={p.id} className="flex items-center justify-between gap-2 py-2">
                   <div className="min-w-0">
                     <p className="truncate text-sm text-ink-700">
-                      {p.display_name ?? "—"}
-                      {isDoubles && ` / ${p.partner_name ?? "—"}`}
+                      <PlayerNameLink id={p.player_id} name={p.display_name} />
+                      {isDoubles && (
+                        <>
+                          {" / "}
+                          <PlayerNameLink id={p.partner_id} name={p.partner_name} />
+                        </>
+                      )}
                     </p>
                     <p className="text-[11px] text-ink-400">Elo {p.current_elo}</p>
                   </div>

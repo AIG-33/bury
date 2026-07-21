@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Loader2, Trophy, Shuffle } from "lucide-react";
 import { generateBracket, setMatchScore, type MatchRow } from "../actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
+import { PlayerNameLink } from "@/components/domain/player-name-link";
 import {
   type SeedingMethod,
   SEEDING_METHODS,
@@ -268,12 +269,18 @@ export function MatchCard({
   return (
     <div className="rounded-lg border border-ink-100 bg-grass-50/30 p-2.5">
       <div className="flex items-center justify-between gap-2 text-sm">
-        <span className={`flex-1 truncate ${p1Cls}`}>{match.p1_name ?? copy.tbd}</span>
+        <span className={`flex-1 truncate ${p1Cls}`}>
+          <PlayerNameLink id={match.p1_id} name={match.p1_name} fallback={copy.tbd} />
+        </span>
         <span className={`text-sm ${score1Cls}`}>{scoreSummary(match.sets, "p1")}</span>
       </div>
       <div className="mt-0.5 flex items-center justify-between gap-2 text-sm">
         <span className={`flex-1 truncate ${p2Cls}`}>
-          {match.p2_name ?? (match.outcome === "walkover_p1" ? copy.bye : copy.tbd)}
+          <PlayerNameLink
+            id={match.p2_id}
+            name={match.p2_name}
+            fallback={match.outcome === "walkover_p1" ? copy.bye : copy.tbd}
+          />
         </span>
         <span className={`text-sm ${score2Cls}`}>{scoreSummary(match.sets, "p2")}</span>
       </div>

@@ -59,6 +59,8 @@ export type PublicTournamentRow = {
   privacy: Privacy;
   status: TournamentStatus;
   organizer_name: string | null;
+  /** Null when the organizer opted out of being shown (hide_organizer). */
+  organizer_id: string | null;
   match_rules: MatchRules;
   venues: PublicTournamentVenue[];
   branding: TournamentBranding;
@@ -214,6 +216,7 @@ export async function loadPublicTournaments(opts: {
     privacy: r.privacy,
     status: r.status,
     organizer_name: ownerNameById.get(r.owner_id) ?? null,
+    organizer_id: ownerNameById.has(r.owner_id) ? r.owner_id : null,
     match_rules: r.match_rules,
     venues: venuesByT.get(r.id) ?? [],
     branding: tournamentBrandingFromRow(r.branding),
@@ -533,6 +536,7 @@ export async function loadPublicTournamentDetail(
       privacy: row.privacy,
       status: row.status,
       organizer_name: organizerBasic?.display_name ?? null,
+      organizer_id: row.hide_organizer ? null : row.owner_id,
       match_rules: row.match_rules,
       venues,
       branding: tournamentBrandingFromRow(row.branding),

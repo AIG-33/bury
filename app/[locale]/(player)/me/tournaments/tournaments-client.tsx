@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Trophy,
   CalendarDays,
@@ -374,6 +374,7 @@ function MyTournamentCard({
   copy: PlayerTournamentsCopy;
 }) {
   const t = useTranslations("tournamentsPlayer");
+  const locale = useLocale();
   const tErrors = useTranslations("tournamentsPlayer.errors");
   const router = useRouter();
   const [pending, startT] = useTransition();
@@ -432,7 +433,18 @@ function MyTournamentCard({
             <p className="mt-1 inline-flex items-center gap-1 text-sm text-ink-900">
               <Swords className="h-3.5 w-3.5 text-grass-700" />
               <span className="font-medium">
-                {copy.vs} {tournament.next_match.opponent_name ?? "—"}
+                {copy.vs}{" "}
+                {tournament.next_match.opponent_id && tournament.next_match.opponent_name ? (
+                  <Link
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={`/${locale}/players/${tournament.next_match.opponent_id}` as any}
+                    className="transition-colors hover:text-grass-800 hover:underline"
+                  >
+                    {tournament.next_match.opponent_name}
+                  </Link>
+                ) : (
+                  (tournament.next_match.opponent_name ?? "—")
+                )}
               </span>
               {tournament.next_match.scheduled_at && (
                 <span className="text-xs text-ink-500">

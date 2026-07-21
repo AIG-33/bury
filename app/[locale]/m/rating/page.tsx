@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Crown } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MAvatar, MContent, MEmptyState, MSegment, MSubHeader } from "@/components/mobile/m-ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -203,15 +204,36 @@ export default async function MobileRatingPage({ params, searchParams }: Props) 
                     <span className="w-5 shrink-0 text-center font-mono text-[13px] font-bold tabular-nums text-[#8AA093]">
                       {rank}
                     </span>
-                    <MAvatar name={row.name} url={row.avatar} size={36} ring={isMe} />
-                    <p className="min-w-0 flex-1 truncate text-[14px] font-extrabold text-ink-900">
-                      {row.name ?? t("common.player_unknown")}
-                      {isMe ? (
-                        <span className="ml-1.5 text-[11px] font-bold text-grass-600">
-                          · {t("rating.you")}
-                        </span>
-                      ) : null}
-                    </p>
+                    {row.name ? (
+                      <Link
+                        /* No /m/players route — the web profile is responsive. */
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        href={`/players/${row.id}` as any}
+                        className="flex min-w-0 flex-1 items-center gap-3 transition-opacity active:opacity-85"
+                      >
+                        <MAvatar name={row.name} url={row.avatar} size={36} ring={isMe} />
+                        <p className="min-w-0 flex-1 truncate text-[14px] font-extrabold text-ink-900">
+                          {row.name}
+                          {isMe ? (
+                            <span className="ml-1.5 text-[11px] font-bold text-grass-600">
+                              · {t("rating.you")}
+                            </span>
+                          ) : null}
+                        </p>
+                      </Link>
+                    ) : (
+                      <>
+                        <MAvatar name={row.name} url={row.avatar} size={36} ring={isMe} />
+                        <p className="min-w-0 flex-1 truncate text-[14px] font-extrabold text-ink-900">
+                          {t("common.player_unknown")}
+                          {isMe ? (
+                            <span className="ml-1.5 text-[11px] font-bold text-grass-600">
+                              · {t("rating.you")}
+                            </span>
+                          ) : null}
+                        </p>
+                      </>
+                    )}
                     {row.delta != null && row.delta !== 0 ? (
                       <span
                         className={`shrink-0 font-mono text-[12px] font-bold tabular-nums ${
@@ -248,11 +270,8 @@ function PodiumColumn({
   height: number;
   crowned?: boolean;
 }) {
-  return (
-    <div className="flex flex-col items-center">
-      {crowned ? (
-        <Crown className="mb-1 h-[16px] w-[16px] text-ball-500" strokeWidth={2} fill="#C3E84F" />
-      ) : null}
+  const identity = (
+    <>
       <span
         className="grid place-items-center overflow-hidden rounded-full p-[2.5px]"
         style={{
@@ -267,6 +286,24 @@ function PodiumColumn({
       <p className="mt-1.5 w-full truncate text-center text-[11px] font-bold text-white/90">
         {row.name ?? "—"}
       </p>
+    </>
+  );
+  return (
+    <div className="flex flex-col items-center">
+      {crowned ? (
+        <Crown className="mb-1 h-[16px] w-[16px] text-ball-500" strokeWidth={2} fill="#C3E84F" />
+      ) : null}
+      {row.name ? (
+        <Link
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          href={`/players/${row.id}` as any}
+          className="flex w-full flex-col items-center transition-opacity active:opacity-85"
+        >
+          {identity}
+        </Link>
+      ) : (
+        identity
+      )}
       <p className="font-mono text-[12.5px] font-bold tabular-nums text-ball-500">{row.elo}</p>
       <div
         className="mt-1.5 grid w-full place-items-center rounded-t-[8px] font-mono text-[13px] font-bold text-white/80"

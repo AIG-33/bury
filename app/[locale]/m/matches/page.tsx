@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { CalendarDays, Trophy, Users } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MContent, MEmptyState, MSegment, MStickyHeader } from "@/components/mobile/m-ui";
 import { MFilterTool, MSearchTool } from "@/components/mobile/m-header-tools";
@@ -311,9 +312,21 @@ export default async function MobileMatchesPage({ params, searchParams }: Props)
                             </span>
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-[14px] font-bold text-ink-900">
+                                {m.opponent.display_name ? (
+                                  <Link
+                                    /* No /m/players route — web profile is responsive. */
+                                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                                    href={`/players/${m.opponent.id}` as any}
+                                    className="transition-opacity active:opacity-85"
+                                  >
+                                    {m.opponent.display_name}
+                                  </Link>
+                                ) : (
+                                  t("common.player_unknown")
+                                )}
                                 {m.is_doubles && m.opponent_partner_name
-                                  ? `${m.opponent.display_name ?? t("common.player_unknown")} / ${m.opponent_partner_name}`
-                                  : (m.opponent.display_name ?? t("common.player_unknown"))}
+                                  ? ` / ${m.opponent_partner_name}`
+                                  : null}
                               </p>
                               <p className="mt-0.5 truncate text-[11px] font-semibold text-ink-500">
                                 {[

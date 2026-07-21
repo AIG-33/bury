@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Link as LocaleLink } from "@/i18n/routing";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -557,27 +558,50 @@ function CandidateCard({
       }
     >
       <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-        {/* Avatar */}
+        {/* Avatar — links to the candidate's public profile */}
         <div className="flex-shrink-0">
-          {candidate.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={candidate.avatar_url}
-              alt={candidate.display_name ?? ""}
-              className="h-14 w-14 rounded-full object-cover ring-2 ring-grass-100"
-            />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-grass-100 font-display text-base font-semibold text-grass-800 ring-2 ring-grass-200">
-              {initials}
-            </div>
-          )}
+          {(() => {
+            const avatar = candidate.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={candidate.avatar_url}
+                alt={candidate.display_name ?? ""}
+                className="h-14 w-14 rounded-full object-cover ring-2 ring-grass-100"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-grass-100 font-display text-base font-semibold text-grass-800 ring-2 ring-grass-200">
+                {initials}
+              </div>
+            );
+            return candidate.display_name ? (
+              <LocaleLink
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                href={`/players/${candidate.id}` as any}
+                className="block"
+              >
+                {avatar}
+              </LocaleLink>
+            ) : (
+              avatar
+            );
+          })()}
         </div>
 
         {/* Main */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="truncate font-display text-base font-semibold text-ink-900">
-              {candidate.display_name ?? "—"}
+              {candidate.display_name ? (
+                <LocaleLink
+                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                  href={`/players/${candidate.id}` as any}
+                  className="transition-colors hover:text-grass-800"
+                >
+                  {candidate.display_name}
+                </LocaleLink>
+              ) : (
+                "—"
+              )}
             </p>
             <span className="font-mono text-xs text-ink-500">
               · {t("card.matches", { n: candidate.rated_matches_count })}

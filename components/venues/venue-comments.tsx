@@ -123,9 +123,19 @@ export function VenueComments({ venueId, comments, currentUserId, isAdmin }: Pro
               <li key={c.id} className="rounded-lg border border-ink-100 bg-ink-50/30 px-4 py-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-display text-sm font-semibold text-ink-900">
-                      {c.author_name ?? t("anonymous")}
-                    </span>
+                    {c.author_name ? (
+                      <Link
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        href={`/players/${c.author_id}` as any}
+                        className="font-display text-sm font-semibold text-ink-900 transition-colors hover:text-grass-800"
+                      >
+                        {c.author_name}
+                      </Link>
+                    ) : (
+                      <span className="font-display text-sm font-semibold text-ink-900">
+                        {t("anonymous")}
+                      </span>
+                    )}
                     <span className="text-[11px] text-ink-400">
                       {dateFmt.format(new Date(c.created_at))}
                     </span>

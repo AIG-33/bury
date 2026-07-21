@@ -590,23 +590,39 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
                 key={row.id}
                 className="flex items-center gap-3 rounded-[15px] border border-[rgba(20,60,30,0.06)] bg-white p-3 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
               >
-                <MAvatar name={row.creator_name} url={row.creator_avatar} size={44} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-extrabold text-ink-900">
-                    {row.creator_name ?? t("common.player_unknown")}
-                    <span className="ml-1.5 font-mono text-[12.5px] font-bold tabular-nums text-grass-600">
-                      {row.creator_elo}
-                    </span>
-                  </p>
-                  <p className="mt-0.5 truncate text-[11.5px] font-semibold text-ink-500">
-                    {[
-                      listDateFmt.format(new Date(row.starts_at)),
-                      row.venue_name ?? row.district_name ?? row.venue_city,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                </div>
+                {(() => {
+                  const identity = (
+                    <>
+                      <MAvatar name={row.creator_name} url={row.creator_avatar} size={44} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-extrabold text-ink-900">
+                          {row.creator_name ?? t("common.player_unknown")}
+                          <span className="ml-1.5 font-mono text-[12.5px] font-bold tabular-nums text-grass-600">
+                            {row.creator_elo}
+                          </span>
+                        </p>
+                        <p className="mt-0.5 truncate text-[11.5px] font-semibold text-ink-500">
+                          {[
+                            listDateFmt.format(new Date(row.starts_at)),
+                            row.venue_name ?? row.district_name ?? row.venue_city,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
+                    </>
+                  );
+                  return row.creator_name ? (
+                    <Link
+                      href={`/players/${row.creator_id}` as never}
+                      className="flex min-w-0 flex-1 items-center gap-3 transition-opacity active:opacity-85"
+                    >
+                      {identity}
+                    </Link>
+                  ) : (
+                    identity
+                  );
+                })()}
                 <PlayButton
                   openMatchId={row.id}
                   authenticated

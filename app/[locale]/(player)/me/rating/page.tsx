@@ -438,14 +438,35 @@ function MatchListRow({
   return (
     <li className="surface-row lift-on-hover relative overflow-hidden">
       <div className="flex flex-wrap items-center gap-3">
-        {/* Avatar */}
-        <Avatar url={m.opponent.avatar_url} name={m.opponent.display_name ?? "?"} />
+        {/* Avatar — links to the opponent's public profile (tombstoned
+            opponents without a display name stay plain). */}
+        {m.opponent.display_name ? (
+          <Link
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            href={`/players/${m.opponent.id}` as any}
+            className="shrink-0"
+          >
+            <Avatar url={m.opponent.avatar_url} name={m.opponent.display_name} />
+          </Link>
+        ) : (
+          <Avatar url={m.opponent.avatar_url} name="?" />
+        )}
 
         {/* Opponent + meta */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-display text-base font-semibold text-ink-900">
-              {m.opponent.display_name ?? "—"}
+              {m.opponent.display_name ? (
+                <Link
+                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                  href={`/players/${m.opponent.id}` as any}
+                  className="transition-colors hover:text-grass-800"
+                >
+                  {m.opponent.display_name}
+                </Link>
+              ) : (
+                "—"
+              )}
               {m.is_doubles && m.opponent_partner_name && (
                 <span className="text-ink-600"> / {m.opponent_partner_name}</span>
               )}

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -115,9 +116,19 @@ export function MatchCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="font-display text-base font-semibold text-ink-900">
-              {opponentName}
-            </p>
+            {m.opponent.display_name ? (
+              <Link
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                href={`/players/${m.opponent.id}` as any}
+                className="font-display text-base font-semibold text-ink-900 transition-colors hover:text-grass-800"
+              >
+                {opponentName}
+              </Link>
+            ) : (
+              <p className="font-display text-base font-semibold text-ink-900">
+                {opponentName}
+              </p>
+            )}
             <span className="font-mono text-xs text-ink-500">
               {m.opponent.current_elo}
             </span>

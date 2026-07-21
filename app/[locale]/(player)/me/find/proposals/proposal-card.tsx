@@ -10,6 +10,7 @@ import {
   Ban,
   CheckCircle2,
 } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { respondToProposal, type ProposalRow } from "../actions";
 import { whatsappLink } from "@/lib/contact/whatsapp";
 import { Button } from "@/components/ui/button";
@@ -85,25 +86,48 @@ export function ProposalCard({
   return (
     <Surface as="li" variant="row" className="lift-on-hover">
       <div className="flex flex-wrap items-start gap-3">
-        {/* Avatar */}
-        {row.other.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={row.other.avatar_url}
-            alt={row.other.display_name ?? ""}
-            className="h-12 w-12 rounded-full object-cover ring-2 ring-grass-100"
-          />
-        ) : (
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-grass-100 font-display text-sm font-semibold text-grass-800 ring-2 ring-grass-200">
-            {initials}
-          </div>
-        )}
+        {/* Avatar — links to the other player's public profile */}
+        {(() => {
+          const avatar = row.other.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={row.other.avatar_url}
+              alt={row.other.display_name ?? ""}
+              className="h-12 w-12 rounded-full object-cover ring-2 ring-grass-100"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-grass-100 font-display text-sm font-semibold text-grass-800 ring-2 ring-grass-200">
+              {initials}
+            </div>
+          );
+          return row.other.display_name ? (
+            <Link
+              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+              href={`/players/${row.other.id}` as any}
+              className="shrink-0"
+            >
+              {avatar}
+            </Link>
+          ) : (
+            avatar
+          );
+        })()}
 
         {/* Header */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="truncate font-display text-base font-semibold text-ink-900">
-              {row.other.display_name ?? "—"}
+              {row.other.display_name ? (
+                <Link
+                  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                  href={`/players/${row.other.id}` as any}
+                  className="transition-colors hover:text-grass-800"
+                >
+                  {row.other.display_name}
+                </Link>
+              ) : (
+                "—"
+              )}
             </p>
             <RatingDisplay
               internalElo={row.other.current_elo}

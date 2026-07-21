@@ -1,4 +1,5 @@
 import type { StandingsLine } from "../actions";
+import { PlayerNameLink } from "@/components/domain/player-name-link";
 
 export type StandingsCopy = {
   title: string;
@@ -45,7 +46,9 @@ export function StandingsSection({
               {rows.map((r) => (
                 <tr key={r.player_id} className="border-b border-ink-50 last:border-b-0">
                   <td className="py-2 pr-2 font-mono font-semibold text-ink-700">{r.position}</td>
-                  <td className="py-2 pr-2 text-ink-900">{r.display_name ?? "—"}</td>
+                  <td className="py-2 pr-2 text-ink-900">
+                    <PlayerNameLink id={r.player_id} name={r.display_name} />
+                  </td>
                   <td className="py-2 pr-2 text-center text-ink-600">{r.matches_played}</td>
                   <td className="py-2 pr-2 text-center font-semibold text-grass-700">{r.wins}</td>
                   <td className="py-2 pr-2 text-center text-ink-600">{r.losses}</td>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
+import { Link } from "@/i18n/routing";
 import { z } from "zod";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { buildTournamentEventJsonLd } from "@/lib/seo/json-ld";
@@ -370,21 +371,11 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-grass-50 font-mono text-xs font-bold tabular-nums text-grass-700">
                         {p.seed ?? i + 1}
                       </span>
-                      {p.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.avatar_url}
-                          alt=""
-                          className="h-9 w-9 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grass-100 text-xs font-extrabold text-grass-700">
-                          {initialsOf(p.name)}
-                        </span>
-                      )}
-                      <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink-900">
-                        {p.name ?? "?"}
-                      </span>
+                      <ParticipantIdentity
+                        id={p.name ? p.id : null}
+                        name={p.name}
+                        avatarUrl={p.avatar_url}
+                      />
                       <RatingDisplay
                         internalElo={p.elo}
                         external={
@@ -499,17 +490,35 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
             {tournament.organizer_name && (
               <Surface variant="card" as="section">
                 <p className="label-eyebrow">{t("detail.organizer")}</p>
-                <div className="mt-3 flex items-center gap-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-grass-100 text-sm font-extrabold text-grass-700">
-                    {initialsOf(tournament.organizer_name)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-ink-900">
-                      {tournament.organizer_name}
-                    </p>
-                    <p className="text-xs text-ink-500">{t("detail.organizer_role")}</p>
+                {tournament.organizer_id ? (
+                  <Link
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    href={`/players/${tournament.organizer_id}` as any}
+                    className="group mt-3 flex items-center gap-3"
+                  >
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-grass-100 text-sm font-extrabold text-grass-700">
+                      {initialsOf(tournament.organizer_name)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-ink-900 transition-colors group-hover:text-grass-800">
+                        {tournament.organizer_name}
+                      </p>
+                      <p className="text-xs text-ink-500">{t("detail.organizer_role")}</p>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-grass-100 text-sm font-extrabold text-grass-700">
+                      {initialsOf(tournament.organizer_name)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-ink-900">
+                        {tournament.organizer_name}
+                      </p>
+                      <p className="text-xs text-ink-500">{t("detail.organizer_role")}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </Surface>
             )}
           </div>
@@ -538,6 +547,49 @@ function CourtLinesPattern() {
       <line x1="860" y1="-60" x2="860" y2="300" />
       <line x1="340" y1="220" x2="860" y2="220" />
     </svg>
+  );
+}
+
+/**
+ * Avatar + name of one participant. When `id` is present the pair is a link
+ * to the public player profile (pairs link to the captain); tombstoned
+ * players (no display name) render as plain text.
+ */
+function ParticipantIdentity({
+  id,
+  name,
+  avatarUrl,
+}: {
+  id: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+}) {
+  const inner = (
+    <>
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={avatarUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+      ) : (
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grass-100 text-xs font-extrabold text-grass-700">
+          {initialsOf(name)}
+        </span>
+      )}
+      <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink-900 transition-colors group-hover/pl:text-grass-800">
+        {name ?? "?"}
+      </span>
+    </>
+  );
+  if (!id) {
+    return <span className="flex min-w-0 flex-1 items-center gap-3">{inner}</span>;
+  }
+  return (
+    <Link
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      href={`/players/${id}` as any}
+      className="group/pl flex min-w-0 flex-1 items-center gap-3"
+    >
+      {inner}
+    </Link>
   );
 }
 
