@@ -3,7 +3,7 @@ import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { getOgImageAlt } from "@/lib/seo/og-image";
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo/site";
-import { belarusTennisKeywords } from "@/lib/seo/metadata";
+import { tennisKeywords } from "@/lib/seo/metadata";
 import { NativeBridge } from "@/components/mobile/native-bridge";
 
 // Redesign spec (docs: ТЗ — Редизайн PlayTennis.by, §1.2):
@@ -37,12 +37,12 @@ const yandexVerification = process.env.NEXT_PUBLIC_YANDEX_VERIFICATION;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — найди соперника, тренера и турнир в Беларуси`,
+    default: `${SITE_NAME} — найди соперника, тренера и турнир по теннису`,
     template: `%s · ${SITE_NAME}`,
   },
   description:
-    "Открытая платформа любительского тенниса в Беларуси: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
-  keywords: belarusTennisKeywords("ru"),
+    "Открытая платформа любительского тенниса: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
+  keywords: tennisKeywords("ru"),
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     type: "website",
     title: `${SITE_NAME} — спарринг, тренер и турниры в одном месте`,
     description:
-      "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса в Беларуси.",
+      "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса.",
     siteName: SITE_NAME,
     locale: "ru_BY",
     alternateLocale: ["en_US"],
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} — спарринг, тренер и турниры в одном месте`,
     description:
-      "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса в Беларуси.",
+      "Найди соперника по уровню и району, запишись к тренеру или в турнир — за пару минут. Открытая платформа любительского тенниса.",
     images: [DEFAULT_OG_IMAGE],
   },
   robots: {
@@ -107,10 +107,6 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: ["/icons/icon-192.png"],
-  },
-  other: {
-    "geo.region": "BY",
-    "geo.placename": "Беларусь",
   },
 };
 

@@ -12,7 +12,7 @@ const serverUrl = process.env.CAP_SERVER_URL ?? "https://www.playtennis.by";
 
 const config: CapacitorConfig = {
   appId: "by.playtennis.app",
-  appName: "PlayTennis.by",
+  appName: "PlayTennis",
   webDir: "mobile/www",
   // Grass-green WebView background: even if the splash hides before the remote
   // page paints, the user sees brand green instead of a black flash.

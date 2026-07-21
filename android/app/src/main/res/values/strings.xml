@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">PlayTennis.by</string>
-    <string name="title_activity_main">PlayTennis.by</string>
+    <string name="app_name">PlayTennis</string>
+    <string name="title_activity_main">PlayTennis</string>
     <string name="package_name">by.playtennis.app</string>
     <string name="custom_url_scheme">by.playtennis.app</string>
 </resources>

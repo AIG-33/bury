@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>PlayTennis.by</string>
+        <string>PlayTennis</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -60,11 +60,11 @@
 	     before submission to avoid App Review questions (see docs/STORE_SUBMISSION.md).
 	     Strings are English; localize via ru.lproj/InfoPlist.strings if needed. -->
 	<key>NSCameraUsageDescription</key>
-	<string>PlayTennis.by uses the camera when you take a photo for your profile avatar.</string>
+	<string>PlayTennis uses the camera when you take a photo for your profile avatar.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>PlayTennis.by needs access to your photos when you choose a profile avatar.</string>
+	<string>PlayTennis needs access to your photos when you choose a profile avatar.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PlayTennis.by uses your location to show nearby courts, coaches and players on the map.</string>
+	<string>PlayTennis uses your location to show nearby courts, coaches and players on the map.</string>
 	<!-- Google Sign-In: the URL scheme is the REVERSED iOS OAuth client ID
 	     (com.googleusercontent.apps.<id>). Google returns to the app on this
 	     scheme after the id-token flow. See "OAuth setup" in docs/MOBILE.md. -->

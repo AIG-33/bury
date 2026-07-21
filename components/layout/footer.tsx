@@ -98,7 +98,7 @@ export async function Footer({ authed }: Props) {
         </div>
 
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-ink-100/80 pt-5 text-[11px] uppercase tracking-[0.16em] text-ink-500 md:flex-row md:items-center">
-          <span>© {year} PlayTennis.by · Минск</span>
+          <span>© {year} PlayTennis</span>
 
           <HideInNativeApp>
             <div className="flex flex-wrap items-center gap-3 normal-case tracking-normal">

@@ -13,18 +13,18 @@ const COPY: Record<
   en: {
     subject: (c) => `${c} invited you to PlayTennis.by`,
     intro: (c) =>
-      `${c} invited you to their club on PlayTennis.by — the open amateur-tennis platform of Belarus. When you click the link below:`,
+      `${c} invited you to their club on PlayTennis — the open amateur-tennis platform. When you click the link below:`,
     cta: "Accept invitation",
     outro: "The link is valid for 14 days and can be used once.",
-    footer: "PlayTennis.by — find a sparring partner, a coach or a tournament for amateur tennis in Belarus.",
+    footer: "PlayTennis — find a sparring partner, a coach or a tournament for amateur tennis.",
   },
   ru: {
     subject: (c) => `${c} приглашает тебя в PlayTennis.by`,
     intro: (c) =>
-      `${c} приглашает тебя в свой клуб на PlayTennis.by — открытой платформе для любителей тенниса в Беларуси. После клика по ссылке ниже:`,
+      `${c} приглашает тебя в свой клуб на PlayTennis — открытой платформе для любителей тенниса. После клика по ссылке ниже:`,
     cta: "Принять приглашение",
     outro: "Ссылка работает 14 дней и одноразовая.",
-    footer: "PlayTennis.by — спарринг, тренеры и турниры для любителей тенниса в Беларуси.",
+    footer: "PlayTennis — спарринг, тренеры и турниры для любителей тенниса.",
   },
 };
 

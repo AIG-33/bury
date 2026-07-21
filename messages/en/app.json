@@ -14,14 +14,14 @@
   },
   "openMatches": {
     "title": "Open matches",
-    "subtitle": "Find a tennis sparring partner in Belarus: players post when and where they want to play, you apply, and you agree on the details.",
+    "subtitle": "Find a tennis sparring partner: players post when and where they want to play, you apply, and you agree on the details.",
     "create_cta": "Post an open match",
     "guest_cta": "Sign in to post",
     "empty_title": "No open invites right now",
-    "empty_body": "Open matches are how amateurs in Belarus find sparring partners by time, venue and level. When the feed is quiet, posting your own invite is the fastest way to get a match — or browse tournaments and coaches while you wait.",
+    "empty_body": "Open matches are how amateurs find sparring partners by time, venue and level. When the feed is quiet, posting your own invite is the fastest way to get a match — or browse tournaments and coaches while you wait.",
     "about": {
       "title": "How open matches work",
-      "body": "PlayTennis.by open matches are public invitations to play tennis — singles or doubles — on courts across Belarus. Each post shows the host's level, preferred time, venue or district, and how many opponents they need. Matching players apply in one click; the host reviews profiles and accepts the right fit. No chat spam, no guessing someone's Elo.",
+      "body": "PlayTennis open matches are public invitations to play tennis — singles or doubles — on courts in your city. Each post shows the host's level, preferred time, venue or district, and how many opponents they need. Matching players apply in one click; the host reviews profiles and accepts the right fit. No chat spam, no guessing someone's Elo.",
       "step_1": "Browse invites by format and level, or filter by venue.",
       "step_2": "Apply to a post that fits — the host sees your public profile first.",
       "step_3": "Or publish your own invite and let opponents come to you."
@@ -151,12 +151,12 @@
       "to_finder_label": "Find a partner by filters",
       "to_finder_hint": "Level, district, free time slots — the system ranks candidates for you.",
       "to_players_label": "Browse all players",
-      "to_players_hint": "Open directory of real amateur players in Belarus."
+      "to_players_hint": "Open directory of real amateur players."
     }
   },
   "publicMatches": {
     "title": "All matches",
-    "subtitle": "Open feed of played matches: tournaments, sparrings and games on Belarusian courts.",
+    "subtitle": "Open feed of played matches: tournaments, sparrings and friendly games on court.",
     "help": {
       "why": "The feed shows how the club is alive: who plays, on which courts, what tournaments run right now. From any row you can jump straight to a coach or a tournament.",
       "what": {
@@ -920,11 +920,11 @@
   },
   "landing": {
     "hero": {
-      "eyebrow": "Amateur tennis in Belarus",
+      "eyebrow": "Amateur tennis, minus the hassle",
       "title_line_1": "Run your tournaments,",
       "title_line_2": "find a sparring partner,",
       "title_line_3": "pick a coach.",
-      "subtitle": "Amateur tennis in Belarus without WhatsApp threads or spreadsheets. Open tournaments in 6 formats — join one or launch your own in five minutes. Sparring partners by district and time slot. Coaches with verified reviews.",
+      "subtitle": "Amateur tennis without WhatsApp threads or spreadsheets. Open tournaments in 6 formats — join one or launch your own in five minutes. Sparring partners by district and time slot. Coaches with verified reviews.",
       "cta_primary": "Sign up · 1 minute",
       "cta_primary_authed": "Open my dashboard",
       "cta_secondary": "Open tournaments",
@@ -941,7 +941,7 @@
       "items": {
         "cities": {
           "value": "12",
-          "label": "cities in Belarus"
+          "label": "cities already playing"
         },
         "venues": {
           "value": "26",
@@ -1019,7 +1019,7 @@
       "cta_primary_authed": "Open my dashboard",
       "cta_secondary": "Open tournaments",
       "quote_text": "“Fewer chats, more tennis. Run your own tournaments and invite everyone — we'll handle the logistics.”",
-      "quote_author": "— PlayTennis.by · the open amateur-tennis community of Belarus."
+      "quote_author": "— PlayTennis · the open amateur-tennis community."
     }
   },
   "helpDemo": {
@@ -1076,7 +1076,7 @@
     "password_min_hint": "Minimum 8 characters.",
     "show_password": "Show password",
     "hide_password": "Hide password",
-    "footer": "PlayTennis.by · Belarus · Amateur tennis",
+    "footer": "PlayTennis · Amateur tennis",
     "auth_error_missing_token": "The sign-in link is incomplete. Request a new one below.",
     "auth_error_missing_code": "The sign-in link is invalid. Request a new one below.",
     "auth_error_no_session": "Could not start a session. Please sign in again.",
@@ -1315,7 +1315,7 @@
     "subtitle": "Find your profile on ligatennisa.com — we'll copy Elo, tier and basic data. Once confirmed, this becomes your starting rating, and from then on the platform updates it for every played match.",
     "back": "Back to choices",
     "help": {
-      "why": "Many players in Belarus are already registered on ligatennisa.com and have built up matches and a rating there. No reason to fill the form again — we import it.",
+      "why": "Many players are already registered on ligatennisa.com and have built up matches and a rating there. No reason to fill the form again — we import it.",
       "what": {
         "1": "Type your first/last name (as on ligatennisa.com); add your city to break ties. We'll show 8 closest matches.",
         "2": "Click 'Pick' on the right profile — you'll see a card with tier, Elo and basic data.",
@@ -1693,7 +1693,7 @@
     "subtitle": "Sparring partners in your district, at your level, in your free time slots.",
     "proposals_link": "My proposals",
     "help": {
-      "why": "In Belarus the hardest part is finding a partner of similar level who is free at the same time. We do that for you.",
+      "why": "The hardest part of amateur tennis is finding a partner of similar level who is free at the same time. We do that for you.",
       "what": {
         "1": "Filter by district, level, dominant hand and your preferred time slots.",
         "2": "Results are ranked by match score: overlapping slots, same district, level, recent activity.",
@@ -1972,7 +1972,7 @@
         "date_of_birth": "Used only for age statistics in rankings & tournaments.",
         "motto": "Short motto shown next to your name in “Find a Player”.",
         "phone": "Backup number (call / SMS). Visible to a coach you have an active booking with.",
-        "whatsapp": "The de-facto messenger in Belarus. Clicking “Message” opens a WhatsApp chat with a partner or coach.",
+        "whatsapp": "A popular messenger for quick coordination. Clicking “Message” opens a WhatsApp chat with a partner or coach.",
         "telegram_username": "Optional. Without @. Only if you prefer Telegram over WhatsApp.",
         "district": "District is key for finding opponents near you.",
         "backhand_style": "One-handed vs two-handed — helps opponents match style.",
@@ -3419,7 +3419,7 @@
       },
       "q_telegram": {
         "q": "Why WhatsApp and not Telegram?",
-        "a": "Belarus skews heavily toward WhatsApp. Telegram is a secondary channel — toggle it on in your profile."
+        "a": "WhatsApp is the primary channel for quick coordination. Telegram is secondary — toggle it on in your profile."
       },
       "q_data": {
         "q": "What about my data?",
@@ -3708,7 +3708,7 @@
             "title": "Venues and courts",
             "auto": "Venues become available to coaches and to the public catalogue.",
             "steps": [
-              "“Venues” — list of all clubs (Belarus is partly seeded).",
+              "“Venues” — list of all clubs (partly pre-seeded).",
               "Create or edit a venue: address, district, map coordinates.",
               "On a venue page — manage courts (surface, indoor/outdoor etc.)."
             ]
@@ -3754,7 +3754,7 @@
   },
   "tournamentsPublic": {
     "title": "Public tournaments",
-    "subtitle": "Tournaments in Minsk and across Belarus — pick a format and a level you like and sign up in a couple of clicks.",
+    "subtitle": "Open tournaments — pick a format and a level you like and sign up in a couple of clicks.",
     "back": "Back to tournaments",
     "help": {
       "why": "If you want real competition with stakes, this is where you pick a tournament — format, venue, level — and sign up. You can also create your own.",
@@ -3995,7 +3995,7 @@
   },
   "playersPublic": {
     "title": "Players",
-    "subtitle": "Real amateur players in Belarus. Pick the right level and district — and propose a sparring.",
+    "subtitle": "Real amateur players. Pick the right level and district — and propose a sparring.",
     "guest_banner": {
       "title": "Sign in to propose a match",
       "body": "Browsing is open to everyone. To propose a sparring you need a free account — contacts stay private until you connect.",
@@ -4103,7 +4103,7 @@
     },
     "detail": {
       "back": "All players",
-      "meta_description": "{name} — amateur tennis player on PlayTennis.by. Level, recent matches and schedule for sparring in Belarus.",
+      "meta_description": "{name} — amateur tennis player on PlayTennis. Level, recent matches and schedule for sparring.",
       "meta_description_place": "{name} — amateur tennis in {place}. Level, recent matches and schedule on PlayTennis.by.",
       "stats": {
         "elo": "Elo · singles",
@@ -4167,7 +4167,7 @@
   },
   "clubsCatalog": {
     "title": "Clubs",
-    "subtitle": "Amateur tennis clubs in Belarus. Join, play, organise tournaments and train together.",
+    "subtitle": "Amateur tennis clubs. Join, play, organise tournaments and train together.",
     "create_cta": "Create a club",
     "login_to_create": "Sign in to create a club",
     "members_count": "{n, plural, one {member} other {members}}",
@@ -4718,7 +4718,7 @@
     "meta_description": "How PlayTennis.by collects, uses and protects your data: account, profile, analytics and data deletion.",
     "title": "Privacy Policy",
     "updated": "Last updated: 11 July 2026",
-    "intro": "PlayTennis.by is an open amateur-tennis platform for Belarus. This policy explains what data we collect, how we use it and how you can control it. The iOS and Android apps are a wrapper around the www.playtennis.by website, so this single policy covers both web and mobile apps.",
+    "intro": "PlayTennis is an open amateur-tennis platform. This policy explains what data we collect, how we use it and how you can control it. The iOS and Android apps are a wrapper around the www.playtennis.by website, so this single policy covers both web and mobile apps.",
     "sections": [
       {
         "heading": "Who we are",
@@ -4916,15 +4916,15 @@
   },
   "seo": {
     "home": {
-      "title": "Find a sparring partner, coach and tournament in Belarus",
-      "description": "Open amateur tennis platform in Belarus: sparring by level and district, coaches with reviews, tournaments in 6 formats — Minsk, Grodno, Brest and more."
+      "title": "Find a sparring partner, coach and tennis tournament",
+      "description": "Open amateur tennis platform: sparring by level and district, coaches with reviews, tournaments in 6 formats — organize the game in your city."
     },
     "venues": {
-      "title": "Tennis courts and venues in Belarus",
-      "description": "Directory of tennis venues and courts in Minsk and across Belarus: addresses, surfaces, indoor and outdoor courts."
+      "title": "Tennis courts and venues",
+      "description": "Directory of tennis venues and courts: addresses, surfaces, indoor and outdoor courts."
     },
     "og": {
-      "headline": "Amateur tennis in Belarus",
+      "headline": "Amateur tennis, minus the hassle",
       "tagline": "Sparring · tournaments · coaches — one platform",
       "pillars": {
         "sparring": {

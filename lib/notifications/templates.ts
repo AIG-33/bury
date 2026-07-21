@@ -115,7 +115,7 @@ const COPY: Record<Locale, Strings> = {
     invitation_created: {
       subject: "Your invitation to PlayTennis.by 🎾",
       intro:
-        "Coach {coach} invited you to their club on PlayTennis.by — the open amateur-tennis platform of Belarus. Click below to create your account and start booking matches, coaches and tournaments.",
+        "Coach {coach} invited you to their club on PlayTennis — the open amateur-tennis platform. Click below to create your account and start booking matches, coaches and tournaments.",
       cta: "Accept invitation",
       ps: "Link expires in 14 days. Ignore this email if it was sent by mistake.",
       coach_fallback: "Coach",
@@ -236,7 +236,7 @@ const COPY: Record<Locale, Strings> = {
     invitation_created: {
       subject: "Приглашение в PlayTennis.by 🎾",
       intro:
-        "Тренер {coach} пригласил тебя в свой клуб на PlayTennis.by — открытой платформе для любителей тенниса в Беларуси. Жми кнопку ниже — создай аккаунт, и сразу можно искать спарринг, записываться к тренеру или в турнир.",
+        "Тренер {coach} пригласил тебя в свой клуб на PlayTennis — открытой платформе для любителей тенниса. Жми кнопку ниже — создай аккаунт, и сразу можно искать спарринг, записываться к тренеру или в турнир.",
       cta: "Принять приглашение",
       ps: "Ссылка действительна 14 дней. Если письмо пришло по ошибке — игнорируй.",
       coach_fallback: "Тренер",

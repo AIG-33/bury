@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { getOgImageAlt } from "./og-image";
 import {
-  BELARUS_CITY_KEYWORDS_EN,
-  BELARUS_CITY_KEYWORDS_RU,
-  COUNTRY_CODE,
-  DEFAULT_OG_IMAGE,
+  CITY_KEYWORDS_EN,
+  CITY_KEYWORDS_RU,
   localeOgImagePath,
   LOCALES,
   SITE_NAME,
@@ -52,34 +50,28 @@ export function buildLocaleAlternates(
   };
 }
 
-export function belarusTennisKeywords(locale: string): string[] {
-  const cities =
-    locale === "en"
-      ? [...BELARUS_CITY_KEYWORDS_EN]
-      : [...BELARUS_CITY_KEYWORDS_RU];
+export function tennisKeywords(locale: string): string[] {
+  const cities = locale === "en" ? [...CITY_KEYWORDS_EN] : [...CITY_KEYWORDS_RU];
 
   if (locale === "en") {
     return [
-      "tennis Belarus",
-      "amateur tennis Belarus",
-      "find tennis partner Belarus",
-      "tennis coach Belarus",
-      "tennis tournaments Belarus",
-      "tennis Minsk",
+      "amateur tennis",
+      "find tennis partner",
+      "tennis coach",
+      "tennis tournaments",
       "sparring partner tennis",
+      "organize tennis match",
       SITE_NAME,
       ...cities.map((c) => `tennis ${c}`),
     ];
   }
 
   return [
-    "теннис Беларусь",
     "любительский теннис",
     "найти партнёра для тенниса",
     "спарринг теннис",
     "тренер по теннису",
     "теннисные турниры",
-    "теннис Минск",
     "открытые матчи теннис",
     SITE_NAME,
     ...cities.map((c) => `теннис ${c}`),
@@ -93,7 +85,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
   const url = `${SITE_URL}/${locale}${pagePath}`;
   const ogImage = input.ogImage ?? localeOgImagePath(locale);
   const ogImageUrl = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`;
-  const keywords = [...belarusTennisKeywords(locale), ...(input.keywords ?? [])];
+  const keywords = [...tennisKeywords(locale), ...(input.keywords ?? [])];
   const index = input.index !== false;
 
   const ogLocale = locale === "en" ? "en_US" : "ru_BY";
@@ -128,10 +120,6 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
       description: input.description,
       images: [ogImageUrl],
     },
-    other: {
-      "geo.region": COUNTRY_CODE,
-      "geo.placename": locale === "en" ? "Belarus" : "Беларусь",
-    },
   };
 }
 
@@ -142,13 +130,13 @@ export function buildRootMetadata(locale: string): Metadata {
     locale,
     path: "/",
     title: isEn
-      ? "Find a sparring partner, coach and tournament in Belarus"
-      : "Найди соперника, тренера и турнир в Беларуси",
+      ? "Find a sparring partner, coach and tennis tournament"
+      : "Найди соперника, тренера и турнир по теннису",
     description: isEn
-      ? "Open amateur tennis platform in Belarus: find a sparring partner by level and district, book a coach, join tournaments or run your own — in minutes."
-      : "Открытая платформа любительского тенниса в Беларуси: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
+      ? "Open amateur tennis platform: find a sparring partner by level and district, book a coach, join tournaments or run your own — in minutes."
+      : "Открытая платформа любительского тенниса: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
     keywords: isEn
-      ? ["PlayTennis", "Belarus tennis community"]
-      : ["ПлейТеннис", "теннисное сообщество Беларуси"],
+      ? ["PlayTennis", "amateur tennis community"]
+      : ["ПлейТеннис", "сообщество любителей тенниса"],
   });
 }

@@ -14,13 +14,8 @@ export function buildOrganizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/icons/icon-512.png`,
     description:
-      "Открытая платформа любительского тенниса в Беларуси: спарринг, тренеры, турниры и рейтинг.",
+      "Открытая платформа любительского тенниса: спарринг, тренеры, турниры и рейтинг.",
     sport: "Tennis",
-    areaServed: {
-      "@type": "Country",
-      name: "Belarus",
-      alternateName: "Беларусь",
-    },
     availableLanguage: ["ru", "en"],
   };
 }
@@ -120,11 +115,7 @@ export function buildTournamentEventJsonLd(t: TournamentJsonLdInput) {
           name: t.city,
           address: { "@type": "PostalAddress", addressLocality: t.city, addressCountry: COUNTRY_CODE },
         }
-      : {
-          "@type": "Place",
-          name: "Belarus",
-          address: { "@type": "PostalAddress", addressCountry: COUNTRY_CODE },
-        },
+      : undefined,
     organizer: { "@id": `${SITE_URL}/#organization` },
   };
 }

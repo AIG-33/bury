@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { belarusTennisKeywords, buildLocaleAlternates, buildPageMetadata } from "../metadata";
+import { buildLocaleAlternates, buildPageMetadata, tennisKeywords } from "../metadata";
 
 describe("buildLocaleAlternates", () => {
   it("includes ru, en and x-default", () => {
@@ -16,14 +16,14 @@ describe("buildLocaleAlternates", () => {
   });
 });
 
-describe("belarusTennisKeywords", () => {
-  it("includes Minsk for ru locale", () => {
-    const kw = belarusTennisKeywords("ru");
+describe("tennisKeywords", () => {
+  it("includes city keywords for ru locale", () => {
+    const kw = tennisKeywords("ru");
     expect(kw.some((k) => k.includes("Минск"))).toBe(true);
   });
 
-  it("includes Minsk for en locale", () => {
-    const kw = belarusTennisKeywords("en");
+  it("includes city keywords for en locale", () => {
+    const kw = tennisKeywords("en");
     expect(kw.some((k) => k.toLowerCase().includes("minsk"))).toBe(true);
   });
 });

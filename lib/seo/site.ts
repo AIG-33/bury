@@ -22,8 +22,8 @@ export function localeOgImagePath(locale: string): string {
   return locale === "en" || locale === "ru" ? `/${locale}/opengraph-image` : DEFAULT_OG_IMAGE;
 }
 
-/** Belarus cities commonly searched for amateur tennis. */
-export const BELARUS_CITY_KEYWORDS_RU = [
+/** Cities where the community is active — used as extra SEO keywords. */
+export const CITY_KEYWORDS_RU = [
   "Минск",
   "Гродно",
   "Брест",
@@ -41,7 +41,7 @@ export const BELARUS_CITY_KEYWORDS_RU = [
   "Молодечно",
 ] as const;
 
-export const BELARUS_CITY_KEYWORDS_EN = [
+export const CITY_KEYWORDS_EN = [
   "Minsk",
   "Grodno",
   "Brest",

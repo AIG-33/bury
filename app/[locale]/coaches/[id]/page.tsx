@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     coach.coach_bio?.slice(0, 160) ??
     (locale === "en"
-      ? `Tennis coach in Belarus — book a session on PlayTennis.by`
-      : `Тренер по теннису в Беларуси — запись на PlayTennis.by`);
+      ? `Tennis coach — book a session on PlayTennis`
+      : `Тренер по теннису — запись на PlayTennis`);
   return buildPageMetadata({
     locale,
     path: `/coaches/${id}`,

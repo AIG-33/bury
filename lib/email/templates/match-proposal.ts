@@ -22,8 +22,8 @@ const COPY: Record<
     note_label: "Note from the initiator",
     cta: "Open proposal",
     whatsapp_hint:
-      "Tip: in Belarus WhatsApp is the fastest way to coordinate. The proposal page has a one-tap “Message on WhatsApp” button.",
-    footer: "PlayTennis.by — find a sparring partner, a coach or a tournament for amateur tennis in Belarus.",
+      "Tip: WhatsApp is usually the fastest way to coordinate. The proposal page has a one-tap “Message on WhatsApp” button.",
+    footer: "PlayTennis — find a sparring partner, a coach or a tournament for amateur tennis.",
   },
   ru: {
     badge: "🎾 Предложение матча",
@@ -34,8 +34,8 @@ const COPY: Record<
     note_label: "Сообщение от инициатора",
     cta: "Открыть предложение",
     whatsapp_hint:
-      "Подсказка: в Беларуси быстрее всего договариваться через WhatsApp. На странице предложения есть кнопка «Написать в WhatsApp».",
-    footer: "PlayTennis.by — спарринг, тренеры и турниры для любителей тенниса в Беларуси.",
+      "Подсказка: быстрее всего договариваться через WhatsApp. На странице предложения есть кнопка «Написать в WhatsApp».",
+    footer: "PlayTennis — спарринг, тренеры и турниры для любителей тенниса.",
   },
 };
 

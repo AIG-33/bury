@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       res.club.description ??
       (locale === "en"
-        ? "Amateur tennis club in Belarus on PlayTennis.by"
-        : "Любительский теннис-клуб в Беларуси на PlayTennis.by"),
+        ? "Amateur tennis club on PlayTennis"
+        : "Любительский теннис-клуб на PlayTennis"),
   });
 }
 

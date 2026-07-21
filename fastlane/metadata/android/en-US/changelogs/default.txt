@@ -1,1 +1,1 @@
-First release of PlayTennis.by — sparring, coaches, tournaments and ratings for amateur tennis in Belarus.
+First release of PlayTennis — sparring, coaches, tournaments and ratings for amateur tennis.

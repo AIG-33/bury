@@ -19,12 +19,12 @@ export type OgCopy = {
 
 const COPY: Record<Locale, OgCopy> = {
   ru: {
-    headline: "Любительский теннис в Беларуси",
+    headline: "Любительский теннис без лишних хлопот",
     subheadline: "Спарринг · турниры · тренеры — в одном приложении",
     domain: "www.playtennis.by",
     badge: "12+ городов",
-    region: "Беларусь · BY",
-    imageAlt: "PlayTennis.by — спарринг, турниры и тренеры в Беларуси",
+    region: "Играй в своём городе",
+    imageAlt: "PlayTennis — спарринг, турниры и тренеры для любителей тенниса",
     pillars: [
       {
         emoji: "🎾",
@@ -47,12 +47,12 @@ const COPY: Record<Locale, OgCopy> = {
     ],
   },
   en: {
-    headline: "Amateur tennis in Belarus",
+    headline: "Amateur tennis, minus the hassle",
     subheadline: "Sparring · tournaments · coaches — one platform",
     domain: "www.playtennis.by",
     badge: "12+ cities",
-    region: "Belarus · BY",
-    imageAlt: "PlayTennis.by — sparring, tournaments and coaches in Belarus",
+    region: "Play in your city",
+    imageAlt: "PlayTennis — sparring, tournaments and coaches for amateur tennis",
     pillars: [
       {
         emoji: "🎾",
