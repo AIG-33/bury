@@ -72,7 +72,8 @@ export function TournamentPartnerPicker({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search_placeholder")}
-            className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200"
+            // 16px on phones — prevents the iOS focus auto-zoom.
+            className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-[16px] outline-none focus:border-grass-400 focus:ring-2 focus:ring-grass-200 sm:text-sm"
           />
         </div>
 

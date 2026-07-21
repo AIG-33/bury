@@ -210,7 +210,9 @@ export function LtQuickImport({
               onChange={(e) => onQueryChange(e.target.value)}
               placeholder={copy.search.placeholder}
               autoComplete="off"
-              className="h-11 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-9 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+              // 16px on phones: iOS Safari auto-zooms the page when focusing
+              // an input with a smaller font, breaking the one-screen layout.
+              className="h-11 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-9 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
             />
             {(isSearching || isPreviewing) && (
               <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-grass-600" />

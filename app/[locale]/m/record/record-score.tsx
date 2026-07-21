@@ -426,7 +426,8 @@ function OpponentPicker({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={labels.opponent_search}
-          className="mt-3 h-11 w-full rounded-[13px] border border-[rgba(20,60,30,0.1)] bg-[#F6FAF1] px-4 text-[13.5px] font-medium text-ink-900 outline-none placeholder:text-[#8AA093] focus:border-grass-500"
+          // 16px: anything smaller makes iOS Safari auto-zoom on focus.
+          className="mt-3 h-11 w-full rounded-[13px] border border-[rgba(20,60,30,0.1)] bg-[#F6FAF1] px-4 text-[16px] font-medium text-ink-900 outline-none placeholder:text-[#8AA093] focus:border-grass-500"
         />
 
         <div className="mt-3 flex-1 overflow-y-auto pb-2">

@@ -275,7 +275,8 @@ function QuestionInput({
           value={num}
           onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder={placeholder}
-          className="h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+          // 16px on phones — prevents the iOS focus auto-zoom.
+          className="h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
         />
       );
     }

@@ -202,7 +202,8 @@ export function ImportLtClient({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && runSearch()}
                 placeholder={copy.search.placeholder}
-                className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+                // 16px on phones — prevents the iOS focus auto-zoom.
+                className="h-10 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
               />
             </div>
           </Field>
@@ -212,7 +213,7 @@ export function ImportLtClient({
               onChange={(e) => setCity(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && runSearch()}
               placeholder={copy.search.city_placeholder}
-              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+              className="h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-[16px] outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30 sm:text-sm"
             />
           </Field>
           <div className="flex items-end">
