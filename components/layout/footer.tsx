@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { TennisBall } from "@/components/icons/tennis-ball";
 import { TelegramIcon } from "@/components/icons/telegram";
-import { InstallAppIcons } from "./install-app-card";
+import { StoreBadges } from "./store-badges";
 import { HideInNativeApp } from "./hide-in-native-app";
 import { telegramBotUrl } from "@/lib/telegram/bot-link";
 
@@ -12,9 +12,10 @@ type Props = { authed: boolean };
  * Compact, logically-grouped footer.
  *
  * Layout (desktop): brand + tagline | Discover | Catalog | Install/help
- * Layout (mobile):  stacked. The "install as PWA" affordance is two compact
- * icons next to the copyright (no longer a giant card) — the floating prompt
- * mounted in the root layout handles discoverability for first-time visitors.
+ * Layout (mobile):  stacked. The "get the app" affordance is the two store
+ * badges (App Store / Google Play) next to the copyright — the floating
+ * prompt mounted in the root layout handles discoverability for first-time
+ * mobile visitors.
  *
  * Reserves bottom safe-area for the mobile bottom tab bar.
  */
@@ -91,11 +92,13 @@ export async function Footer({ authed }: Props) {
               <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
                 {t("install.title_short")}
               </span>
-              <InstallAppIcons
+              <StoreBadges
                 size="sm"
                 labels={{
-                  android_button: t("install.android_button"),
-                  ios_button: t("install.ios_button"),
+                  apple_top: t("install.badge_apple_top"),
+                  google_top: t("install.badge_google_top"),
+                  aria_apple: t("install.aria_apple"),
+                  aria_google: t("install.aria_google"),
                 }}
               />
             </div>

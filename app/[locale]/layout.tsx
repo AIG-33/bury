@@ -7,7 +7,7 @@ import { routing } from "@/i18n/routing";
 import { TopNav } from "@/components/layout/top-nav";
 import { Footer } from "@/components/layout/footer";
 import { BottomTabBar, type BottomTabItem } from "@/components/layout/bottom-tab-bar";
-import { InstallAppProvider, InstallAppPrompt } from "@/components/layout/install-app-card";
+import { InstallAppPrompt } from "@/components/layout/install-app-card";
 import { HideOnMobileApp } from "@/components/layout/hide-on-mobile-app";
 import { HideInNativeApp } from "@/components/layout/hide-in-native-app";
 import { NativeTabBar } from "@/components/mobile/native-tab-bar";
@@ -78,33 +78,19 @@ export default async function LocaleLayout({ children, params }: Props) {
     },
   ];
 
-  // Labels for the install-as-PWA UX (compact icons in the footer + the
-  // floating prompt mounted globally). Captured server-side so the client
-  // component doesn't need to call useTranslations() for layout chrome.
-  const installLabels = {
-    title: tFooter("install.title"),
-    body: tFooter("install.body"),
-    android_button: tFooter("install.android_button"),
-    ios_button: tFooter("install.ios_button"),
-    android_modal_title: tFooter("install.android_modal_title"),
-    android_step_1: tFooter("install.android_step_1"),
-    android_step_2: tFooter("install.android_step_2"),
-    android_step_3: tFooter("install.android_step_3"),
-    android_install_native: tFooter("install.android_install_native"),
-    android_native_hint: tFooter("install.android_native_hint"),
-    ios_modal_title: tFooter("install.ios_modal_title"),
-    ios_step_1: tFooter("install.ios_step_1"),
-    ios_step_2: tFooter("install.ios_step_2"),
-    ios_step_3: tFooter("install.ios_step_3"),
-    close: tFooter("install.close"),
-  };
-
+  // Labels for the "get the app" prompt (floating toast for mobile-web
+  // visitors linking to the store listings). Captured server-side so the
+  // client component doesn't need to call useTranslations() for layout chrome.
   const installPromptLabels = {
     prompt_headline: tFooter("install.prompt_headline"),
     prompt_body: tFooter("install.prompt_body"),
-    prompt_android: tFooter("install.android_button"),
-    prompt_ios: tFooter("install.ios_button"),
     prompt_dismiss: tFooter("install.prompt_dismiss"),
+    badges: {
+      apple_top: tFooter("install.badge_apple_top"),
+      google_top: tFooter("install.badge_google_top"),
+      aria_apple: tFooter("install.aria_apple"),
+      aria_google: tFooter("install.aria_google"),
+    },
   };
 
   return (
@@ -116,39 +102,37 @@ export default async function LocaleLayout({ children, params }: Props) {
       {isNativeShellUA && <LaunchSplash slogan={tMobile("splash.slogan")} />}
       <Suspense fallback={null}>
         <PostHogProvider>
-          <InstallAppProvider labels={installLabels}>
-            <div className="flex min-h-screen flex-col">
+          <div className="flex min-h-screen flex-col">
+            <HideOnMobileApp>
+              <TopNav />
+            </HideOnMobileApp>
+            <main className="flex-1">{children}</main>
+            {!isNativeShellUA && (
               <HideOnMobileApp>
-                <TopNav />
+                <HideInNativeApp>
+                  <Footer authed={!!user} />
+                </HideInNativeApp>
               </HideOnMobileApp>
-              <main className="flex-1">{children}</main>
-              {!isNativeShellUA && (
-                <HideOnMobileApp>
-                  <HideInNativeApp>
-                    <Footer authed={!!user} />
-                  </HideInNativeApp>
-                </HideOnMobileApp>
-              )}
-              {/* Web bottom tab bar — browsers only. Inside the store shell it's
+            )}
+            {/* Web bottom tab bar — browsers only. Inside the store shell it's
                   replaced by the unified app bar (NativeTabBar below); same
                   UA-token + bridge detection combo as the footer. */}
-              {!isNativeShellUA && (
-                <HideOnMobileApp>
-                  <HideInNativeApp>
-                    <BottomTabBar items={bottomTabs} />
-                  </HideInNativeApp>
-                </HideOnMobileApp>
-              )}
-              <NativeTabBar
-                labels={getMobileTabLabels(tMobile)}
-                playLabels={getMobilePlayLabels(tMobile)}
-                authed={!!user}
-              />
-            </div>
-            <HideOnMobileApp>
-              <InstallAppPrompt labels={installPromptLabels} />
-            </HideOnMobileApp>
-          </InstallAppProvider>
+            {!isNativeShellUA && (
+              <HideOnMobileApp>
+                <HideInNativeApp>
+                  <BottomTabBar items={bottomTabs} />
+                </HideInNativeApp>
+              </HideOnMobileApp>
+            )}
+            <NativeTabBar
+              labels={getMobileTabLabels(tMobile)}
+              playLabels={getMobilePlayLabels(tMobile)}
+              authed={!!user}
+            />
+          </div>
+          <HideOnMobileApp>
+            <InstallAppPrompt labels={installPromptLabels} />
+          </HideOnMobileApp>
         </PostHogProvider>
       </Suspense>
     </NextIntlClientProvider>
