@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { ChevronRight, Check, Clock3 } from "lucide-react";
 import {
@@ -51,10 +52,15 @@ export function TournamentApplyCta({
   labels,
 }: Props) {
   const router = useRouter();
+  // Known action-error codes (deadline_passed, full, partner_required, …) get
+  // their proper message; anything unexpected falls back to the generic label
+  // so the user isn't shown a raw DB error.
+  const tErrors = useTranslations("tournamentsPlayer.errors");
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const localizeError = (code: string) => (tErrors.has(code) ? tErrors(code) : labels.error);
   const accentStyle = accentColor
     ? { background: accentColor, boxShadow: "0 10px 22px rgba(0,0,0,0.18)" }
     : undefined;
@@ -80,12 +86,12 @@ export function TournamentApplyCta({
   if (state === "none") {
     const submit = (partnerId?: string) =>
       startTransition(async () => {
-        setError(false);
+        setError(null);
         const res = await applyToTournament(tournamentId, { partnerId: partnerId ?? null });
         if (res.ok) {
           setPickerOpen(false);
           router.refresh();
-        } else setError(true);
+        } else setError(localizeError(res.error));
       });
     return (
       <div>
@@ -97,7 +103,7 @@ export function TournamentApplyCta({
           onClick={() => {
             // Doubles: the application is for a pair — pick the partner first.
             if (discipline === "doubles") {
-              setError(false);
+              setError(null);
               setPickerOpen(true);
               return;
             }
@@ -108,7 +114,7 @@ export function TournamentApplyCta({
           <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
         </button>
         {error ? (
-          <p className="mt-1.5 text-center text-[11.5px] font-bold text-clay-500">{labels.error}</p>
+          <p className="mt-1.5 text-center text-[11.5px] font-bold text-clay-500">{error}</p>
         ) : null}
         <TournamentPartnerPicker
           open={pickerOpen}
@@ -141,7 +147,7 @@ export function TournamentApplyCta({
               if (res.ok) {
                 setConfirming(false);
                 router.refresh();
-              } else setError(true);
+              } else setError(localizeError(res.error));
             })
           }
         >

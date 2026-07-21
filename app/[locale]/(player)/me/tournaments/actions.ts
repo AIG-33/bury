@@ -500,7 +500,14 @@ export async function applyToTournament(
           ...(t.discipline === "doubles" ? { partner_id: partnerId } : {}),
         } as never)
         .eq("id", existing.id);
-      if (error) return { ok: false, error: error.message };
+      if (error) {
+        // Raw DB errors surface as a generic message in the UI — keep the
+        // details in the server log so prod failures stay diagnosable.
+        console.error(
+          `[tournaments] applyToTournament update failed: tournament=${tournamentId} player=${userId} code=${error.code ?? "?"} message=${error.message}`,
+        );
+        return { ok: false, error: error.message };
+      }
     } else {
       const { error } = await writer.from("tournament_participants").insert({
         tournament_id: tournamentId,
@@ -509,7 +516,12 @@ export async function applyToTournament(
         status: decision.nextStatus,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-      if (error) return { ok: false, error: error.message };
+      if (error) {
+        console.error(
+          `[tournaments] applyToTournament insert failed: tournament=${tournamentId} player=${userId} code=${error.code ?? "?"} message=${error.message}`,
+        );
+        return { ok: false, error: error.message };
+      }
     }
 
     // Best-effort notifications — never fail the action over the outbox.
@@ -609,13 +621,23 @@ export async function withdrawFromTournament(
 
   if (wantHardDelete) {
     const { error } = await writer.from("tournament_participants").delete().eq("id", row.id);
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      console.error(
+        `[tournaments] withdrawFromTournament delete failed: tournament=${tournamentId} player=${userId} code=${error.code ?? "?"} message=${error.message}`,
+      );
+      return { ok: false, error: error.message };
+    }
   } else {
     const { error } = await writer
       .from("tournament_participants")
       .update({ withdrawn: true } as never)
       .eq("id", row.id);
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      console.error(
+        `[tournaments] withdrawFromTournament update failed: tournament=${tournamentId} player=${userId} code=${error.code ?? "?"} message=${error.message}`,
+      );
+      return { ok: false, error: error.message };
+    }
   }
 
   revalidatePath("/me/tournaments");

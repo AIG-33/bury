@@ -28,6 +28,37 @@ export function hasCapacity(approvedCount: number, maxParticipants: number | nul
   return maxParticipants == null || approvedCount < maxParticipants;
 }
 
+// Europe/Minsk is permanently UTC+3 (no DST since 2011), so a fixed offset is
+// exact and keeps this module pure/unit-testable without date-fns-tz.
+const MINSK_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * Whether the registration deadline has passed, treating the deadline as
+ * valid through the END of its calendar day in Europe/Minsk.
+ *
+ * The UI presents the deadline as a plain date («Регистрация до 21 июля») and
+ * the form writes a date-only string into the timestamptz column, which
+ * Postgres stores as midnight UTC. Comparing that raw instant against `now`
+ * closed registration at 03:00 Minsk ON the deadline day — players applying
+ * later that day got `deadline_passed` out of a visibly open tournament.
+ */
+export function registrationDeadlinePassed(deadline: string, now: Date): boolean {
+  // Date-only values are anchored to the Minsk calendar day; full timestamps
+  // (the timestamptz round-trip) are converted to their Minsk calendar day.
+  const instant = /^\d{4}-\d{2}-\d{2}$/.test(deadline)
+    ? Date.parse(`${deadline}T00:00:00+03:00`)
+    : Date.parse(deadline);
+  if (Number.isNaN(instant)) return false;
+  const minskWallClock = new Date(instant + MINSK_UTC_OFFSET_MS);
+  const deadlineDayEndUtc =
+    Date.UTC(
+      minskWallClock.getUTCFullYear(),
+      minskWallClock.getUTCMonth(),
+      minskWallClock.getUTCDate() + 1,
+    ) - MINSK_UTC_OFFSET_MS;
+  return now.getTime() >= deadlineDayEndUtc;
+}
+
 /**
  * Decide what happens when a player taps "Apply".
  *
@@ -56,7 +87,10 @@ export function decideApplication(args: {
   if (args.tournamentStatus !== "registration") {
     return { ok: false, error: "registration_closed" };
   }
-  if (args.registrationDeadline && new Date(args.registrationDeadline) < args.now) {
+  if (
+    args.registrationDeadline &&
+    registrationDeadlinePassed(args.registrationDeadline, args.now)
+  ) {
     return { ok: false, error: "deadline_passed" };
   }
   if (!hasCapacity(args.approvedCount, args.maxParticipants)) {

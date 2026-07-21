@@ -3,6 +3,7 @@ import {
   decideApplication,
   canSetParticipantStatus,
   hasCapacity,
+  registrationDeadlinePassed,
   type ExistingApplication,
 } from "./applications";
 
@@ -48,7 +49,7 @@ describe("decideApplication — guards", () => {
   });
 
   it("rejects after the registration deadline", () => {
-    const r = decideApplication(baseArgs({ registrationDeadline: "2026-07-13T23:59:59Z" }));
+    const r = decideApplication(baseArgs({ registrationDeadline: "2026-07-12T23:59:59Z" }));
     expect(r).toEqual({ ok: false, error: "deadline_passed" });
   });
 
@@ -57,11 +58,53 @@ describe("decideApplication — guards", () => {
     expect(r.ok).toBe(true);
   });
 
+  // Regression (prod, июль 2026): the form writes a date-only deadline into
+  // the timestamptz column → stored as midnight UTC. The old raw comparison
+  // closed registration at 03:00 Minsk ON the deadline day, so players
+  // applying to a same-day tournament (typical for template-created ones,
+  // where starts_on defaults to today) got a generic failure.
+  it("accepts ON the deadline day until the end of the day in Europe/Minsk", () => {
+    // Stored value for a deadline of 2026-07-14 (midnight UTC round-trip).
+    const r = decideApplication(baseArgs({ registrationDeadline: "2026-07-14T00:00:00+00:00" }));
+    expect(r.ok).toBe(true);
+  });
+
+  it("rejects the morning after the deadline day (Minsk midnight)", () => {
+    // 2026-07-13 deadline; NOW = 2026-07-14T12:00Z is past Minsk midnight.
+    const r = decideApplication(baseArgs({ registrationDeadline: "2026-07-13T00:00:00+00:00" }));
+    expect(r).toEqual({ ok: false, error: "deadline_passed" });
+  });
+
   it("rejects when the field is full — in both modes", () => {
     for (const mode of ["manual", "auto"] as const) {
       const r = decideApplication(baseArgs({ mode, approvedCount: 8, maxParticipants: 8 }));
       expect(r).toEqual({ ok: false, error: "full" });
     }
+  });
+});
+
+describe("registrationDeadlinePassed", () => {
+  const now = new Date("2026-07-14T12:00:00Z"); // 15:00 in Minsk
+
+  it("date-only deadline is inclusive through the whole Minsk day", () => {
+    expect(registrationDeadlinePassed("2026-07-14", now)).toBe(false);
+    expect(registrationDeadlinePassed("2026-07-13", now)).toBe(true);
+    expect(registrationDeadlinePassed("2026-07-15", now)).toBe(false);
+  });
+
+  it("flips exactly at Minsk midnight (21:00 UTC)", () => {
+    expect(registrationDeadlinePassed("2026-07-14", new Date("2026-07-14T20:59:59Z"))).toBe(false);
+    expect(registrationDeadlinePassed("2026-07-14", new Date("2026-07-14T21:00:00Z"))).toBe(true);
+  });
+
+  it("timestamptz round-trip of a date-only value maps to its Minsk day", () => {
+    // Midnight UTC = 03:00 Minsk of the same calendar day.
+    expect(registrationDeadlinePassed("2026-07-14T00:00:00+00:00", now)).toBe(false);
+    expect(registrationDeadlinePassed("2026-07-13T00:00:00+00:00", now)).toBe(true);
+  });
+
+  it("is fail-open for unparseable values", () => {
+    expect(registrationDeadlinePassed("not-a-date", now)).toBe(false);
   });
 });
 
