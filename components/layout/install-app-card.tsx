@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
+import { usePathname } from "@/i18n/routing";
 import { isNativeApp } from "@/lib/is-native-app";
 import { StoreBadges, type StoreBadgeLabels } from "./store-badges";
 
@@ -33,8 +34,14 @@ const SHOW_DELAY_MS = 6000; // Don't ambush: wait until the user has read someth
 
 export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname();
+  // Onboarding is a one-shot screen sized to fit a phone viewport exactly;
+  // the toast would cover its primary CTA. The user sees the prompt on the
+  // very next page instead.
+  const isOnboarding = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
 
   useEffect(() => {
+    if (isOnboarding) return;
     // Only show on small screens — desktop users get the footer badges.
     if (typeof window === "undefined") return;
     if (window.matchMedia("(min-width: 1024px)").matches) return;
@@ -65,7 +72,7 @@ export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
 
     const timer = window.setTimeout(() => setVisible(true), SHOW_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [isOnboarding]);
 
   const dismiss = useCallback(() => {
     setVisible(false);
@@ -76,7 +83,7 @@ export function InstallAppPrompt({ labels }: { labels: InstallPromptLabels }) {
     }
   }, []);
 
-  if (!visible) return null;
+  if (!visible || isOnboarding) return null;
 
   return (
     <div

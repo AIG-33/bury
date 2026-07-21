@@ -4,7 +4,6 @@ import { ExternalLink } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HelpPanel } from "@/components/help/help-panel";
 import { LT_BASE_URL } from "@/lib/rating/external/liga-tennisa";
-import { PageHeader } from "@/components/layout/page-header";
 import { LtQuickImport } from "./lt-quick-import";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -57,12 +56,16 @@ export default async function OnboardingHomePage({ params }: Props) {
     .join(" ");
 
   return (
-    <div className="page-shell">
-      <div className="mx-auto max-w-xl space-y-6">
-        <PageHeader
-          title={t("title")}
-          subtitle={t("subtitle")}
-          help={
+    // Everything (search, quiz CTA, skip) must fit one iPhone screen with
+    // browser chrome (~375×600 usable), so mobile paddings/typography are
+    // tighter than the standard PageHeader; md+ keeps the normal scale.
+    <div className="page-shell !pt-4 md:!pt-10">
+      <div className="mx-auto max-w-xl space-y-4 md:space-y-6">
+        <header>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="font-display text-[26px] font-extrabold leading-tight tracking-tight text-grass-900 md:text-4xl">
+              {t("title")}
+            </h1>
             <HelpPanel
               pageId="onboarding-home"
               variant="inline"
@@ -70,8 +73,9 @@ export default async function OnboardingHomePage({ params }: Props) {
               what={[t("help.what.1"), t("help.what.2"), t("help.what.3")]}
               result={[t("help.result.1"), t("help.result.2")]}
             />
-          }
-        />
+          </div>
+          <p className="mt-1 text-sm leading-snug text-ink-500 md:text-base">{t("subtitle")}</p>
+        </header>
 
         <LtQuickImport
           locale={locale as "ru" | "en"}
@@ -118,7 +122,8 @@ export default async function OnboardingHomePage({ params }: Props) {
           }}
         />
 
-        <p className="text-center text-xs text-ink-500">
+        {/* Informational only — dropped on phones to keep the fold budget. */}
+        <p className="hidden text-center text-xs text-ink-500 sm:block">
           {t("source_note")}{" "}
           <a
             href={LT_BASE_URL}

@@ -15,11 +15,10 @@ import {
 import {
   searchLtCandidates,
   previewLtPlayer,
-  confirmImportFromLt,
   type SearchResult,
   type PreviewResult,
-  type ImportResult,
 } from "./import-lt/actions";
+import { confirmImportFromLtQuick, type ImportResult } from "./quick-import-actions";
 import type { LtPreview } from "@/lib/rating/external/actions-impl";
 import type { LtSearchCandidate } from "@/lib/rating/external/liga-tennisa";
 
@@ -150,7 +149,7 @@ export function LtQuickImport({
     if (!preview) return;
     setImportError(null);
     startImport(async () => {
-      const r = (await confirmImportFromLt(preview.external_id, true)) as ImportResult;
+      const r = (await confirmImportFromLtQuick(preview.external_id, true)) as ImportResult;
       if (!r.ok) {
         const localised = copy.errors[r.error] ?? copy.errors.unknown;
         const detail = "message" in r && r.message ? ` (${r.message})` : "";
@@ -230,7 +229,9 @@ export function LtQuickImport({
           )}
 
           {candidates && candidates.length > 0 && (
-            <ul className="divide-y divide-ink-100 overflow-hidden rounded-xl border border-ink-100 bg-white shadow-card">
+            // Capped so a full 8-row result set never pushes the quiz/skip
+            // actions below the fold on an iPhone — the list scrolls inside.
+            <ul className="max-h-44 divide-y divide-ink-100 overflow-y-auto overscroll-contain rounded-xl border border-ink-100 bg-white shadow-card sm:max-h-72">
               {candidates.map((c) => (
                 <li key={c.id}>
                   <button
@@ -268,7 +269,17 @@ export function LtQuickImport({
       </div>
 
       <div className="space-y-1.5 text-center">
-        <p className="text-xs text-ink-500">{copy.quiz_hint}</p>
+        {/* Hidden while results are open: saves a fold-budget line on
+            small phones, and the open list already answers the question. */}
+        <p
+          className={
+            candidates && candidates.length > 0
+              ? "hidden text-xs text-ink-500 sm:block"
+              : "text-xs text-ink-500"
+          }
+        >
+          {copy.quiz_hint}
+        </p>
         <Link
           href={`/${locale}/onboarding/quiz`}
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-ink-200 bg-white px-4 text-sm font-semibold text-ink-800 shadow-card transition hover:border-grass-300 hover:bg-grass-50/60"
