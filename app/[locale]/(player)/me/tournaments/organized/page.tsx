@@ -50,6 +50,7 @@ export default async function OrganizedTournamentsPage({ params }: Props) {
     delete_confirm: t("list.delete_confirm"),
     deleting: t("list.deleting"),
     open: t("list.open"),
+    co_organizer: t("list.co_organizer"),
     no_surface: t("list.no_surface"),
     entry_fee_free: t("list.entry_fee_free"),
     entry_fee_byn: t("list.entry_fee_byn"),

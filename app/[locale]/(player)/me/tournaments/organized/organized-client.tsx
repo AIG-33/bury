@@ -57,6 +57,7 @@ export type OrganizedTournamentsCopy = {
   delete_confirm: string;
   deleting: string;
   open: string;
+  co_organizer: string;
   no_surface: string;
   entry_fee_free: string;
   entry_fee_byn: string;
@@ -250,6 +251,11 @@ export function OrganizedTournamentsClient({
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <StatusPill status={tour.status} label={copy.status_labels[tour.status]} />
+                  {!tour.is_owner && (
+                    <span className="inline-flex items-center rounded-full bg-ball-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ball-800">
+                      {copy.co_organizer}
+                    </span>
+                  )}
                   {tour.pending_count > 0 && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-clay-800">
                       <Inbox className="h-3 w-3" />
@@ -333,19 +339,21 @@ export function OrganizedTournamentsClient({
                   >
                     <BookmarkPlus className="h-3 w-3" /> {tTemplates("save_button_short")}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(tour.id)}
-                    disabled={pending && deletingId === tour.id}
-                    className="inline-flex h-8 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
-                  >
-                    {pending && deletingId === tour.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3 w-3" />
-                    )}
-                    {pending && deletingId === tour.id ? copy.deleting : copy.delete}
-                  </button>
+                  {tour.is_owner && (
+                    <button
+                      type="button"
+                      onClick={() => onDelete(tour.id)}
+                      disabled={pending && deletingId === tour.id}
+                      className="inline-flex h-8 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-50"
+                    >
+                      {pending && deletingId === tour.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                      {pending && deletingId === tour.id ? copy.deleting : copy.delete}
+                    </button>
+                  )}
                 </div>
                 <Link
                   href={`/${locale}/me/tournaments/organized/${tour.id}`}

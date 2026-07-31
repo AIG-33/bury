@@ -13,11 +13,12 @@ type Result<T = undefined> =
   | { ok: false; error: string };
 
 /**
- * The tournament owner (or a platform admin) may edit branding — the same
- * gate as `tournaments_owner_write` RLS, checked in code so we can return a
- * friendly error code instead of a silent RLS denial.
+ * The tournament owner, an appointed co-organizer (tournament_admins) or a
+ * platform admin may edit branding — the same gate as the tournament UPDATE
+ * RLS, checked in code so we can return a friendly error code instead of a
+ * silent RLS denial.
  */
-async function requireTournamentOwner(tournamentId: string) {
+async function requireTournamentManager(tournamentId: string) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -32,6 +33,15 @@ async function requireTournamentOwner(tournamentId: string) {
   if (!t) return { ok: false as const, error: "not_found" as const };
 
   let allowed = t.owner_id === user.id;
+  if (!allowed) {
+    const { data: coAdmin } = (await supabase
+      .from("tournament_admins")
+      .select("id")
+      .eq("tournament_id", tournamentId)
+      .eq("player_id", user.id)
+      .maybeSingle()) as { data: { id: string } | null };
+    allowed = !!coAdmin;
+  }
   if (!allowed) {
     const { data: me } = (await supabase
       .from("profiles")
@@ -64,7 +74,7 @@ export async function updateTournamentBranding(input: unknown): Promise<Result> 
   }
   const { tournament_id, branding } = parsed.data;
 
-  const auth = await requireTournamentOwner(tournament_id);
+  const auth = await requireTournamentManager(tournament_id);
   if (!auth.ok) return { ok: false, error: auth.error };
 
   const { error } = await auth.supabase

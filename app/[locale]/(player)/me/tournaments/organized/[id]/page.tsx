@@ -18,11 +18,13 @@ import {
   loadGroupStandings,
   loadRoundRobinStandings,
   loadTournamentDetail,
+  loadTournamentAdmins,
   loadVenueOptions,
   loadAdministrableClubs,
 } from "../actions";
 import { buildTournamentDialogCopy } from "../dialog-copy";
 import { ParticipantsSection, type ParticipantsCopy } from "./participants-section";
+import { AdminsSection, type AdminsCopy } from "./admins-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
 import { GroupsSection, type GroupsCopy } from "./groups-section";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
@@ -52,11 +54,12 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("tournamentsOrganized");
 
-  const [result, venueOptions, clubOptions, branding] = await Promise.all([
+  const [result, venueOptions, clubOptions, branding, adminsResult] = await Promise.all([
     loadTournamentDetail(id),
     loadVenueOptions(),
     loadAdministrableClubs(),
     loadTournamentBranding(id),
+    loadTournamentAdmins(id),
   ]);
   if (!result.ok) {
     if (result.error === "not_authenticated") {
@@ -155,7 +158,11 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     groups_count_label: t("groups.groups_count_label"),
     method_label: t("groups.method_label"),
     method_labels: drawMethodLabels,
-    method_manual_hint: t("groups.method_manual_hint"),
+    manual_title: t("groups.manual_title"),
+    manual_help: t("groups.manual_help"),
+    manual_progress: t("groups.manual_progress", { done: "{done}", total: "{total}" }),
+    manual_confirm: t("groups.manual_confirm"),
+    manual_too_small: t("groups.manual_too_small"),
     generate: t("groups.generate"),
     generating: t("groups.generating"),
     regenerate: t("groups.regenerate"),
@@ -199,6 +206,18 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
   };
 
   const locked = tournament.status === "in_progress" || tournament.status === "finished";
+
+  const adminsCopy: AdminsCopy = {
+    title: t("admins.title"),
+    hint: t("admins.hint"),
+    add_placeholder: t("admins.add_placeholder"),
+    add_button: t("admins.add_button"),
+    adding: t("admins.adding"),
+    empty: t("admins.empty"),
+    remove: t("admins.remove"),
+    remove_confirm: t("admins.remove_confirm", { name: "{name}" }),
+    no_options: t("admins.no_options"),
+  };
 
   const dialogCopy = buildTournamentDialogCopy(t);
   const registrationLinkCopy: RegistrationLinkCopy = {
@@ -253,6 +272,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
               lockedHint={locked ? t("detail.edit_locked_hint") : null}
             />
             <Chip tone={statusTone}>{statusLabels[tournament.status]}</Chip>
+            {!tournament.is_owner && <Chip tone="ball">{t("detail.co_organizer_badge")}</Chip>}
           </>
         }
       />
@@ -389,6 +409,15 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
           } satisfies PrivacyControlCopy
         }
       />
+
+      {tournament.is_owner && adminsResult.ok && (
+        <AdminsSection
+          tournamentId={tournament.id}
+          admins={adminsResult.admins}
+          options={adminsResult.options}
+          copy={adminsCopy}
+        />
+      )}
 
       <ParticipantsSection
         tournamentId={tournament.id}
