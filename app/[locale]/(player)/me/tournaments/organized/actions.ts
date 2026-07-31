@@ -10,8 +10,10 @@ import {
   ScoreFormSchema,
   AddParticipantSchema,
   GenerateGroupsSchema,
+  GenerateGroupsManualSchema,
   CloseGroupsSchema,
   MoveToGroupSchema,
+  TournamentAdminSchema,
   type TournamentFormat,
   type TournamentStatus,
   type TournamentDiscipline,
@@ -34,7 +36,9 @@ import {
   computeRoundRobinStandings,
   computeWinnerSide,
   distributeIntoGroups,
+  bucketsFromManualAssignment,
   orderQualifiersForPlayoff,
+  type GroupBucket,
   type Player as DrawPlayer,
   type StandingRow,
   type GroupQualifier,
@@ -97,6 +101,9 @@ export type TournamentRow = {
   regulations_text: string | null;
   /** Public URL of the attached regulations document (PDF/DOC/DOCX). */
   regulations_file_url: string | null;
+  /** false — the current user administers this tournament as an appointed
+   * co-organizer (tournament_admins), not as its owner. */
+  is_owner: boolean;
 };
 
 export type GroupRow = {
@@ -176,6 +183,56 @@ async function requireUser() {
 }
 
 // =============================================================================
+// Management gate — owner OR appointed tournament admin (co-organizer).
+// =============================================================================
+
+async function isTournamentCoAdmin(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tournamentId: string,
+  userId: string,
+): Promise<boolean> {
+  const { data } = (await supabase
+    .from("tournament_admins")
+    .select("id")
+    .eq("tournament_id", tournamentId)
+    .eq("player_id", userId)
+    .maybeSingle()) as { data: { id: string } | null };
+  return !!data;
+}
+
+/**
+ * Every administrative action goes through this gate: the caller must be the
+ * tournament owner or a co-organizer from `tournament_admins`. Pass `ownerId`
+ * when the caller already fetched the tournament row to skip a query.
+ * Owner-only actions (delete tournament, manage the admin list) keep their
+ * own strict `owner_id === userId` checks.
+ */
+async function assertCanManageTournament(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tournamentId: string,
+  userId: string,
+  ownerId?: string,
+): Promise<{ ok: true; isOwner: boolean } | { ok: false; error: string }> {
+  let owner = ownerId;
+  if (owner === undefined) {
+    const { data: t } = (await supabase
+      .from("tournaments")
+      .select("owner_id")
+      .eq("id", tournamentId)
+      .maybeSingle()) as { data: { owner_id: string } | null };
+    if (!t) return { ok: false, error: "not_found" };
+    owner = t.owner_id;
+  }
+  if (owner === userId) return { ok: true, isOwner: true };
+  if (await isTournamentCoAdmin(supabase, tournamentId, userId)) {
+    return { ok: true, isOwner: false };
+  }
+  return { ok: false, error: "not_owner" };
+}
+
+// =============================================================================
 // List + detail loaders
 // =============================================================================
 
@@ -186,23 +243,33 @@ export async function loadOrganizedTournaments(): Promise<
   if (!auth.ok) return auth;
   const { supabase, userId } = auth;
 
+  const listSelect =
+    "id, owner_id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
+    "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
+    "draw_method, prizes_description, match_rules, branding, created_at, " +
+    "groups_count, advance_per_group, playoff_size, third_place_match, hide_organizer, " +
+    "regulations_text, regulations_file_url";
+  type ListRow = Omit<
+    TournamentRow,
+    "participants_count" | "pending_count" | "venues" | "branding" | "is_owner"
+  > & { owner_id: string; branding: unknown };
+
+  // Tournaments the user co-administers show up alongside their own.
+  const { data: adminLinks } = (await supabase
+    .from("tournament_admins")
+    .select("tournament_id")
+    .eq("player_id", userId)) as { data: Array<{ tournament_id: string }> | null };
+  const coAdminIds = (adminLinks ?? []).map((r) => r.tournament_id);
+
+  const orFilter =
+    coAdminIds.length > 0
+      ? `owner_id.eq.${userId},id.in.(${coAdminIds.join(",")})`
+      : `owner_id.eq.${userId}`;
   const { data: rows } = (await supabase
     .from("tournaments")
-    .select(
-      "id, name, description, format, discipline, surface, starts_on, start_time, ends_on, " +
-        "registration_deadline, max_participants, entry_fee_byn, privacy, application_mode, club_id, status, " +
-        "draw_method, prizes_description, match_rules, branding, created_at, " +
-        "groups_count, advance_per_group, playoff_size, third_place_match, hide_organizer, " +
-        "regulations_text, regulations_file_url",
-    )
-    .eq("owner_id", userId)
-    .order("created_at", { ascending: false })) as {
-    data: Array<
-      Omit<TournamentRow, "participants_count" | "pending_count" | "venues" | "branding"> & {
-        branding: unknown;
-      }
-    > | null;
-  };
+    .select(listSelect)
+    .or(orFilter)
+    .order("created_at", { ascending: false })) as { data: ListRow[] | null };
 
   const tournaments = rows ?? [];
   const ids = tournaments.map((t) => t.id);
@@ -253,6 +320,7 @@ export async function loadOrganizedTournaments(): Promise<
       participants_count: approvedCounts.get(t.id) ?? 0,
       pending_count: pendingCounts.get(t.id) ?? 0,
       venues: venuesByTournament.get(t.id) ?? [],
+      is_owner: t.owner_id === userId,
     })),
   };
 }
@@ -337,7 +405,8 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       | null;
   };
   if (!t) return { ok: false, error: "not_found" };
-  if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  const manage = await assertCanManageTournament(supabase, tournamentId, userId, t.owner_id);
+  if (!manage.ok) return manage;
 
   const { data: tvenues } = (await supabase
     .from("tournament_venues")
@@ -514,6 +583,7 @@ export async function loadTournamentDetail(tournamentId: string): Promise<
       hide_organizer: t.hide_organizer,
       regulations_text: t.regulations_text,
       regulations_file_url: t.regulations_file_url,
+      is_owner: manage.isOwner,
     },
     participants,
     matches,
@@ -696,7 +766,8 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
     } | null;
   };
   if (!current) return { ok: false, error: "not_found" };
-  if (current.owner_id !== userId) return { ok: false, error: "not_owner" };
+  const manage = await assertCanManageTournament(supabase, id, userId, current.owner_id);
+  if (!manage.ok) return manage;
 
   if (v.club_id && !(await userAdministersClub(supabase, userId, v.club_id))) {
     return { ok: false, error: "not_club_admin" };
@@ -759,8 +830,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       regulations_text: v.regulations_text,
       regulations_file_url: v.regulations_file_url,
     } as never)
-    .eq("id", id)
-    .eq("owner_id", userId);
+    .eq("id", id);
 
   if (error) return { ok: false, error: error.message };
 
@@ -794,7 +864,8 @@ export async function setTournamentStatus(
     data: { id: string; owner_id: string; status: TournamentStatus } | null;
   };
   if (!t) return { ok: false, error: "not_found" };
-  if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  const manage = await assertCanManageTournament(supabase, id, userId, t.owner_id);
+  if (!manage.ok) return manage;
 
   const allowed =
     (t.status === "draft" && status === "registration") ||
@@ -804,8 +875,7 @@ export async function setTournamentStatus(
   const { error } = await supabase
     .from("tournaments")
     .update({ status } as never)
-    .eq("id", id)
-    .eq("owner_id", userId);
+    .eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath(`/me/tournaments/organized/${id}`);
   revalidatePath("/me/tournaments/organized");
@@ -829,11 +899,13 @@ export async function setTournamentPrivacy(
     return { ok: false, error: "invalid_privacy" };
   }
 
+  const manage = await assertCanManageTournament(supabase, id, userId);
+  if (!manage.ok) return manage;
+
   const { error } = await supabase
     .from("tournaments")
     .update({ privacy } as never)
-    .eq("id", id)
-    .eq("owner_id", userId);
+    .eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath(`/me/tournaments/organized/${id}`);
   revalidatePath(`/tournaments/${id}`);
@@ -903,7 +975,8 @@ export async function addParticipant(input: unknown): Promise<SaveResult> {
     } | null;
   };
   if (!t) return { ok: false, error: "tournament_not_found" };
-  if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+  if (!manage.ok) return manage;
   if (t.status === "in_progress" || t.status === "finished") {
     return { ok: false, error: "tournament_locked" };
   }
@@ -990,7 +1063,8 @@ export async function setParticipantStatus(
     } | null;
   };
   if (!t) return { ok: false, error: "tournament_not_found" };
-  if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  const manage = await assertCanManageTournament(supabase, tournamentId, userId, t.owner_id);
+  if (!manage.ok) return manage;
 
   const { data: p } = (await supabase
     .from("tournament_participants")
@@ -1097,7 +1171,9 @@ export async function removeParticipant(
     .single()) as {
     data: { id: string; owner_id: string; status: TournamentStatus } | null;
   };
-  if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (!t) return { ok: false, error: "tournament_not_found" };
+  const manage = await assertCanManageTournament(supabase, tournamentId, userId, t.owner_id);
+  if (!manage.ok) return manage;
   if (t.status === "in_progress" || t.status === "finished") {
     return { ok: false, error: "tournament_locked" };
   }
@@ -1185,7 +1261,11 @@ export async function generateBracket(
       match_rules: MatchRules;
     } | null;
   };
-  if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (!t) return { ok: false, error: "not_found" };
+  {
+    const manage = await assertCanManageTournament(supabase, tournamentId, userId, t.owner_id);
+    if (!manage.ok) return manage;
+  }
   if (t.format !== "single_elimination" && t.format !== "round_robin") {
     // Hybrid (group_playoff) tournaments use generateGroups → closeGroupsAndStartPlayoff instead.
     return { ok: false, error: "format_not_supported_yet" };
@@ -1413,6 +1493,120 @@ function groupName(position: number): string {
 }
 
 /**
+ * Shared tail of both group-generation flows (auto + manual): wipes any
+ * previous groups/matches, creates fresh groups from the given buckets,
+ * assigns participants, schedules round-robin matches inside each group and
+ * bumps the tournament into in_progress.
+ */
+async function persistGroupStage(args: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any;
+  tournamentId: string;
+  buckets: GroupBucket[];
+  partnerByCaptain: Map<string, string>;
+  isDoubles: boolean;
+  matchRules: MatchRules;
+}): Promise<{ ok: true; matchesCount: number } | { ok: false; error: string }> {
+  const { supabase, tournamentId, buckets, partnerByCaptain, isDoubles, matchRules } = args;
+
+  // Wipe previous state (matches first, then groups; participants get their
+  // group_id unset by the ON DELETE SET NULL FK).
+  await supabase.from("matches").delete().eq("tournament_id", tournamentId);
+  await supabase.from("tournament_groups").delete().eq("tournament_id", tournamentId);
+
+  // Create fresh groups.
+  const groupRows = buckets.map((b) => ({
+    tournament_id: tournamentId,
+    name: groupName(b.position),
+    position: b.position,
+  }));
+  const { data: insertedGroups, error: gErr } = (await supabase
+    .from("tournament_groups")
+    .insert(groupRows as never)
+    .select("id, position")) as {
+    data: Array<{ id: string; position: number }> | null;
+    error: { message: string } | null;
+  };
+  if (gErr || !insertedGroups) {
+    return { ok: false, error: gErr?.message ?? "groups_insert_failed" };
+  }
+  const groupIdByPosition = new Map(insertedGroups.map((g) => [g.position, g.id] as const));
+
+  // Assign group_id on tournament_participants.
+  for (const b of buckets) {
+    const gid = groupIdByPosition.get(b.position);
+    if (!gid) continue;
+    if (b.players.length === 0) continue;
+    const ids = b.players.map((p) => p.id);
+    const { error: upErr } = await supabase
+      .from("tournament_participants")
+      .update({ group_id: gid } as never)
+      .eq("tournament_id", tournamentId)
+      .in("player_id", ids);
+    if (upErr) return { ok: false, error: upErr.message };
+  }
+
+  // Schedule round-robin matches inside each group.
+  type MatchInsert = {
+    tournament_id: string;
+    round: number;
+    bracket_slot: number;
+    p1_id: string;
+    p2_id: string | null;
+    is_doubles: boolean;
+    p1_partner_id: string | null;
+    p2_partner_id: string | null;
+    outcome: "pending";
+    winner_side: null;
+    match_rules: MatchRules;
+    stage: "group";
+    group_id: string;
+  };
+  const matchRows: MatchInsert[] = [];
+  for (const b of buckets) {
+    if (b.players.length < 2) continue;
+    const gid = groupIdByPosition.get(b.position)!;
+    const { matches } = buildRoundRobinSchedule(b.players);
+    for (const m of matches) {
+      matchRows.push({
+        tournament_id: tournamentId,
+        round: m.round,
+        bracket_slot: m.bracket_slot,
+        p1_id: m.p1_id,
+        p2_id: m.p2_id,
+        is_doubles: isDoubles,
+        p1_partner_id: isDoubles ? (partnerByCaptain.get(m.p1_id) ?? null) : null,
+        p2_partner_id:
+          isDoubles && m.p2_id ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
+        outcome: "pending",
+        winner_side: null,
+        match_rules: matchRules,
+        stage: "group",
+        group_id: gid,
+      });
+    }
+  }
+  if (matchRows.length > 0) {
+    const { error: mErr } = await supabase.from("matches").insert(matchRows as never);
+    if (mErr) return { ok: false, error: mErr.message };
+  }
+
+  await supabase
+    .from("tournaments")
+    .update({
+      groups_count: buckets.length,
+      // Clear any stale playoff/advance settings from a previous run.
+      advance_per_group: null,
+      playoff_size: null,
+      status: "in_progress",
+    } as never)
+    .eq("id", tournamentId);
+
+  revalidatePath(`/me/tournaments/organized/${tournamentId}`);
+  return { ok: true, matchesCount: matchRows.length };
+}
+
+/**
  * Generate the group stage for a hybrid (group_playoff) tournament. Wipes any
  * previously generated groups / matches and starts fresh.
  *
@@ -1446,7 +1640,11 @@ export async function generateGroups(
       match_rules: MatchRules;
     } | null;
   };
-  if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (!t) return { ok: false, error: "not_found" };
+  {
+    const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+    if (!manage.ok) return manage;
+  }
   if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
   if (t.status === "finished") return { ok: false, error: "already_finished" };
 
@@ -1461,29 +1659,6 @@ export async function generateGroups(
   }
   const isDoubles = t.discipline === "doubles";
 
-  // Wipe previous state (matches first, then groups; participants get their
-  // group_id unset by the ON DELETE SET NULL FK).
-  await supabase.from("matches").delete().eq("tournament_id", v.tournament_id);
-  await supabase.from("tournament_groups").delete().eq("tournament_id", v.tournament_id);
-
-  // Create fresh groups.
-  const groupRows = Array.from({ length: v.groups_count }, (_, i) => ({
-    tournament_id: v.tournament_id,
-    name: groupName(i),
-    position: i,
-  }));
-  const { data: insertedGroups, error: gErr } = (await supabase
-    .from("tournament_groups")
-    .insert(groupRows as never)
-    .select("id, position")) as {
-    data: Array<{ id: string; position: number }> | null;
-    error: { message: string } | null;
-  };
-  if (gErr || !insertedGroups) {
-    return { ok: false, error: gErr?.message ?? "groups_insert_failed" };
-  }
-  const groupIdByPosition = new Map(insertedGroups.map((g) => [g.position, g.id] as const));
-
   // Distribute players into buckets per the chosen method.
   const buckets = distributeIntoGroups({
     players,
@@ -1492,78 +1667,117 @@ export async function generateGroups(
     rngSeed: v.rng_seed ?? Date.now() % 1_000_000,
   });
 
-  // Assign group_id on tournament_participants.
-  for (const b of buckets) {
-    const gid = groupIdByPosition.get(b.position);
-    if (!gid) continue;
-    if (b.players.length === 0) continue;
-    const ids = b.players.map((p) => p.id);
-    const { error: upErr } = await supabase
-      .from("tournament_participants")
-      .update({ group_id: gid } as never)
-      .eq("tournament_id", v.tournament_id)
-      .in("player_id", ids);
-    if (upErr) return { ok: false, error: upErr.message };
-  }
+  const persisted = await persistGroupStage({
+    supabase,
+    tournamentId: v.tournament_id,
+    buckets,
+    partnerByCaptain,
+    isDoubles,
+    matchRules: t.match_rules,
+  });
+  if (!persisted.ok) return persisted;
+  return { ok: true, groupsCount: v.groups_count, matchesCount: persisted.matchesCount };
+}
 
-  // Schedule round-robin matches inside each group.
-  type MatchInsert = {
-    tournament_id: string;
-    round: number;
-    bracket_slot: number;
-    p1_id: string;
-    p2_id: string | null;
-    is_doubles: boolean;
-    p1_partner_id: string | null;
-    p2_partner_id: string | null;
-    outcome: "pending";
-    winner_side: null;
-    match_rules: MatchRules;
-    stage: "group";
-    group_id: string;
+/**
+ * Fully manual variant of `generateGroups`: nothing is created up-front.
+ * The organiser assigns EVERY approved participant (pair = one entry) to a
+ * group index in the UI and confirms once; only then are the groups created
+ * and the round-robin matches scheduled. The mapping is validated strictly:
+ * it must cover exactly the set of approved active participants, indices
+ * must be within range and every group must end up with ≥ 2 entries.
+ */
+export async function generateGroupsManual(
+  input: unknown,
+): Promise<{ ok: true; groupsCount: number; matchesCount: number } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = GenerateGroupsManualSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id, format, discipline, status, match_rules")
+    .eq("id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      owner_id: string;
+      format: TournamentFormat;
+      discipline: TournamentDiscipline;
+      status: TournamentStatus;
+      match_rules: MatchRules;
+    } | null;
   };
-  const matchRows: MatchInsert[] = [];
-  for (const b of buckets) {
-    if (b.players.length < 2) continue;
-    const gid = groupIdByPosition.get(b.position)!;
-    const { matches } = buildRoundRobinSchedule(b.players);
-    for (const m of matches) {
-      matchRows.push({
-        tournament_id: v.tournament_id,
-        round: m.round,
-        bracket_slot: m.bracket_slot,
-        p1_id: m.p1_id,
-        p2_id: m.p2_id,
-        is_doubles: isDoubles,
-        p1_partner_id: isDoubles ? (partnerByCaptain.get(m.p1_id) ?? null) : null,
-        p2_partner_id:
-          isDoubles && m.p2_id ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
-        outcome: "pending",
-        winner_side: null,
-        match_rules: t.match_rules,
-        stage: "group",
-        group_id: gid,
-      });
+  if (!t) return { ok: false, error: "not_found" };
+  {
+    const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+    if (!manage.ok) return manage;
+  }
+  if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
+  if (t.status === "finished") return { ok: false, error: "already_finished" };
+
+  const { data: partData } = (await supabase
+    .from("tournament_participants")
+    .select("id, player_id, partner_id")
+    .eq("tournament_id", v.tournament_id)
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as {
+    data: Array<{ id: string; player_id: string; partner_id: string | null }> | null;
+  };
+  const partRows = partData ?? [];
+  const isDoubles = t.discipline === "doubles";
+
+  const partnerByCaptain = new Map<string, string>();
+  if (isDoubles) {
+    for (const r of partRows) {
+      if (!r.partner_id) return { ok: false, error: "pair_incomplete" };
+      partnerByCaptain.set(r.player_id, r.partner_id);
     }
   }
-  if (matchRows.length > 0) {
-    const { error: mErr } = await supabase.from("matches").insert(matchRows as never);
-    if (mErr) return { ok: false, error: mErr.message };
+  if (partRows.length < v.groups_count * 2) {
+    return { ok: false, error: "need_at_least_2_players_per_group" };
   }
 
-  await supabase
-    .from("tournaments")
-    .update({
-      groups_count: v.groups_count,
-      // Clear any stale playoff/advance settings from a previous run.
-      advance_per_group: null,
-      playoff_size: null,
-      status: "in_progress",
-    } as never)
-    .eq("id", v.tournament_id);
+  // Translate participant ids → player ids (buckets & matches are keyed by
+  // player_id everywhere else). Reject duplicates and stale/unknown ids so a
+  // roster change between render and submit surfaces as a clear error.
+  const playerIdByParticipantId = new Map(partRows.map((r) => [r.id, r.player_id] as const));
+  const assignment = new Map<string, number>();
+  for (const a of v.assignments) {
+    const playerId = playerIdByParticipantId.get(a.participant_id);
+    if (!playerId) return { ok: false, error: "assignment_unknown_player" };
+    if (assignment.has(playerId)) return { ok: false, error: "assignment_duplicate" };
+    assignment.set(playerId, a.group_index);
+  }
 
-  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
-  return { ok: true, groupsCount: v.groups_count, matchesCount: matchRows.length };
+  // Elo is irrelevant here — the organiser already decided the layout.
+  const players: DrawPlayer[] = partRows.map((r) => ({
+    id: r.player_id,
+    display_name: null,
+    current_elo: 0,
+  }));
+
+  const bucketed = bucketsFromManualAssignment({
+    players,
+    groupsCount: v.groups_count,
+    assignment,
+  });
+  if (!bucketed.ok) return { ok: false, error: bucketed.error };
+
+  const persisted = await persistGroupStage({
+    supabase,
+    tournamentId: v.tournament_id,
+    buckets: bucketed.buckets,
+    partnerByCaptain,
+    isDoubles,
+    matchRules: t.match_rules,
+  });
+  if (!persisted.ok) return persisted;
+  return { ok: true, groupsCount: v.groups_count, matchesCount: persisted.matchesCount };
 }
 
 /**
@@ -1605,7 +1819,15 @@ export async function reassignToGroup(
     } | null;
   };
   if (!p || !p.tournaments) return { ok: false, error: "participant_not_found" };
-  if (p.tournaments.owner_id !== userId) return { ok: false, error: "not_owner" };
+  {
+    const manage = await assertCanManageTournament(
+      supabase,
+      p.tournament_id,
+      userId,
+      p.tournaments.owner_id,
+    );
+    if (!manage.ok) return manage;
+  }
   if (p.tournaments.format !== "group_playoff")
     return { ok: false, error: "format_not_group_playoff" };
   if (p.status !== "approved" || p.withdrawn)
@@ -1759,7 +1981,11 @@ export async function closeGroupsAndStartPlayoff(
       third_place_match: boolean;
     } | null;
   };
-  if (!t || t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (!t) return { ok: false, error: "not_found" };
+  {
+    const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+    if (!manage.ok) return manage;
+  }
   if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
   if (t.groups_count == null) return { ok: false, error: "groups_not_generated" };
 
@@ -1983,10 +2209,19 @@ export async function setMatchScore(
     } | null;
   };
   if (!m) return { ok: false, error: "match_not_found" };
-  if (!m.tournaments || m.tournaments.owner_id !== userId) {
-    return { ok: false, error: "not_owner" };
+  if (!m.tournament_id || !m.tournaments) {
+    return { ok: false, error: "not_a_bracket_match" };
   }
-  if (!m.tournament_id || m.round == null || m.bracket_slot == null) {
+  {
+    const manage = await assertCanManageTournament(
+      supabase,
+      m.tournament_id,
+      userId,
+      m.tournaments.owner_id,
+    );
+    if (!manage.ok) return manage;
+  }
+  if (m.round == null || m.bracket_slot == null) {
     return { ok: false, error: "not_a_bracket_match" };
   }
   if (m.p1_id == null || m.p2_id == null) {
@@ -2310,6 +2545,141 @@ export async function loadGroupStandings(tournamentId: string): Promise<GroupSta
       rows: standings.map((s) => ({ ...s, ...lineFor(s.player_id) })),
     };
   });
+}
+
+// =============================================================================
+// Tournament admins (co-organizers). Only the OWNER manages this list; the
+// co-admins themselves get every other administrative right via
+// assertCanManageTournament.
+// =============================================================================
+
+export type TournamentAdminRow = {
+  id: string;
+  player_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+};
+
+export async function loadTournamentAdmins(tournamentId: string): Promise<
+  | { ok: true; isOwner: boolean; admins: TournamentAdminRow[]; options: PlayerOption[] }
+  | { ok: false; error: string }
+> {
+  const auth = await requireUser();
+  if (!auth.ok) return auth;
+  const { supabase, userId } = auth;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id")
+    .eq("id", tournamentId)
+    .maybeSingle()) as { data: { id: string; owner_id: string } | null };
+  if (!t) return { ok: false, error: "not_found" };
+  const manage = await assertCanManageTournament(supabase, tournamentId, userId, t.owner_id);
+  if (!manage.ok) return manage;
+
+  const { data: rows } = (await supabase
+    .from("tournament_admins")
+    .select("id, player_id, created_at")
+    .eq("tournament_id", tournamentId)
+    .order("created_at", { ascending: true })) as {
+    data: Array<{ id: string; player_id: string; created_at: string }> | null;
+  };
+  const adminRows = rows ?? [];
+
+  const basicById = await loadPlayerBasics(
+    supabase,
+    adminRows.map((r) => r.player_id),
+  );
+  const admins: TournamentAdminRow[] = adminRows.map((r) => {
+    const b = basicById.get(r.player_id);
+    return {
+      id: r.id,
+      player_id: r.player_id,
+      display_name: b?.display_name ?? null,
+      avatar_url: b?.avatar_url ?? null,
+      created_at: r.created_at,
+    };
+  });
+
+  // Picker pool: everyone visible in the leaderboard except the owner and
+  // players who are already co-organizers.
+  const excluded = new Set<string>([t.owner_id, ...adminRows.map((r) => r.player_id)]);
+  const { data: pool } = (await supabase
+    .from("public_player_basic")
+    .select("id, display_name, current_elo")
+    .eq("visible_in_leaderboard", true)
+    .order("current_elo", { ascending: false })
+    .limit(200)) as { data: Array<PlayerOption> | null };
+  const options: PlayerOption[] = (pool ?? []).filter((p) => !excluded.has(p.id));
+
+  return { ok: true, isOwner: manage.isOwner, admins, options };
+}
+
+export async function addTournamentAdmin(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = TournamentAdminSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id")
+    .eq("id", v.tournament_id)
+    .maybeSingle()) as { data: { id: string; owner_id: string } | null };
+  if (!t) return { ok: false, error: "not_found" };
+  if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
+  if (v.player_id === t.owner_id) return { ok: false, error: "cannot_add_owner" };
+
+  const { error } = await supabase.from("tournament_admins").insert({
+    tournament_id: v.tournament_id,
+    player_id: v.player_id,
+  } as never);
+  if (error) {
+    // Unique (tournament_id, player_id) — the player is already a co-organizer.
+    if (error.code === "23505") return { ok: false, error: "already_admin" };
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  revalidatePath("/me/tournaments/organized");
+  return { ok: true };
+}
+
+export async function removeTournamentAdmin(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = TournamentAdminSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id")
+    .eq("id", v.tournament_id)
+    .maybeSingle()) as { data: { id: string; owner_id: string } | null };
+  if (!t) return { ok: false, error: "not_found" };
+  if (t.owner_id !== userId) return { ok: false, error: "not_owner" };
+
+  const { error } = await supabase
+    .from("tournament_admins")
+    .delete()
+    .eq("tournament_id", v.tournament_id)
+    .eq("player_id", v.player_id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  revalidatePath("/me/tournaments/organized");
+  return { ok: true };
 }
 
 export async function loadRoundRobinStandings(tournamentId: string): Promise<StandingsLine[]> {

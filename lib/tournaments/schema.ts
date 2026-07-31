@@ -254,6 +254,28 @@ export const GenerateGroupsSchema = z.object({
 export type GenerateGroupsInput = z.infer<typeof GenerateGroupsSchema>;
 
 /**
+ * Fully manual group assembly: the organiser places every approved
+ * participant (pair = one entry) into a group BEFORE anything is created,
+ * then confirms once. `assignments` maps tournament_participants.id →
+ * 0-based group index; the SA verifies the mapping covers exactly the set
+ * of approved active participants and every group ends up with ≥ 2 entries.
+ */
+export const GenerateGroupsManualSchema = z.object({
+  tournament_id: z.string().uuid(),
+  groups_count: z.coerce.number().int().min(2).max(16),
+  assignments: z
+    .array(
+      z.object({
+        participant_id: z.string().uuid(),
+        group_index: z.coerce.number().int().min(0).max(15),
+      }),
+    )
+    .min(4)
+    .max(256),
+});
+export type GenerateGroupsManualInput = z.infer<typeof GenerateGroupsManualSchema>;
+
+/**
  * Step 2: every group match has a result, organiser picks the playoff size
  * and how many players advance from every group. Total qualifiers
  * (groups_count × advance_per_group) must be ≤ playoff_size; unfilled
@@ -323,3 +345,12 @@ export const AddParticipantSchema = z.object({
   partner_id: z.string().uuid().optional().nullable(),
   seed: z.coerce.number().int().min(1).max(256).optional().nullable(),
 });
+
+// ─── Tournament admins (co-organizers) ───────────────────────────────────────
+
+/** Add/remove a co-organizer. Only the tournament owner may call these. */
+export const TournamentAdminSchema = z.object({
+  tournament_id: z.string().uuid(),
+  player_id: z.string().uuid(),
+});
+export type TournamentAdminInput = z.infer<typeof TournamentAdminSchema>;

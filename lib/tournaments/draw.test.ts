@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bucketsFromManualAssignment,
   buildRoundRobinSchedule,
   buildSingleEliminationBracket,
   computeRoundRobinStandings,
@@ -357,6 +358,99 @@ describe("distributeIntoGroups", () => {
       method: "manual",
     });
     expect(buckets.every((b) => b.players.length >= 2)).toBe(true);
+  });
+});
+
+describe("bucketsFromManualAssignment", () => {
+  const assign = (entries: Array<[string, number]>) => new Map(entries);
+
+  it("places every player into the chosen group, preserving roster order", () => {
+    const res = bucketsFromManualAssignment({
+      players: players(6),
+      groupsCount: 2,
+      assignment: assign([
+        ["p1", 1],
+        ["p2", 0],
+        ["p3", 1],
+        ["p4", 0],
+        ["p5", 0],
+        ["p6", 1],
+      ]),
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.buckets[0].players.map((p) => p.id)).toEqual(["p2", "p4", "p5"]);
+    expect(res.buckets[1].players.map((p) => p.id)).toEqual(["p1", "p3", "p6"]);
+    expect(res.buckets.map((b) => b.position)).toEqual([0, 1]);
+  });
+
+  it("rejects an incomplete assignment", () => {
+    const res = bucketsFromManualAssignment({
+      players: players(4),
+      groupsCount: 2,
+      assignment: assign([
+        ["p1", 0],
+        ["p2", 0],
+        ["p3", 1],
+      ]),
+    });
+    expect(res).toEqual({ ok: false, error: "assignment_incomplete" });
+  });
+
+  it("rejects ids that are not in the roster", () => {
+    const res = bucketsFromManualAssignment({
+      players: players(4),
+      groupsCount: 2,
+      assignment: assign([
+        ["p1", 0],
+        ["p2", 0],
+        ["p3", 1],
+        ["ghost", 1],
+      ]),
+    });
+    expect(res).toEqual({ ok: false, error: "assignment_unknown_player" });
+  });
+
+  it("rejects a group index outside the requested range", () => {
+    const res = bucketsFromManualAssignment({
+      players: players(4),
+      groupsCount: 2,
+      assignment: assign([
+        ["p1", 0],
+        ["p2", 0],
+        ["p3", 1],
+        ["p4", 2],
+      ]),
+    });
+    expect(res).toEqual({ ok: false, error: "assignment_index_out_of_range" });
+  });
+
+  it("rejects a layout that leaves a group under the minimum size", () => {
+    const res = bucketsFromManualAssignment({
+      players: players(4),
+      groupsCount: 2,
+      assignment: assign([
+        ["p1", 0],
+        ["p2", 0],
+        ["p3", 0],
+        ["p4", 1],
+      ]),
+    });
+    expect(res).toEqual({ ok: false, error: "group_too_small" });
+  });
+
+  it("rejects an empty group even when all players are assigned elsewhere", () => {
+    const res = bucketsFromManualAssignment({
+      players: players(4),
+      groupsCount: 3,
+      assignment: assign([
+        ["p1", 0],
+        ["p2", 0],
+        ["p3", 1],
+        ["p4", 1],
+      ]),
+    });
+    expect(res).toEqual({ ok: false, error: "group_too_small" });
   });
 });
 

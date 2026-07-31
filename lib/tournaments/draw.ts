@@ -456,6 +456,63 @@ export function distributeIntoGroups(opts: {
 }
 
 // =============================================================================
+// Fully manual group assembly.
+//
+// The organiser assigns every player to a group index BEFORE the groups are
+// created (see GenerateGroupsManualSchema). This helper validates the mapping
+// against the actual roster and turns it into the same GroupBucket[] shape
+// that `distributeIntoGroups` produces, so downstream persistence is shared.
+// =============================================================================
+
+export type ManualAssignmentError =
+  | "assignment_unknown_player" // mapping references someone not in the roster
+  | "assignment_incomplete"     // a roster player is missing from the mapping
+  | "assignment_index_out_of_range"
+  | "group_too_small";          // a group ended up with < minGroupSize players
+
+export function bucketsFromManualAssignment(opts: {
+  players: Player[];
+  groupsCount: number;
+  /** player.id → 0-based group index */
+  assignment: ReadonlyMap<string, number>;
+  minGroupSize?: number;
+}):
+  | { ok: true; buckets: GroupBucket[] }
+  | { ok: false; error: ManualAssignmentError } {
+  const { players, groupsCount, assignment, minGroupSize = 2 } = opts;
+
+  const roster = new Set(players.map((p) => p.id));
+  for (const id of assignment.keys()) {
+    if (!roster.has(id)) return { ok: false, error: "assignment_unknown_player" };
+  }
+  // Map keys are unique and all belong to the roster, so a smaller size can
+  // only mean somebody was left unassigned.
+  if (assignment.size !== players.length) {
+    return { ok: false, error: "assignment_incomplete" };
+  }
+
+  const buckets: GroupBucket[] = Array.from({ length: groupsCount }, (_, i) => ({
+    position: i,
+    players: [],
+  }));
+
+  for (const p of players) {
+    const idx = assignment.get(p.id);
+    if (idx === undefined) return { ok: false, error: "assignment_incomplete" };
+    if (!Number.isInteger(idx) || idx < 0 || idx >= groupsCount) {
+      return { ok: false, error: "assignment_index_out_of_range" };
+    }
+    buckets[idx].players.push(p);
+  }
+
+  if (buckets.some((b) => b.players.length < minGroupSize)) {
+    return { ok: false, error: "group_too_small" };
+  }
+
+  return { ok: true, buckets };
+}
+
+// =============================================================================
 // Playoff seeding from the group standings.
 //
 // Convention: top seeds first (1st of every group), then 2nd of every group,
