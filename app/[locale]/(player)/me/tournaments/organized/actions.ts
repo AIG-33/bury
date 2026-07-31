@@ -1358,13 +1358,23 @@ async function loadApprovedDrawPlayers(
   // never via a `profiles` join.
   const { data } = (await supabase
     .from("tournament_participants")
-    .select("player_id, partner_id")
+    .select("player_id, partner_id, seed")
     .eq("tournament_id", tournamentId)
     .eq("status", "approved")
     .eq("withdrawn", false)) as {
-    data: Array<{ player_id: string; partner_id: string | null }> | null;
+    data: Array<{ player_id: string; partner_id: string | null; seed: number | null }> | null;
   };
-  const rows = data ?? [];
+  // Seeded participants first (seed ascending), unseeded keep DB order. This
+  // makes method="manual" honor the organizer's seed numbers, same as the
+  // single-elimination bracket does.
+  const rows = (data ?? [])
+    .map((r, i) => ({ ...r, _i: i }))
+    .sort((a, b) => {
+      if (a.seed != null && b.seed != null) return a.seed - b.seed;
+      if (a.seed != null) return -1;
+      if (b.seed != null) return 1;
+      return a._i - b._i;
+    });
   const isDoubles = discipline === "doubles";
 
   const partnerByCaptain = new Map<string, string>();
@@ -1799,6 +1809,9 @@ export async function closeGroupsAndStartPlayoff(
       .eq("status", "approved")
       .eq("withdrawn", false)) as { data: Array<{ player_id: string }> | null };
     const ids = (members ?? []).map((m) => m.player_id);
+    // A group left with <2 players (e.g. after manual moves) has no matches at
+    // all — its lone player would "qualify" without playing. Refuse to close.
+    if (ids.length < 2) return { ok: false, error: "group_too_small" };
 
     const { data: groupMatches } = (await supabase
       .from("matches")

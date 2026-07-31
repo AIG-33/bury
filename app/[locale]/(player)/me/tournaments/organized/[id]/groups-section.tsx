@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
-import { Loader2, Shuffle, Users, Trophy, ArrowRightLeft, FlagTriangleRight } from "lucide-react";
+import { Loader2, Shuffle, Users, Trophy, AlertTriangle, FlagTriangleRight } from "lucide-react";
 import {
   generateGroups,
   reassignToGroup,
@@ -30,11 +30,18 @@ export type GroupsCopy = {
   groups_count_label: string;
   method_label: string;
   method_labels: Record<SeedingMethod, string>;
+  method_manual_hint: string;
   generate: string;
   generating: string;
+  regenerate: string;
   regenerate_warning: string;
+  regenerate_cancel: string;
   not_enough_players: string;
   empty: string;
+  unassigned_title: string;
+  unassigned_hint: string;
+  assign_placeholder: string;
+  too_small_warning: string;
   // Template string with the literal "{name}" placeholder. Functions
   // can't cross the server→client component boundary in Next.js 15.
   group_label: string;
@@ -67,7 +74,6 @@ export type GroupsCopy = {
 export function GroupsSection({
   tournamentId,
   format,
-  groupsCount,
   advancePerGroup,
   playoffSize,
   thirdPlaceMatch,
@@ -81,7 +87,6 @@ export function GroupsSection({
 }: {
   tournamentId: string;
   format: string;
-  groupsCount: number | null;
   advancePerGroup: number | null;
   playoffSize: number | null;
   thirdPlaceMatch: boolean;
@@ -97,10 +102,17 @@ export function GroupsSection({
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const [pending, startT] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showRegenerate, setShowRegenerate] = useState(false);
 
   const approvedActive = useMemo(
     () => participants.filter((p) => p.status === "approved" && !p.withdrawn),
     [participants],
+  );
+  // Approved after the groups were generated → not in any group yet. They must
+  // be placeable by hand, otherwise they'd be invisible in this section.
+  const unassigned = useMemo(
+    () => approvedActive.filter((p) => p.group_id == null),
+    [approvedActive],
   );
 
   const groupMatches = useMemo(() => matches.filter((m) => m.stage === "group"), [matches]);
@@ -131,39 +143,88 @@ export function GroupsSection({
 
   return (
     <section className="space-y-6">
+      {/* Re-generation re-opens the full setup form (count + method) so the
+          organizer isn't locked into the original settings. */}
+      {showRegenerate && !anyGroupResults && (
+        <SetupGroupsCard
+          tournamentId={tournamentId}
+          approvedCount={approvedActive.length}
+          copy={copy}
+          pending={pending}
+          startT={startT}
+          confirmText={copy.regenerate_warning}
+          onCancel={() => setShowRegenerate(false)}
+          onSaved={() => {
+            setShowRegenerate(false);
+            router.refresh();
+          }}
+        />
+      )}
+
       <div className="rounded-xl2 border border-ink-100 bg-white p-5 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-semibold text-ink-900">{copy.title}</h2>
             <p className="mt-0.5 text-xs text-ink-600">{copy.setup_help}</p>
           </div>
-          {!anyGroupResults && (
+          {!anyGroupResults && !showRegenerate && (
             <button
               type="button"
-              onClick={() => {
-                if (!confirm(copy.regenerate_warning)) return;
-                // The simplest path to re-generate: open the setup card by
-                // sending the user back through the same flow. We just reset
-                // groups by calling generateGroups again with the saved count.
-                if (!groupsCount) return;
-                startT(async () => {
-                  const r = await generateGroups({
-                    tournament_id: tournamentId,
-                    groups_count: groupsCount,
-                    method: "rating",
-                  });
-                  if (r.ok) router.refresh();
-                  else alert(localizeActionError(tErrors, r.error));
-                });
-              }}
+              onClick={() => setShowRegenerate(true)}
               disabled={pending}
               className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-60"
             >
-              {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shuffle className="h-3 w-3" />}
-              {copy.generate}
+              <Shuffle className="h-3 w-3" />
+              {copy.regenerate}
             </button>
           )}
         </div>
+
+        {/* Once a group match has a score, moving players is locked — say so
+            instead of silently hiding the controls. */}
+        {anyGroupResults && (
+          <p className="mt-3 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
+            {copy.cannot_move_after_start}
+          </p>
+        )}
+
+        {unassigned.length > 0 && (
+          <div className="mt-4 rounded-lg border border-clay-200 bg-clay-50/40 p-4">
+            <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-clay-800">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {copy.unassigned_title.replace("{n}", String(unassigned.length))}
+            </p>
+            <p className="mt-1 text-[11px] text-ink-600">{copy.unassigned_hint}</p>
+            <ul className="mt-2 space-y-1.5">
+              {unassigned.map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="truncate text-ink-800">
+                    <PlayerNameLink id={m.player_id} name={m.display_name} fallback={m.player_id} />
+                    {m.partner_name ? (
+                      <>
+                        {" / "}
+                        <PlayerNameLink id={m.partner_id} name={m.partner_name} />
+                      </>
+                    ) : (
+                      ""
+                    )}
+                  </span>
+                  {!anyGroupResults ? (
+                    <MoveSelector
+                      participantId={m.id}
+                      currentGroupId={null}
+                      groups={groups}
+                      copy={copy}
+                      pending={pending}
+                      startT={startT}
+                      onMoved={() => router.refresh()}
+                    />
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <ul className="mt-4 grid gap-4 md:grid-cols-2">
           {groups.map((g) => {
@@ -176,11 +237,24 @@ export function GroupsSection({
                   <h3 className="font-display text-base font-semibold text-ink-900">
                     {copy.group_label.replace("{name}", g.name)}
                   </h3>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold text-grass-800">
+                  <span
+                    className={
+                      members.length < 2
+                        ? "inline-flex items-center gap-1 rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-semibold text-clay-800"
+                        : "inline-flex items-center gap-1 rounded-full bg-grass-100 px-2 py-0.5 text-[10px] font-semibold text-grass-800"
+                    }
+                  >
                     <Users className="h-3 w-3" />
                     {copy.member_count.replace("{n}", String(members.length))}
                   </span>
                 </header>
+
+                {members.length < 2 && (
+                  <p className="mb-3 inline-flex items-center gap-1.5 rounded-lg bg-clay-50 px-2.5 py-1.5 text-[11px] text-clay-800">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    {copy.too_small_warning}
+                  </p>
+                )}
 
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
                   {copy.roster}
@@ -329,6 +403,8 @@ function SetupGroupsCard({
   pending,
   startT,
   onSaved,
+  confirmText,
+  onCancel,
 }: {
   tournamentId: string;
   approvedCount: number;
@@ -336,6 +412,8 @@ function SetupGroupsCard({
   pending: boolean;
   startT: (cb: () => void) => void;
   onSaved: () => void;
+  confirmText?: string;
+  onCancel?: () => void;
 }) {
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const maxGroups = Math.max(2, Math.floor(approvedCount / 2));
@@ -385,26 +463,45 @@ function SetupGroupsCard({
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              startT(async () => {
-                const r = await generateGroups({
-                  tournament_id: tournamentId,
-                  groups_count: groupsCount,
-                  method,
+          <div className="flex items-end gap-2">
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                if (confirmText && !confirm(confirmText)) return;
+                startT(async () => {
+                  const r = await generateGroups({
+                    tournament_id: tournamentId,
+                    groups_count: groupsCount,
+                    method,
+                  });
+                  if (r.ok) onSaved();
+                  else alert(localizeActionError(tErrors, r.error));
                 });
-                if (r.ok) onSaved();
-                else alert(localizeActionError(tErrors, r.error));
-              });
-            }}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-[11px] bg-pt-primary px-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
-          >
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shuffle className="h-4 w-4" />}
-            {pending ? copy.generating : copy.generate}
-          </button>
+              }}
+              className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-[11px] bg-pt-primary px-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60"
+            >
+              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shuffle className="h-4 w-4" />}
+              {pending ? copy.generating : copy.generate}
+            </button>
+            {onCancel && (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={onCancel}
+                className="inline-flex h-9 items-center justify-center rounded-[11px] border border-ink-200 px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-60"
+              >
+                {copy.regenerate_cancel}
+              </button>
+            )}
+          </div>
         </div>
+      )}
+
+      {approvedCount >= 4 && method === "manual" && (
+        <p className="mt-3 rounded-lg bg-grass-50/60 px-3 py-2 text-xs text-ink-700">
+          {copy.method_manual_hint}
+        </p>
       )}
     </section>
   );
@@ -420,7 +517,7 @@ function MoveSelector({
   onMoved,
 }: {
   participantId: string;
-  currentGroupId: string;
+  currentGroupId: string | null;
   groups: GroupRow[];
   copy: GroupsCopy;
   pending: boolean;
@@ -430,11 +527,11 @@ function MoveSelector({
   const tErrors = useTranslations("tournamentsOrganized.errors");
   return (
     <select
-      value={currentGroupId}
+      value={currentGroupId ?? ""}
       disabled={pending}
       onChange={(e) => {
         const newId = e.target.value;
-        if (newId === currentGroupId) return;
+        if (!newId || newId === currentGroupId) return;
         startT(async () => {
           const r = await reassignToGroup({
             participant_id: participantId,
@@ -446,10 +543,16 @@ function MoveSelector({
       }}
       className="h-7 rounded-md border border-ink-200 bg-white px-1 text-[11px] text-ink-700"
       title={copy.move_to}
+      aria-label={copy.move_to}
     >
+      {currentGroupId == null && (
+        <option value="" disabled>
+          {copy.assign_placeholder}
+        </option>
+      )}
       {groups.map((g) => (
         <option key={g.id} value={g.id}>
-          <ArrowRightLeft className="h-2 w-2" /> {g.name}
+          {copy.group_label.replace("{name}", g.name)}
         </option>
       ))}
     </select>

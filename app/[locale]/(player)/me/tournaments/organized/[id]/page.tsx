@@ -155,15 +155,22 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     groups_count_label: t("groups.groups_count_label"),
     method_label: t("groups.method_label"),
     method_labels: drawMethodLabels,
+    method_manual_hint: t("groups.method_manual_hint"),
     generate: t("groups.generate"),
     generating: t("groups.generating"),
+    regenerate: t("groups.regenerate"),
     regenerate_warning: t("groups.regenerate_warning"),
+    regenerate_cancel: t("groups.regenerate_cancel"),
     not_enough_players: t("groups.not_enough_players"),
     empty: t("groups.empty"),
+    unassigned_title: t("groups.unassigned_title", { n: "{n}" }),
+    unassigned_hint: t("groups.unassigned_hint"),
+    assign_placeholder: t("groups.assign_placeholder"),
+    too_small_warning: t("groups.too_small_warning"),
     group_label: t("groups.group_label", { name: "{name}" }),
     move_to: t("groups.move_to"),
     cannot_move_after_start: t("groups.cannot_move_after_start"),
-    member_count: t("groups.member_count"),
+    member_count: t("groups.member_count", { n: "{n}" }),
     roster: t("groups.roster"),
     matches: t("groups.matches"),
     no_matches: t("groups.no_matches"),
@@ -181,7 +188,11 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     playoff_size_label: t("groups.playoff_size_label"),
     close_groups_cta: t("groups.close_groups_cta"),
     closing: t("groups.closing"),
-    qualifiers_summary: t("groups.qualifiers_summary"),
+    qualifiers_summary: t("groups.qualifiers_summary", {
+      groups: "{groups}",
+      n: "{n}",
+      size: "{size}",
+    }),
     playoff_too_small: t("groups.playoff_too_small"),
     groups_pending: t("groups.groups_pending"),
     error: t("bracket.error"),
@@ -393,7 +404,6 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         <GroupsSection
           tournamentId={tournament.id}
           format={tournament.format}
-          groupsCount={tournament.groups_count}
           advancePerGroup={tournament.advance_per_group}
           playoffSize={tournament.playoff_size}
           thirdPlaceMatch={tournament.third_place_match}

@@ -327,15 +327,36 @@ describe("distributeIntoGroups", () => {
     ).toThrow();
   });
 
-  it("preserves caller order for method=manual", () => {
+  it("fills sequential blocks for method=manual", () => {
     const buckets = distributeIntoGroups({
       players: players(6),
       groupsCount: 2,
       method: "manual",
     });
-    // Manual = first-to-last serpentine into 2 groups: A B B A A B
-    expect(buckets[0].players.map((p) => p.id)).toEqual(["p1", "p4", "p5"]);
-    expect(buckets[1].players.map((p) => p.id)).toEqual(["p2", "p3", "p6"]);
+    // Manual = predictable blocks in caller order: first half → A, rest → B.
+    expect(buckets[0].players.map((p) => p.id)).toEqual(["p1", "p2", "p3"]);
+    expect(buckets[1].players.map((p) => p.id)).toEqual(["p4", "p5", "p6"]);
+  });
+
+  it("balances uneven manual splits with earlier groups one larger", () => {
+    const buckets = distributeIntoGroups({
+      players: players(11),
+      groupsCount: 3,
+      method: "manual",
+    });
+    expect(buckets.map((b) => b.players.length)).toEqual([4, 4, 3]);
+    expect(buckets[0].players.map((p) => p.id)).toEqual(["p1", "p2", "p3", "p4"]);
+    expect(buckets[1].players.map((p) => p.id)).toEqual(["p5", "p6", "p7", "p8"]);
+    expect(buckets[2].players.map((p) => p.id)).toEqual(["p9", "p10", "p11"]);
+  });
+
+  it("keeps every manual group at ≥2 when players ≥ 2×groups", () => {
+    const buckets = distributeIntoGroups({
+      players: players(7),
+      groupsCount: 3,
+      method: "manual",
+    });
+    expect(buckets.every((b) => b.players.length >= 2)).toBe(true);
   });
 });
 

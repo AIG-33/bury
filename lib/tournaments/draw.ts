@@ -425,10 +425,26 @@ export function distributeIntoGroups(opts: {
     players: [],
   }));
 
+  if (method === "manual") {
+    // Manual = predictable sequential blocks: the first players in the given
+    // order fill group A, the next block fills B, and so on. Group sizes stay
+    // balanced (first `remainder` groups get one extra player). This makes a
+    // fully hand-crafted layout possible: order by seed → generate → fine-tune
+    // by moving individual players between groups.
+    const base = Math.floor(ordered.length / groupsCount);
+    const remainder = ordered.length % groupsCount;
+    let cursor = 0;
+    for (let g = 0; g < groupsCount; g++) {
+      const size = base + (g < remainder ? 1 : 0);
+      buckets[g].players = ordered.slice(cursor, cursor + size);
+      cursor += size;
+    }
+    return buckets;
+  }
+
   // Serpentine distribution. Each "row" of the boustrophedon walk has length
   // groupsCount: pass 0 fills A→B→C, pass 1 fills C→B→A, pass 2 again A→B→C,
-  // and so on. This balances both "manual" (seeds preserved in order) and
-  // "rating" (best players spread across groups).
+  // and so on — best players spread evenly across groups.
   for (let i = 0; i < ordered.length; i++) {
     const row = Math.floor(i / groupsCount);
     const col = i % groupsCount;
