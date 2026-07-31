@@ -120,6 +120,16 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     add_directly_hint: t("participants.add_directly_hint"),
     mode_hint_auto: t("participants.mode_hint_auto"),
     mode_hint_manual: t("participants.mode_hint_manual"),
+    add_to_group_label: t("participants.add_to_group_label"),
+    add_to_group_hint: t("participants.add_to_group_hint"),
+    group_option: t("participants.group_option", { name: "{name}" }),
+    withdraw_button: t("participants.withdraw_button"),
+    withdrawing: t("participants.withdrawing"),
+    withdraw_confirm_group: t("participants.withdraw_confirm_group", {
+      name: "{name}",
+      n: "{n}",
+    }),
+    withdraw_confirm_bracket: t("participants.withdraw_confirm_bracket", { name: "{name}" }),
   };
 
   const bracketCopy: BracketCopy = {
@@ -206,6 +216,27 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
   };
 
   const locked = tournament.status === "in_progress" || tournament.status === "finished";
+
+  // Roster stays editable while the tournament runs. During the group stage
+  // of a hybrid the organizer can add players straight into a group; once the
+  // playoff (or a plain bracket) runs, only withdrawal remains.
+  const playoffStarted = matches.some((m) => m.stage === "playoff" || m.stage === "third_place");
+  const groupStageEditable =
+    tournament.format === "group_playoff" && !playoffStarted && groups.length > 0;
+  const canAddToGroup = tournament.status === "in_progress" && groupStageEditable;
+  const canWithdraw = tournament.status === "in_progress";
+  const withdrawMode: "group" | "bracket" =
+    groupStageEditable || tournament.format === "round_robin" ? "group" : "bracket";
+  // Per-player pending matches that a group-stage withdrawal would delete.
+  const pendingByPlayer: Record<string, number> = {};
+  for (const m of matches) {
+    if (m.outcome !== "pending") continue;
+    if (tournament.format === "group_playoff" && m.stage !== "group") continue;
+    if (tournament.format === "round_robin" && m.stage != null) continue;
+    for (const pid of [m.p1_id, m.p2_id]) {
+      if (pid) pendingByPlayer[pid] = (pendingByPlayer[pid] ?? 0) + 1;
+    }
+  }
 
   const adminsCopy: AdminsCopy = {
     title: t("admins.title"),
@@ -427,6 +458,11 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         locked={locked}
         applicationMode={tournament.application_mode}
         isDoubles={tournament.discipline === "doubles"}
+        groups={groups}
+        canAddToGroup={canAddToGroup}
+        canWithdraw={canWithdraw}
+        withdrawMode={withdrawMode}
+        pendingByPlayer={pendingByPlayer}
       />
 
       {tournament.format === "group_playoff" && (

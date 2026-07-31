@@ -2695,7 +2695,10 @@
       "partner_is_self": "A player can't partner with themselves.",
       "already_registered": "This player is already in the tournament.",
       "partner_already_registered": "The selected partner is already in the tournament.",
-      "pair_incomplete": "Some pairs are missing a partner — the draw can't be generated. Check the participant list."
+      "pair_incomplete": "Some pairs are missing a partner — the draw can't be generated. Check the participant list.",
+      "tournament_not_in_progress": "This action is only available while the tournament is running.",
+      "playoff_already_started": "The playoff has already started — group rosters are locked. You can only withdraw the participant.",
+      "already_withdrawn": "This participant has already withdrawn."
     },
     "match_rule_kinds": {
       "best_of_3": "Best of 3 sets",
@@ -2831,7 +2834,14 @@
       "add_pair_button": "Add pair",
       "pair_first_hint": "Doubles tournament: pick the first player of the pair.",
       "pair_second_hint": "Now pick the partner — the whole pair will be added.",
-      "cancel_pair": "Reset"
+      "cancel_pair": "Reset",
+      "add_to_group_label": "Group for the new participant",
+      "add_to_group_hint": "The tournament is already running. The new player joins the selected group right away, and matches against every member of that group are scheduled automatically.",
+      "group_option": "Group {name}",
+      "withdraw_button": "Withdraw",
+      "withdrawing": "Withdrawing…",
+      "withdraw_confirm_group": "Withdraw “{name}” from the tournament? Unplayed matches to be deleted: {n}. Played matches and their Elo impact are preserved, but the participant drops out of the group standings.",
+      "withdraw_confirm_bracket": "Withdraw “{name}” from the tournament? They will be flagged as withdrawn; bracket matches stay untouched — award their opponent a walkover via the “Score” button."
     },
     "bracket": {
       "title": "Bracket",

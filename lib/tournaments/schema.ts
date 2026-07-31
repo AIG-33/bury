@@ -346,6 +346,33 @@ export const AddParticipantSchema = z.object({
   seed: z.coerce.number().int().min(1).max(256).optional().nullable(),
 });
 
+/**
+ * Late add during the group stage of a running hybrid tournament: the
+ * organizer picks the player (or pair) AND the target group in one step.
+ * Round-robin matches against every current group member are appended by
+ * the server action.
+ */
+export const AddParticipantToGroupSchema = z.object({
+  tournament_id: z.string().uuid(),
+  player_id: z.string().uuid(),
+  // Required (validated in the action) when the tournament is doubles.
+  partner_id: z.string().uuid().optional().nullable(),
+  group_id: z.string().uuid(),
+});
+export type AddParticipantToGroupInput = z.infer<typeof AddParticipantToGroupSchema>;
+
+/**
+ * Withdraw a participant from a running tournament. During the group stage
+ * their unplayed group matches are deleted; once the playoff (or a plain
+ * bracket) is running, matches stay put and the row is only flagged
+ * withdrawn — the organizer resolves affected matches via walkover.
+ */
+export const WithdrawParticipantSchema = z.object({
+  tournament_id: z.string().uuid(),
+  participant_id: z.string().uuid(),
+});
+export type WithdrawParticipantInput = z.infer<typeof WithdrawParticipantSchema>;
+
 // ─── Tournament admins (co-organizers) ───────────────────────────────────────
 
 /** Add/remove a co-organizer. Only the tournament owner may call these. */

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bucketsFromManualAssignment,
+  buildMatchesForNewGroupMember,
   buildRoundRobinSchedule,
   buildSingleEliminationBracket,
   computeRoundRobinStandings,
@@ -237,6 +238,51 @@ describe("buildRoundRobinSchedule", () => {
 
   it("throws on a single player", () => {
     expect(() => buildRoundRobinSchedule(players(1))).toThrow();
+  });
+});
+
+describe("buildMatchesForNewGroupMember", () => {
+  it("creates exactly one match against every current member", () => {
+    const rows = buildMatchesForNewGroupMember({
+      newPlayerId: "pX",
+      memberIds: ["p1", "p2", "p3"],
+      startRound: 4,
+    });
+    expect(rows).toHaveLength(3);
+    const opponents = rows.map((m) => (m.p1_id === "pX" ? m.p2_id : m.p1_id));
+    expect(new Set(opponents)).toEqual(new Set(["p1", "p2", "p3"]));
+    for (const m of rows) {
+      expect([m.p1_id, m.p2_id]).toContain("pX");
+    }
+  });
+
+  it("appends sequential rounds starting at startRound (one match per round)", () => {
+    const rows = buildMatchesForNewGroupMember({
+      newPlayerId: "pX",
+      memberIds: ["p1", "p2"],
+      startRound: 6,
+    });
+    expect(rows.map((m) => m.round)).toEqual([6, 7]);
+    expect(rows.every((m) => m.bracket_slot === 1)).toBe(true);
+  });
+
+  it("keeps the lower-id-first ordering convention", () => {
+    const rows = buildMatchesForNewGroupMember({
+      newPlayerId: "b",
+      memberIds: ["a", "c"],
+      startRound: 1,
+    });
+    expect(rows[0]).toMatchObject({ p1_id: "a", p2_id: "b" });
+    expect(rows[1]).toMatchObject({ p1_id: "b", p2_id: "c" });
+  });
+
+  it("ignores the new player if present in memberIds and handles empty groups", () => {
+    expect(
+      buildMatchesForNewGroupMember({ newPlayerId: "pX", memberIds: ["pX"], startRound: 1 }),
+    ).toEqual([]);
+    expect(
+      buildMatchesForNewGroupMember({ newPlayerId: "pX", memberIds: [], startRound: 1 }),
+    ).toEqual([]);
   });
 });
 

@@ -258,6 +258,31 @@ export function buildRoundRobinSchedule(
   return { totalRounds: rounds, matches };
 }
 
+/**
+ * Matches for a player who joins a round-robin group AFTER its schedule was
+ * generated (late add during the group stage). We can't regenerate the whole
+ * circle-method schedule — some matches may already have scores — so the new
+ * player's matches are APPENDED as extra rounds, one match per round (a player
+ * can appear only once per round).
+ *
+ * `startRound` is the first free round number (max existing round + 1).
+ * p1/p2 ordering follows the same "lower id first" convention as
+ * `buildRoundRobinSchedule`.
+ */
+export function buildMatchesForNewGroupMember(opts: {
+  newPlayerId: string;
+  memberIds: string[];
+  startRound: number;
+}): RoundRobinMatch[] {
+  const { newPlayerId, memberIds, startRound } = opts;
+  return memberIds
+    .filter((id) => id !== newPlayerId)
+    .map((memberId, i) => {
+      const [p1, p2] = newPlayerId < memberId ? [newPlayerId, memberId] : [memberId, newPlayerId];
+      return { round: startRound + i, bracket_slot: 1, p1_id: p1, p2_id: p2 };
+    });
+}
+
 // =============================================================================
 // Round-robin standings.
 //

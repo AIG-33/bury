@@ -13,6 +13,8 @@ import {
   GenerateGroupsManualSchema,
   CloseGroupsSchema,
   MoveToGroupSchema,
+  AddParticipantToGroupSchema,
+  WithdrawParticipantSchema,
   TournamentAdminSchema,
   type TournamentFormat,
   type TournamentStatus,
@@ -31,6 +33,7 @@ import {
 } from "@/lib/tournaments/pairs";
 import { canSetParticipantStatus } from "@/lib/tournaments/applications";
 import {
+  buildMatchesForNewGroupMember,
   buildRoundRobinSchedule,
   buildSingleEliminationBracket,
   computeRoundRobinStandings,
@@ -1188,6 +1191,133 @@ export async function removeParticipant(
   return { ok: true };
 }
 
+// True once the playoff bracket of a hybrid tournament has been seeded
+// (closeGroupsAndStartPlayoff ran) — group editing is locked from there on.
+async function hasPlayoffMatches(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tournamentId: string,
+): Promise<boolean> {
+  const { data } = (await supabase
+    .from("matches")
+    .select("id")
+    .eq("tournament_id", tournamentId)
+    .in("stage", ["playoff", "third_place"])
+    .limit(1)) as { data: Array<{ id: string }> | null };
+  return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Withdraw a participant from a RUNNING tournament (someone dropped out at
+ * the last minute). Played matches — and their Elo — are never touched.
+ *
+ *   – Group stage of a hybrid (playoff not seeded yet) and pure round-robin:
+ *     the participant's UNPLAYED matches are deleted and the row is flagged
+ *     withdrawn. Per the existing standings semantics (`withdrawn=false`
+ *     filters everywhere) their played matches drop out of the group table.
+ *   – Playoff already running, or a single-elimination bracket: matches stay
+ *     (deleting bracket rows would break the tree) — the row is flagged
+ *     withdrawn and the organizer resolves open matches via walkover.
+ *
+ * Before the tournament starts use removeParticipant / reject instead.
+ */
+export async function withdrawParticipant(
+  input: unknown,
+): Promise<{ ok: true; deletedMatches: number } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = WithdrawParticipantSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id, status, format")
+    .eq("id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      owner_id: string;
+      status: TournamentStatus;
+      format: TournamentFormat;
+    } | null;
+  };
+  if (!t) return { ok: false, error: "tournament_not_found" };
+  const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+  if (!manage.ok) return manage;
+  if (t.status !== "in_progress") {
+    return { ok: false, error: "tournament_not_in_progress" };
+  }
+
+  const { data: p } = (await supabase
+    .from("tournament_participants")
+    .select("id, player_id, status, withdrawn")
+    .eq("id", v.participant_id)
+    .eq("tournament_id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      player_id: string;
+      status: ParticipantStatus;
+      withdrawn: boolean;
+    } | null;
+  };
+  if (!p) return { ok: false, error: "participant_not_found" };
+  if (p.withdrawn) return { ok: false, error: "already_withdrawn" };
+
+  const groupStageEditable =
+    t.format === "group_playoff" && !(await hasPlayoffMatches(supabase, v.tournament_id));
+
+  let deletedMatches = 0;
+  if (groupStageEditable || t.format === "round_robin") {
+    // Matches are keyed by the pair captain in doubles, which is exactly
+    // tournament_participants.player_id — one filter covers both disciplines.
+    let del = supabase
+      .from("matches")
+      .delete()
+      .eq("tournament_id", v.tournament_id)
+      .eq("outcome", "pending")
+      .or(`p1_id.eq.${p.player_id},p2_id.eq.${p.player_id}`);
+    del = groupStageEditable ? del.eq("stage", "group") : del.is("stage", null);
+    const { data: deleted, error: delErr } = (await del.select("id")) as {
+      data: Array<{ id: string }> | null;
+      error: { message: string } | null;
+    };
+    if (delErr) return { ok: false, error: delErr.message };
+    deletedMatches = deleted?.length ?? 0;
+  }
+
+  const { error: upErr } = await supabase
+    .from("tournament_participants")
+    .update({ withdrawn: true } as never)
+    .eq("id", v.participant_id);
+  if (upErr) return { ok: false, error: upErr.message };
+
+  // Pure round-robin finishes automatically once no pending match is left;
+  // normally setMatchScore handles that, but a withdrawal can remove the
+  // last pending matches without any score ever being entered.
+  if (t.format === "round_robin") {
+    const { data: remaining } = (await supabase
+      .from("matches")
+      .select("id")
+      .eq("tournament_id", v.tournament_id)
+      .eq("outcome", "pending")
+      .limit(1)) as { data: Array<{ id: string }> | null };
+    if ((remaining?.length ?? 0) === 0) {
+      await supabase
+        .from("tournaments")
+        .update({ status: "finished" } as never)
+        .eq("id", v.tournament_id);
+    }
+  }
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  revalidatePath(`/tournaments/${v.tournament_id}`);
+  return { ok: true, deletedMatches };
+}
+
 // =============================================================================
 // Bracket generation (single elimination + round-robin)
 // =============================================================================
@@ -1940,6 +2070,164 @@ export async function reassignToGroup(
 
   revalidatePath(`/me/tournaments/organized/${p.tournament_id}`);
   return { ok: true };
+}
+
+/**
+ * Late add during the group stage of a RUNNING hybrid tournament: the
+ * organizer picks the player (or pair) and the target group in one step.
+ * Round-robin matches against every current group member are appended as
+ * extra rounds — already-played matches of the group are never touched.
+ * Locked once the playoff bracket is seeded.
+ */
+export async function addParticipantToGroup(
+  input: unknown,
+): Promise<{ ok: true; id: string; matchesCount: number } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = AddParticipantToGroupSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id, status, format, discipline, max_participants, match_rules")
+    .eq("id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      owner_id: string;
+      status: TournamentStatus;
+      format: TournamentFormat;
+      discipline: TournamentDiscipline;
+      max_participants: number | null;
+      match_rules: MatchRules;
+    } | null;
+  };
+  if (!t) return { ok: false, error: "tournament_not_found" };
+  const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+  if (!manage.ok) return manage;
+  if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
+  if (t.status !== "in_progress") return { ok: false, error: "tournament_not_in_progress" };
+  if (await hasPlayoffMatches(supabase, v.tournament_id)) {
+    return { ok: false, error: "playoff_already_started" };
+  }
+
+  const { data: targetGroup } = (await supabase
+    .from("tournament_groups")
+    .select("id, tournament_id")
+    .eq("id", v.group_id)
+    .single()) as { data: { id: string; tournament_id: string } | null };
+  if (!targetGroup || targetGroup.tournament_id !== v.tournament_id) {
+    return { ok: false, error: "group_not_in_tournament" };
+  }
+
+  const isDoubles = t.discipline === "doubles";
+  let partnerId: string | null = null;
+  if (isDoubles) {
+    const { data: existing } = (await supabase
+      .from("tournament_participants")
+      .select("player_id, partner_id")
+      .eq("tournament_id", v.tournament_id)) as {
+      data: Array<{ player_id: string; partner_id: string | null }> | null;
+    };
+    const pair = validatePairRegistration({
+      captainId: v.player_id,
+      partnerId: v.partner_id,
+      existing: existing ?? [],
+    });
+    if (!pair.ok) return { ok: false, error: pair.error };
+    partnerId = pair.partnerId;
+  }
+
+  if (t.max_participants != null) {
+    const { data: cnt } = (await supabase
+      .from("tournament_participants")
+      .select("id")
+      .eq("tournament_id", v.tournament_id)
+      .eq("status", "approved")
+      .eq("withdrawn", false)) as { data: Array<{ id: string }> | null };
+    if ((cnt?.length ?? 0) >= t.max_participants) {
+      return { ok: false, error: "tournament_full" };
+    }
+  }
+
+  // Snapshot the group roster BEFORE inserting the new row.
+  const { data: members } = (await supabase
+    .from("tournament_participants")
+    .select("player_id, partner_id")
+    .eq("tournament_id", v.tournament_id)
+    .eq("group_id", v.group_id)
+    .eq("status", "approved")
+    .eq("withdrawn", false)) as {
+    data: Array<{ player_id: string; partner_id: string | null }> | null;
+  };
+  const memberRows = (members ?? []).filter((m) => m.player_id !== v.player_id);
+
+  const { data: inserted, error: insErr } = (await supabase
+    .from("tournament_participants")
+    .insert({
+      tournament_id: v.tournament_id,
+      player_id: v.player_id,
+      partner_id: partnerId,
+      status: "approved",
+      group_id: v.group_id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
+    .select("id")
+    .single()) as { data: { id: string } | null; error: { message: string } | null };
+  if (insErr || !inserted) {
+    return { ok: false, error: insErr?.message ?? "insert_failed" };
+  }
+
+  // Append the new player's matches after the group's last scheduled round.
+  const { data: lastRound } = (await supabase
+    .from("matches")
+    .select("round")
+    .eq("tournament_id", v.tournament_id)
+    .eq("group_id", v.group_id)
+    .order("round", { ascending: false })
+    .limit(1)
+    .maybeSingle()) as { data: { round: number | null } | null };
+  const startRound = (lastRound?.round ?? 0) + 1;
+
+  const newMatches = buildMatchesForNewGroupMember({
+    newPlayerId: v.player_id,
+    memberIds: memberRows.map((m) => m.player_id),
+    startRound,
+  });
+
+  if (newMatches.length > 0) {
+    const partnerByCaptain = new Map<string, string>();
+    if (isDoubles) {
+      for (const m of memberRows) {
+        if (m.partner_id) partnerByCaptain.set(m.player_id, m.partner_id);
+      }
+      if (partnerId) partnerByCaptain.set(v.player_id, partnerId);
+    }
+    const rows = newMatches.map((m) => ({
+      tournament_id: v.tournament_id,
+      round: m.round,
+      bracket_slot: m.bracket_slot,
+      p1_id: m.p1_id,
+      p2_id: m.p2_id,
+      is_doubles: isDoubles,
+      p1_partner_id: isDoubles ? (partnerByCaptain.get(m.p1_id) ?? null) : null,
+      p2_partner_id: isDoubles ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
+      outcome: "pending" as const,
+      winner_side: null,
+      match_rules: t.match_rules,
+      stage: "group" as const,
+      group_id: v.group_id,
+    }));
+    const { error: mErr } = await supabase.from("matches").insert(rows as never);
+    if (mErr) return { ok: false, error: mErr.message };
+  }
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  revalidatePath(`/tournaments/${v.tournament_id}`);
+  return { ok: true, id: inserted.id, matchesCount: newMatches.length };
 }
 
 /**

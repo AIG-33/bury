@@ -14,11 +14,15 @@ import {
   Inbox,
   CheckCircle2,
   Ban,
+  UserMinus,
 } from "lucide-react";
 import {
   addParticipant,
+  addParticipantToGroup,
   removeParticipant,
   setParticipantStatus,
+  withdrawParticipant,
+  type GroupRow,
   type ParticipantRow,
   type PlayerOption,
 } from "../actions";
@@ -57,6 +61,14 @@ export type ParticipantsCopy = {
   add_directly_hint: string;
   mode_hint_auto: string;
   mode_hint_manual: string;
+  // In-progress management: late add into a group + withdraw.
+  add_to_group_label: string;
+  add_to_group_hint: string;
+  group_option: string;
+  withdraw_button: string;
+  withdrawing: string;
+  withdraw_confirm_group: string;
+  withdraw_confirm_bracket: string;
 };
 
 export function ParticipantsSection({
@@ -67,6 +79,11 @@ export function ParticipantsSection({
   locked,
   applicationMode,
   isDoubles = false,
+  groups = [],
+  canAddToGroup = false,
+  canWithdraw = false,
+  withdrawMode = "bracket",
+  pendingByPlayer = {},
 }: {
   tournamentId: string;
   participants: ParticipantRow[];
@@ -75,6 +92,15 @@ export function ParticipantsSection({
   locked: boolean;
   applicationMode: "auto" | "manual";
   isDoubles?: boolean;
+  groups?: GroupRow[];
+  /** Running hybrid, group stage still open — late add into a chosen group. */
+  canAddToGroup?: boolean;
+  /** Running tournament — organizer can withdraw a participant. */
+  canWithdraw?: boolean;
+  /** "group": unplayed matches get deleted; "bracket": matches stay (walkover). */
+  withdrawMode?: "group" | "bracket";
+  /** player_id → number of their still-pending matches (for the confirm text). */
+  pendingByPlayer?: Record<string, number>;
 }) {
   const t = useTranslations("tournamentsOrganized.participants");
   const tErrors = useTranslations("tournamentsOrganized.errors");
@@ -84,6 +110,8 @@ export function ParticipantsSection({
   const [busyId, setBusyId] = useState<string | null>(null);
   // Doubles: pairs are added in two clicks — captain first, then partner.
   const [pairFirst, setPairFirst] = useState<PlayerOption | null>(null);
+  // Target group for the in-progress "add into group" flow.
+  const [targetGroupId, setTargetGroupId] = useState<string>(groups[0]?.id ?? "");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -109,11 +137,18 @@ export function ParticipantsSection({
   function onAdd(playerId: string, partnerId?: string) {
     setBusyId(playerId);
     startT(async () => {
-      const r = await addParticipant({
-        tournament_id: tournamentId,
-        player_id: playerId,
-        partner_id: partnerId ?? null,
-      });
+      const r = canAddToGroup
+        ? await addParticipantToGroup({
+            tournament_id: tournamentId,
+            player_id: playerId,
+            partner_id: partnerId ?? null,
+            group_id: targetGroupId,
+          })
+        : await addParticipant({
+            tournament_id: tournamentId,
+            player_id: playerId,
+            partner_id: partnerId ?? null,
+          });
       setBusyId(null);
       if (r.ok) {
         setPairFirst(null);
@@ -152,6 +187,29 @@ export function ParticipantsSection({
     setBusyId(participantId);
     startT(async () => {
       const r = await removeParticipant(tournamentId, participantId);
+      setBusyId(null);
+      if (r.ok) router.refresh();
+      else alert(localizeActionError(tErrors, r.error));
+    });
+  }
+
+  function onWithdraw(p: ParticipantRow) {
+    const name = isDoubles
+      ? `${p.display_name ?? "—"} / ${p.partner_name ?? "—"}`
+      : (p.display_name ?? "—");
+    const message =
+      withdrawMode === "group"
+        ? copy.withdraw_confirm_group
+            .replace("{name}", name)
+            .replace("{n}", String(pendingByPlayer[p.player_id] ?? 0))
+        : copy.withdraw_confirm_bracket.replace("{name}", name);
+    if (!confirm(message)) return;
+    setBusyId(p.id);
+    startT(async () => {
+      const r = await withdrawParticipant({
+        tournament_id: tournamentId,
+        participant_id: p.id,
+      });
       setBusyId(null);
       if (r.ok) router.refresh();
       else alert(localizeActionError(tErrors, r.error));
@@ -245,10 +303,33 @@ export function ParticipantsSection({
         </div>
       )}
 
-      {/* Owner can also add players directly without the application step. */}
-      {!locked && (
+      {/* Owner can also add players directly without the application step.
+          While the group stage of a running hybrid is open, the same picker
+          performs a late add into a chosen group instead. */}
+      {(!locked || canAddToGroup) && (
         <div className="mt-4">
-          <p className="mb-2 text-[11px] text-ink-500">{copy.add_directly_hint}</p>
+          <p className="mb-2 text-[11px] text-ink-500">
+            {canAddToGroup ? copy.add_to_group_hint : copy.add_directly_hint}
+          </p>
+          {canAddToGroup && (
+            <label className="mb-2 flex flex-wrap items-center gap-2 text-[11px] text-ink-600">
+              <span className="font-semibold uppercase tracking-wider">
+                {copy.add_to_group_label}
+              </span>
+              <select
+                value={targetGroupId}
+                disabled={pending}
+                onChange={(e) => setTargetGroupId(e.target.value)}
+                className="h-7 rounded-md border border-ink-200 bg-white px-1 text-[11px] text-ink-700"
+              >
+                {groups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {copy.group_option.replace("{name}", g.name)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {isDoubles && (
             <div className="mb-2 flex flex-wrap items-center gap-2">
               {pairFirst ? (
@@ -362,7 +443,7 @@ export function ParticipantsSection({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs text-ink-500">Elo {p.current_elo}</span>
-                    {!locked && (
+                    {!locked ? (
                       <button
                         type="button"
                         onClick={() => onRemove(p.id)}
@@ -376,7 +457,21 @@ export function ParticipantsSection({
                         )}
                         {copy.remove}
                       </button>
-                    )}
+                    ) : canWithdraw && !p.withdrawn ? (
+                      <button
+                        type="button"
+                        onClick={() => onWithdraw(p)}
+                        disabled={busy}
+                        className="inline-flex h-7 items-center gap-1 rounded-md border border-clay-200 px-2 text-xs font-medium text-clay-700 transition hover:bg-clay-50 disabled:opacity-60"
+                      >
+                        {busy ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <UserMinus className="h-3 w-3" />
+                        )}
+                        {busy ? copy.withdrawing : copy.withdraw_button}
+                      </button>
+                    ) : null}
                   </div>
                 </li>
               );
