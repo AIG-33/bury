@@ -478,11 +478,13 @@ function GroupCard({
       {group.rows.length === 0 ? (
         <p className="mt-1.5 text-[12.5px] text-ink-500">{t("tournament.group_empty")}</p>
       ) : (
+        /* Player column gets all leftover width and wraps to a second line
+           instead of truncating; numeric columns stay narrow (nowrap). */
         <table className="mt-1.5 w-full text-[12px] tabular-nums">
           <thead>
             <tr className="text-[10px] font-bold uppercase text-[#8AA093]">
               <th className="py-0.5 pr-1.5 text-left">{t("tournament.group_col_pos")}</th>
-              <th className="py-0.5 pr-1.5 text-left">{t("tournament.group_col_player")}</th>
+              <th className="w-full py-0.5 pr-1.5 text-left">{t("tournament.group_col_player")}</th>
               <th className="px-1 py-0.5 text-center">{t("tournament.group_col_played")}</th>
               <th className="px-1 py-0.5 text-center">{t("tournament.group_col_wins")}</th>
               <th className="px-1 py-0.5 text-center">{t("tournament.group_col_losses")}</th>
@@ -492,18 +494,26 @@ function GroupCard({
           <tbody>
             {group.rows.map((r) => (
               <tr key={r.player_id} className="border-t border-[rgba(20,60,30,0.06)]">
-                <td className="py-1.5 pr-1.5 font-mono font-bold text-ink-500">{r.position}</td>
-                <td className="max-w-0 truncate py-1.5 pr-1.5 text-[13px] font-bold text-ink-900">
+                <td className="whitespace-nowrap py-1.5 pr-1.5 font-mono font-bold text-ink-500">
+                  {r.position}
+                </td>
+                <td className="w-full py-1.5 pr-1.5 text-[13px] font-bold leading-snug text-ink-900">
                   <PlayerNameLink
                     id={r.player_id}
                     name={r.name}
                     className="transition-opacity active:opacity-85"
                   />
                 </td>
-                <td className="px-1 py-1.5 text-center text-ink-600">{r.matches_played}</td>
-                <td className="px-1 py-1.5 text-center font-bold text-grass-700">{r.wins}</td>
-                <td className="px-1 py-1.5 text-center text-ink-600">{r.losses}</td>
-                <td className="py-1.5 pl-1 text-center font-mono text-ink-700">
+                <td className="whitespace-nowrap px-1 py-1.5 text-center text-ink-600">
+                  {r.matches_played}
+                </td>
+                <td className="whitespace-nowrap px-1 py-1.5 text-center font-bold text-grass-700">
+                  {r.wins}
+                </td>
+                <td className="whitespace-nowrap px-1 py-1.5 text-center text-ink-600">
+                  {r.losses}
+                </td>
+                <td className="whitespace-nowrap py-1.5 pl-1 text-center font-mono text-ink-700">
                   {r.sets_won}–{r.sets_lost}
                 </td>
               </tr>

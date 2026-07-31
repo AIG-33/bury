@@ -408,7 +408,9 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                 <h2 className="section-title mb-4 text-[18px] md:text-[20px]">
                   {t("detail.groups_title")}
                 </h2>
-                <div className="grid gap-4 xl:grid-cols-2">
+                {/* Single column: the player column needs the full card width
+                    so names never get clipped. */}
+                <div className="grid gap-4">
                   {groups.map((g) => (
                     <div
                       key={g.id}
@@ -420,12 +422,16 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                       {g.rows.length === 0 ? (
                         <p className="mt-2 text-sm text-ink-500">{t("detail.group_empty")}</p>
                       ) : (
-                        <div className="mt-2 overflow-x-auto">
+                        <div className="mt-2">
+                          {/* The player column takes all leftover width (w-full)
+                              and wraps to a second line instead of truncating;
+                              numeric columns stay narrow via whitespace-nowrap.
+                              Sets/games hide on narrow screens. */}
                           <table className="w-full text-xs tabular-nums">
                             <thead>
                               <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-ink-400">
                                 <th className="py-1 pr-2 text-left">{t("detail.group_col_pos")}</th>
-                                <th className="py-1 pr-2 text-left">
+                                <th className="w-full py-1 pr-2 text-left">
                                   {t("detail.group_col_player")}
                                 </th>
                                 <th className="px-1 py-1 text-center">
@@ -437,10 +443,10 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                                 <th className="px-1 py-1 text-center">
                                   {t("detail.group_col_losses")}
                                 </th>
-                                <th className="px-1 py-1 text-center">
+                                <th className="hidden px-1 py-1 text-center sm:table-cell">
                                   {t("detail.group_col_sets")}
                                 </th>
-                                <th className="py-1 pl-1 text-center">
+                                <th className="hidden py-1 pl-1 text-center sm:table-cell">
                                   {t("detail.group_col_games")}
                                 </th>
                               </tr>
@@ -448,25 +454,25 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                             <tbody>
                               {g.rows.map((r) => (
                                 <tr key={r.player_id} className="border-t border-ink-100/70">
-                                  <td className="py-1.5 pr-2 font-mono font-bold text-ink-500">
+                                  <td className="whitespace-nowrap py-1.5 pr-2 font-mono font-bold text-ink-500">
                                     {r.position}
                                   </td>
-                                  <td className="max-w-0 truncate py-1.5 pr-2 text-[13px] font-bold text-ink-900">
+                                  <td className="w-full py-1.5 pr-2 text-[13px] font-bold leading-snug text-ink-900">
                                     <PlayerNameLink id={r.player_id} name={r.name} />
                                   </td>
-                                  <td className="px-1 py-1.5 text-center text-ink-600">
+                                  <td className="whitespace-nowrap px-1 py-1.5 text-center text-ink-600">
                                     {r.matches_played}
                                   </td>
-                                  <td className="px-1 py-1.5 text-center font-bold text-grass-700">
+                                  <td className="whitespace-nowrap px-1 py-1.5 text-center font-bold text-grass-700">
                                     {r.wins}
                                   </td>
-                                  <td className="px-1 py-1.5 text-center text-ink-600">
+                                  <td className="whitespace-nowrap px-1 py-1.5 text-center text-ink-600">
                                     {r.losses}
                                   </td>
-                                  <td className="px-1 py-1.5 text-center font-mono text-ink-700">
+                                  <td className="hidden whitespace-nowrap px-1 py-1.5 text-center font-mono text-ink-700 sm:table-cell">
                                     {r.sets_won}–{r.sets_lost}
                                   </td>
-                                  <td className="py-1.5 pl-1 text-center font-mono text-ink-700">
+                                  <td className="hidden whitespace-nowrap py-1.5 pl-1 text-center font-mono text-ink-700 sm:table-cell">
                                     {r.games_won}–{r.games_lost}
                                   </td>
                                 </tr>
