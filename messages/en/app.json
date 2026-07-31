@@ -2698,7 +2698,12 @@
       "pair_incomplete": "Some pairs are missing a partner — the draw can't be generated. Check the participant list.",
       "tournament_not_in_progress": "This action is only available while the tournament is running.",
       "playoff_already_started": "The playoff has already started — group rosters are locked. You can only withdraw the participant.",
-      "already_withdrawn": "This participant has already withdrawn."
+      "already_withdrawn": "This participant has already withdrawn.",
+      "playoff_already_scored": "A playoff score has already been entered — the bracket can't be re-seeded. Fix individual matches by hand instead.",
+      "not_a_playoff_match": "Players can only be replaced in playoff or single-elimination bracket matches.",
+      "match_already_played": "This match already has a result — correct or reset the score first.",
+      "downstream_match_played": "The next match up the bracket has already been played — this player can't be replaced here.",
+      "same_player_both_sides": "The same player can't be on both sides of a match."
     },
     "match_rule_kinds": {
       "best_of_3": "Best of 3 sets",
@@ -2878,7 +2883,10 @@
       "quick_scores": "Quick score",
       "special_result": "Other result",
       "error": "Error",
-      "insufficient_players": "Need at least 2 participants to draw a bracket."
+      "insufficient_players": "Need at least 2 participants to draw a bracket.",
+      "edit_players": "Players",
+      "edit_players_hint": "Replace a player in this pair by hand: pick a tournament participant for the top or bottom slot. The empty value clears the slot (TBD). Only available for unplayed matches.",
+      "slot_empty": "— empty (TBD) —"
     },
     "groups": {
       "title": "Group stage",
@@ -2917,7 +2925,9 @@
       "closing": "Starting…",
       "qualifiers_summary": "Groups: {groups}, advance per group: {n} → playoff of {size}.",
       "playoff_too_small": "Playoff size is smaller than the total number of qualifiers. Bump the stage or reduce top-N.",
-      "groups_pending": "Finish every group match first — then you can close the groups."
+      "groups_pending": "Finish every group match first — then you can close the groups.",
+      "reclose_playoff": "Re-seed the playoff",
+      "reclose_playoff_warning": "The current playoff bracket will be dropped and re-seeded from the group results (with the selected stage and top-N). Possible only while no playoff score has been entered. Continue?"
     },
     "admins": {
       "title": "Tournament admins",

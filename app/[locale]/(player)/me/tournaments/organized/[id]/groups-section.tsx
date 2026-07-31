@@ -74,6 +74,8 @@ export type GroupsCopy = {
   qualifiers_summary: string;
   playoff_too_small: string;
   groups_pending: string;
+  reclose_playoff: string;
+  reclose_playoff_warning: string;
   error: string;
 };
 
@@ -129,6 +131,17 @@ export function GroupsSection({
     () => groupMatches.some((m) => m.outcome !== "pending"),
     [groupMatches],
   );
+  // Re-seeding the playoff is possible until any playoff/3rd-place match has
+  // a recorded score (auto-byes don't count — they have no played_at).
+  const anyPlayoffScored = useMemo(
+    () =>
+      matches.some(
+        (m) =>
+          (m.stage === "playoff" || m.stage === "third_place") && m.played_at != null,
+      ),
+    [matches],
+  );
+  const [showReclose, setShowReclose] = useState(false);
 
   if (format !== "group_playoff") return null;
 
@@ -388,14 +401,48 @@ export function GroupsSection({
         />
       )}
 
-      {/* Already closed: simple summary line. */}
+      {/* Already closed: summary line + (while no playoff match has a score)
+          the option to re-seed the playoff with different settings. */}
       {playoffSize != null && (
-        <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-700">
-          {copy.qualifiers_summary
-            .replace("{groups}", String(groups.length))
-            .replace("{n}", String(advancePerGroup ?? 0))
-            .replace("{size}", String(playoffSize))}
-        </p>
+        <div className="space-y-3">
+          <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-700">
+            {copy.qualifiers_summary
+              .replace("{groups}", String(groups.length))
+              .replace("{n}", String(advancePerGroup ?? 0))
+              .replace("{size}", String(playoffSize))}
+          </p>
+          {!anyPlayoffScored && (
+            <>
+              {!showReclose ? (
+                <button
+                  type="button"
+                  onClick={() => setShowReclose(true)}
+                  disabled={pending}
+                  className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2.5 text-xs font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-60"
+                >
+                  <Shuffle className="h-3 w-3" />
+                  {copy.reclose_playoff}
+                </button>
+              ) : (
+                <CloseGroupsCard
+                  tournamentId={tournamentId}
+                  groupsCount={groups.length}
+                  allDone={allGroupMatchesDone}
+                  thirdPlaceMatch={thirdPlaceMatch}
+                  copy={copy}
+                  pending={pending}
+                  startT={startT}
+                  confirmText={copy.reclose_playoff_warning}
+                  onCancel={() => setShowReclose(false)}
+                  onSaved={() => {
+                    setShowReclose(false);
+                    router.refresh();
+                  }}
+                />
+              )}
+            </>
+          )}
+        </div>
       )}
     </section>
   );
@@ -722,6 +769,8 @@ function CloseGroupsCard({
   pending,
   startT,
   onSaved,
+  confirmText,
+  onCancel,
 }: {
   tournamentId: string;
   groupsCount: number;
@@ -731,6 +780,9 @@ function CloseGroupsCard({
   pending: boolean;
   startT: (cb: () => void) => void;
   onSaved: () => void;
+  /** Re-seeding an existing playoff asks for confirmation first. */
+  confirmText?: string;
+  onCancel?: () => void;
 }) {
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const [advanceN, setAdvanceN] = useState<number>(2);
@@ -789,25 +841,38 @@ function CloseGroupsCard({
                 ))}
               </select>
             </label>
-            <button
-              type="button"
-              disabled={pending || playoffSize < qualifiers}
-              onClick={() => {
-                startT(async () => {
-                  const r = await closeGroupsAndStartPlayoff({
-                    tournament_id: tournamentId,
-                    advance_per_group: advanceN,
-                    playoff_size: playoffSize,
+            <div className="flex items-end gap-2">
+              <button
+                type="button"
+                disabled={pending || playoffSize < qualifiers}
+                onClick={() => {
+                  if (confirmText && !confirm(confirmText)) return;
+                  startT(async () => {
+                    const r = await closeGroupsAndStartPlayoff({
+                      tournament_id: tournamentId,
+                      advance_per_group: advanceN,
+                      playoff_size: playoffSize,
+                    });
+                    if (r.ok) onSaved();
+                    else alert(localizeActionError(tErrors, r.error));
                   });
-                  if (r.ok) onSaved();
-                  else alert(localizeActionError(tErrors, r.error));
-                });
-              }}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-clay-600 px-3 text-sm font-semibold text-white transition hover:bg-clay-700 disabled:opacity-60"
-            >
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trophy className="h-4 w-4" />}
-              {pending ? copy.closing : copy.close_groups_cta}
-            </button>
+                }}
+                className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md bg-clay-600 px-3 text-sm font-semibold text-white transition hover:bg-clay-700 disabled:opacity-60"
+              >
+                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trophy className="h-4 w-4" />}
+                {pending ? copy.closing : copy.close_groups_cta}
+              </button>
+              {onCancel && (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={onCancel}
+                  className="inline-flex h-9 items-center justify-center rounded-md border border-ink-200 px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50 disabled:opacity-60"
+                >
+                  {copy.regenerate_cancel}
+                </button>
+              )}
+            </div>
           </div>
 
           {playoffSize < qualifiers && (

@@ -160,6 +160,9 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     special_result: t("bracket.special_result"),
     error: t("bracket.error"),
     insufficient_players: t("bracket.insufficient_players"),
+    edit_players: t("bracket.edit_players"),
+    edit_players_hint: t("bracket.edit_players_hint"),
+    slot_empty: t("bracket.slot_empty"),
   };
 
   const groupsCopy: GroupsCopy = {
@@ -212,6 +215,8 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
     }),
     playoff_too_small: t("groups.playoff_too_small"),
     groups_pending: t("groups.groups_pending"),
+    reclose_playoff: t("groups.reclose_playoff"),
+    reclose_playoff_warning: t("groups.reclose_playoff_warning"),
     error: t("bracket.error"),
   };
 
@@ -490,6 +495,7 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
         initialMethod={tournament.draw_method ?? "rating"}
         format={tournament.format}
         matchRules={tournament.match_rules}
+        participants={participants}
       />
 
       {tournament.format === "round_robin" && (

@@ -16,6 +16,7 @@ import {
   AddParticipantToGroupSchema,
   WithdrawParticipantSchema,
   TournamentAdminSchema,
+  EditPlayoffSlotSchema,
   type TournamentFormat,
   type TournamentStatus,
   type TournamentDiscipline,
@@ -2282,6 +2283,19 @@ export async function closeGroupsAndStartPlayoff(
     return { ok: false, error: "playoff_size_too_small" };
   }
 
+  // Re-closing (re-seeding the playoff) is allowed only while NO playoff or
+  // third-place match has been scored — a scored match already moved Elo.
+  const { data: scoredPlayoff } = (await supabase
+    .from("matches")
+    .select("id")
+    .eq("tournament_id", v.tournament_id)
+    .in("stage", ["playoff", "third_place"])
+    .not("played_at", "is", null)
+    .limit(1)) as { data: Array<{ id: string }> | null };
+  if ((scoredPlayoff?.length ?? 0) > 0) {
+    return { ok: false, error: "playoff_already_scored" };
+  }
+
   // Bail out if any group match is still pending.
   const { data: pending } = (await supabase
     .from("matches")
@@ -2360,6 +2374,13 @@ export async function closeGroupsAndStartPlayoff(
         group_position: g.position,
         rank: row.position,
         player,
+        // Group-stage record → fair cross-group seeding inside a rank tier
+        // (byes go to the best group winners, not to group A by default).
+        stats: {
+          wins: row.wins,
+          set_diff: row.sets_won - row.sets_lost,
+          game_diff: row.games_won - row.games_lost,
+        },
       });
     });
   }
@@ -2376,10 +2397,13 @@ export async function closeGroupsAndStartPlayoff(
     .in("stage", ["playoff", "third_place"]);
 
   // Cross-bracket seeding via buildSingleEliminationBracket(method=manual).
-  const orderedPlayers = orderQualifiersForPlayoff(qualifiers);
+  // The chosen playoff_size is honored: extra slots become byes for the top
+  // seeds, so "start from the quarterfinals" really starts there.
+  const orderedPlayers = orderQualifiersForPlayoff(qualifiers, v.playoff_size);
   const { matches, totalRounds } = buildSingleEliminationBracket({
     players: orderedPlayers,
     method: "manual",
+    bracketSize: v.playoff_size,
   });
 
   // Persist the FULL playoff skeleton, including round 2+ rows where both
@@ -2718,6 +2742,270 @@ export async function setMatchScore(
 
   revalidatePath(`/me/tournaments/organized/${m.tournament_id}`);
   return { ok: true, eloP1Delta, eloP2Delta };
+}
+
+// =============================================================================
+// Manual playoff bracket editing — replace / clear a participant in one side
+// of an UNPLAYED playoff, third-place or single-elimination match.
+// =============================================================================
+
+type BracketMatchLite = {
+  id: string;
+  p1_id: string | null;
+  p2_id: string | null;
+  outcome: string;
+  winner_side: "p1" | "p2" | null;
+};
+
+/**
+ * Follow the propagation chain upward from (round, slot) and collect every
+ * still-unplayed match where `playerId` sits in the slot this match feeds.
+ * Generation pre-fills bye winners several rounds deep, so a displaced player
+ * may have copies beyond round+1. Fails if a chain match already has a result
+ * (the bracket can't be cleanly re-wired around a played match).
+ */
+async function collectDownstreamCopies(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  args: {
+    tournamentId: string;
+    stage: MatchStage | null;
+    round: number;
+    bracketSlot: number;
+    playerId: string;
+  },
+): Promise<
+  { ok: true; clears: Array<{ id: string; side: "p1" | "p2" }> } | { ok: false; error: string }
+> {
+  const clears: Array<{ id: string; side: "p1" | "p2" }> = [];
+  let round = args.round;
+  let slot = args.bracketSlot;
+  for (;;) {
+    const side: "p1" | "p2" = slot % 2 === 1 ? "p1" : "p2";
+    const nextRound = round + 1;
+    const nextSlot = Math.ceil(slot / 2);
+    const q = supabase
+      .from("matches")
+      .select("id, p1_id, p2_id, outcome, winner_side")
+      .eq("tournament_id", args.tournamentId)
+      .eq("round", nextRound)
+      .eq("bracket_slot", nextSlot);
+    const { data: next } = (await (
+      args.stage ? q.eq("stage", args.stage) : q.is("stage", null)
+    ).maybeSingle()) as { data: BracketMatchLite | null };
+    if (!next) return { ok: true, clears };
+    if ((side === "p1" ? next.p1_id : next.p2_id) !== args.playerId) return { ok: true, clears };
+    if (next.outcome !== "pending" || next.winner_side != null) {
+      return { ok: false, error: "downstream_match_played" };
+    }
+    clears.push({ id: next.id, side });
+    round = nextRound;
+    slot = nextSlot;
+  }
+}
+
+/**
+ * Put a tournament participant into one side of an unplayed bracket match
+ * (or clear the side with player_id = null). Covers every manual-fix need:
+ * replace a player in a playoff pair, fill a bye slot with a lucky loser,
+ * swap two pairs (two calls), fix a wrong auto-advance.
+ *
+ * Rules:
+ *   – playoff / third-place matches of a hybrid, or any match of a pure
+ *     single-elimination bracket. Group-stage matches are managed through
+ *     the roster tools instead.
+ *   – the match must not have a recorded result (pending or an auto-bye);
+ *   – the new player must be an approved, non-withdrawn participant;
+ *   – bye bookkeeping is kept consistent: displaced players are removed
+ *     from later rounds they were pre-advanced into, and a round-1 match
+ *     left with a single player becomes a bye that advances them.
+ */
+export async function editPlayoffSlot(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = EditPlayoffSlotSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: m } = (await supabase
+    .from("matches")
+    .select(
+      "id, tournament_id, round, bracket_slot, p1_id, p2_id, is_doubles, " +
+        "p1_partner_id, p2_partner_id, outcome, winner_side, sets, stage, group_id, " +
+        "tournaments(owner_id, format, discipline)",
+    )
+    .eq("id", v.match_id)
+    .single()) as {
+    data:
+      | (BracketMatchLite & {
+          tournament_id: string | null;
+          round: number | null;
+          bracket_slot: number | null;
+          is_doubles: boolean;
+          p1_partner_id: string | null;
+          p2_partner_id: string | null;
+          sets: unknown[] | null;
+          stage: MatchStage | null;
+          group_id: string | null;
+          tournaments: {
+            owner_id: string;
+            format: TournamentFormat;
+            discipline: TournamentDiscipline;
+          } | null;
+        })
+      | null;
+  };
+  if (!m) return { ok: false, error: "match_not_found" };
+  if (!m.tournament_id || !m.tournaments || m.round == null || m.bracket_slot == null) {
+    return { ok: false, error: "not_a_bracket_match" };
+  }
+  {
+    const manage = await assertCanManageTournament(
+      supabase,
+      m.tournament_id,
+      userId,
+      m.tournaments.owner_id,
+    );
+    if (!manage.ok) return manage;
+  }
+
+  const isPlayoffStage = m.stage === "playoff" || m.stage === "third_place";
+  const isLegacyBracket = m.stage == null && m.tournaments.format === "single_elimination";
+  if (!isPlayoffStage && !isLegacyBracket) {
+    return { ok: false, error: "not_a_playoff_match" };
+  }
+
+  // Editable = no real result yet: a pending match, or an auto-bye row
+  // (walkover with an empty side and no recorded sets).
+  const isAutoBye =
+    (m.outcome === "walkover_p1" || m.outcome === "walkover_p2") &&
+    (m.p1_id == null || m.p2_id == null) &&
+    (m.sets == null || m.sets.length === 0);
+  if (m.outcome !== "pending" && !isAutoBye) {
+    return { ok: false, error: "match_already_played" };
+  }
+
+  const isDoubles = m.tournaments.discipline === "doubles";
+
+  // Validate the incoming player and resolve their doubles partner.
+  let newPartnerId: string | null = null;
+  if (v.player_id) {
+    const { data: participant } = (await supabase
+      .from("tournament_participants")
+      .select("player_id, partner_id, status, withdrawn")
+      .eq("tournament_id", m.tournament_id)
+      .eq("player_id", v.player_id)
+      .maybeSingle()) as {
+      data: {
+        player_id: string;
+        partner_id: string | null;
+        status: ParticipantStatus;
+        withdrawn: boolean;
+      } | null;
+    };
+    if (!participant || participant.status !== "approved" || participant.withdrawn) {
+      return { ok: false, error: "participant_not_approved" };
+    }
+    if (isDoubles && !participant.partner_id) return { ok: false, error: "pair_incomplete" };
+    newPartnerId = isDoubles ? participant.partner_id : null;
+
+    const otherSideId = v.side === "p1" ? m.p2_id : m.p1_id;
+    if (otherSideId === v.player_id) return { ok: false, error: "same_player_both_sides" };
+  }
+
+  const oldSideId = v.side === "p1" ? m.p1_id : m.p2_id;
+  if (oldSideId === (v.player_id ?? null)) return { ok: true }; // no-op
+
+  // Who was auto-advanced into later rounds from this match? Exactly the
+  // lone occupant of a half-empty match (R1 byes and chained pre-fills).
+  const halfEmpty = (m.p1_id != null) !== (m.p2_id != null);
+  const prevAdvanced = halfEmpty ? (m.p1_id ?? m.p2_id) : null;
+
+  // New side layout after the edit.
+  const newP1 = v.side === "p1" ? v.player_id : m.p1_id;
+  const newP2 = v.side === "p2" ? v.player_id : m.p2_id;
+  const newHalfEmpty = (newP1 != null) !== (newP2 != null);
+  // A round-1 match left with a single player is a bye — the player advances.
+  // Deeper rounds and the 3rd-place match just wait for the missing side.
+  const becomesBye = newHalfEmpty && m.round === 1 && m.stage !== "third_place";
+  const newAdvanced = becomesBye ? (newP1 ?? newP2) : null;
+
+  // Displacing a pre-advanced player requires the later rounds to be clean.
+  let clears: Array<{ id: string; side: "p1" | "p2" }> = [];
+  if (prevAdvanced && prevAdvanced !== newAdvanced) {
+    const walk = await collectDownstreamCopies(supabase, {
+      tournamentId: m.tournament_id,
+      stage: m.stage,
+      round: m.round,
+      bracketSlot: m.bracket_slot,
+      playerId: prevAdvanced,
+    });
+    if (!walk.ok) return walk;
+    clears = walk.clears;
+  }
+
+  const patch: Record<string, unknown> = {
+    [`${v.side}_id`]: v.player_id,
+    outcome: becomesBye ? (newP1 != null ? "walkover_p1" : "walkover_p2") : "pending",
+    winner_side: becomesBye ? (newP1 != null ? "p1" : "p2") : null,
+    sets: null,
+    played_at: null,
+  };
+  if (isDoubles) patch[`${v.side}_partner_id`] = v.player_id ? newPartnerId : null;
+
+  const { error: upErr } = await supabase
+    .from("matches")
+    .update(patch as never)
+    .eq("id", v.match_id);
+  if (upErr) return { ok: false, error: upErr.message };
+
+  for (const c of clears) {
+    const clearPatch: Record<string, unknown> = { [`${c.side}_id`]: null };
+    if (isDoubles) clearPatch[`${c.side}_partner_id`] = null;
+    await supabase
+      .from("matches")
+      .update(clearPatch as never)
+      .eq("id", c.id);
+  }
+
+  // Advance the new bye winner into the next round (single hop — deeper
+  // chains only existed for generation-time byes, which we just cleared).
+  if (newAdvanced) {
+    // The advancing player is not necessarily the newly placed one — clearing
+    // one side of a full round-1 match leaves the REMAINING player as the bye.
+    const advancedPartner =
+      newAdvanced === v.player_id
+        ? newPartnerId
+        : newAdvanced === m.p1_id
+          ? m.p1_partner_id
+          : m.p2_partner_id;
+    const side: "p1" | "p2" = m.bracket_slot % 2 === 1 ? "p1" : "p2";
+    const nq = supabase
+      .from("matches")
+      .select("id, outcome, winner_side")
+      .eq("tournament_id", m.tournament_id)
+      .eq("round", m.round + 1)
+      .eq("bracket_slot", Math.ceil(m.bracket_slot / 2));
+    const { data: next } = (await (
+      m.stage ? nq.eq("stage", m.stage) : nq.is("stage", null)
+    ).maybeSingle()) as { data: BracketMatchLite | null };
+    if (next && next.outcome === "pending" && next.winner_side == null) {
+      const advPatch: Record<string, unknown> = { [`${side}_id`]: newAdvanced };
+      if (isDoubles) advPatch[`${side}_partner_id`] = advancedPartner;
+      await supabase
+        .from("matches")
+        .update(advPatch as never)
+        .eq("id", next.id);
+    }
+  }
+
+  revalidatePath(`/me/tournaments/organized/${m.tournament_id}`);
+  revalidatePath(`/tournaments/${m.tournament_id}`);
+  return { ok: true };
 }
 
 // =============================================================================

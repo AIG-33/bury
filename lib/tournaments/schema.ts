@@ -300,6 +300,19 @@ export const MoveToGroupSchema = z.object({
 });
 export type MoveToGroupInput = z.infer<typeof MoveToGroupSchema>;
 
+/**
+ * Manual playoff bracket editing: put a tournament participant (or clear a
+ * slot with null) into one side of an UNPLAYED playoff / third-place /
+ * single-elimination match. Lets the organizer fix the bracket by hand —
+ * replace a player, fill a bye with a lucky loser, swap pairs (two calls).
+ */
+export const EditPlayoffSlotSchema = z.object({
+  match_id: z.string().uuid(),
+  side: z.enum(["p1", "p2"]),
+  player_id: z.string().uuid().nullable(),
+});
+export type EditPlayoffSlotInput = z.infer<typeof EditPlayoffSlotSchema>;
+
 // ─── Score entry ─────────────────────────────────────────────────────────────
 
 /**

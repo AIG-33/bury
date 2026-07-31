@@ -3,8 +3,14 @@
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2, Trophy, Shuffle } from "lucide-react";
-import { generateBracket, setMatchScore, type MatchRow } from "../actions";
+import { Loader2, Trophy, Shuffle, UserRoundPen } from "lucide-react";
+import {
+  generateBracket,
+  setMatchScore,
+  editPlayoffSlot,
+  type MatchRow,
+  type ParticipantRow,
+} from "../actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
 import { PlayerNameLink } from "@/components/domain/player-name-link";
 import {
@@ -43,7 +49,13 @@ export type BracketCopy = {
   special_result?: string;
   error: string;
   insufficient_players: string;
+  edit_players?: string;
+  edit_players_hint?: string;
+  slot_empty?: string;
 };
+
+/** Option for the manual slot editor: an approved tournament participant. */
+export type SlotPlayerOption = { id: string; label: string };
 
 export function BracketSection({
   tournamentId,
@@ -53,6 +65,7 @@ export function BracketSection({
   initialMethod,
   format,
   matchRules,
+  participants,
 }: {
   tournamentId: string;
   matches: MatchRow[];
@@ -61,6 +74,8 @@ export function BracketSection({
   initialMethod: SeedingMethod;
   format: string;
   matchRules: MatchRules;
+  /** Enables the manual "replace player in a playoff pair" editor. */
+  participants?: ParticipantRow[];
 }) {
   const t = useTranslations("tournamentsOrganized.bracket");
   const tErrors = useTranslations("tournamentsOrganized.errors");
@@ -98,6 +113,21 @@ export function BracketSection({
     }
     return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
   }, [playoffMatches]);
+
+  // Manual slot editing applies to elimination trees only (playoff of a
+  // hybrid and pure single-elimination) — round-robin has no bracket slots.
+  // Options: approved, non-withdrawn participants (a doubles pair renders as
+  // one "Иванов / Петров" line keyed by the pair captain).
+  const effectiveSlotOptions = useMemo<SlotPlayerOption[] | undefined>(() => {
+    if (!participants || (!isHybrid && format !== "single_elimination")) return undefined;
+    return participants
+      .filter((p) => p.status === "approved" && !p.withdrawn)
+      .map((p) => ({
+        id: p.player_id,
+        label: (p.display_name ?? p.player_id) + (p.partner_name ? ` / ${p.partner_name}` : ""),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [participants, isHybrid, format]);
 
   function onGenerate() {
     if (matches.length > 0 && !confirm(copy.regenerate_warning)) return;
@@ -187,6 +217,7 @@ export function BracketSection({
                   onSaved={() => router.refresh()}
                   pending={pending}
                   startT={startT}
+                  slotOptions={effectiveSlotOptions}
                 />
               ))}
             </div>
@@ -209,6 +240,7 @@ export function BracketSection({
               onSaved={() => router.refresh()}
               pending={pending}
               startT={startT}
+              slotOptions={effectiveSlotOptions}
             />
           </div>
         </div>
@@ -226,6 +258,7 @@ export function MatchCard({
   onSaved,
   pending,
   startT,
+  slotOptions,
 }: {
   match: MatchRow;
   copy: BracketCopy;
@@ -235,9 +268,20 @@ export function MatchCard({
   onSaved: () => void;
   pending: boolean;
   startT: (cb: () => void) => void;
+  /** When present, unplayed matches expose the manual player-slot editor. */
+  slotOptions?: SlotPlayerOption[];
 }) {
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const isEditing = editingId === match.id;
+  const [editingSlots, setEditingSlots] = useState(false);
+  // A match is slot-editable while it has no recorded result: pending, or an
+  // auto-bye (walkover with an empty side) that never had sets entered.
+  const slotEditable =
+    !!slotOptions &&
+    (match.outcome === "pending" ||
+      ((match.outcome === "walkover_p1" || match.outcome === "walkover_p2") &&
+        (match.p1_id == null || match.p2_id == null) &&
+        (!match.sets || match.sets.length === 0)));
   const winner = match.winner_side;
   const p1Cls =
     winner === "p1"
@@ -292,18 +336,44 @@ export function MatchCard({
         </p>
       )}
 
-      {match.p1_id && match.p2_id && (
+      {(match.p1_id || match.p2_id || slotEditable) && (
         <div className="mt-2">
-          {!isEditing ? (
-            <button
-              type="button"
-              onClick={() => setEditingId(match.id)}
-              disabled={pending}
-              className="inline-flex h-8 items-center rounded-md border border-grass-300 bg-white px-3 text-xs font-medium text-grass-700 hover:bg-grass-50 disabled:opacity-60"
-            >
-              {copy.edit_score}
-            </button>
-          ) : (
+          {!isEditing && (
+            <div className="flex flex-wrap items-center gap-2">
+              {match.p1_id && match.p2_id && (
+                <button
+                  type="button"
+                  onClick={() => setEditingId(match.id)}
+                  disabled={pending}
+                  className="inline-flex h-8 items-center rounded-md border border-grass-300 bg-white px-3 text-xs font-medium text-grass-700 hover:bg-grass-50 disabled:opacity-60"
+                >
+                  {copy.edit_score}
+                </button>
+              )}
+              {slotEditable && (
+                <button
+                  type="button"
+                  onClick={() => setEditingSlots((v) => !v)}
+                  disabled={pending}
+                  className="inline-flex h-8 items-center gap-1 rounded-md border border-ink-200 bg-white px-2.5 text-xs font-medium text-ink-600 hover:bg-ink-50 disabled:opacity-60"
+                >
+                  <UserRoundPen className="h-3 w-3" />
+                  {copy.edit_players ?? "Участники"}
+                </button>
+              )}
+            </div>
+          )}
+          {!isEditing && editingSlots && slotEditable && slotOptions && (
+            <SlotEditor
+              match={match}
+              options={slotOptions}
+              copy={copy}
+              pending={pending}
+              startT={startT}
+              onSaved={onSaved}
+            />
+          )}
+          {isEditing && match.p1_id && match.p2_id && (
             <ScoreEditor
               match={match}
               copy={copy}
@@ -332,6 +402,69 @@ export function MatchCard({
 function scoreSummary(sets: MatchRow["sets"], side: "p1" | "p2"): string {
   if (!sets || sets.length === 0) return "—";
   return sets.map((s) => (side === "p1" ? s.p1 : s.p2)).join(" ");
+}
+
+/**
+ * Manual bracket fix-up: two selects (one per side) listing every approved
+ * participant. Picking a player calls the server action immediately; the
+ * empty option clears the slot (TBD). Only unplayed matches get here.
+ */
+function SlotEditor({
+  match,
+  options,
+  copy,
+  pending,
+  startT,
+  onSaved,
+}: {
+  match: MatchRow;
+  options: SlotPlayerOption[];
+  copy: BracketCopy;
+  pending: boolean;
+  startT: (cb: () => void) => void;
+  onSaved: () => void;
+}) {
+  const tErrors = useTranslations("tournamentsOrganized.errors");
+
+  function apply(side: "p1" | "p2", playerId: string) {
+    startT(async () => {
+      const r = await editPlayoffSlot({
+        match_id: match.id,
+        side,
+        player_id: playerId === "" ? null : playerId,
+      });
+      if (r.ok) onSaved();
+      else alert(localizeActionError(tErrors, r.error));
+    });
+  }
+
+  const row = (side: "p1" | "p2") => {
+    const current = side === "p1" ? match.p1_id : match.p2_id;
+    return (
+      <select
+        value={current ?? ""}
+        disabled={pending}
+        onChange={(e) => apply(side, e.target.value)}
+        className="h-8 w-full rounded-md border border-ink-200 bg-white px-1.5 text-xs text-ink-800"
+        aria-label={copy.edit_players ?? "Участники"}
+      >
+        <option value="">{copy.slot_empty ?? `— ${copy.tbd} —`}</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    );
+  };
+
+  return (
+    <div className="mt-2 space-y-1.5 rounded-md border border-ink-200 bg-white p-2">
+      {copy.edit_players_hint && <p className="text-[10px] text-ink-500">{copy.edit_players_hint}</p>}
+      {row("p1")}
+      {row("p2")}
+    </div>
+  );
 }
 
 // Quick-tap presets — most common tennis set scores. Tapping one fills both
