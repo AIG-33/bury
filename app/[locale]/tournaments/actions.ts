@@ -10,6 +10,7 @@ import type {
   MatchRules,
 } from "@/lib/tournaments/schema";
 import { composePairName, pairSeedElo } from "@/lib/tournaments/pairs";
+import { computeRoundRobinStandings, type StandingRow } from "@/lib/tournaments/draw";
 import {
   tournamentBrandingFromRow,
   type TournamentBranding,
@@ -232,6 +233,21 @@ export async function loadPublicTournaments(opts: {
   return built;
 }
 
+/** One line of a public group standings table (pair name for doubles). */
+export type PublicGroupStandingLine = StandingRow & {
+  /** Composed pair name for doubles; captain's display name for singles. */
+  name: string | null;
+  avatar_url: string | null;
+};
+
+export type PublicTournamentGroup = {
+  id: string;
+  name: string;
+  position: number;
+  /** Ordered standings — doubles as the group roster (members sorted by rank). */
+  rows: PublicGroupStandingLine[];
+};
+
 export type PublicTournamentDetail = {
   // Detail-only extras on top of the shared list row: the regulations
   // section (text + attached document) is only rendered on the detail pages.
@@ -273,6 +289,11 @@ export type PublicTournamentDetail = {
     scheduled_at: string | null;
     played_at: string | null;
   }>;
+  /**
+   * Group-stage blocks for `group_playoff` tournaments once the organizer has
+   * generated the draw; empty for other formats / before the draw.
+   */
+  groups: PublicTournamentGroup[];
 };
 
 export async function loadPublicTournamentDetail(
@@ -349,10 +370,13 @@ export async function loadPublicTournamentDetail(
   // Real columns are `bracket_slot` (not bracket_position) and
   // `winner_side` (not winner_id). Anything else throws "column does
   // not exist" and the page renders an empty matches list.
-  const [{ data: parts }, { data: matches }] = await Promise.all([
+  // `tournament_groups` reads are covered by the same `is_tournament_visible`
+  // RLS helper as the tournament row itself, so anonymous visitors of public
+  // tournaments see the group layout. Only hybrid tournaments have groups.
+  const [{ data: parts }, { data: matches }, { data: groupRows }] = await Promise.all([
     supabase
       .from("tournament_participants")
-      .select("player_id, partner_id, seed, status, withdrawn")
+      .select("player_id, partner_id, seed, status, withdrawn, group_id")
       .eq("tournament_id", tournamentId)
       .eq("status", "approved")
       .order("seed", { ascending: true, nullsFirst: false }) as unknown as Promise<{
@@ -362,12 +386,13 @@ export async function loadPublicTournamentDetail(
         seed: number | null;
         status: "pending" | "approved" | "rejected";
         withdrawn: boolean;
+        group_id: string | null;
       }> | null;
     }>,
     supabase
       .from("matches")
       .select(
-        "id, round, bracket_slot, p1_id, p2_id, p1_partner_id, p2_partner_id, winner_side, sets, outcome, scheduled_at, played_at",
+        "id, round, bracket_slot, p1_id, p2_id, p1_partner_id, p2_partner_id, winner_side, sets, outcome, scheduled_at, played_at, stage, group_id",
       )
       .eq("tournament_id", tournamentId)
       .order("round", { ascending: true })
@@ -394,7 +419,18 @@ export async function loadPublicTournamentDetail(
         outcome: string;
         scheduled_at: string | null;
         played_at: string | null;
+        stage: "group" | "playoff" | "third_place" | null;
+        group_id: string | null;
       }> | null;
+    }>,
+    (row.format === "group_playoff"
+      ? supabase
+          .from("tournament_groups")
+          .select("id, name, position")
+          .eq("tournament_id", tournamentId)
+          .order("position", { ascending: true })
+      : Promise.resolve({ data: null })) as unknown as Promise<{
+      data: Array<{ id: string; name: string; position: number }> | null;
     }>,
   ]);
 
@@ -518,6 +554,53 @@ export async function loadPublicTournamentDetail(
 
   const participants_count = participants.filter((p) => !p.withdrawn).length;
 
+  // Per-group standings — same math the organizer page uses
+  // (`computeRoundRobinStandings` in lib/tournaments/draw.ts), fed with
+  // group-stage matches only. Rows double as the group roster: every member
+  // appears even with zero played matches.
+  const partnerByCaptain = new Map<string, string>();
+  for (const p of parts ?? []) {
+    if (p.partner_id) partnerByCaptain.set(p.player_id, p.partner_id);
+  }
+  const groups: PublicTournamentGroup[] = (groupRows ?? []).map((g) => {
+    const memberIds = (parts ?? [])
+      .filter((p) => !p.withdrawn && p.group_id === g.id)
+      .map((p) => p.player_id);
+    const groupMatches = (matches ?? [])
+      .filter(
+        (m) => m.stage === "group" && m.group_id === g.id && m.p1_id != null && m.p2_id != null,
+      )
+      .map((m) => ({
+        p1_id: m.p1_id as string,
+        p2_id: m.p2_id as string,
+        winner_side: m.winner_side,
+        outcome: m.outcome,
+        sets:
+          m.sets?.map((s) => ({
+            p1: (s.p1 ?? s.p1_games ?? 0) as number,
+            p2: (s.p2 ?? s.p2_games ?? 0) as number,
+          })) ?? null,
+      }));
+    const standings = computeRoundRobinStandings(memberIds, groupMatches);
+    return {
+      id: g.id,
+      name: g.name,
+      position: g.position,
+      rows: standings.map((s) => {
+        const b = basicById.get(s.player_id);
+        const partnerId = partnerByCaptain.get(s.player_id) ?? null;
+        const partner = partnerId ? basicById.get(partnerId) : undefined;
+        return {
+          ...s,
+          name: isDoubles
+            ? composePairName(b?.display_name ?? null, partner?.display_name ?? null)
+            : (b?.display_name ?? null),
+          avatar_url: b?.avatar_url ?? null,
+        };
+      }),
+    };
+  });
+
   return {
     tournament: {
       id: row.id,
@@ -545,5 +628,6 @@ export async function loadPublicTournamentDetail(
     },
     participants,
     matches: matchesOut,
+    groups,
   };
 }

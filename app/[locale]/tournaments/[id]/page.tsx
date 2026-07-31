@@ -7,7 +7,17 @@ import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { buildTournamentEventJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { SITE_URL } from "@/lib/seo/site";
-import { CalendarDays, FileText, LayoutGrid, MapPin, Tag, UserRound, Users } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  FileText,
+  LayoutGrid,
+  MapPin,
+  Tag,
+  UserRound,
+  Users,
+} from "lucide-react";
+import { PlayerNameLink } from "@/components/domain/player-name-link";
 import { HelpPanel } from "@/components/help/help-panel";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
@@ -71,7 +81,8 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
     notFound();
   }
 
-  const { tournament, participants, matches } = detail;
+  const { tournament, participants, matches, groups } = detail;
+  const hasGroups = groups.length > 0;
 
   const applyCopy: ApplyButtonCopy = {
     title: t("detail.apply.title"),
@@ -136,6 +147,46 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
   const heroTextColor =
     overBanner || Object.keys(theme.backgroundStyle).length === 0 ? "#ffffff" : theme.textColor;
   const heroMuted = heroTextColor === "#ffffff" ? "rgba(255,255,255,0.78)" : theme.mutedTextColor;
+
+  const participantsBody =
+    activeParticipants.length === 0 ? (
+      <p className="text-sm text-ink-500">{t("detail.participants_empty")}</p>
+    ) : (
+      <ol className="grid gap-2">
+        {activeParticipants.map((p, i) => (
+          <li
+            key={p.id}
+            className="flex items-center gap-3 rounded-xl border border-ink-100/70 bg-white px-3 py-2 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
+          >
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-grass-50 font-mono text-xs font-bold tabular-nums text-grass-700">
+              {p.seed ?? i + 1}
+            </span>
+            <ParticipantIdentity id={p.name ? p.id : null} name={p.name} avatarUrl={p.avatar_url} />
+            <RatingDisplay
+              internalElo={p.elo}
+              external={
+                p.external_rating
+                  ? {
+                      source: "liga_tennisa",
+                      elo: p.external_rating.external_elo,
+                      displayTier: p.external_rating.display_tier,
+                      externalUrl: p.external_rating.external_url,
+                      isCalibrating: p.external_rating.is_calibrating_singles,
+                    }
+                  : null
+              }
+              variant="inline"
+              size="sm"
+            />
+            {p.city && (
+              <span className="hidden shrink-0 text-xs font-semibold text-ink-500 sm:inline">
+                {p.city}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    );
 
   const helpPanel = (
     <HelpPanel
@@ -349,57 +400,115 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               </Surface>
             )}
 
-            {/* Participants */}
-            <Surface variant="card" as="section">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="section-title text-[18px] md:text-[20px]">
-                  {t("detail.participants_title")}
+            {/* Group stage — public mirror of the organizer's groups view:
+                roster + standings per group, same computeRoundRobinStandings
+                math (lib/tournaments/draw.ts). */}
+            {hasGroups && (
+              <Surface variant="card" as="section">
+                <h2 className="section-title mb-4 text-[18px] md:text-[20px]">
+                  {t("detail.groups_title")}
                 </h2>
-                <span className="rounded-full bg-grass-50 px-3 py-1 text-xs font-bold tabular-nums text-grass-700">
-                  {t("detail.registered_count", { count: activeParticipants.length })}
-                </span>
-              </div>
-              {activeParticipants.length === 0 ? (
-                <p className="text-sm text-ink-500">{t("detail.participants_empty")}</p>
-              ) : (
-                <ol className="grid gap-2">
-                  {activeParticipants.map((p, i) => (
-                    <li
-                      key={p.id}
-                      className="flex items-center gap-3 rounded-xl border border-ink-100/70 bg-white px-3 py-2 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {groups.map((g) => (
+                    <div
+                      key={g.id}
+                      className="rounded-2xl border border-ink-100/70 bg-grass-50/30 p-4"
                     >
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-grass-50 font-mono text-xs font-bold tabular-nums text-grass-700">
-                        {p.seed ?? i + 1}
-                      </span>
-                      <ParticipantIdentity
-                        id={p.name ? p.id : null}
-                        name={p.name}
-                        avatarUrl={p.avatar_url}
-                      />
-                      <RatingDisplay
-                        internalElo={p.elo}
-                        external={
-                          p.external_rating
-                            ? {
-                                source: "liga_tennisa",
-                                elo: p.external_rating.external_elo,
-                                displayTier: p.external_rating.display_tier,
-                                externalUrl: p.external_rating.external_url,
-                                isCalibrating: p.external_rating.is_calibrating_singles,
-                              }
-                            : null
-                        }
-                        variant="inline"
-                        size="sm"
-                      />
-                      {p.city && (
-                        <span className="hidden shrink-0 text-xs font-semibold text-ink-500 sm:inline">
-                          {p.city}
-                        </span>
+                      <h3 className="font-display text-[15px] font-extrabold text-ink-900">
+                        {t("detail.group_label", { name: g.name })}
+                      </h3>
+                      {g.rows.length === 0 ? (
+                        <p className="mt-2 text-sm text-ink-500">{t("detail.group_empty")}</p>
+                      ) : (
+                        <div className="mt-2 overflow-x-auto">
+                          <table className="w-full text-xs tabular-nums">
+                            <thead>
+                              <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-ink-400">
+                                <th className="py-1 pr-2 text-left">{t("detail.group_col_pos")}</th>
+                                <th className="py-1 pr-2 text-left">
+                                  {t("detail.group_col_player")}
+                                </th>
+                                <th className="px-1 py-1 text-center">
+                                  {t("detail.group_col_played")}
+                                </th>
+                                <th className="px-1 py-1 text-center">
+                                  {t("detail.group_col_wins")}
+                                </th>
+                                <th className="px-1 py-1 text-center">
+                                  {t("detail.group_col_losses")}
+                                </th>
+                                <th className="px-1 py-1 text-center">
+                                  {t("detail.group_col_sets")}
+                                </th>
+                                <th className="py-1 pl-1 text-center">
+                                  {t("detail.group_col_games")}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {g.rows.map((r) => (
+                                <tr key={r.player_id} className="border-t border-ink-100/70">
+                                  <td className="py-1.5 pr-2 font-mono font-bold text-ink-500">
+                                    {r.position}
+                                  </td>
+                                  <td className="max-w-0 truncate py-1.5 pr-2 text-[13px] font-bold text-ink-900">
+                                    <PlayerNameLink id={r.player_id} name={r.name} />
+                                  </td>
+                                  <td className="px-1 py-1.5 text-center text-ink-600">
+                                    {r.matches_played}
+                                  </td>
+                                  <td className="px-1 py-1.5 text-center font-bold text-grass-700">
+                                    {r.wins}
+                                  </td>
+                                  <td className="px-1 py-1.5 text-center text-ink-600">
+                                    {r.losses}
+                                  </td>
+                                  <td className="px-1 py-1.5 text-center font-mono text-ink-700">
+                                    {r.sets_won}–{r.sets_lost}
+                                  </td>
+                                  <td className="py-1.5 pl-1 text-center font-mono text-ink-700">
+                                    {r.games_won}–{r.games_lost}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
-                    </li>
+                    </div>
                   ))}
-                </ol>
+                </div>
+              </Surface>
+            )}
+
+            {/* Participants — once groups are shown the flat list collapses
+                behind a shutter (the groups above already list everyone). */}
+            <Surface variant="card" as="section">
+              {hasGroups ? (
+                <details className="group/plist">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <h2 className="section-title text-[18px] md:text-[20px]">
+                      {t("detail.participants_all", { count: activeParticipants.length })}
+                    </h2>
+                    <ChevronDown
+                      className="h-5 w-5 shrink-0 text-ink-400 transition-transform group-open/plist:rotate-180"
+                      strokeWidth={2}
+                    />
+                  </summary>
+                  <div className="mt-4">{participantsBody}</div>
+                </details>
+              ) : (
+                <>
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <h2 className="section-title text-[18px] md:text-[20px]">
+                      {t("detail.participants_title")}
+                    </h2>
+                    <span className="rounded-full bg-grass-50 px-3 py-1 text-xs font-bold tabular-nums text-grass-700">
+                      {t("detail.registered_count", { count: activeParticipants.length })}
+                    </span>
+                  </div>
+                  {participantsBody}
+                </>
               )}
             </Surface>
 

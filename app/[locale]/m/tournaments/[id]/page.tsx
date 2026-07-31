@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import {
   ArrowLeft,
   CalendarDays,
+  ChevronDown,
   FileText,
   LayoutGrid,
   MapPin,
@@ -10,6 +11,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { PlayerNameLink } from "@/components/domain/player-name-link";
 import { Link } from "@/i18n/routing";
 import {
   MAvatar,
@@ -56,7 +58,8 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   ]);
   if (!detail) notFound();
 
-  const { tournament, participants, matches } = detail;
+  const { tournament, participants, matches, groups } = detail;
+  const hasGroups = groups.length > 0;
   const tab = sp.tab === "draw" ? "draw" : sp.tab === "info" ? "info" : "players";
 
   const dateFmt = new Intl.DateTimeFormat(locale, {
@@ -104,6 +107,42 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
     Object.keys(theme.backgroundStyle).length > 0
       ? theme.backgroundStyle
       : { background: "linear-gradient(150deg,#12331F 0%,#1C6B40 55%,#2A9556 100%)" };
+
+  const playersList = active.map((p, i) => (
+    <div
+      key={p.id}
+      className="flex items-center gap-3 rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
+    >
+      <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-[8px] bg-pt-icon font-mono text-[12px] font-bold tabular-nums text-grass-700">
+        {p.seed ?? i + 1}
+      </span>
+      {p.name ? (
+        <Link
+          /* No /m/players route — the web profile is responsive. */
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          href={`/players/${p.id}` as any}
+          className="flex min-w-0 flex-1 items-center gap-3 transition-opacity active:opacity-85"
+        >
+          <MAvatar name={p.name} url={p.avatar_url} size={34} />
+          <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">{p.name}</p>
+        </Link>
+      ) : (
+        <>
+          <MAvatar name={p.name} url={p.avatar_url} size={34} />
+          <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
+            {t("common.player_unknown")}
+          </p>
+        </>
+      )}
+      {p.city ? (
+        <span className="shrink-0 text-[12.5px] font-semibold text-ink-500">{p.city}</span>
+      ) : (
+        <span className="shrink-0 font-mono text-[13px] font-bold tabular-nums text-ink-700">
+          {p.elo}
+        </span>
+      )}
+    </div>
+  ));
 
   return (
     <div
@@ -284,52 +323,34 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
         <div className="mt-4">
           {tab === "players" ? (
             <div className="space-y-[8px]">
-              {active.length === 0 ? (
+              {hasGroups ? (
+                <>
+                  {/* Group stage: per-group standings (same math as the
+                      organizer page), flat list collapses below. */}
+                  {groups.map((g) => (
+                    <GroupCard key={g.id} group={g} t={t} />
+                  ))}
+                  <details className="group/mplist">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)] [&::-webkit-details-marker]:hidden">
+                      <span className="text-[13.5px] font-bold text-ink-900">
+                        {t("tournament.participants_all", { count: active.length })}
+                      </span>
+                      <ChevronDown
+                        className="h-[18px] w-[18px] shrink-0 text-ink-400 transition-transform group-open/mplist:rotate-180"
+                        strokeWidth={2}
+                      />
+                    </summary>
+                    <div className="mt-2 space-y-[8px]">{playersList}</div>
+                  </details>
+                </>
+              ) : active.length === 0 ? (
                 <MEmptyState
                   icon={<Users className="h-[22px] w-[22px]" strokeWidth={1.8} />}
                   title={t("tournament.no_players_title")}
                   body={t("tournament.no_players_body")}
                 />
               ) : (
-                active.map((p, i) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
-                  >
-                    <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-[8px] bg-pt-icon font-mono text-[12px] font-bold tabular-nums text-grass-700">
-                      {p.seed ?? i + 1}
-                    </span>
-                    {p.name ? (
-                      <Link
-                        /* No /m/players route — the web profile is responsive. */
-                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                        href={`/players/${p.id}` as any}
-                        className="flex min-w-0 flex-1 items-center gap-3 transition-opacity active:opacity-85"
-                      >
-                        <MAvatar name={p.name} url={p.avatar_url} size={34} />
-                        <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
-                          {p.name}
-                        </p>
-                      </Link>
-                    ) : (
-                      <>
-                        <MAvatar name={p.name} url={p.avatar_url} size={34} />
-                        <p className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink-900">
-                          {t("common.player_unknown")}
-                        </p>
-                      </>
-                    )}
-                    {p.city ? (
-                      <span className="shrink-0 text-[12.5px] font-semibold text-ink-500">
-                        {p.city}
-                      </span>
-                    ) : (
-                      <span className="shrink-0 font-mono text-[13px] font-bold tabular-nums text-ink-700">
-                        {p.elo}
-                      </span>
-                    )}
-                  </div>
-                ))
+                playersList
               )}
               {freeSlots && freeSlots > 0 ? (
                 <div className="rounded-[14px] border border-dashed border-[rgba(20,60,30,0.18)] px-3 py-3 text-center text-[12.5px] font-bold text-[#8AA093]">
@@ -434,6 +455,62 @@ function MetaTile({
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Compact group card for the players tab: roster ordered by standings with
+ * P/W/L/sets columns. Games are dropped — too wide for 390px screens.
+ */
+function GroupCard({
+  group,
+  t,
+}: {
+  group: PublicTournamentDetail["groups"][number];
+  t: Awaited<ReturnType<typeof getTranslations<"mobile">>>;
+}) {
+  return (
+    <div className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white p-3 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
+      <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-grass-700">
+        {t("tournament.group_label", { name: group.name })}
+      </p>
+      {group.rows.length === 0 ? (
+        <p className="mt-1.5 text-[12.5px] text-ink-500">{t("tournament.group_empty")}</p>
+      ) : (
+        <table className="mt-1.5 w-full text-[12px] tabular-nums">
+          <thead>
+            <tr className="text-[10px] font-bold uppercase text-[#8AA093]">
+              <th className="py-0.5 pr-1.5 text-left">{t("tournament.group_col_pos")}</th>
+              <th className="py-0.5 pr-1.5 text-left">{t("tournament.group_col_player")}</th>
+              <th className="px-1 py-0.5 text-center">{t("tournament.group_col_played")}</th>
+              <th className="px-1 py-0.5 text-center">{t("tournament.group_col_wins")}</th>
+              <th className="px-1 py-0.5 text-center">{t("tournament.group_col_losses")}</th>
+              <th className="py-0.5 pl-1 text-center">{t("tournament.group_col_sets")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {group.rows.map((r) => (
+              <tr key={r.player_id} className="border-t border-[rgba(20,60,30,0.06)]">
+                <td className="py-1.5 pr-1.5 font-mono font-bold text-ink-500">{r.position}</td>
+                <td className="max-w-0 truncate py-1.5 pr-1.5 text-[13px] font-bold text-ink-900">
+                  <PlayerNameLink
+                    id={r.player_id}
+                    name={r.name}
+                    className="transition-opacity active:opacity-85"
+                  />
+                </td>
+                <td className="px-1 py-1.5 text-center text-ink-600">{r.matches_played}</td>
+                <td className="px-1 py-1.5 text-center font-bold text-grass-700">{r.wins}</td>
+                <td className="px-1 py-1.5 text-center text-ink-600">{r.losses}</td>
+                <td className="py-1.5 pl-1 text-center font-mono text-ink-700">
+                  {r.sets_won}–{r.sets_lost}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -574,10 +651,7 @@ function InfoTab({
       <div className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white p-4 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
         <dl className="space-y-2.5">
           {tournament.organizer_name ? (
-            <InfoRow
-              label={t("tournament.info_organizer")}
-              value={tournament.organizer_name}
-            />
+            <InfoRow label={t("tournament.info_organizer")} value={tournament.organizer_name} />
           ) : null}
           <InfoRow
             label={t("tournament.info_format")}
