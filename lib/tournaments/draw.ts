@@ -122,6 +122,11 @@ export function buildSingleEliminationBracket(opts: {
   players: Player[];
   method: SeedingMethod;
   rngSeed?: number;
+  /** Explicit bracket size (power of two). Used by hybrid tournaments where
+   * the organizer picks the playoff stage (e.g. 8 = quarterfinals) — extra
+   * slots become byes for the top seeds. Ignored when smaller than the
+   * player count requires or not a power of two. */
+  bracketSize?: number;
 }): {
   bracketSize: number;
   totalRounds: number;
@@ -133,7 +138,10 @@ export function buildSingleEliminationBracket(opts: {
   }
 
   const ordered = orderForSeeding(players, method, rngSeed);
-  const bracketSize = nextPowerOfTwo(ordered.length);
+  const minSize = nextPowerOfTwo(ordered.length);
+  const requested = opts.bracketSize ?? 0;
+  const bracketSize =
+    requested >= minSize && Number.isInteger(Math.log2(requested)) ? requested : minSize;
   const totalRounds = Math.log2(bracketSize);
 
   // Map seed (1-based) → playerId or null (= bye placeholder).
@@ -541,26 +549,127 @@ export function bucketsFromManualAssignment(opts: {
 // Playoff seeding from the group standings.
 //
 // Convention: top seeds first (1st of every group), then 2nd of every group,
-// etc. Within the same rank, groups are ordered by their `position` (A first).
-// We then feed the resulting list to `buildSingleEliminationBracket` with
-// method="manual" so the existing seed-positions logic produces a proper
-// cross-bracket (group A's 1st can only meet group B's 1st in the final).
+// etc. Within a rank tier, qualifiers are ordered by their group-stage record
+// (wins → set diff → game diff) when `stats` is provided, so byes land on the
+// strongest group winners rather than on whoever happened to be in group A.
+//
+// On top of that, every tier below the first is ROTATED (deterministically)
+// to avoid rematches of group opponents in round 1 and to push same-group
+// meetings as deep into the bracket as possible. Without this, e.g. 3 groups
+// × top-2 in a bracket of 8 pair C1 against C2 in the quarterfinal.
+//
+// The resulting list feeds `buildSingleEliminationBracket(method="manual")`,
+// whose seed-positions layout is simulated here to score the rotations.
 // =============================================================================
 
 export type GroupQualifier = {
   group_position: number; // 0-based group index
   rank: number;           // 1-based standing inside the group
   player: Player;
+  /** Group-stage record for cross-group comparison inside a rank tier.
+   * Optional — without it, tiers fall back to group order. */
+  stats?: { wins: number; set_diff: number; game_diff: number };
 };
 
-export function orderQualifiersForPlayoff(qualifiers: GroupQualifier[]): Player[] {
-  return qualifiers
-    .slice()
-    .sort((a, b) => {
-      if (a.rank !== b.rank) return a.rank - b.rank;
-      return a.group_position - b.group_position;
-    })
-    .map((q) => q.player);
+/** Round (1-based) in which two round-1 line-up slots meet if both keep
+ * winning: the number of halvings until their subtree indices converge. */
+function meetingRound(slotA: number, slotB: number): number {
+  let a = slotA;
+  let b = slotB;
+  let round = 0;
+  while (a !== b) {
+    a = Math.floor(a / 2);
+    b = Math.floor(b / 2);
+    round += 1;
+  }
+  return round;
+}
+
+export function orderQualifiersForPlayoff(
+  qualifiers: GroupQualifier[],
+  bracketSize?: number,
+): Player[] {
+  // Rank tiers, each internally ordered by record (fallback: group position).
+  const ranks = Array.from(new Set(qualifiers.map((q) => q.rank))).sort((a, b) => a - b);
+  const tiers = ranks.map((rank) =>
+    qualifiers
+      .filter((q) => q.rank === rank)
+      .sort((a, b) => {
+        if (a.stats && b.stats) {
+          if (b.stats.wins !== a.stats.wins) return b.stats.wins - a.stats.wins;
+          if (b.stats.set_diff !== a.stats.set_diff) return b.stats.set_diff - a.stats.set_diff;
+          if (b.stats.game_diff !== a.stats.game_diff) return b.stats.game_diff - a.stats.game_diff;
+        }
+        return a.group_position - b.group_position;
+      }),
+  );
+
+  const total = qualifiers.length;
+  if (total < 2) return qualifiers.map((q) => q.player);
+  const minSize = nextPowerOfTwo(total);
+  const size =
+    bracketSize && bracketSize >= minSize && Number.isInteger(Math.log2(bracketSize))
+      ? bracketSize
+      : minSize;
+
+  // Line-up slot (0-based position in the round-1 row) of every seed number.
+  const positions = seedPositions(size);
+  const slotOfSeed = new Map<number, number>();
+  positions.forEach((seed, idx) => slotOfSeed.set(seed, idx));
+
+  // Greedy per-tier placement: tier 1 is fixed; every later tier tries all
+  // rotations and keeps the one that (a) avoids round-1 same-group meetings,
+  // (b) maximizes the earliest possible same-group meeting round, (c) is the
+  // smallest rotation (determinism).
+  const placed: Array<{ group: number; slot: number }> = [];
+  let seedCursor = 1;
+  const result: Player[] = [];
+
+  const placeTier = (tier: GroupQualifier[]) => {
+    for (const q of tier) {
+      const slot = slotOfSeed.get(seedCursor)!;
+      placed.push({ group: q.group_position, slot });
+      seedCursor += 1;
+      result.push(q.player);
+    }
+  };
+
+  tiers.forEach((tier, tierIdx) => {
+    if (tierIdx === 0 || tier.length < 2) {
+      placeTier(tier);
+      return;
+    }
+    let best: { rotation: number; collisions: number; minMeet: number; sumMeet: number } | null =
+      null;
+    for (let rotation = 0; rotation < tier.length; rotation++) {
+      const rotated = tier.slice(rotation).concat(tier.slice(0, rotation));
+      let collisions = 0;
+      let minMeet = Number.POSITIVE_INFINITY;
+      let sumMeet = 0;
+      rotated.forEach((q, i) => {
+        const slot = slotOfSeed.get(seedCursor + i)!;
+        for (const prev of placed) {
+          if (prev.group !== q.group_position) continue;
+          const meet = meetingRound(prev.slot, slot);
+          if (meet === 1) collisions += 1;
+          minMeet = Math.min(minMeet, meet);
+          sumMeet += meet;
+        }
+      });
+      if (
+        !best ||
+        collisions < best.collisions ||
+        (collisions === best.collisions &&
+          (minMeet > best.minMeet || (minMeet === best.minMeet && sumMeet > best.sumMeet)))
+      ) {
+        best = { rotation, collisions, minMeet, sumMeet };
+      }
+    }
+    const rotation = best?.rotation ?? 0;
+    placeTier(tier.slice(rotation).concat(tier.slice(0, rotation)));
+  });
+
+  return result;
 }
 
 /**

@@ -500,16 +500,137 @@ describe("bucketsFromManualAssignment", () => {
   });
 });
 
+// Simulate the round-1 pairs a given seeding order produces (mirrors
+// buildSingleEliminationBracket with method="manual").
+function roundOnePairs(ordered: Player[], size: number): Array<[string | null, string | null]> {
+  const seeded: Array<string | null> = new Array(size).fill(null);
+  ordered.forEach((p, i) => {
+    seeded[i] = p.id;
+  });
+  const pos = seedPositions(size);
+  const pairs: Array<[string | null, string | null]> = [];
+  for (let m = 0; m < size / 2; m++) {
+    pairs.push([seeded[pos[m * 2] - 1], seeded[pos[m * 2 + 1] - 1]]);
+  }
+  return pairs;
+}
+
 describe("orderQualifiersForPlayoff", () => {
-  it("orders by rank then group position", () => {
+  const qualifier = (
+    group: number,
+    rank: number,
+    player: Player,
+    stats?: GroupQualifier["stats"],
+  ): GroupQualifier => ({ group_position: group, rank, player, stats });
+
+  it("orders by rank then group position (2 groups — classic cross)", () => {
     const ps = players(8);
     const q: GroupQualifier[] = [
-      { group_position: 1, rank: 2, player: ps[7] }, // B2
-      { group_position: 0, rank: 1, player: ps[0] }, // A1
-      { group_position: 1, rank: 1, player: ps[1] }, // B1
-      { group_position: 0, rank: 2, player: ps[6] }, // A2
+      qualifier(1, 2, ps[7]), // B2
+      qualifier(0, 1, ps[0]), // A1
+      qualifier(1, 1, ps[1]), // B1
+      qualifier(0, 2, ps[6]), // A2
     ];
     const ordered = orderQualifiersForPlayoff(q);
     expect(ordered.map((p) => p.id)).toEqual(["p1", "p2", "p7", "p8"]);
+    // A1–B2 and B1–A2: no group rematch in the semifinal of a 4-bracket.
+    expect(roundOnePairs(ordered, 4)).toEqual([
+      ["p1", "p8"],
+      ["p2", "p7"],
+    ]);
+  });
+
+  it("3 groups × top-2 in a bracket of 8: no group rematch in round 1 (Women's case)", () => {
+    const ps = players(6);
+    const q: GroupQualifier[] = [
+      qualifier(0, 1, ps[0]), // A1
+      qualifier(1, 1, ps[1]), // B1
+      qualifier(2, 1, ps[2]), // C1
+      qualifier(0, 2, ps[3]), // A2
+      qualifier(1, 2, ps[4]), // B2
+      qualifier(2, 2, ps[5]), // C2
+    ];
+    const ordered = orderQualifiersForPlayoff(q, 8);
+    const pairs = roundOnePairs(ordered, 8);
+    const groupOf = new Map([
+      ["p1", 0],
+      ["p2", 1],
+      ["p3", 2],
+      ["p4", 0],
+      ["p5", 1],
+      ["p6", 2],
+    ]);
+    for (const [a, b] of pairs) {
+      if (a && b) expect(groupOf.get(a)).not.toBe(groupOf.get(b));
+    }
+    // Byes must land on group winners (rank-1 tier holds seeds 1 and 2).
+    const byes = pairs.filter(([a, b]) => (a == null) !== (b == null));
+    expect(byes).toHaveLength(2);
+    for (const [a, b] of byes) {
+      expect(["p1", "p2", "p3"]).toContain(a ?? b);
+    }
+  });
+
+  it("4 groups × top-2 in a bracket of 8: group opponents can only re-meet in the final (Men's case)", () => {
+    const ps = players(8);
+    const q: GroupQualifier[] = Array.from({ length: 4 }, (_, g) => [
+      qualifier(g, 1, ps[g]),
+      qualifier(g, 2, ps[4 + g]),
+    ]).flat();
+    const ordered = orderQualifiersForPlayoff(q, 8);
+    // Same-group players must sit in opposite halves of the line-up.
+    const slotOf = new Map<string, number>();
+    const pos = seedPositions(8);
+    ordered.forEach((p, i) => slotOf.set(p.id, pos.indexOf(i + 1)));
+    for (let g = 0; g < 4; g++) {
+      const first = slotOf.get(ps[g].id)!;
+      const second = slotOf.get(ps[4 + g].id)!;
+      expect(Math.floor(first / 4)).not.toBe(Math.floor(second / 4));
+    }
+  });
+
+  it("gives byes to the best group winners when stats are provided", () => {
+    const ps = players(6);
+    const q: GroupQualifier[] = [
+      qualifier(0, 1, ps[0], { wins: 2, set_diff: 3, game_diff: 10 }),
+      qualifier(1, 1, ps[1], { wins: 3, set_diff: 5, game_diff: 14 }), // best record
+      qualifier(2, 1, ps[2], { wins: 3, set_diff: 6, game_diff: 20 }), // even better
+      qualifier(0, 2, ps[3], { wins: 1, set_diff: 0, game_diff: 0 }),
+      qualifier(1, 2, ps[4], { wins: 1, set_diff: -1, game_diff: -2 }),
+      qualifier(2, 2, ps[5], { wins: 1, set_diff: -2, game_diff: -4 }),
+    ];
+    const ordered = orderQualifiersForPlayoff(q, 8);
+    // Seeds 1 and 2 (the two byes in a 6-of-8 draw) go to C1 and B1.
+    expect(ordered[0].id).toBe("p3");
+    expect(ordered[1].id).toBe("p2");
+    const pairs = roundOnePairs(ordered, 8);
+    const byes = pairs
+      .filter(([a, b]) => (a == null) !== (b == null))
+      .map(([a, b]) => a ?? b);
+    expect(byes.sort()).toEqual(["p2", "p3"]);
+  });
+});
+
+describe("buildSingleEliminationBracket with explicit bracketSize", () => {
+  it("honors a larger requested bracket (byes fill the extra slots)", () => {
+    const { bracketSize, totalRounds, matches } = buildSingleEliminationBracket({
+      players: players(6),
+      method: "manual",
+      bracketSize: 16,
+    });
+    expect(bracketSize).toBe(16);
+    expect(totalRounds).toBe(4);
+    expect(matches.filter((m) => m.round === 1)).toHaveLength(8);
+  });
+
+  it("ignores a bracketSize smaller than the field or not a power of two", () => {
+    expect(
+      buildSingleEliminationBracket({ players: players(6), method: "manual", bracketSize: 4 })
+        .bracketSize,
+    ).toBe(8);
+    expect(
+      buildSingleEliminationBracket({ players: players(6), method: "manual", bracketSize: 12 })
+        .bracketSize,
+    ).toBe(8);
   });
 });
