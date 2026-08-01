@@ -3180,7 +3180,8 @@ export async function resetMatchScore(
       winner_side: null,
       sets: [],
       played_at: null,
-      multiplier: null,
+      // NOT NULL column (default 1.0) — reset to the default, never null.
+      multiplier: 1.0,
     } as never)
     .eq("id", m.id);
   if (upErr) return { ok: false, error: upErr.message };

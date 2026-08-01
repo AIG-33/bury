@@ -150,9 +150,11 @@ export async function revertMatchElo(service: AnySupabase, matchId: string): Pro
     .eq("reason", "match");
   if (delErr) return { ok: false, error: delErr.message };
 
+  // matches.multiplier is NOT NULL (default 1.0) — restore the default; the
+  // next recalcMatchElo overwrites it with the multiplier actually used.
   await service
     .from("matches")
-    .update({ multiplier: null } as never)
+    .update({ multiplier: 1.0 } as never)
     .eq("id", matchId);
 
   return { ok: true, skipped: false };
