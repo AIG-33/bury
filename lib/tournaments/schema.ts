@@ -323,14 +323,17 @@ export type EditPlayoffSlotInput = z.infer<typeof EditPlayoffSlotSchema>;
 
 /**
  * Each set: [p1_games, p2_games]. Optionally a tiebreak `tb` slot stored on
- * the set when applicable. Validation happens server-side based on the
- * tournament's match_rules.
+ * the set when applicable. Game counts are deliberately free-form (any
+ * non-negative integer): amateur formats vary too much to police them —
+ * tiebreaks to 7 or 10 recorded as games, short sets, timed sets. The only
+ * server-side requirement is that a winner is determinable (see
+ * `validateScoreLoose` in score-validation.ts).
  */
 export const ScoreSetSchema = z.object({
-  p1: z.coerce.number().int().min(0).max(20),
-  p2: z.coerce.number().int().min(0).max(20),
-  tb_p1: z.coerce.number().int().min(0).max(50).optional().nullable(),
-  tb_p2: z.coerce.number().int().min(0).max(50).optional().nullable(),
+  p1: z.coerce.number().int().min(0).max(99),
+  p2: z.coerce.number().int().min(0).max(99),
+  tb_p1: z.coerce.number().int().min(0).max(99).optional().nullable(),
+  tb_p2: z.coerce.number().int().min(0).max(99).optional().nullable(),
 });
 
 export type ScoreSet = z.infer<typeof ScoreSetSchema>;
@@ -353,6 +356,16 @@ export const ScoreFormSchema = z.object({
 });
 
 export type ScoreForm = z.infer<typeof ScoreFormSchema>;
+
+/**
+ * Reset a recorded result back to "pending": the score is wiped, applied Elo
+ * deltas are rolled back and the winner is removed from the next playoff
+ * round (only possible while that next match is unplayed).
+ */
+export const ResetScoreSchema = z.object({
+  match_id: z.string().uuid(),
+});
+export type ResetScoreInput = z.infer<typeof ResetScoreSchema>;
 
 // ─── Participant management ──────────────────────────────────────────────────
 

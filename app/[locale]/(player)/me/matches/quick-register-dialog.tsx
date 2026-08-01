@@ -263,7 +263,7 @@ export function QuickRegisterDialog({
                 <input
                   type="number"
                   min={0}
-                  max={20}
+                  max={99}
                   value={s.p1_games}
                   onChange={(e) =>
                     setSet(i, { p1_games: Number(e.target.value) || 0 })
@@ -274,7 +274,7 @@ export function QuickRegisterDialog({
                 <input
                   type="number"
                   min={0}
-                  max={20}
+                  max={99}
                   value={s.p2_games}
                   onChange={(e) =>
                     setSet(i, { p2_games: Number(e.target.value) || 0 })
@@ -284,7 +284,7 @@ export function QuickRegisterDialog({
                 <input
                   type="number"
                   min={0}
-                  max={50}
+                  max={99}
                   value={s.tiebreak_p1 ?? ""}
                   onChange={(e) =>
                     setSet(i, {
@@ -298,7 +298,7 @@ export function QuickRegisterDialog({
                 <input
                   type="number"
                   min={0}
-                  max={50}
+                  max={99}
                   value={s.tiebreak_p2 ?? ""}
                   onChange={(e) =>
                     setSet(i, {

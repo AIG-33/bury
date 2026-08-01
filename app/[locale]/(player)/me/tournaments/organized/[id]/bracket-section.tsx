@@ -7,6 +7,7 @@ import { Loader2, Trophy, Shuffle, UserRoundPen } from "lucide-react";
 import {
   generateBracket,
   setMatchScore,
+  resetMatchScore,
   editPlayoffSlot,
   type MatchRow,
   type ParticipantRow,
@@ -37,6 +38,11 @@ export type BracketCopy = {
   bye: string;
   tbd: string;
   edit_score: string;
+  change_score?: string;
+  reset_score?: string;
+  reset_confirm?: string;
+  resetting?: string;
+  exact_score?: string;
   save: string;
   saving: string;
   cancel: string;
@@ -347,7 +353,26 @@ export function MatchCard({
                   disabled={pending}
                   className="inline-flex h-8 items-center rounded-md border border-grass-300 bg-white px-3 text-xs font-medium text-grass-700 hover:bg-grass-50 disabled:opacity-60"
                 >
-                  {copy.edit_score}
+                  {match.outcome !== "pending"
+                    ? (copy.change_score ?? copy.edit_score)
+                    : copy.edit_score}
+                </button>
+              )}
+              {match.p1_id && match.p2_id && match.outcome !== "pending" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (copy.reset_confirm && !confirm(copy.reset_confirm)) return;
+                    startT(async () => {
+                      const r = await resetMatchScore({ match_id: match.id });
+                      if (r.ok) onSaved();
+                      else alert(localizeActionError(tErrors, r.error));
+                    });
+                  }}
+                  disabled={pending}
+                  className="inline-flex h-8 items-center rounded-md border border-clay-300 bg-white px-3 text-xs font-medium text-clay-700 hover:bg-clay-50 disabled:opacity-60"
+                >
+                  {pending ? (copy.resetting ?? copy.reset_score) : copy.reset_score}
                 </button>
               )}
               {slotEditable && (
@@ -601,6 +626,7 @@ function ScoreEditor({
                     onChange={(v) => updateSet(i, "p1", v)}
                     winner={winner === "p1"}
                     maxGames={maxSelectableGames(matchRules)}
+                    exactScoreLabel={copy.exact_score}
                   />
                   <div className="mt-1.5">
                     <DigitRow
@@ -608,6 +634,7 @@ function ScoreEditor({
                       onChange={(v) => updateSet(i, "p2", v)}
                       winner={winner === "p2"}
                       maxGames={maxSelectableGames(matchRules)}
+                      exactScoreLabel={copy.exact_score}
                     />
                   </div>
                 </div>
@@ -725,11 +752,14 @@ function DigitRow({
   onChange,
   winner,
   maxGames,
+  exactScoreLabel,
 }: {
   value: number;
   onChange: (v: number) => void;
   winner: boolean;
   maxGames: number;
+  /** Aria-label for the free-form input next to the digit chips. */
+  exactScoreLabel?: string;
 }) {
   return (
     <div className="flex flex-wrap gap-1">
@@ -753,6 +783,29 @@ function DigitRow({
           </button>
         );
       })}
+      {/* Free-form fallback for scores beyond the chips (tiebreaks to 10,
+          marathon sets…) — the score format is not validated server-side. */}
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={99}
+        value={value}
+        onPointerDown={(e) => e.stopPropagation()}
+        onChange={(e) => {
+          const n = Math.max(0, Math.min(99, Math.trunc(Number(e.target.value) || 0)));
+          onChange(n);
+        }}
+        aria-label={exactScoreLabel}
+        title={exactScoreLabel}
+        className={`h-9 w-14 rounded-md border px-1 text-center text-sm font-semibold tabular-nums ${
+          value > maxGames
+            ? winner
+              ? "border-grass-600 bg-grass-600 text-white shadow-sm"
+              : "border-grass-500 bg-grass-100 text-grass-900"
+            : "border-ink-200 bg-white text-ink-700"
+        }`}
+      />
     </div>
   );
 }

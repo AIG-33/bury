@@ -33,11 +33,13 @@ import { validateMatchParticipants } from "@/lib/matches/participants";
 //     so the reporter can enter it again. We never silently overwrite.
 // =============================================================================
 
+// Game counts are free-form (tiebreaks to 7/10 recorded as games, short or
+// marathon sets) — the only real requirement is a determinable winner.
 const SetSchema = z.object({
-  p1_games: z.coerce.number().int().min(0).max(20),
-  p2_games: z.coerce.number().int().min(0).max(20),
-  tiebreak_p1: z.coerce.number().int().min(0).max(50).optional().nullable(),
-  tiebreak_p2: z.coerce.number().int().min(0).max(50).optional().nullable(),
+  p1_games: z.coerce.number().int().min(0).max(99),
+  p2_games: z.coerce.number().int().min(0).max(99),
+  tiebreak_p1: z.coerce.number().int().min(0).max(99).optional().nullable(),
+  tiebreak_p2: z.coerce.number().int().min(0).max(99).optional().nullable(),
 });
 
 const SetsSchema = z.array(SetSchema).min(1).max(5);
