@@ -539,6 +539,8 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               ) : (
                 <TournamentMatchesByRound
                   matches={matches}
+                  groups={groups.map((g) => ({ id: g.id, name: g.name }))}
+                  format={tournament.format}
                   locale={locale}
                   labels={{
                     round_short: t("detail.round_short"),
@@ -546,6 +548,12 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                     winner: t("detail.winner"),
                     countLabel: (n: number) => t("detail.matches_count", { n }),
                     tba: t("detail.tba"),
+                    groupLabel: (name: string) => t("detail.group_label", { name }),
+                    stageFinal: t("detail.stage_final"),
+                    stageSemifinal: t("detail.stage_semifinal"),
+                    stageQuarterfinal: t("detail.stage_quarterfinal"),
+                    stageRound: (n: number) => t("detail.stage_round", { n }),
+                    stageThirdPlace: t("detail.stage_third_place"),
                   }}
                 />
               )}
@@ -768,15 +776,41 @@ function buildGoogleCalendarUrl(tournament: PublicTournamentRow, locale: string)
 // =============================================================================
 // Tournament-page rendering of matches.
 //
-// Same compact scorecard as /matches (shared component), wrapped in a
-// per-round <details> shutter so the bracket reads stage-by-stage.
+// Same compact scorecard as /matches (shared component), wrapped in
+// per-section <details> shutters (open by default): group stage per group
+// («Группа A», …), playoff by stage (1/4 → 1/2 → финал → матч за 3-е),
+// other formats by round.
 // =============================================================================
+
+type PublicMatches = NonNullable<
+  Awaited<ReturnType<typeof loadPublicTournamentDetail>>
+>["matches"];
+
+type MatchSection = { key: string; marker: string; title: string; matches: PublicMatches };
+
+/** Final / semifinal / quarterfinal / generic round — counted from the last round. */
+function playoffRoundTitle(
+  round: number,
+  maxRound: number,
+  labels: { stageFinal: string; stageSemifinal: string; stageQuarterfinal: string; stageRound: (n: number) => string },
+): string {
+  const fromEnd = maxRound - round;
+  if (fromEnd === 0) return labels.stageFinal;
+  if (fromEnd === 1) return labels.stageSemifinal;
+  if (fromEnd === 2) return labels.stageQuarterfinal;
+  return labels.stageRound(round);
+}
+
 function TournamentMatchesByRound({
   matches,
+  groups,
+  format,
   locale,
   labels,
 }: {
-  matches: NonNullable<Awaited<ReturnType<typeof loadPublicTournamentDetail>>>["matches"];
+  matches: PublicMatches;
+  groups: Array<{ id: string; name: string }>;
+  format: string;
   locale: string;
   labels: {
     round_short: string;
@@ -785,6 +819,12 @@ function TournamentMatchesByRound({
     /** Renders e.g. "9 матчей" with proper plural form. */
     countLabel: (n: number) => string;
     tba: string;
+    groupLabel: (name: string) => string;
+    stageFinal: string;
+    stageSemifinal: string;
+    stageQuarterfinal: string;
+    stageRound: (n: number) => string;
+    stageThirdPlace: string;
   };
 }) {
   const dateFmt = new Intl.DateTimeFormat(locale, {
@@ -793,49 +833,109 @@ function TournamentMatchesByRound({
     timeZone: "Europe/Minsk",
   });
 
-  // Preserve the upstream order (round asc, bracket_slot asc).
-  const order: Array<number | "_no_round"> = [];
-  const groups = new Map<number | "_no_round", { matches: typeof matches }>();
-  for (const m of matches) {
-    const k: number | "_no_round" = m.round ?? "_no_round";
-    if (!groups.has(k)) {
-      order.push(k);
-      groups.set(k, { matches: [] });
+  const sections: MatchSection[] = [];
+  const hasStages = matches.some((m) => m.stage != null);
+
+  const pushRoundSections = (list: PublicMatches, elimination: boolean) => {
+    // Preserve the upstream order (round asc, bracket_slot asc).
+    const order: Array<number | "_no_round"> = [];
+    const byRound = new Map<number | "_no_round", PublicMatches>();
+    for (const m of list) {
+      const k: number | "_no_round" = m.round ?? "_no_round";
+      if (!byRound.has(k)) {
+        order.push(k);
+        byRound.set(k, []);
+      }
+      byRound.get(k)!.push(m);
     }
-    groups.get(k)!.matches.push(m);
+    const numericRounds = order.filter((r): r is number => r !== "_no_round");
+    const maxRound = numericRounds.length > 0 ? Math.max(...numericRounds) : 0;
+    for (const roundKey of order) {
+      const title =
+        roundKey === "_no_round"
+          ? labels.tba
+          : elimination
+            ? playoffRoundTitle(roundKey, maxRound, labels)
+            : `${labels.round_short}${roundKey}`;
+      sections.push({
+        key: `r-${String(roundKey)}`,
+        marker: roundKey === "_no_round" ? "—" : String(roundKey),
+        title,
+        matches: byRound.get(roundKey)!,
+      });
+    }
+  };
+
+  if (hasStages) {
+    // Group stage — one section per group, in the groups' display order.
+    const byGroup = new Map<string, PublicMatches>();
+    const orphanGroupStage: PublicMatches = [];
+    for (const m of matches) {
+      if (m.stage !== "group") continue;
+      if (m.group_id) {
+        if (!byGroup.has(m.group_id)) byGroup.set(m.group_id, []);
+        byGroup.get(m.group_id)!.push(m);
+      } else {
+        orphanGroupStage.push(m);
+      }
+    }
+    for (const g of groups) {
+      const ms = byGroup.get(g.id);
+      if (ms && ms.length > 0) {
+        sections.push({
+          key: `g-${g.id}`,
+          marker: g.name,
+          title: labels.groupLabel(g.name),
+          matches: ms,
+        });
+      }
+    }
+    if (orphanGroupStage.length > 0) {
+      sections.push({ key: "g-x", marker: "—", title: labels.tba, matches: orphanGroupStage });
+    }
+
+    // Playoff — by round with stage names, then the 3rd-place match.
+    pushRoundSections(
+      matches.filter((m) => m.stage === "playoff"),
+      true,
+    );
+    const third = matches.filter((m) => m.stage === "third_place");
+    if (third.length > 0) {
+      sections.push({ key: "third", marker: "3", title: labels.stageThirdPlace, matches: third });
+    }
+    const legacy = matches.filter((m) => m.stage == null);
+    if (legacy.length > 0) pushRoundSections(legacy, false);
+  } else {
+    pushRoundSections(matches, format === "single_elimination");
   }
 
-  // All rounds collapsed by default — user picks the round they care
-  // about. Keeps the initial bracket index compact.
+  // All sections open by default — the full match list is visible at a
+  // glance during a live tournament; shutters stay collapsible.
   return (
     <div className="space-y-2">
-      {order.map((roundKey) => {
-        const g = groups.get(roundKey)!;
-        const headerLabel =
-          roundKey === "_no_round" ? labels.tba : `${labels.round_short}${roundKey}`;
-
+      {sections.map((section) => {
         return (
           <details
-            key={String(roundKey)}
-            open={false}
+            key={section.key}
+            open
             className="group/g rounded-2xl border border-ball-100 bg-white shadow-[0_4px_18px_-14px_rgba(15,27,20,0.1)]"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 py-2 transition hover:bg-ink-50/60 [&::-webkit-details-marker]:hidden">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ball-100 font-mono text-[10px] font-bold text-ball-800">
-                  {roundKey === "_no_round" ? "—" : roundKey}
+                <span className="grid h-6 min-w-6 shrink-0 place-items-center rounded-full bg-ball-100 px-1 font-mono text-[10px] font-bold text-ball-800">
+                  {section.marker}
                 </span>
                 <span className="truncate font-display text-[14px] font-bold text-ball-900">
-                  {headerLabel}
+                  {section.title}
                 </span>
                 <span className="shrink-0 rounded-full bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-600">
-                  {labels.countLabel(g.matches.length)}
+                  {labels.countLabel(section.matches.length)}
                 </span>
               </div>
             </summary>
 
             <ul className="grid gap-2 px-3 pb-3 md:grid-cols-2">
-              {g.matches.map((m) => {
+              {section.matches.map((m) => {
                 const dateIso = m.played_at ?? m.scheduled_at;
                 const sets: ScorecardSet[][] = (m.sets ?? []).reduce(
                   (acc: ScorecardSet[][], s) => {

@@ -359,7 +359,13 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
               ) : null}
             </div>
           ) : tab === "draw" ? (
-            <DrawList matches={matches} t={t} locale={locale} />
+            <DrawList
+              matches={matches}
+              groups={groups.map((g) => ({ id: g.id, name: g.name }))}
+              format={tournament.format}
+              t={t}
+              locale={locale}
+            />
           ) : (
             <InfoTab tournament={tournament} t={t} />
           )}
@@ -525,12 +531,20 @@ function GroupCard({
   );
 }
 
+/**
+ * Full match list: group stage per group («Группа A», …), playoff by stage
+ * (1/4 → 1/2 → финал → матч за 3-е); non-hybrid formats stay grouped by round.
+ */
 function DrawList({
   matches,
+  groups,
+  format,
   t,
   locale,
 }: {
   matches: PublicTournamentDetail["matches"];
+  groups: Array<{ id: string; name: string }>;
+  format: string;
   t: Awaited<ReturnType<typeof getTranslations<"mobile">>>;
   locale: string;
 }) {
@@ -545,19 +559,83 @@ function DrawList({
     );
   }
 
-  const byRound = new Map<number, typeof matches>();
-  for (const m of matches) {
-    const round = m.round ?? 0;
-    const arr = byRound.get(round) ?? [];
-    arr.push(m);
-    byRound.set(round, arr);
+  type Section = { key: string; title: string; list: typeof matches };
+  const sections: Section[] = [];
+
+  const playoffTitle = (round: number, maxRound: number): string => {
+    const fromEnd = maxRound - round;
+    if (fromEnd === 0) return t("tournament.stage_final");
+    if (fromEnd === 1) return t("tournament.stage_semifinal");
+    if (fromEnd === 2) return t("tournament.stage_quarterfinal");
+    return t("tournament.round_label", { round });
+  };
+
+  const pushRoundSections = (list: typeof matches, elimination: boolean) => {
+    const byRound = new Map<number, typeof matches>();
+    for (const m of list) {
+      const round = m.round ?? 0;
+      const arr = byRound.get(round) ?? [];
+      arr.push(m);
+      byRound.set(round, arr);
+    }
+    const rounds = Array.from(byRound.keys()).sort((a, b) => a - b);
+    const maxRound = rounds.length > 0 ? rounds[rounds.length - 1] : 0;
+    for (const round of rounds) {
+      sections.push({
+        key: `r-${round}`,
+        title: elimination
+          ? playoffTitle(round, maxRound)
+          : t("tournament.round_label", { round: round || 1 }),
+        list: byRound.get(round)!,
+      });
+    }
+  };
+
+  if (matches.some((m) => m.stage != null)) {
+    const byGroup = new Map<string, typeof matches>();
+    const orphans: typeof matches = [];
+    for (const m of matches) {
+      if (m.stage !== "group") continue;
+      if (m.group_id) {
+        const arr = byGroup.get(m.group_id) ?? [];
+        arr.push(m);
+        byGroup.set(m.group_id, arr);
+      } else {
+        orphans.push(m);
+      }
+    }
+    for (const g of groups) {
+      const list = byGroup.get(g.id);
+      if (list && list.length > 0) {
+        sections.push({
+          key: `g-${g.id}`,
+          title: t("tournament.group_label", { name: g.name }),
+          list,
+        });
+      }
+    }
+    if (orphans.length > 0) {
+      sections.push({ key: "g-x", title: t("tournament.round_label", { round: 1 }), list: orphans });
+    }
+    pushRoundSections(
+      matches.filter((m) => m.stage === "playoff"),
+      true,
+    );
+    const third = matches.filter((m) => m.stage === "third_place");
+    if (third.length > 0) {
+      sections.push({ key: "third", title: t("tournament.stage_third_place"), list: third });
+    }
+    const legacy = matches.filter((m) => m.stage == null);
+    if (legacy.length > 0) pushRoundSections(legacy, false);
+  } else {
+    pushRoundSections([...matches], format === "single_elimination");
   }
 
   return (
     <div className="space-y-4">
-      {Array.from(byRound.entries()).map(([round, list]) => (
-        <div key={round}>
-          <MEyebrow className="mb-2">{t("tournament.round_label", { round: round || 1 })}</MEyebrow>
+      {sections.map(({ key, title, list }) => (
+        <div key={key}>
+          <MEyebrow className="mb-2">{title}</MEyebrow>
           <div className="space-y-[8px]">
             {list.map((m) => {
               const score = formatSetsScore(m.sets, true);

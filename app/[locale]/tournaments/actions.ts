@@ -288,6 +288,9 @@ export type PublicTournamentDetail = {
     outcome: string;
     scheduled_at: string | null;
     played_at: string | null;
+    /** Hybrid tournaments: group / playoff / third_place; null for other formats. */
+    stage: "group" | "playoff" | "third_place" | null;
+    group_id: string | null;
   }>;
   /**
    * Group-stage blocks for `group_playoff` tournaments once the organizer has
@@ -549,6 +552,8 @@ export async function loadPublicTournamentDetail(
       outcome: m.outcome,
       scheduled_at: m.scheduled_at,
       played_at: m.played_at,
+      stage: m.stage,
+      group_id: m.group_id,
     };
   });
 
