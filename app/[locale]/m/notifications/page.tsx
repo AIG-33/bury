@@ -1,10 +1,12 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { Bell, CalendarDays, Trophy, Users } from "lucide-react";
+import { Bell, CalendarDays, ChevronRight, Trophy, Users } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MContent, MEmptyState, MEyebrow, MSubHeader } from "@/components/mobile/m-ui";
 import { TennisBallIcon } from "@/components/mobile/m-icons";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { notificationHref } from "@/lib/notifications/link";
 import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 
 // =============================================================================
@@ -28,6 +30,7 @@ const KNOWN_TEMPLATES = [
   "match_accepted",
   "tournament_application_submitted",
   "tournament_starting_24h",
+  "tournament_match_scheduled",
   "club_member_kicked",
   "club_ownership_offered",
 ] as const;
@@ -83,11 +86,17 @@ export default async function MobileNotificationsPage({ params }: Props) {
 
   const { data: rows } = (await supabase
     .from("notifications_outbox")
-    .select("id, template, payload, created_at")
+    .select("id, template, payload, link_url, created_at")
     .eq("recipient_id", user.id)
     .order("created_at", { ascending: false })
     .limit(60)) as {
-    data: Array<{ id: string; template: string; payload: unknown; created_at: string }> | null;
+    data: Array<{
+      id: string;
+      template: string;
+      payload: unknown;
+      link_url: string | null;
+      created_at: string;
+    }> | null;
   };
 
   // De-duplicate multi-channel copies of the same event.
@@ -126,7 +135,18 @@ export default async function MobileNotificationsPage({ params }: Props) {
     const title = isKnownTemplate(row.template)
       ? t(`notifications.tpl_${row.template}` as never)
       : t("notifications.tpl_generic");
-    const detail = pickString(data, ["name", "tournament_name", "venue", "club_name", "court"]);
+    const opponent = pickString(data, ["opponent_name"]);
+    const tournament = pickString(data, ["tournament_name"]);
+    const detail =
+      row.template === "tournament_match_scheduled" && opponent && tournament
+        ? t("notifications.detail_match", { tournament, opponent })
+        : pickString(data, ["name", "tournament_name", "venue", "club_name", "court"]);
+    const href = notificationHref({
+      template: row.template,
+      payload: row.payload,
+      linkUrl: row.link_url,
+      mobile: true,
+    });
     const fresh = Date.now() - Date.parse(row.created_at) < 48 * 3600_000;
     const isToday = dayKeyFmt.format(new Date(row.created_at)) === todayKey;
 
@@ -147,14 +167,8 @@ export default async function MobileNotificationsPage({ params }: Props) {
       <Bell className="h-[17px] w-[17px]" strokeWidth={1.8} />
     );
 
-    return (
-      <li
-        key={row.id}
-        className={[
-          "flex items-start gap-3 rounded-[15px] border bg-white p-[13px] shadow-[0_1px_2px_rgba(20,60,30,0.04)]",
-          fresh ? "border-[rgba(28,122,70,0.22)]" : "border-[rgba(20,60,30,0.06)]",
-        ].join(" ")}
-      >
+    const inner = (
+      <>
         <span
           className={`grid h-[36px] w-[36px] shrink-0 place-items-center rounded-[11px] ${tone}`}
         >
@@ -173,7 +187,31 @@ export default async function MobileNotificationsPage({ params }: Props) {
           {fresh ? (
             <span className="h-[7px] w-[7px] rounded-full bg-grass-500" aria-hidden />
           ) : null}
+          {href ? (
+            <ChevronRight className="h-[14px] w-[14px] text-[#8AA093]" strokeWidth={2} />
+          ) : null}
         </span>
+      </>
+    );
+
+    const cardCls = [
+      "flex items-start gap-3 rounded-[15px] border bg-white p-[13px] shadow-[0_1px_2px_rgba(20,60,30,0.04)]",
+      fresh ? "border-[rgba(28,122,70,0.22)]" : "border-[rgba(20,60,30,0.06)]",
+    ].join(" ");
+
+    return (
+      <li key={row.id}>
+        {href ? (
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={href as any}
+            className={`${cardCls} transition-colors active:bg-[#F4F8F4]`}
+          >
+            {inner}
+          </Link>
+        ) : (
+          <div className={cardCls}>{inner}</div>
+        )}
       </li>
     );
   };

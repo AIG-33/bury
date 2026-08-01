@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { enqueue } from "@/lib/notifications/outbox";
+import { notifyNewTournamentMatches } from "@/lib/notifications/tournament-match";
 import type { Locale } from "@/lib/notifications/templates";
 import {
   TournamentFormSchema,
   ScoreFormSchema,
+  ResetScoreSchema,
   AddParticipantSchema,
   GenerateGroupsSchema,
   GenerateGroupsManualSchema,
@@ -27,11 +29,7 @@ import {
   type MatchRules,
   type MatchStage,
 } from "@/lib/tournaments/schema";
-import {
-  validatePairRegistration,
-  pairSeedElo,
-  composePairName,
-} from "@/lib/tournaments/pairs";
+import { validatePairRegistration, pairSeedElo, composePairName } from "@/lib/tournaments/pairs";
 import { canSetParticipantStatus } from "@/lib/tournaments/applications";
 import {
   buildMatchesForNewGroupMember,
@@ -50,7 +48,8 @@ import {
 } from "@/lib/tournaments/draw";
 import { recalcMatchElo } from "@/lib/rating/recalc";
 import { recalcClubRatingsForMatch } from "@/lib/rating/club-recalc";
-import { validateScoreAgainstRules } from "@/lib/tournaments/score-validation";
+import { revertMatchElo, revertClubRatingsForMatch } from "@/lib/rating/revert";
+import { validateScoreLoose } from "@/lib/tournaments/score-validation";
 import {
   TournamentBrandingSchema,
   tournamentBrandingFromRow,
@@ -754,9 +753,7 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
 
   const { data: current } = (await supabase
     .from("tournaments")
-    .select(
-      "id, owner_id, status, format, discipline, draw_method, match_rules, third_place_match",
-    )
+    .select("id, owner_id, status, format, discipline, draw_method, match_rules, third_place_match")
     .eq("id", id)
     .single()) as {
     data: {
@@ -1536,13 +1533,36 @@ export async function generateBracket(
     });
   }
 
-  const { error: insertErr } = await supabase.from("matches").insert(rows as never);
+  const { data: insertedMatches, error: insertErr } = (await supabase
+    .from("matches")
+    .insert(rows as never)
+    .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id, stage, outcome")) as {
+    data: Array<{
+      id: string;
+      p1_id: string | null;
+      p2_id: string | null;
+      p1_partner_id: string | null;
+      p2_partner_id: string | null;
+      stage: string | null;
+      outcome: string;
+    }> | null;
+    error: { message: string } | null;
+  };
   if (insertErr) return { ok: false, error: insertErr.message };
 
   await supabase
     .from("tournaments")
     .update({ status: "in_progress" } as never)
     .eq("id", tournamentId);
+
+  // «У тебя новый матч» for every real pair (byes/TBD slots are skipped).
+  await notifyNewTournamentMatches(
+    createSupabaseServiceClient(),
+    tournamentId,
+    (insertedMatches ?? [])
+      .filter((r) => r.outcome === "pending")
+      .map((r) => ({ ...r, is_doubles: isDoubles })),
+  );
 
   revalidatePath(`/me/tournaments/organized/${tournamentId}`);
   return { ok: true, matchesCount: rows.length };
@@ -1708,8 +1728,7 @@ async function persistGroupStage(args: {
         p2_id: m.p2_id,
         is_doubles: isDoubles,
         p1_partner_id: isDoubles ? (partnerByCaptain.get(m.p1_id) ?? null) : null,
-        p2_partner_id:
-          isDoubles && m.p2_id ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
+        p2_partner_id: isDoubles && m.p2_id ? (partnerByCaptain.get(m.p2_id) ?? null) : null,
         outcome: "pending",
         winner_side: null,
         match_rules: matchRules,
@@ -1719,8 +1738,27 @@ async function persistGroupStage(args: {
     }
   }
   if (matchRows.length > 0) {
-    const { error: mErr } = await supabase.from("matches").insert(matchRows as never);
+    const { data: insertedMatches, error: mErr } = (await supabase
+      .from("matches")
+      .insert(matchRows as never)
+      .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id, stage")) as {
+      data: Array<{
+        id: string;
+        p1_id: string | null;
+        p2_id: string | null;
+        p1_partner_id: string | null;
+        p2_partner_id: string | null;
+        stage: string | null;
+      }> | null;
+      error: { message: string } | null;
+    };
     if (mErr) return { ok: false, error: mErr.message };
+    // «У тебя новый матч» for every freshly formed pair — best-effort.
+    await notifyNewTournamentMatches(
+      createSupabaseServiceClient(),
+      tournamentId,
+      (insertedMatches ?? []).map((r) => ({ ...r, is_doubles: isDoubles })),
+    );
   }
 
   await supabase
@@ -1780,11 +1818,11 @@ export async function generateGroups(
   if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
   if (t.status === "finished") return { ok: false, error: "already_finished" };
 
-  const {
-    players,
-    partnerByCaptain,
-    incomplete,
-  } = await loadApprovedDrawPlayers(supabase, v.tournament_id, t.discipline);
+  const { players, partnerByCaptain, incomplete } = await loadApprovedDrawPlayers(
+    supabase,
+    v.tournament_id,
+    t.discipline,
+  );
   if (incomplete) return { ok: false, error: "pair_incomplete" };
   if (players.length < v.groups_count * 2) {
     return { ok: false, error: "need_at_least_2_players_per_group" };
@@ -2223,8 +2261,26 @@ export async function addParticipantToGroup(
       stage: "group" as const,
       group_id: v.group_id,
     }));
-    const { error: mErr } = await supabase.from("matches").insert(rows as never);
+    const { data: insertedMatches, error: mErr } = (await supabase
+      .from("matches")
+      .insert(rows as never)
+      .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id, stage")) as {
+      data: Array<{
+        id: string;
+        p1_id: string | null;
+        p2_id: string | null;
+        p1_partner_id: string | null;
+        p2_partner_id: string | null;
+        stage: string | null;
+      }> | null;
+      error: { message: string } | null;
+    };
     if (mErr) return { ok: false, error: mErr.message };
+    await notifyNewTournamentMatches(
+      createSupabaseServiceClient(),
+      v.tournament_id,
+      (insertedMatches ?? []).map((r) => ({ ...r, is_doubles: isDoubles })),
+    );
   }
 
   revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
@@ -2452,8 +2508,31 @@ export async function closeGroupsAndStartPlayoff(
     };
   });
 
-  const { error: insertErr } = await supabase.from("matches").insert(baseRows as never);
+  const { data: insertedPlayoff, error: insertErr } = (await supabase
+    .from("matches")
+    .insert(baseRows as never)
+    .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id, stage, outcome")) as {
+    data: Array<{
+      id: string;
+      p1_id: string | null;
+      p2_id: string | null;
+      p1_partner_id: string | null;
+      p2_partner_id: string | null;
+      stage: string | null;
+      outcome: string;
+    }> | null;
+    error: { message: string } | null;
+  };
   if (insertErr) return { ok: false, error: insertErr.message };
+
+  // «У тебя новый матч» for every seeded round-1 pair (byes/TBD skipped).
+  await notifyNewTournamentMatches(
+    createSupabaseServiceClient(),
+    v.tournament_id,
+    (insertedPlayoff ?? [])
+      .filter((r) => r.outcome === "pending")
+      .map((r) => ({ ...r, is_doubles: isDoubles })),
+  );
 
   // Insert a 3rd-place match if requested AND the bracket has semis to feed it.
   let thirdPlaceInserted = false;
@@ -2518,8 +2597,8 @@ export async function setMatchScore(
     .from("matches")
     .select(
       "id, tournament_id, round, bracket_slot, p1_id, p2_id, is_doubles, " +
-        "p1_partner_id, p2_partner_id, stage, group_id, match_rules, " +
-        "tournaments(owner_id, format)",
+        "p1_partner_id, p2_partner_id, stage, group_id, outcome, winner_side, " +
+        "tournaments(owner_id, format, status)",
     )
     .eq("id", v.match_id)
     .single()) as {
@@ -2535,8 +2614,13 @@ export async function setMatchScore(
       p2_partner_id: string | null;
       stage: MatchStage | null;
       group_id: string | null;
-      match_rules: MatchRules | null;
-      tournaments: { owner_id: string; format: TournamentFormat } | null;
+      outcome: string;
+      winner_side: "p1" | "p2" | null;
+      tournaments: {
+        owner_id: string;
+        format: TournamentFormat;
+        status: TournamentStatus;
+      } | null;
     } | null;
   };
   if (!m) return { ok: false, error: "match_not_found" };
@@ -2561,10 +2645,11 @@ export async function setMatchScore(
   }
   const isRoundRobin = m.tournaments.format === "round_robin" || m.stage === "group";
 
-  // Drop trailing untouched "0:0" placeholder sets from the score widget,
-  // then validate the rest against the tournament's match rules. Special
-  // outcomes (walkover / retired / DSQ) skip validation — their score is
-  // whatever was played before the stoppage.
+  // Drop trailing untouched "0:0" placeholder sets from the score widget.
+  // Validation is deliberately loose (any non-negative game counts, see
+  // score-validation.ts) — the only requirement for a "completed" match is a
+  // determinable winner. Special outcomes (walkover / retired / DSQ) skip
+  // validation — their score is whatever was played before the stoppage.
   const sets = [...v.sets];
   while (sets.length > 0) {
     const last = sets[sets.length - 1];
@@ -2574,8 +2659,8 @@ export async function setMatchScore(
       break;
     }
   }
-  if (v.outcome === "completed" && m.match_rules) {
-    const validation = validateScoreAgainstRules(sets, m.match_rules);
+  if (v.outcome === "completed") {
+    const validation = validateScoreLoose(sets);
     if (!validation.ok) return { ok: false, error: validation.error };
   }
 
@@ -2585,6 +2670,34 @@ export async function setMatchScore(
   });
   if (v.outcome === "completed" && winner == null) {
     return { ok: false, error: "tied_score" };
+  }
+
+  // Elo writes (profiles + rating_history) are service-role-only by RLS, so
+  // recalcs/reverts run with the service client. Ownership was verified above.
+  const eloService = createSupabaseServiceClient();
+
+  // Re-entering a score over an existing result: when the winner flips, roll
+  // back the old result's side effects first (Elo deltas, next-round slot,
+  // 3rd-place slot, auto-finish). Refused with `next_match_played` while the
+  // downstream match already has its own result. When the winner stays the
+  // same only the sets change — applied Elo remains valid as-is.
+  if (m.outcome !== "pending" && m.winner_side !== winner) {
+    const undo = await undoScoredMatchEffects(supabase, eloService, {
+      id: m.id,
+      tournament_id: m.tournament_id,
+      round: m.round,
+      bracket_slot: m.bracket_slot,
+      is_doubles: m.is_doubles,
+      p1_id: m.p1_id,
+      p2_id: m.p2_id,
+      p1_partner_id: m.p1_partner_id,
+      p2_partner_id: m.p2_partner_id,
+      stage: m.stage,
+      winner_side: m.winner_side,
+      format: m.tournaments.format,
+      status: m.tournaments.status,
+    });
+    if (!undo.ok) return undo;
   }
 
   const { error: upErr } = await supabase
@@ -2598,9 +2711,6 @@ export async function setMatchScore(
     .eq("id", v.match_id);
   if (upErr) return { ok: false, error: upErr.message };
 
-  // Elo writes (profiles + rating_history) are service-role-only by RLS, so
-  // both recalcs run with the service client. Ownership was verified above.
-  const eloService = createSupabaseServiceClient();
   let eloP1Delta: number | null = null;
   let eloP2Delta: number | null = null;
   const recalc = await recalcMatchElo(eloService, v.match_id);
@@ -2636,6 +2746,13 @@ export async function setMatchScore(
       // closeGroupsAndStartPlayoff() to seed the playoff.
     }
 
+    // Hybrid whose playoff already finished: re-scoring a reset group match
+    // re-opened the tournament — close it again once the playoff is resolved.
+    // No-op while the playoff hasn't been seeded or decided yet.
+    if (m.tournaments.format === "group_playoff") {
+      await maybeFinishEliminationTournament(supabase, m.tournament_id, true);
+    }
+
     revalidatePath(`/me/tournaments/organized/${m.tournament_id}`);
     return { ok: true, eloP1Delta, eloP2Delta };
   }
@@ -2657,17 +2774,27 @@ export async function setMatchScore(
       // tournaments stage is null on both sides, so we don't constrain by it.
       const nextQ = supabase
         .from("matches")
-        .select("id, p1_id, p2_id")
+        .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id")
         .eq("tournament_id", m.tournament_id)
         .eq("round", nextRound)
         .eq("bracket_slot", nextSlot);
       const { data: nextMatch } = (await (
         m.stage ? nextQ.eq("stage", m.stage) : nextQ.is("stage", null)
       ).maybeSingle()) as {
-        data: { id: string; p1_id: string | null; p2_id: string | null } | null;
+        data: {
+          id: string;
+          p1_id: string | null;
+          p2_id: string | null;
+          p1_partner_id: string | null;
+          p2_partner_id: string | null;
+        } | null;
       };
 
-      if (nextMatch) {
+      // Re-saving the same result must not re-write the slot or spam the
+      // "new match" notification — skip when the winner is already there.
+      const alreadyPropagated =
+        nextMatch != null && (toP1 ? nextMatch.p1_id : nextMatch.p2_id) === winnerId;
+      if (nextMatch && !alreadyPropagated) {
         const patch = toP1
           ? { p1_id: winnerId, ...(m.is_doubles ? { p1_partner_id: winnerPartnerId } : {}) }
           : { p2_id: winnerId, ...(m.is_doubles ? { p2_partner_id: winnerPartnerId } : {}) };
@@ -2675,6 +2802,24 @@ export async function setMatchScore(
           .from("matches")
           .update(patch as never)
           .eq("id", nextMatch.id);
+
+        // The advanced winner may have completed the next-round pair —
+        // notify both sides ("new match vs <opponent>"). Best-effort.
+        const nextP1 = toP1 ? winnerId : nextMatch.p1_id;
+        const nextP2 = toP1 ? nextMatch.p2_id : winnerId;
+        if (nextP1 && nextP2) {
+          await notifyNewTournamentMatches(eloService, m.tournament_id, [
+            {
+              id: nextMatch.id,
+              p1_id: nextP1,
+              p2_id: nextP2,
+              p1_partner_id: toP1 ? winnerPartnerId : nextMatch.p1_partner_id,
+              p2_partner_id: toP1 ? nextMatch.p2_partner_id : winnerPartnerId,
+              is_doubles: m.is_doubles,
+              stage: m.stage,
+            },
+          ]);
+        }
       }
     }
 
@@ -2697,27 +2842,52 @@ export async function setMatchScore(
         if (loserId) {
           const { data: tp } = (await supabase
             .from("matches")
-            .select("id, p1_id, p2_id")
+            .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id")
             .eq("tournament_id", m.tournament_id)
             .eq("stage", "third_place")
             .maybeSingle()) as {
-            data: { id: string; p1_id: string | null; p2_id: string | null } | null;
+            data: {
+              id: string;
+              p1_id: string | null;
+              p2_id: string | null;
+              p1_partner_id: string | null;
+              p2_partner_id: string | null;
+            } | null;
           };
-          if (tp) {
-            const patch =
-              tp.p1_id == null
-                ? {
-                    p1_id: loserId,
-                    ...(m.is_doubles ? { p1_partner_id: loserPartnerId } : {}),
-                  }
-                : {
-                    p2_id: loserId,
-                    ...(m.is_doubles ? { p2_partner_id: loserPartnerId } : {}),
-                  };
+          // Skip when the loser already occupies a 3rd-place slot (re-saving
+          // the same semifinal result) — avoids overwriting the other side.
+          if (tp && tp.p1_id !== loserId && tp.p2_id !== loserId) {
+            const toTpP1 = tp.p1_id == null;
+            const patch = toTpP1
+              ? {
+                  p1_id: loserId,
+                  ...(m.is_doubles ? { p1_partner_id: loserPartnerId } : {}),
+                }
+              : {
+                  p2_id: loserId,
+                  ...(m.is_doubles ? { p2_partner_id: loserPartnerId } : {}),
+                };
             await supabase
               .from("matches")
               .update(patch as never)
               .eq("id", tp.id);
+
+            // Second semifinal loser completes the 3rd-place pair — notify.
+            const tpP1 = toTpP1 ? loserId : tp.p1_id;
+            const tpP2 = toTpP1 ? tp.p2_id : loserId;
+            if (tpP1 && tpP2) {
+              await notifyNewTournamentMatches(eloService, m.tournament_id, [
+                {
+                  id: tp.id,
+                  p1_id: tpP1,
+                  p2_id: tpP2,
+                  p1_partner_id: toTpP1 ? loserPartnerId : tp.p1_partner_id,
+                  p2_partner_id: toTpP1 ? tp.p2_partner_id : loserPartnerId,
+                  is_doubles: m.is_doubles,
+                  stage: "third_place",
+                },
+              ]);
+            }
           }
         }
       }
@@ -2727,40 +2897,296 @@ export async function setMatchScore(
   // Finish detection — single-elim and hybrid playoff alike: the tournament
   // is finished when the playoff final has a winner AND, if applicable, the
   // 3rd-place match has a winner too.
-  const stageScope = m.stage ?? null;
+  await maybeFinishEliminationTournament(supabase, m.tournament_id, m.stage != null);
+
+  revalidatePath(`/me/tournaments/organized/${m.tournament_id}`);
+  return { ok: true, eloP1Delta, eloP2Delta };
+}
+
+/**
+ * Mark the tournament finished when its elimination tree is fully resolved:
+ * the final (highest round) has a winner and — when a 3rd-place match exists —
+ * that one has a winner too. `stageScoped` = true for the playoff tree of a
+ * hybrid (stage='playoff'/'third_place'); false for legacy single-elimination
+ * brackets where stage is null. No-op while anything is still undecided.
+ */
+async function maybeFinishEliminationTournament(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tournamentId: string,
+  stageScoped: boolean,
+): Promise<void> {
   const finalQ = supabase
     .from("matches")
     .select("round, winner_side")
-    .eq("tournament_id", m.tournament_id);
+    .eq("tournament_id", tournamentId);
   const { data: finalMatch } = (await (
-    stageScope ? finalQ.eq("stage", "playoff") : finalQ.is("stage", null)
+    stageScoped ? finalQ.eq("stage", "playoff") : finalQ.is("stage", null)
   )
     .order("round", { ascending: false })
     .limit(1)
     .maybeSingle()) as { data: { round: number; winner_side: string | null } | null };
+  if (!finalMatch?.winner_side) return;
 
-  if (finalMatch?.winner_side) {
-    // For hybrids with a 3rd-place match, wait for it to resolve too.
-    let canFinish = true;
-    if (m.stage) {
-      const { data: tp } = (await supabase
+  if (stageScoped) {
+    const { data: tp } = (await supabase
+      .from("matches")
+      .select("winner_side")
+      .eq("tournament_id", tournamentId)
+      .eq("stage", "third_place")
+      .maybeSingle()) as { data: { winner_side: string | null } | null };
+    if (tp && !tp.winner_side) return;
+  }
+
+  await supabase
+    .from("tournaments")
+    .update({ status: "finished" } as never)
+    .eq("id", tournamentId);
+}
+
+// =============================================================================
+// Score correction — reset a recorded result back to "pending" (обнуление),
+// rolling back everything the result caused. Re-entering a different score
+// goes through setMatchScore, which performs the same rollback when the
+// winner flips.
+// =============================================================================
+
+type ScoredMatchState = {
+  id: string;
+  tournament_id: string;
+  round: number | null;
+  bracket_slot: number | null;
+  is_doubles: boolean;
+  p1_id: string | null;
+  p2_id: string | null;
+  p1_partner_id: string | null;
+  p2_partner_id: string | null;
+  stage: MatchStage | null;
+  /** Winner of the OLD (current in DB) result being undone. */
+  winner_side: "p1" | "p2" | null;
+  format: TournamentFormat;
+  status: TournamentStatus;
+};
+
+/**
+ * Undo everything a previously recorded result caused OUTSIDE the match row
+ * itself:
+ *   – remove the old winner from the next-round slot, and the old semifinal
+ *     loser from the 3rd-place match — refused with `next_match_played` when
+ *     that downstream match already has a result of its own;
+ *   – roll back the Elo applied for this match (global + club ladders, direct
+ *     delta rollback — see lib/rating/revert.ts for the limitation note);
+ *   – re-open a tournament that had auto-finished on this result.
+ * Must run BEFORE the match row is overwritten: the club-rating revert reads
+ * the OLD winner_side to fix win/loss counters.
+ */
+async function undoScoredMatchEffects(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  service: any,
+  m: ScoredMatchState,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const isRoundRobin = m.format === "round_robin" || m.stage === "group";
+  const oldWinner = m.winner_side;
+
+  if (
+    !isRoundRobin &&
+    m.stage !== "third_place" &&
+    oldWinner &&
+    m.round != null &&
+    m.bracket_slot != null
+  ) {
+    // 1) Pull the old winner back out of the next-round slot.
+    const winnerId = oldWinner === "p1" ? m.p1_id : m.p2_id;
+    if (winnerId) {
+      const nextRound = m.round + 1;
+      const nextSlot = Math.ceil(m.bracket_slot / 2);
+      const toP1 = m.bracket_slot % 2 === 1;
+      const nextQ = supabase
         .from("matches")
-        .select("winner_side")
+        .select("id, p1_id, p2_id, outcome, winner_side")
         .eq("tournament_id", m.tournament_id)
-        .eq("stage", "third_place")
-        .maybeSingle()) as { data: { winner_side: string | null } | null };
-      if (tp && !tp.winner_side) canFinish = false;
+        .eq("round", nextRound)
+        .eq("bracket_slot", nextSlot);
+      const { data: next } = (await (
+        m.stage ? nextQ.eq("stage", m.stage) : nextQ.is("stage", null)
+      ).maybeSingle()) as {
+        data: {
+          id: string;
+          p1_id: string | null;
+          p2_id: string | null;
+          outcome: string;
+          winner_side: string | null;
+        } | null;
+      };
+      if (next && (toP1 ? next.p1_id : next.p2_id) === winnerId) {
+        if (next.outcome !== "pending" || next.winner_side != null) {
+          return { ok: false, error: "next_match_played" };
+        }
+        const patch = toP1
+          ? { p1_id: null, ...(m.is_doubles ? { p1_partner_id: null } : {}) }
+          : { p2_id: null, ...(m.is_doubles ? { p2_partner_id: null } : {}) };
+        await supabase
+          .from("matches")
+          .update(patch as never)
+          .eq("id", next.id);
+      }
     }
-    if (canFinish) {
-      await supabase
-        .from("tournaments")
-        .update({ status: "finished" } as never)
-        .eq("id", m.tournament_id);
+
+    // 2) Semifinal of a hybrid: the old loser was dropped into the 3rd-place
+    //    match — pull them back out too.
+    if (m.stage === "playoff") {
+      const loserId = oldWinner === "p1" ? m.p2_id : m.p1_id;
+      if (loserId) {
+        const { data: tp } = (await supabase
+          .from("matches")
+          .select("id, p1_id, p2_id, outcome, winner_side")
+          .eq("tournament_id", m.tournament_id)
+          .eq("stage", "third_place")
+          .maybeSingle()) as {
+          data: {
+            id: string;
+            p1_id: string | null;
+            p2_id: string | null;
+            outcome: string;
+            winner_side: string | null;
+          } | null;
+        };
+        if (tp && (tp.p1_id === loserId || tp.p2_id === loserId)) {
+          if (tp.outcome !== "pending" || tp.winner_side != null) {
+            return { ok: false, error: "next_match_played" };
+          }
+          const patch =
+            tp.p1_id === loserId
+              ? { p1_id: null, ...(m.is_doubles ? { p1_partner_id: null } : {}) }
+              : { p2_id: null, ...(m.is_doubles ? { p2_partner_id: null } : {}) };
+          await supabase
+            .from("matches")
+            .update(patch as never)
+            .eq("id", tp.id);
+        }
+      }
     }
   }
 
+  // 3) Elo rollback — global ladder + every club ladder this match fed.
+  //    No-op when the match was never rated (bye, missing partner, …).
+  const globalRevert = await revertMatchElo(service, m.id);
+  if (!globalRevert.ok) return { ok: false, error: globalRevert.error };
+  const clubRevert = await revertClubRatingsForMatch(service, m.id);
+  if (!clubRevert.ok) return { ok: false, error: clubRevert.error };
+
+  // 4) A result is about to disappear — re-open an auto-finished tournament.
+  if (m.status === "finished") {
+    await supabase
+      .from("tournaments")
+      .update({ status: "in_progress" } as never)
+      .eq("id", m.tournament_id);
+  }
+
+  return { ok: true };
+}
+
+/**
+ * Reset a recorded result: the match returns to "pending" with no winner and
+ * no sets; applied Elo deltas are rolled back; the winner is removed from the
+ * next playoff round (and the loser from the 3rd-place match). Refused with
+ * `next_match_played` while the downstream match already has its own result —
+ * reset that one first. Works for group, round-robin, playoff and legacy
+ * single-elimination matches, singles and doubles alike.
+ */
+export async function resetMatchScore(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = ResetScoreSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+
+  const { data: m } = (await supabase
+    .from("matches")
+    .select(
+      "id, tournament_id, round, bracket_slot, p1_id, p2_id, is_doubles, " +
+        "p1_partner_id, p2_partner_id, stage, outcome, winner_side, " +
+        "tournaments(owner_id, format, status)",
+    )
+    .eq("id", parsed.data.match_id)
+    .single()) as {
+    data: {
+      id: string;
+      tournament_id: string | null;
+      round: number | null;
+      bracket_slot: number | null;
+      p1_id: string | null;
+      p2_id: string | null;
+      is_doubles: boolean;
+      p1_partner_id: string | null;
+      p2_partner_id: string | null;
+      stage: MatchStage | null;
+      outcome: string;
+      winner_side: "p1" | "p2" | null;
+      tournaments: {
+        owner_id: string;
+        format: TournamentFormat;
+        status: TournamentStatus;
+      } | null;
+    } | null;
+  };
+  if (!m) return { ok: false, error: "match_not_found" };
+  if (!m.tournament_id || !m.tournaments) {
+    return { ok: false, error: "not_a_bracket_match" };
+  }
+  {
+    const manage = await assertCanManageTournament(
+      supabase,
+      m.tournament_id,
+      userId,
+      m.tournaments.owner_id,
+    );
+    if (!manage.ok) return manage;
+  }
+  if (m.outcome === "pending") return { ok: false, error: "match_not_played" };
+  if (m.p1_id == null || m.p2_id == null) {
+    // Auto-bye "results" carry no score and no Elo — the slot editor is the
+    // right tool to re-wire those.
+    return { ok: false, error: "match_not_ready" };
+  }
+
+  const service = createSupabaseServiceClient();
+  const undo = await undoScoredMatchEffects(supabase, service, {
+    id: m.id,
+    tournament_id: m.tournament_id,
+    round: m.round,
+    bracket_slot: m.bracket_slot,
+    is_doubles: m.is_doubles,
+    p1_id: m.p1_id,
+    p2_id: m.p2_id,
+    p1_partner_id: m.p1_partner_id,
+    p2_partner_id: m.p2_partner_id,
+    stage: m.stage,
+    winner_side: m.winner_side,
+    format: m.tournaments.format,
+    status: m.tournaments.status,
+  });
+  if (!undo.ok) return undo;
+
+  const { error: upErr } = await supabase
+    .from("matches")
+    .update({
+      outcome: "pending",
+      winner_side: null,
+      sets: [],
+      played_at: null,
+      multiplier: null,
+    } as never)
+    .eq("id", m.id);
+  if (upErr) return { ok: false, error: upErr.message };
+
   revalidatePath(`/me/tournaments/organized/${m.tournament_id}`);
-  return { ok: true, eloP1Delta, eloP2Delta };
+  return { ok: true };
 }
 
 // =============================================================================
@@ -2982,6 +3408,21 @@ export async function editPlayoffSlot(
     .eq("id", v.match_id);
   if (upErr) return { ok: false, error: upErr.message };
 
+  // The manual edit may have completed the pair — notify both sides.
+  if (newP1 && newP2) {
+    await notifyNewTournamentMatches(createSupabaseServiceClient(), m.tournament_id, [
+      {
+        id: m.id,
+        p1_id: newP1,
+        p2_id: newP2,
+        p1_partner_id: v.side === "p1" ? newPartnerId : m.p1_partner_id,
+        p2_partner_id: v.side === "p2" ? newPartnerId : m.p2_partner_id,
+        is_doubles: m.is_doubles,
+        stage: m.stage,
+      },
+    ]);
+  }
+
   for (const c of clears) {
     const clearPatch: Record<string, unknown> = { [`${c.side}_id`]: null };
     if (isDoubles) clearPatch[`${c.side}_partner_id`] = null;
@@ -3005,13 +3446,20 @@ export async function editPlayoffSlot(
     const side: "p1" | "p2" = m.bracket_slot % 2 === 1 ? "p1" : "p2";
     const nq = supabase
       .from("matches")
-      .select("id, outcome, winner_side")
+      .select("id, p1_id, p2_id, p1_partner_id, p2_partner_id, outcome, winner_side")
       .eq("tournament_id", m.tournament_id)
       .eq("round", m.round + 1)
       .eq("bracket_slot", Math.ceil(m.bracket_slot / 2));
     const { data: next } = (await (
       m.stage ? nq.eq("stage", m.stage) : nq.is("stage", null)
-    ).maybeSingle()) as { data: BracketMatchLite | null };
+    ).maybeSingle()) as {
+      data:
+        | (BracketMatchLite & {
+            p1_partner_id: string | null;
+            p2_partner_id: string | null;
+          })
+        | null;
+    };
     if (next && next.outcome === "pending" && next.winner_side == null) {
       const advPatch: Record<string, unknown> = { [`${side}_id`]: newAdvanced };
       if (isDoubles) advPatch[`${side}_partner_id`] = advancedPartner;
@@ -3019,6 +3467,23 @@ export async function editPlayoffSlot(
         .from("matches")
         .update(advPatch as never)
         .eq("id", next.id);
+
+      // The bye winner may have completed the next-round pair — notify.
+      const nP1 = side === "p1" ? newAdvanced : next.p1_id;
+      const nP2 = side === "p2" ? newAdvanced : next.p2_id;
+      if (nP1 && nP2) {
+        await notifyNewTournamentMatches(createSupabaseServiceClient(), m.tournament_id, [
+          {
+            id: next.id,
+            p1_id: nP1,
+            p2_id: nP2,
+            p1_partner_id: side === "p1" ? advancedPartner : next.p1_partner_id,
+            p2_partner_id: side === "p2" ? advancedPartner : next.p2_partner_id,
+            is_doubles: m.is_doubles,
+            stage: m.stage,
+          },
+        ]);
+      }
     }
   }
 
@@ -3097,10 +3562,9 @@ export async function loadGroupStandings(tournamentId: string): Promise<GroupSta
     if (m.partner_id) partnerByCaptain.set(m.player_id, m.partner_id);
   }
 
-  const lineFor = (captainId: string): Pick<
-    StandingsLine,
-    "display_name" | "avatar_url" | "current_elo"
-  > => {
+  const lineFor = (
+    captainId: string,
+  ): Pick<StandingsLine, "display_name" | "avatar_url" | "current_elo"> => {
     const prof = profileById.get(captainId);
     if (!isDoubles) {
       return {
@@ -3156,7 +3620,9 @@ export type TournamentAdminRow = {
   created_at: string;
 };
 
-export async function loadTournamentAdmins(tournamentId: string): Promise<
+export async function loadTournamentAdmins(
+  tournamentId: string,
+): Promise<
   | { ok: true; isOwner: boolean; admins: TournamentAdminRow[]; options: PlayerOption[] }
   | { ok: false; error: string }
 > {

@@ -100,7 +100,15 @@ export const TABLES: readonly TableDef[] = [
     defaultSort: { column: "created_at", ascending: false },
     // "email" is virtual: it lives in auth.users and is merged into rows (and
     // matched on search) by the admin server actions via the service client.
-    searchColumns: ["display_name", "email", "email_local", "first_name", "last_name", "city", "coach_slug"],
+    searchColumns: [
+      "display_name",
+      "email",
+      "email_local",
+      "first_name",
+      "last_name",
+      "city",
+      "coach_slug",
+    ],
     filterColumns: ["is_admin", "is_coach", "is_player", "country", "locale"],
     description: "Players, coaches and admins. Edit roles, contacts, ratings and visibility.",
     // New profiles are auto-created by the auth.users insert trigger.
@@ -248,7 +256,13 @@ export const TABLES: readonly TableDef[] = [
         options: ["indoor", "outdoor", "mixed", "unknown"],
         readonly: true,
       },
-      { key: "is_indoor", label: "Indoor (legacy)", type: "boolean", readonly: true, hideInList: true },
+      {
+        key: "is_indoor",
+        label: "Indoor (legacy)",
+        type: "boolean",
+        readonly: true,
+        hideInList: true,
+      },
       { key: "amenities", label: "Amenities", type: "json", hideInList: true },
       { key: "photos", label: "Photos", type: "json", hideInList: true },
       ...META_COLUMNS.slice(1),
@@ -348,7 +362,13 @@ export const TABLES: readonly TableDef[] = [
         options: ["approval", "open", "closed"],
         required: true,
       },
-      { key: "invite_token_hash", label: "Invite hash", type: "text", hideInList: true, readonly: true },
+      {
+        key: "invite_token_hash",
+        label: "Invite hash",
+        type: "text",
+        hideInList: true,
+        readonly: true,
+      },
       { key: "invite_expires_at", label: "Invite expires", type: "datetime", hideInList: true },
       { key: "pending_owner_id", label: "Pending owner", type: "uuid", hideInList: true },
       { key: "pending_owner_at", label: "Offered at", type: "datetime", hideInList: true },
@@ -790,6 +810,7 @@ export const TABLES: readonly TableDef[] = [
         options: ["ru", "en"],
       },
       { key: "payload", label: "Payload", type: "json", hideInList: true },
+      { key: "link_url", label: "Link", type: "text", hideInList: true },
       { key: "scheduled_at", label: "Scheduled", type: "datetime" },
       {
         key: "status",

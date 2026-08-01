@@ -20,6 +20,7 @@ export type TemplateCode =
   | "tournament_application_approved"
   | "tournament_application_rejected"
   | "tournament_starting_24h"
+  | "tournament_match_scheduled"
   | "match_proposal"
   | "match_accepted"
   | "match_confirmed"
@@ -95,6 +96,7 @@ type Strings = {
   tournament_application_approved: { subject: string; intro: string; format: string; cta: string };
   tournament_application_rejected: { subject: string; intro: string };
   tournament_starting_24h: { subject: string; intro: string; cta: string };
+  tournament_match_scheduled: { subject: string; intro: string; cta: string };
   match_proposal: { subject: string; intro: string; cta: string; declineHint: string };
   match_accepted: { subject: string; intro: string; cta: string; whatsappHint: string };
   match_confirmed: { subject: string; intro: string };
@@ -164,6 +166,11 @@ const COPY: Record<Locale, Strings> = {
       subject: "Tournament starts tomorrow!",
       intro: "Get your racket ready — «{tournament}» starts {when}.",
       cta: "View bracket",
+    },
+    tournament_match_scheduled: {
+      subject: "New match in «{tournament}» 🎾",
+      intro: "You have a new match in the tournament «{tournament}» — you play against {opponent}.",
+      cta: "Open tournament",
     },
     match_proposal: {
       subject: "New match proposal from {opponent}",
@@ -285,6 +292,11 @@ const COPY: Record<Locale, Strings> = {
       subject: "Турнир стартует завтра!",
       intro: "Готовь ракетку — «{tournament}» стартует {when}.",
       cta: "Открыть сетку",
+    },
+    tournament_match_scheduled: {
+      subject: "Новый матч в турнире «{tournament}» 🎾",
+      intro: "У тебя новый матч в турнире «{tournament}» — соперник: {opponent}.",
+      cta: "Открыть турнир",
     },
     match_proposal: {
       subject: "Предложение матча от {opponent}",
@@ -408,6 +420,20 @@ export function renderTelegram(
       return {
         text:
           `✅ <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
+          `${tgEscape(fill(t.intro, vars))}\n\n` +
+          `${tgLink(url, t.cta)}`,
+      };
+    }
+    case "tournament_match_scheduled": {
+      const t = L.tournament_match_scheduled;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+        opponent: String(payload.opponent_name ?? ""),
+      };
+      const url = `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`;
+      return {
+        text:
+          `🎾 <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
           `${tgEscape(fill(t.intro, vars))}\n\n` +
           `${tgLink(url, t.cta)}`,
       };
@@ -582,6 +608,23 @@ export function renderTemplate(
         ftr,
       );
       return { subject: t.subject, html };
+    }
+    case "tournament_match_scheduled": {
+      const t = L.tournament_match_scheduled;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+        opponent: String(payload.opponent_name ?? ""),
+      };
+      const url = `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`;
+      const subject = fill(t.subject, vars);
+      const html = shell(
+        subject,
+        `<h2 style="margin:0 0 12px;font-size:20px">🎾 ${escape(subject)}</h2>
+         <p>${escape(fill(t.intro, vars))}</p>
+         <p style="margin:18px 0">${btn(url, t.cta)}</p>`,
+        ftr,
+      );
+      return { subject, html };
     }
     case "match_proposal": {
       const t = L.match_proposal;

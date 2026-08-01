@@ -35,6 +35,8 @@ export type EnqueueInput = {
   locale: Locale;
   payload: Payload;
   scheduled_at?: string;
+  /** Locale-less in-app path the notification links to (e.g. /tournaments/<id>). */
+  link_url?: string | null;
 };
 
 export type EnqueueResult = { ok: true; id: string } | { ok: false; error: string };
@@ -50,6 +52,7 @@ export async function enqueue(supabase: AnySupabase, input: EnqueueInput): Promi
       payload: input.payload as Record<string, unknown>,
       scheduled_at: input.scheduled_at ?? new Date().toISOString(),
       status: "pending",
+      link_url: input.link_url ?? null,
     } as never)
     .select("id")
     .single();
