@@ -68,10 +68,15 @@ export type GroupsCopy = {
   close_groups_title: string;
   close_groups_help: string;
   advance_per_group_label: string;
+  extra_qualifiers_label: string;
+  extra_qualifiers_help: string;
   playoff_size_label: string;
   close_groups_cta: string;
   closing: string;
   qualifiers_summary: string;
+  // Same as qualifiers_summary but with a "{k}" placeholder for the number
+  // of best next-placed (runner-up) qualifiers. Used when k > 0.
+  qualifiers_summary_extra: string;
   playoff_too_small: string;
   groups_pending: string;
   reclose_playoff: string;
@@ -786,7 +791,10 @@ function CloseGroupsCard({
 }) {
   const tErrors = useTranslations("tournamentsOrganized.errors");
   const [advanceN, setAdvanceN] = useState<number>(2);
-  const qualifiers = groupsCount * advanceN;
+  // "Best runner-up" slots: K best among the (advanceN+1)-th places across
+  // groups. At most one candidate per group.
+  const [extraK, setExtraK] = useState<number>(0);
+  const qualifiers = groupsCount * advanceN + extraK;
   const suggested = PLAYOFF_SIZES.find((s) => s >= qualifiers) ?? 32;
   const [playoffSize, setPlayoffSize] = useState<PlayoffSize>(suggested as PlayoffSize);
 
@@ -808,7 +816,7 @@ function CloseGroupsCard({
         <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-ink-700">{copy.groups_pending}</p>
       ) : (
         <>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:items-end">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-4">
             <label className="block">
               <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-ink-600">
                 {copy.advance_per_group_label}
@@ -821,6 +829,23 @@ function CloseGroupsCard({
                 {[1, 2, 3].map((n) => (
                   <option key={n} value={n}>
                     top-{n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-ink-600">
+                {copy.extra_qualifiers_label}
+              </span>
+              <select
+                value={extraK}
+                onChange={(e) => setExtraK(Number(e.target.value))}
+                className="h-9 w-full rounded-md border border-ink-200 bg-white px-2 text-sm tabular-nums"
+                title={copy.extra_qualifiers_help}
+              >
+                {Array.from({ length: groupsCount + 1 }, (_, k) => (
+                  <option key={k} value={k}>
+                    +{k}
                   </option>
                 ))}
               </select>
@@ -851,6 +876,7 @@ function CloseGroupsCard({
                     const r = await closeGroupsAndStartPlayoff({
                       tournament_id: tournamentId,
                       advance_per_group: advanceN,
+                      extra_qualifiers: extraK,
                       playoff_size: playoffSize,
                     });
                     if (r.ok) onSaved();
@@ -879,10 +905,17 @@ function CloseGroupsCard({
             <p className="mt-2 text-[11px] text-clay-700">{copy.playoff_too_small}</p>
           )}
 
+          {extraK > 0 && (
+            <p className="mt-2 rounded-lg bg-white px-3 py-2 text-[11px] text-ink-600">
+              {copy.extra_qualifiers_help}
+            </p>
+          )}
+
           <p className="mt-3 text-[11px] text-ink-600">
-            {copy.qualifiers_summary
+            {(extraK > 0 ? copy.qualifiers_summary_extra : copy.qualifiers_summary)
               .replace("{groups}", String(groupsCount))
               .replace("{n}", String(advanceN))
+              .replace("{k}", String(extraK))
               .replace("{size}", String(playoffSize))}
             {thirdPlaceMatch ? " · 3rd-place match: on" : ""}
           </p>

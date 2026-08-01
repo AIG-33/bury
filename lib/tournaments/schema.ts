@@ -278,12 +278,18 @@ export type GenerateGroupsManualInput = z.infer<typeof GenerateGroupsManualSchem
 /**
  * Step 2: every group match has a result, organiser picks the playoff size
  * and how many players advance from every group. Total qualifiers
- * (groups_count × advance_per_group) must be ≤ playoff_size; unfilled
- * slots become byes for the top seeds.
+ * (groups_count × advance_per_group + extra_qualifiers) must be
+ * ≤ playoff_size; unfilled slots become byes for the top seeds.
+ *
+ * `extra_qualifiers` = "best runner-up" slots: K best players among those
+ * who finished (advance_per_group + 1)-th in their group, compared by the
+ * same record metrics as the group standings (wins → set diff → game diff).
+ * Enables schemes like "3 groups × top-1 + 1 best second → semifinals".
  */
 export const CloseGroupsSchema = z.object({
   tournament_id: z.string().uuid(),
   advance_per_group: z.coerce.number().int().min(1).max(8),
+  extra_qualifiers: z.coerce.number().int().min(0).max(16).default(0),
   playoff_size: z.coerce.number().int().refine((n) => PLAYOFF_SIZES.includes(n as PlayoffSize), {
     message: "expected one of 2/4/8/16/32",
   }),

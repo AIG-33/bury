@@ -10,6 +10,7 @@ import {
   nextPowerOfTwo,
   orderForSeeding,
   orderQualifiersForPlayoff,
+  pickBestRunnersUp,
   seedPositions,
   shuffleDeterministic,
   type GroupQualifier,
@@ -608,6 +609,93 @@ describe("orderQualifiersForPlayoff", () => {
       .filter(([a, b]) => (a == null) !== (b == null))
       .map(([a, b]) => a ?? b);
     expect(byes.sort()).toEqual(["p2", "p3"]);
+  });
+
+  it("3 groups × top-1 + best runner-up → semifinals with no group rematch (Women's case)", () => {
+    const ps = players(4);
+    // Group C produced both the strongest winner AND the best runner-up —
+    // without the repair pass they'd meet again straight away in SF1.
+    const q: GroupQualifier[] = [
+      qualifier(0, 1, ps[0], { wins: 2, set_diff: 3, game_diff: 8 }), // A1
+      qualifier(1, 1, ps[1], { wins: 2, set_diff: 4, game_diff: 10 }), // B1
+      qualifier(2, 1, ps[2], { wins: 3, set_diff: 6, game_diff: 15 }), // C1 (best winner)
+      qualifier(2, 2, ps[3], { wins: 2, set_diff: 2, game_diff: 5 }), // C2 (best runner-up)
+    ];
+    const ordered = orderQualifiersForPlayoff(q, 4);
+    expect(ordered).toHaveLength(4);
+    // The runner-up is the last tier → last seed.
+    expect(ordered[3].id).toBe("p4");
+    const groupOf = new Map([
+      ["p1", 0],
+      ["p2", 1],
+      ["p3", 2],
+      ["p4", 2],
+    ]);
+    for (const [a, b] of roundOnePairs(ordered, 4)) {
+      expect(a).not.toBeNull();
+      expect(b).not.toBeNull();
+      expect(groupOf.get(a!)).not.toBe(groupOf.get(b!));
+    }
+  });
+
+  it("4 groups × top-1 + 2 best runners-up in a bracket of 8: byes stay with group winners", () => {
+    const ps = players(6);
+    const q: GroupQualifier[] = [
+      qualifier(0, 1, ps[0], { wins: 3, set_diff: 6, game_diff: 14 }),
+      qualifier(1, 1, ps[1], { wins: 3, set_diff: 5, game_diff: 12 }),
+      qualifier(2, 1, ps[2], { wins: 2, set_diff: 3, game_diff: 6 }),
+      qualifier(3, 1, ps[3], { wins: 2, set_diff: 2, game_diff: 4 }),
+      // Runners-up from the two strongest groups.
+      qualifier(0, 2, ps[4], { wins: 2, set_diff: 1, game_diff: 2 }),
+      qualifier(1, 2, ps[5], { wins: 2, set_diff: 0, game_diff: 1 }),
+    ];
+    const ordered = orderQualifiersForPlayoff(q, 8);
+    const pairs = roundOnePairs(ordered, 8);
+    const groupOf = new Map([
+      ["p1", 0],
+      ["p2", 1],
+      ["p3", 2],
+      ["p4", 3],
+      ["p5", 0],
+      ["p6", 1],
+    ]);
+    for (const [a, b] of pairs) {
+      if (a && b) expect(groupOf.get(a)).not.toBe(groupOf.get(b));
+    }
+    // The two byes belong to the two best group winners, not the runners-up.
+    const byes = pairs
+      .filter(([a, b]) => (a == null) !== (b == null))
+      .map(([a, b]) => a ?? b);
+    expect(byes.sort()).toEqual(["p1", "p2"]);
+  });
+});
+
+describe("pickBestRunnersUp", () => {
+  const candidate = (group: number, stats: GroupQualifier["stats"]): GroupQualifier => ({
+    group_position: group,
+    rank: 2,
+    player: { id: `g${group}r2`, display_name: null, current_elo: 1500 },
+    stats,
+  });
+
+  it("picks the K best by wins → set diff → game diff", () => {
+    const pool = [
+      candidate(0, { wins: 1, set_diff: 0, game_diff: 3 }),
+      candidate(1, { wins: 2, set_diff: -1, game_diff: -2 }),
+      candidate(2, { wins: 1, set_diff: 0, game_diff: 7 }),
+    ];
+    expect(pickBestRunnersUp(pool, 1).map((q) => q.player.id)).toEqual(["g1r2"]);
+    expect(pickBestRunnersUp(pool, 2).map((q) => q.player.id)).toEqual(["g1r2", "g2r2"]);
+  });
+
+  it("breaks full ties by group order and never mutates the input", () => {
+    const pool = [
+      candidate(2, { wins: 1, set_diff: 1, game_diff: 1 }),
+      candidate(0, { wins: 1, set_diff: 1, game_diff: 1 }),
+    ];
+    const picked = pickBestRunnersUp(pool, 1);
+    expect(picked[0].group_position).toBe(0);
+    expect(pool[0].group_position).toBe(2);
   });
 });
 

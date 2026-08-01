@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MatchRulesSchema } from "./schema";
+import { CloseGroupsSchema, MatchRulesSchema } from "./schema";
 
 describe("MatchRulesSchema — set_target limits", () => {
   it.each(["best_of_3", "best_of_5", "single_set"] as const)(
@@ -47,5 +47,30 @@ describe("MatchRulesSchema — set_target limits", () => {
       set_tiebreak_at: 6,
     });
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("CloseGroupsSchema — extra (best runner-up) qualifiers", () => {
+  const base = {
+    tournament_id: "5a6f0f0e-0000-4000-8000-000000000000",
+    advance_per_group: 1,
+    playoff_size: 4,
+  };
+
+  it("defaults extra_qualifiers to 0 when omitted (legacy callers)", () => {
+    const parsed = CloseGroupsSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.extra_qualifiers).toBe(0);
+  });
+
+  it("accepts the Women's scheme: top-1 + 1 best second → semifinals", () => {
+    const parsed = CloseGroupsSchema.safeParse({ ...base, extra_qualifiers: 1 });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.extra_qualifiers).toBe(1);
+  });
+
+  it("rejects a negative extra_qualifiers", () => {
+    const parsed = CloseGroupsSchema.safeParse({ ...base, extra_qualifiers: -1 });
+    expect(parsed.success).toBe(false);
   });
 });

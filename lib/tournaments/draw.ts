@@ -571,6 +571,28 @@ export type GroupQualifier = {
   stats?: { wins: number; set_diff: number; game_diff: number };
 };
 
+/** Cross-group comparison inside a rank tier: better group-stage record
+ * first (wins → set diff → game diff), group position as the deterministic
+ * fallback when stats are missing or fully tied. */
+function compareByRecordThenGroup(a: GroupQualifier, b: GroupQualifier): number {
+  if (a.stats && b.stats) {
+    if (b.stats.wins !== a.stats.wins) return b.stats.wins - a.stats.wins;
+    if (b.stats.set_diff !== a.stats.set_diff) return b.stats.set_diff - a.stats.set_diff;
+    if (b.stats.game_diff !== a.stats.game_diff) return b.stats.game_diff - a.stats.game_diff;
+  }
+  return a.group_position - b.group_position;
+}
+
+/**
+ * "Best runner-up" (lucky-loser) selection: given the players who finished
+ * one place below the qualifying cut in their groups, pick the K best by the
+ * same record metrics used in the group standings. Ties fall back to group
+ * order for determinism.
+ */
+export function pickBestRunnersUp(candidates: GroupQualifier[], k: number): GroupQualifier[] {
+  return candidates.slice().sort(compareByRecordThenGroup).slice(0, Math.max(0, k));
+}
+
 /** Round (1-based) in which two round-1 line-up slots meet if both keep
  * winning: the number of halvings until their subtree indices converge. */
 function meetingRound(slotA: number, slotB: number): number {
@@ -592,16 +614,7 @@ export function orderQualifiersForPlayoff(
   // Rank tiers, each internally ordered by record (fallback: group position).
   const ranks = Array.from(new Set(qualifiers.map((q) => q.rank))).sort((a, b) => a - b);
   const tiers = ranks.map((rank) =>
-    qualifiers
-      .filter((q) => q.rank === rank)
-      .sort((a, b) => {
-        if (a.stats && b.stats) {
-          if (b.stats.wins !== a.stats.wins) return b.stats.wins - a.stats.wins;
-          if (b.stats.set_diff !== a.stats.set_diff) return b.stats.set_diff - a.stats.set_diff;
-          if (b.stats.game_diff !== a.stats.game_diff) return b.stats.game_diff - a.stats.game_diff;
-        }
-        return a.group_position - b.group_position;
-      }),
+    qualifiers.filter((q) => q.rank === rank).sort(compareByRecordThenGroup),
   );
 
   const total = qualifiers.length;
@@ -623,20 +636,24 @@ export function orderQualifiersForPlayoff(
   // smallest rotation (determinism).
   const placed: Array<{ group: number; slot: number }> = [];
   let seedCursor = 1;
-  const result: Player[] = [];
+  // Final assignment: index = seed number − 1. `tierOfSeed` mirrors it so the
+  // repair pass below only ever swaps players within the same rank tier.
+  const seedAssign: GroupQualifier[] = [];
+  const tierOfSeed: number[] = [];
 
-  const placeTier = (tier: GroupQualifier[]) => {
+  const placeTier = (tier: GroupQualifier[], tierIdx: number) => {
     for (const q of tier) {
       const slot = slotOfSeed.get(seedCursor)!;
       placed.push({ group: q.group_position, slot });
       seedCursor += 1;
-      result.push(q.player);
+      seedAssign.push(q);
+      tierOfSeed.push(tierIdx);
     }
   };
 
   tiers.forEach((tier, tierIdx) => {
     if (tierIdx === 0 || tier.length < 2) {
-      placeTier(tier);
+      placeTier(tier, tierIdx);
       return;
     }
     let best: { rotation: number; collisions: number; minMeet: number; sumMeet: number } | null =
@@ -666,10 +683,54 @@ export function orderQualifiersForPlayoff(
       }
     }
     const rotation = best?.rotation ?? 0;
-    placeTier(tier.slice(rotation).concat(tier.slice(0, rotation)));
+    placeTier(tier.slice(rotation).concat(tier.slice(0, rotation)), tierIdx);
   });
 
-  return result;
+  // ── Repair pass ────────────────────────────────────────────────────────────
+  // Tier rotation can't fix everything: a tier of ONE (e.g. a single best
+  // runner-up joining 3 group winners) has no rotation freedom, so it may land
+  // straight onto a group mate in round 1. Resolve leftover round-1 same-group
+  // meetings by swapping seeds WITHIN a tier — that keeps rank semantics — and
+  // only between seeds with the same bye status, so byes stay with the players
+  // the record-based ordering gave them to.
+  const r1SeedPairs: Array<[number, number]> = [];
+  for (let m = 0; m < size / 2; m++) {
+    r1SeedPairs.push([positions[m * 2], positions[m * 2 + 1]]);
+  }
+  const opponentOfSeed = new Map<number, number>();
+  for (const [a, b] of r1SeedPairs) {
+    opponentOfSeed.set(a, b);
+    opponentOfSeed.set(b, a);
+  }
+  const hasBye = (seed: number) => (opponentOfSeed.get(seed) ?? 0) > seedAssign.length;
+  const countCollisions = () =>
+    r1SeedPairs.reduce((acc, [a, b]) => {
+      const qa = a <= seedAssign.length ? seedAssign[a - 1] : undefined;
+      const qb = b <= seedAssign.length ? seedAssign[b - 1] : undefined;
+      return acc + (qa && qb && qa.group_position === qb.group_position ? 1 : 0);
+    }, 0);
+
+  let collisions = countCollisions();
+  let improved = true;
+  while (collisions > 0 && improved) {
+    improved = false;
+    outer: for (let i = 0; i < seedAssign.length - 1; i++) {
+      for (let j = i + 1; j < seedAssign.length; j++) {
+        if (tierOfSeed[i] !== tierOfSeed[j]) continue;
+        if (hasBye(i + 1) !== hasBye(j + 1)) continue;
+        [seedAssign[i], seedAssign[j]] = [seedAssign[j], seedAssign[i]];
+        const next = countCollisions();
+        if (next < collisions) {
+          collisions = next;
+          improved = true;
+          break outer;
+        }
+        [seedAssign[i], seedAssign[j]] = [seedAssign[j], seedAssign[i]];
+      }
+    }
+  }
+
+  return seedAssign.map((q) => q.player);
 }
 
 /**

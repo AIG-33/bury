@@ -42,6 +42,7 @@ import {
   distributeIntoGroups,
   bucketsFromManualAssignment,
   orderQualifiersForPlayoff,
+  pickBestRunnersUp,
   type GroupBucket,
   type Player as DrawPlayer,
   type StandingRow,
@@ -2233,11 +2234,14 @@ export async function addParticipantToGroup(
 
 /**
  * Close the group stage and generate the playoff bracket. Top-N players from
- * every group qualify (N = advance_per_group). The playoff is a standard
- * single-elimination bracket built via `buildSingleEliminationBracket` with
- * method="manual" so cross-bracket seeding is preserved (A1 vs B2, B1 vs A2,
- * etc). When `third_place_match` is on, an extra match is inserted to be
- * filled by the two losing semi-finalists.
+ * every group qualify (N = advance_per_group), optionally joined by the K
+ * best players who finished (N+1)-th in their groups ("best runner-up",
+ * K = extra_qualifiers) — compared by the same record metrics as the group
+ * standings. The playoff is a standard single-elimination bracket built via
+ * `buildSingleEliminationBracket` with method="manual" so cross-bracket
+ * seeding is preserved (A1 vs B2, B1 vs A2, etc); best runners-up are seeded
+ * as the last tier. When `third_place_match` is on, an extra match is
+ * inserted to be filled by the two losing semi-finalists.
  */
 export async function closeGroupsAndStartPlayoff(
   input: unknown,
@@ -2278,7 +2282,7 @@ export async function closeGroupsAndStartPlayoff(
   if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
   if (t.groups_count == null) return { ok: false, error: "groups_not_generated" };
 
-  const qualifiersTotal = t.groups_count * v.advance_per_group;
+  const qualifiersTotal = t.groups_count * v.advance_per_group + v.extra_qualifiers;
   if (qualifiersTotal > v.playoff_size) {
     return { ok: false, error: "playoff_size_too_small" };
   }
@@ -2328,6 +2332,9 @@ export async function closeGroupsAndStartPlayoff(
   const playerById = new Map(allPlayers.map((p) => [p.id, p] as const));
 
   const qualifiers: GroupQualifier[] = [];
+  // Players who finished one place below the cut — candidates for the
+  // "best runner-up" extra slots.
+  const runnerUpPool: GroupQualifier[] = [];
   for (const g of groups ?? []) {
     const { data: members } = (await supabase
       .from("tournament_participants")
@@ -2367,22 +2374,34 @@ export async function closeGroupsAndStartPlayoff(
           sets: m.sets,
         })),
     );
-    standings.slice(0, v.advance_per_group).forEach((row) => {
+    standings.slice(0, v.advance_per_group + 1).forEach((row, idx) => {
       const player = playerById.get(row.player_id);
       if (!player) return;
-      qualifiers.push({
+      const entry: GroupQualifier = {
         group_position: g.position,
         rank: row.position,
         player,
         // Group-stage record → fair cross-group seeding inside a rank tier
-        // (byes go to the best group winners, not to group A by default).
+        // (byes go to the best group winners, not to group A by default) and
+        // the cross-group comparison of runner-up candidates.
         stats: {
           wins: row.wins,
           set_diff: row.sets_won - row.sets_lost,
           game_diff: row.games_won - row.games_lost,
         },
-      });
+      };
+      if (idx < v.advance_per_group) qualifiers.push(entry);
+      else runnerUpPool.push(entry);
     });
+  }
+
+  if (v.extra_qualifiers > 0) {
+    if (runnerUpPool.length < v.extra_qualifiers) {
+      return { ok: false, error: "not_enough_extra_candidates" };
+    }
+    // Best runners-up join as the LAST rank tier (rank = advance+1), so
+    // orderQualifiersForPlayoff seeds them below every direct qualifier.
+    qualifiers.push(...pickBestRunnersUp(runnerUpPool, v.extra_qualifiers));
   }
 
   if (qualifiers.length < 2) {
