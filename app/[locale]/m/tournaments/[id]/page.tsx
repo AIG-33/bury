@@ -124,7 +124,14 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   const podiumPerson = (pid: string | null): PodiumPerson | null => {
     if (!pid) return null;
     const p = personById.get(pid);
-    if (p) return { id: pid, name: p.name, avatarUrl: p.avatar_url };
+    if (p) {
+      return {
+        id: pid,
+        name: p.name,
+        avatarUrl: p.avatar_url,
+        partner: p.partner ? { name: p.partner.name, avatarUrl: p.partner.avatar_url } : null,
+      };
+    }
     const m = matches.find((mm) => mm.p1_id === pid || mm.p2_id === pid);
     return {
       id: pid,

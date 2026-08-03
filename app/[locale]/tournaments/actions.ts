@@ -261,6 +261,8 @@ export type PublicTournamentDetail = {
     seed: number | null;
     elo: number;
     avatar_url: string | null;
+    /** Doubles only: the second player of the pair (for two-avatar renders). */
+    partner: { name: string | null; avatar_url: string | null } | null;
     city: string | null;
     withdrawn: boolean;
     external_rating: {
@@ -507,6 +509,13 @@ export async function loadPublicTournamentDetail(
         ? pairSeedElo(b?.current_elo_doubles ?? null, partner?.current_elo_doubles ?? null)
         : (b?.current_elo ?? 1000),
       avatar_url: b?.avatar_url ?? null,
+      partner:
+        isDoubles && p.partner_id
+          ? {
+              name: partner?.display_name ?? null,
+              avatar_url: partner?.avatar_url ?? null,
+            }
+          : null,
       city: b?.city ?? null,
       withdrawn: p.withdrawn,
       external_rating: isDoubles ? null : (extByPlayer.get(p.player_id) ?? null),
