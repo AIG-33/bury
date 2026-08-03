@@ -391,37 +391,128 @@ function tgLink(href: string, label: string): string {
   return `<a href="${tgEscape(href)}">${tgEscape(label)}</a>`;
 }
 
-export function renderTelegram(
-  code: TemplateCode,
-  locale: Locale,
-  payload: Payload,
-): RenderedTelegram | null {
-  const L = COPY[locale] ?? COPY.ru;
+type TgParts = {
+  emoji: string;
+  subject: string;
+  intro: string;
+  /** Optional secondary line (venue, format, …). */
+  extra?: string;
+  /** Optional CTA link appended as the last line. */
+  url?: string;
+  cta?: string;
+};
+
+/**
+ * Per-template Telegram content. Reuses the same localized COPY strings and
+ * payload keys as the e-mail renderer, condensed to a short chat message.
+ * Returns null for templates that make no sense in Telegram
+ * (invitation_created targets people without an account).
+ */
+function tgParts(code: TemplateCode, L: Strings, payload: Payload, locale: Locale): TgParts | null {
   switch (code) {
-    case "match_proposal": {
-      const t = L.match_proposal;
+    case "invitation_created":
+      return null;
+    case "booking_confirmed": {
+      const t = L.booking_confirmed;
       const vars = {
-        opponent: String(payload.opponent_name ?? ""),
-        elo: String(payload.opponent_elo ?? ""),
-        message: payload.message ? `«${String(payload.message)}»` : "",
+        when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "",
+        venue: String(payload.venue ?? ""),
+        court: String(payload.court ?? ""),
       };
-      const url = `${SITE}/${locale}/me/find/proposals`;
       return {
-        text:
-          `🎾 <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
-          `${tgEscape(fill(t.intro, vars))}\n\n` +
-          `${tgLink(url, t.cta)}`,
+        emoji: "✅",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        extra: fill(t.venue, vars),
+        url: `${SITE}/${locale}/me/bookings`,
+        cta: t.cta,
       };
     }
-    case "match_accepted": {
-      const t = L.match_accepted;
-      const vars = { opponent: String(payload.opponent_name ?? "") };
-      const url = `${SITE}/${locale}/me/matches`;
+    case "booking_cancelled": {
+      const t = L.booking_cancelled;
+      const vars = { when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "" };
       return {
-        text:
-          `✅ <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
-          `${tgEscape(fill(t.intro, vars))}\n\n` +
-          `${tgLink(url, t.cta)}`,
+        emoji: "❌",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/me/bookings`,
+        cta: t.rescheduleCta,
+      };
+    }
+    case "booking_reminder_24h": {
+      const t = L.booking_reminder_24h;
+      const vars = {
+        when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "",
+        venue: String(payload.venue ?? ""),
+        court: String(payload.court ?? ""),
+      };
+      return {
+        emoji: "⏰",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        extra: fill(t.venue, vars),
+      };
+    }
+    case "tournament_registered": {
+      const t = L.tournament_registered;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+        when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "TBD",
+        format: String(payload.format ?? ""),
+        rules: String(payload.rules ?? ""),
+      };
+      return {
+        emoji: "🏆",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`,
+        cta: t.cta,
+      };
+    }
+    case "tournament_application_submitted": {
+      const t = L.tournament_application_submitted;
+      const vars = { tournament: String(payload.tournament_name ?? "") };
+      return {
+        emoji: "📨",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/me/tournaments/organized/${payload.tournament_id ?? ""}`,
+        cta: t.cta,
+      };
+    }
+    case "tournament_application_approved": {
+      const t = L.tournament_application_approved;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+        when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "TBD",
+        format: String(payload.format ?? ""),
+        rules: String(payload.rules ?? ""),
+      };
+      return {
+        emoji: "🏆",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`,
+        cta: t.cta,
+      };
+    }
+    case "tournament_application_rejected": {
+      const t = L.tournament_application_rejected;
+      const vars = { tournament: String(payload.tournament_name ?? "") };
+      return { emoji: "😔", subject: t.subject, intro: fill(t.intro, vars) };
+    }
+    case "tournament_starting_24h": {
+      const t = L.tournament_starting_24h;
+      const vars = {
+        tournament: String(payload.tournament_name ?? ""),
+        when: payload.starts_at ? fmtDate(String(payload.starts_at), locale) : "",
+      };
+      return {
+        emoji: "⏰",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`,
+        cta: t.cta,
       };
     }
     case "tournament_match_scheduled": {
@@ -430,18 +521,168 @@ export function renderTelegram(
         tournament: String(payload.tournament_name ?? ""),
         opponent: String(payload.opponent_name ?? ""),
       };
-      const url = `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`;
       return {
-        text:
-          `🎾 <b>${tgEscape(fill(t.subject, vars))}</b>\n\n` +
-          `${tgEscape(fill(t.intro, vars))}\n\n` +
-          `${tgLink(url, t.cta)}`,
+        emoji: "🎾",
+        subject: fill(t.subject, vars),
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/tournaments/${payload.tournament_id ?? ""}`,
+        cta: t.cta,
       };
     }
-    // Other templates fall through to "not wired for Telegram yet".
-    default:
-      return null;
+    case "match_proposal": {
+      const t = L.match_proposal;
+      const vars = {
+        opponent: String(payload.opponent_name ?? ""),
+        elo: String(payload.opponent_elo ?? ""),
+        message: payload.message ? `«${String(payload.message)}»` : "",
+      };
+      return {
+        emoji: "🎾",
+        subject: fill(t.subject, vars),
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/me/find/proposals`,
+        cta: t.cta,
+      };
+    }
+    case "match_accepted": {
+      const t = L.match_accepted;
+      const vars = { opponent: String(payload.opponent_name ?? "") };
+      return {
+        emoji: "✅",
+        subject: fill(t.subject, vars),
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/me/matches`,
+        cta: t.cta,
+      };
+    }
+    case "match_confirmed": {
+      const t = L.match_confirmed;
+      const delta = Number(payload.delta ?? 0);
+      const vars = {
+        opponent: String(payload.opponent_name ?? ""),
+        newElo: String(payload.new_elo ?? ""),
+        delta: Math.abs(delta).toFixed(0),
+        deltaSign: delta >= 0 ? "+" : "−",
+      };
+      return { emoji: "📊", subject: t.subject, intro: fill(t.intro, vars) };
+    }
+    case "match_disputed": {
+      const t = L.match_disputed;
+      const vars = { opponent: String(payload.opponent_name ?? "") };
+      return { emoji: "⚠️", subject: t.subject, intro: fill(t.intro, vars) };
+    }
+    case "rating_changed": {
+      const t = L.rating_changed;
+      const delta = Number(payload.delta ?? 0);
+      const vars = {
+        newElo: String(payload.new_elo ?? ""),
+        delta: Math.abs(delta).toFixed(0),
+        deltaSign: delta >= 0 ? "+" : "−",
+      };
+      return {
+        emoji: "📈",
+        subject: fill(t.subject, vars),
+        intro: t.intro,
+        extra: `${t.eloLabel}: ${vars.newElo} (${vars.deltaSign}${vars.delta})`,
+      };
+    }
+    case "season_summary": {
+      const t = L.season_summary;
+      return {
+        emoji: "🗓",
+        subject: t.subject,
+        intro: t.intro,
+        url: `${SITE}/${locale}/me/rating`,
+        cta: t.cta,
+      };
+    }
+    case "club_application_submitted": {
+      const t = L.club_application_submitted;
+      const vars = {
+        applicant: String(payload.applicant_name ?? ""),
+        club: String(payload.club_name ?? ""),
+        message: payload.message ? `«${String(payload.message)}»` : "",
+      };
+      return {
+        emoji: "📨",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/me/clubs/owned/${payload.club_id ?? ""}`,
+        cta: t.cta,
+      };
+    }
+    case "club_application_approved": {
+      const t = L.club_application_approved;
+      const vars = { club: String(payload.club_name ?? "") };
+      return {
+        emoji: "✅",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/clubs/${payload.club_slug ?? ""}`,
+        cta: t.cta,
+      };
+    }
+    case "club_application_rejected": {
+      const t = L.club_application_rejected;
+      const vars = {
+        club: String(payload.club_name ?? ""),
+        reason: payload.reason ? `«${String(payload.reason)}»` : "",
+      };
+      return { emoji: "😔", subject: t.subject, intro: fill(t.intro, vars) };
+    }
+    case "club_member_kicked": {
+      const t = L.club_member_kicked;
+      const vars = {
+        club: String(payload.club_name ?? ""),
+        reason: payload.reason ? `«${String(payload.reason)}»` : "",
+      };
+      return { emoji: "ℹ️", subject: t.subject, intro: fill(t.intro, vars) };
+    }
+    case "club_ownership_offered": {
+      const t = L.club_ownership_offered;
+      const vars = {
+        previous: String(payload.previous_owner_name ?? ""),
+        club: String(payload.club_name ?? ""),
+      };
+      return {
+        emoji: "🎾",
+        subject: t.subject,
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/me/clubs`,
+        cta: t.cta,
+      };
+    }
+    case "venue_comment_added": {
+      const t = L.venue_comment_added;
+      const vars = {
+        venue: String(payload.venue_name ?? ""),
+        author: String(payload.author_name ?? ""),
+        excerpt: payload.excerpt ? `«${String(payload.excerpt)}»` : "",
+      };
+      return {
+        emoji: "💬",
+        subject: fill(t.subject, vars),
+        intro: fill(t.intro, vars),
+        url: `${SITE}/${locale}/venues/${payload.venue_id ?? ""}`,
+        cta: t.cta,
+      };
+    }
   }
+}
+
+export function renderTelegram(
+  code: TemplateCode,
+  locale: Locale,
+  payload: Payload,
+): RenderedTelegram | null {
+  const L = COPY[locale] ?? COPY.ru;
+  const parts = tgParts(code, L, payload, locale);
+  if (!parts) return null;
+
+  const lines = [`${parts.emoji} <b>${tgEscape(parts.subject)}</b>`, tgEscape(parts.intro)];
+  if (parts.extra) lines.push(tgEscape(parts.extra));
+  if (parts.url && parts.cta) lines.push(tgLink(parts.url, parts.cta));
+  return { text: lines.join("\n\n") };
 }
 
 // ---------------------------------------------------------------------------

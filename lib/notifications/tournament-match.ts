@@ -48,15 +48,16 @@ export type RecipientProfile = {
   display_name: string | null;
   locale: Locale;
   notification_email: boolean;
+  notification_telegram?: boolean;
 };
 
 export type OutboxMatchRow = {
   recipient_id: string;
-  channel: "email";
+  channel: "email" | "telegram";
   template: typeof TOURNAMENT_MATCH_TEMPLATE;
   locale: Locale;
   payload: TournamentMatchPayload;
-  /** pending → the cron delivers an e-mail; cancelled → in-app feed only. */
+  /** pending → the cron delivers it; cancelled → in-app feed only. */
   status: "pending" | "cancelled";
   link_url: string;
 };
@@ -128,22 +129,34 @@ export function buildTournamentMatchNotifications(args: {
           ? composePairName(captainName, nameOf(side.opponentPartner))
           : (captainName ?? fallbackOpponentName(profile.locale));
 
+        const payload: TournamentMatchPayload = {
+          tournament_id: tournamentId,
+          tournament_name: tournamentName,
+          match_id: m.id,
+          opponent_id: side.opponentCaptain,
+          opponent_name: opponentName,
+          stage: m.stage,
+        };
         rows.push({
           recipient_id: recipientId,
           channel: "email",
           template: TOURNAMENT_MATCH_TEMPLATE,
           locale: profile.locale,
-          payload: {
-            tournament_id: tournamentId,
-            tournament_name: tournamentName,
-            match_id: m.id,
-            opponent_id: side.opponentCaptain,
-            opponent_name: opponentName,
-            stage: m.stage,
-          },
+          payload,
           status: profile.notification_email ? "pending" : "cancelled",
           link_url: `/tournaments/${tournamentId}`,
         });
+        if (profile.notification_telegram) {
+          rows.push({
+            recipient_id: recipientId,
+            channel: "telegram",
+            template: TOURNAMENT_MATCH_TEMPLATE,
+            locale: profile.locale,
+            payload,
+            status: "pending",
+            link_url: `/tournaments/${tournamentId}`,
+          });
+        }
       }
     }
   }
@@ -181,13 +194,14 @@ export async function notifyNewTournamentMatches(
 
     const { data: profileRows } = (await service
       .from("profiles")
-      .select("id, display_name, locale, notification_email")
+      .select("id, display_name, locale, notification_email, notification_telegram")
       .in("id", playerIds)) as {
       data: Array<{
         id: string;
         display_name: string | null;
         locale: Locale;
         notification_email: boolean;
+        notification_telegram: boolean;
       }> | null;
     };
     const profiles = new Map<string, RecipientProfile>((profileRows ?? []).map((p) => [p.id, p]));

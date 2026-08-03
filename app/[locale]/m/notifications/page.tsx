@@ -3,7 +3,8 @@ import { z } from "zod";
 import { Bell, CalendarDays, ChevronRight, Trophy, Users } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { MTabBar } from "@/components/mobile/m-tab-bar";
-import { MContent, MEmptyState, MEyebrow, MSubHeader } from "@/components/mobile/m-ui";
+import { MAvatar, MContent, MEmptyState, MEyebrow, MSubHeader } from "@/components/mobile/m-ui";
+import { loadPendingProposals } from "@/lib/notifications/attention";
 import { TennisBallIcon } from "@/components/mobile/m-icons";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notificationHref } from "@/lib/notifications/link";
@@ -29,10 +30,16 @@ const KNOWN_TEMPLATES = [
   "match_proposal",
   "match_accepted",
   "tournament_application_submitted",
+  "tournament_application_approved",
+  "tournament_application_rejected",
   "tournament_starting_24h",
   "tournament_match_scheduled",
+  "club_application_submitted",
+  "club_application_approved",
+  "club_application_rejected",
   "club_member_kicked",
   "club_ownership_offered",
+  "venue_comment_added",
 ] as const;
 
 type KnownTemplate = (typeof KNOWN_TEMPLATES)[number];
@@ -84,20 +91,23 @@ export default async function MobileNotificationsPage({ params }: Props) {
     );
   }
 
-  const { data: rows } = (await supabase
-    .from("notifications_outbox")
-    .select("id, template, payload, link_url, created_at")
-    .eq("recipient_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(60)) as {
-    data: Array<{
-      id: string;
-      template: string;
-      payload: unknown;
-      link_url: string | null;
-      created_at: string;
-    }> | null;
-  };
+  const [{ data: rows }, pendingProposals] = await Promise.all([
+    supabase
+      .from("notifications_outbox")
+      .select("id, template, payload, link_url, created_at")
+      .eq("recipient_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(60) as unknown as Promise<{
+      data: Array<{
+        id: string;
+        template: string;
+        payload: unknown;
+        link_url: string | null;
+        created_at: string;
+      }> | null;
+    }>,
+    loadPendingProposals(supabase, user.id),
+  ]);
 
   // De-duplicate multi-channel copies of the same event.
   const seen = new Set<string>();
@@ -220,6 +230,43 @@ export default async function MobileNotificationsPage({ params }: Props) {
     <div className="flex min-h-dvh flex-col">
       {header}
       <MContent className="flex-1 pt-4">
+        {pendingProposals.length > 0 ? (
+          <div className="mb-5">
+            <div className="mb-2 flex items-center gap-2">
+              <MEyebrow>{t("home.attention_eyebrow")}</MEyebrow>
+              <span className="grid h-[17px] min-w-[17px] place-items-center rounded-full bg-clay-500 px-1 font-display text-[10px] font-extrabold leading-none text-white">
+                {pendingProposals.length}
+              </span>
+            </div>
+            <ul className="space-y-[8px]">
+              {pendingProposals.map((p) => (
+                <li key={p.match_id}>
+                  <div className="flex items-center gap-3 rounded-[15px] border border-[rgba(204,90,79,0.25)] bg-white p-[13px] shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
+                    <MAvatar name={p.from_name} url={p.from_avatar} size={36} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13.5px] font-extrabold leading-[1.3] text-ink-900">
+                        {t("home.attention_proposal", {
+                          name: p.from_name ?? t("home.player_fallback"),
+                        })}
+                      </p>
+                      {p.message ? (
+                        <p className="mt-0.5 truncate text-[11.5px] font-semibold text-ink-500">
+                          «{p.message}»
+                        </p>
+                      ) : null}
+                    </div>
+                    <Link
+                      href={"/me/find/proposals" as never}
+                      className="shrink-0 rounded-[11px] bg-grass-600 px-3.5 py-2 font-display text-[12.5px] font-extrabold text-white transition-opacity active:opacity-85"
+                    >
+                      {t("home.attention_reply")}
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         {items.length === 0 ? (
           <MEmptyState
             title={t("notifications.empty_title")}

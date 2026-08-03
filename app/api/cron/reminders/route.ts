@@ -11,7 +11,8 @@
 
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { drainOutbox, enqueue } from "@/lib/notifications/outbox";
+import { drainOutbox } from "@/lib/notifications/outbox";
+import { notifyUser } from "@/lib/notifications/notify";
 import type { Locale } from "@/lib/notifications/templates";
 
 export const runtime = "nodejs";
@@ -129,25 +130,23 @@ async function enqueueBookingReminders(supabase: AnySupabase): Promise<number> {
   const slotIndex = new Map(slots.map((s) => [s.id, s] as const));
   let enqueued = 0;
   for (const b of bookings) {
-    const profile = profileIndex.get(b.player_id);
-    if (!profile || !profile.notification_email) continue;
+    if (!profileIndex.has(b.player_id)) continue;
     if (existingPairs.has(`${b.player_id}|${b.id}`)) continue;
     const slot = slotIndex.get(b.slot_id);
     if (!slot) continue;
     const court = courtIndex.get(slot.court_id);
-    const r = await enqueue(supabase, {
-      recipient_id: b.player_id,
-      channel: "email",
+    await notifyUser(supabase, {
+      recipientId: b.player_id,
       template: "booking_reminder_24h",
-      locale: profile.locale,
       payload: {
         booking_id: b.id,
         starts_at: slot.starts_at,
         venue: court?.venue ?? "",
         court: court?.label ?? "",
       },
+      linkUrl: "/me/bookings",
     });
-    if (r.ok) enqueued++;
+    enqueued++;
   }
   return enqueued;
 }
@@ -222,14 +221,11 @@ async function enqueueTournamentReminders(supabase: AnySupabase): Promise<number
   for (const p of participants) {
     const t = tIndex.get(p.tournament_id);
     if (!t) continue;
-    const profile = profileIndex.get(p.player_id);
-    if (!profile || !profile.notification_email) continue;
+    if (!profileIndex.has(p.player_id)) continue;
     if (existingPairs.has(`${p.player_id}|${t.id}`)) continue;
-    const r = await enqueue(supabase, {
-      recipient_id: p.player_id,
-      channel: "email",
+    await notifyUser(supabase, {
+      recipientId: p.player_id,
       template: "tournament_starting_24h",
-      locale: profile.locale,
       payload: {
         tournament_id: t.id,
         tournament_name: t.name,
@@ -237,8 +233,9 @@ async function enqueueTournamentReminders(supabase: AnySupabase): Promise<number
           ? `${t.starts_on}T${t.start_time.slice(0, 5)}:00`
           : t.starts_on,
       },
+      linkUrl: `/tournaments/${t.id}`,
     });
-    if (r.ok) enqueued++;
+    enqueued++;
   }
   return enqueued;
 }

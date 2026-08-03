@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { enqueue } from "@/lib/notifications/outbox";
+import { notifyUser } from "@/lib/notifications/notify";
 import { notifyNewTournamentMatches } from "@/lib/notifications/tournament-match";
-import type { Locale } from "@/lib/notifications/templates";
 import {
   TournamentFormSchema,
   ScoreFormSchema,
@@ -1114,52 +1113,42 @@ export async function setParticipantStatus(
     .eq("id", participantId);
   if (error) return { ok: false, error: error.message };
 
-  // Best-effort email — don't fail the action if outbox is unhappy.
+  // Best-effort notification — don't fail the action if outbox is unhappy.
   try {
-    const { data: profile } = (await supabase
-      .from("profiles")
-      .select("locale, notification_email")
-      .eq("id", p.player_id)
-      .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-    if (profile?.notification_email) {
-      const service = createSupabaseServiceClient();
-      const rulesText = (() => {
-        const r = t.match_rules;
-        if (!r) return "";
-        switch (r.kind) {
-          case "best_of_3":
-            return `best of 3 sets to ${r.set_target}`;
-          case "best_of_5":
-            return `best of 5 sets to ${r.set_target}`;
-          case "single_set":
-            return `single set to ${r.set_target}`;
-          case "pro_set":
-            return `pro-set to ${r.target_games}`;
-          case "first_to_games":
-            return `first to ${r.target_games} games`;
-          case "timed":
-            return `${r.minutes}-minute match`;
-          default:
-            return "standard";
-        }
-      })();
-      await enqueue(service, {
-        recipient_id: p.player_id,
-        channel: "email",
-        template:
-          status === "approved"
-            ? "tournament_application_approved"
-            : "tournament_application_rejected",
-        locale: profile.locale,
-        payload: {
-          tournament_id: tournamentId,
-          tournament_name: t.name,
-          starts_at: t.starts_on,
-          format: t.format,
-          rules: rulesText,
-        },
-      });
-    }
+    const service = createSupabaseServiceClient();
+    const rulesText = (() => {
+      const r = t.match_rules;
+      if (!r) return "";
+      switch (r.kind) {
+        case "best_of_3":
+          return `best of 3 sets to ${r.set_target}`;
+        case "best_of_5":
+          return `best of 5 sets to ${r.set_target}`;
+        case "single_set":
+          return `single set to ${r.set_target}`;
+        case "pro_set":
+          return `pro-set to ${r.target_games}`;
+        case "first_to_games":
+          return `first to ${r.target_games} games`;
+        case "timed":
+          return `${r.minutes}-minute match`;
+        default:
+          return "standard";
+      }
+    })();
+    await notifyUser(service, {
+      recipientId: p.player_id,
+      template:
+        status === "approved" ? "tournament_application_approved" : "tournament_application_rejected",
+      payload: {
+        tournament_id: tournamentId,
+        tournament_name: t.name,
+        starts_at: t.starts_on,
+        format: t.format,
+        rules: rulesText,
+      },
+      linkUrl: `/tournaments/${tournamentId}`,
+    });
   } catch (e) {
     console.warn("[tournaments] failed to enqueue application decision email:", e);
   }

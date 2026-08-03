@@ -18,6 +18,7 @@ import { loadOpenMatches } from "@/app/[locale]/open-matches/actions";
 import { loadPublicTournaments } from "@/app/[locale]/tournaments/actions";
 import { loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
 import { loadMyTournaments } from "@/app/[locale]/(player)/me/tournaments/actions";
+import { loadPendingProposals } from "@/lib/notifications/attention";
 import type { OpenMatchApplicationStatus } from "@/lib/open-matches/schema";
 import { getMobilePlayLabels, getMobileTabLabels } from "./tab-labels";
 import { StartScreen } from "./start-screen";
@@ -111,6 +112,7 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
     myTournamentsRes,
     openMatchesRes,
     regTournaments,
+    pendingProposals,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -179,6 +181,7 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
     loadMyTournaments(),
     loadOpenMatches({}),
     loadPublicTournaments({ status: "registration" }),
+    loadPendingProposals(supabase, user.id),
   ]);
 
   const me = {
@@ -423,10 +426,19 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
             className="glass-on-dark relative grid h-11 w-11 place-items-center rounded-[13px] transition-opacity active:opacity-85"
           >
             <Bell className="h-[19px] w-[19px]" strokeWidth={1.8} />
-            <span
-              className="absolute right-[9px] top-[9px] h-[7px] w-[7px] rounded-full bg-ball-500"
-              aria-hidden
-            />
+            {pendingProposals.length > 0 ? (
+              <span
+                className="absolute right-[7px] top-[7px] grid min-w-[15px] place-items-center rounded-full bg-clay-500 px-[3px] py-[1.5px] font-display text-[8.5px] font-extrabold leading-none text-white"
+                aria-hidden
+              >
+                {pendingProposals.length > 9 ? "9+" : pendingProposals.length}
+              </span>
+            ) : (
+              <span
+                className="absolute right-[9px] top-[9px] h-[7px] w-[7px] rounded-full bg-ball-500"
+                aria-hidden
+              />
+            )}
           </Link>
         </div>
 
@@ -486,6 +498,46 @@ export default async function MobileHomePage({ params, searchParams }: Props) {
             <Plus className="h-[21px] w-[21px]" strokeWidth={2.2} />
           </QuickAction>
         </div>
+
+        {/* ---- Needs your reply: incoming match proposals ---- */}
+        {pendingProposals.length > 0 ? (
+          <>
+            <div className="mb-2.5 mt-6 flex items-center gap-2">
+              <MEyebrow>{t("home.attention_eyebrow")}</MEyebrow>
+              <span className="grid h-[17px] min-w-[17px] place-items-center rounded-full bg-clay-500 px-1 font-display text-[10px] font-extrabold leading-none text-white">
+                {pendingProposals.length}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {pendingProposals.slice(0, 3).map((p) => (
+                <div
+                  key={p.match_id}
+                  className="flex items-center gap-3 rounded-[16px] border border-[rgba(204,90,79,0.25)] bg-white p-3 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
+                >
+                  <MAvatar name={p.from_name} url={p.from_avatar} size={40} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13.5px] font-extrabold leading-tight text-ink-900">
+                      {t("home.attention_proposal", {
+                        name: p.from_name ?? t("home.player_fallback"),
+                      })}
+                    </p>
+                    {p.message ? (
+                      <p className="mt-0.5 truncate text-[11.5px] font-semibold text-ink-500">
+                        «{p.message}»
+                      </p>
+                    ) : null}
+                  </div>
+                  <Link
+                    href={"/me/find/proposals" as never}
+                    className="shrink-0 rounded-[11px] bg-grass-600 px-3.5 py-2 font-display text-[12.5px] font-extrabold text-white transition-opacity active:opacity-85"
+                  >
+                    {t("home.attention_reply")}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
 
         {/* ---- Next event ---- */}
         <div className="mb-2.5 mt-6 flex items-center justify-between">

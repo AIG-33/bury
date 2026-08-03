@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { notifyUser } from "@/lib/notifications/notify";
 import { ApplyToClubSchema, type JoinPolicy, type MemberRole, type MemberStatus } from "@/lib/clubs/schema";
 import { hashInviteToken } from "@/lib/clubs/token";
 import {
@@ -572,10 +574,16 @@ export async function applyToJoinClub(input: unknown): Promise<ActionResult<{ st
 
   const { data: club } = (await supabase
     .from("clubs")
-    .select("id, slug, join_policy")
+    .select("id, slug, name, owner_id, join_policy")
     .eq("id", v.club_id)
     .maybeSingle()) as {
-    data: { id: string; slug: string; join_policy: JoinPolicy } | null;
+    data: {
+      id: string;
+      slug: string;
+      name: string;
+      owner_id: string;
+      join_policy: JoinPolicy;
+    } | null;
   };
   if (!club) return { ok: false, error: "club_not_found" };
 
@@ -633,6 +641,31 @@ export async function applyToJoinClub(input: unknown): Promise<ActionResult<{ st
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
     if (insErr) return { ok: false, error: insErr.message };
+  }
+
+  // Pending application → the owner has to decide; tell them. Best-effort.
+  if (targetStatus === "pending" && club.owner_id !== userId) {
+    try {
+      const service = createSupabaseServiceClient();
+      const { data: applicant } = (await supabase
+        .from("public_player_basic")
+        .select("display_name")
+        .eq("id", userId)
+        .maybeSingle()) as { data: { display_name: string | null } | null };
+      await notifyUser(service, {
+        recipientId: club.owner_id,
+        template: "club_application_submitted",
+        payload: {
+          club_id: club.id,
+          club_name: club.name,
+          applicant_name: applicant?.display_name ?? "",
+          message: v.message ?? "",
+        },
+        linkUrl: `/me/clubs/owned/${club.id}`,
+      });
+    } catch (e) {
+      console.warn("[clubs] failed to enqueue application notification:", e);
+    }
   }
 
   revalidatePath(`/clubs/${club.slug}`);

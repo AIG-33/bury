@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { enqueue } from "@/lib/notifications/outbox";
-import type { Locale } from "@/lib/notifications/templates";
+import { notifyUser } from "@/lib/notifications/notify";
 import {
   ClubFormSchema,
   DecideApplicationSchema,
@@ -620,27 +619,19 @@ export async function decideApplication(input: unknown): Promise<SaveResult> {
 
   // Notify the applicant — best-effort.
   try {
-    const { data: profile } = (await supabase
-      .from("profiles")
-      .select("locale, notification_email")
-      .eq("id", member.user_id)
-      .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-    if (profile?.notification_email) {
-      const service = createSupabaseServiceClient();
-      await enqueue(service, {
-        recipient_id: member.user_id,
-        channel: "email",
-        template:
-          v.decision === "approved" ? "club_application_approved" : "club_application_rejected",
-        locale: profile.locale,
-        payload: {
-          club_id: club.id,
-          club_name: club.name,
-          club_slug: club.slug,
-          reason: v.reason ?? "",
-        },
-      });
-    }
+    const service = createSupabaseServiceClient();
+    await notifyUser(service, {
+      recipientId: member.user_id,
+      template:
+        v.decision === "approved" ? "club_application_approved" : "club_application_rejected",
+      payload: {
+        club_id: club.id,
+        club_name: club.name,
+        club_slug: club.slug,
+        reason: v.reason ?? "",
+      },
+      linkUrl: `/clubs/${club.slug}`,
+    });
   } catch (e) {
     console.warn("[clubs] failed to enqueue decision email:", e);
   }
@@ -726,21 +717,12 @@ export async function removeMember(
   // Notify the kicked user — best-effort.
   if (member.status === "approved") {
     try {
-      const { data: profile } = (await supabase
-        .from("profiles")
-        .select("locale, notification_email")
-        .eq("id", member.user_id)
-        .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-      if (profile?.notification_email) {
-        const service = createSupabaseServiceClient();
-        await enqueue(service, {
-          recipient_id: member.user_id,
-          channel: "email",
-          template: "club_member_kicked",
-          locale: profile.locale,
-          payload: { club_name: club.name, reason: reason ?? "" },
-        });
-      }
+      const service = createSupabaseServiceClient();
+      await notifyUser(service, {
+        recipientId: member.user_id,
+        template: "club_member_kicked",
+        payload: { club_name: club.name, reason: reason ?? "" },
+      });
     } catch (e) {
       console.warn("[clubs] failed to enqueue kick email:", e);
     }
@@ -886,29 +868,21 @@ export async function proposeOwnership(input: unknown): Promise<SaveResult> {
   if (error) return { ok: false, error: error.message };
 
   try {
-    const { data: profile } = (await supabase
-      .from("profiles")
-      .select("locale, notification_email")
-      .eq("id", v.new_owner_id)
-      .single()) as { data: { locale: Locale; notification_email: boolean } | null };
     const { data: prev } = (await supabase
       .from("public_player_basic")
       .select("display_name")
       .eq("id", userId)
       .maybeSingle()) as { data: { display_name: string | null } | null };
-    if (profile?.notification_email) {
-      const service = createSupabaseServiceClient();
-      await enqueue(service, {
-        recipient_id: v.new_owner_id,
-        channel: "email",
-        template: "club_ownership_offered",
-        locale: profile.locale,
-        payload: {
-          club_name: club.name,
-          previous_owner_name: prev?.display_name ?? "",
-        },
-      });
-    }
+    const service = createSupabaseServiceClient();
+    await notifyUser(service, {
+      recipientId: v.new_owner_id,
+      template: "club_ownership_offered",
+      payload: {
+        club_name: club.name,
+        previous_owner_name: prev?.display_name ?? "",
+      },
+      linkUrl: "/me/clubs",
+    });
   } catch (e) {
     console.warn("[clubs] failed to enqueue ownership-offer email:", e);
   }

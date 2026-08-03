@@ -5118,7 +5118,10 @@
       "nearby_empty": "Сейчас нет открытых игр рядом. Создай свою — соперники откликнутся.",
       "closing_eyebrow": "Успей записаться",
       "slots_left": "{count, plural, one {осталось # место} few {осталось # места} many {осталось # мест} other {осталось # места}}",
-      "registration_open": "регистрация открыта"
+      "registration_open": "регистрация открыта",
+      "attention_eyebrow": "Требует ответа",
+      "attention_proposal": "{name} предлагает сыграть матч",
+      "attention_reply": "Ответить"
     },
     "common": {
       "login": "Войти",
@@ -5500,11 +5503,17 @@
       "tpl_booking_reminder_24h": "Занятие уже завтра — напоминание",
       "tpl_match_proposal": "Тебя пригласили на матч",
       "tpl_match_accepted": "Твой вызов на матч принят",
-      "tpl_tournament_application_submitted": "Заявка на турнир отправлена",
+      "tpl_tournament_application_submitted": "Новая заявка на твой турнир",
+      "tpl_tournament_application_approved": "Заявка на турнир одобрена",
+      "tpl_tournament_application_rejected": "Заявка на турнир отклонена",
       "tpl_tournament_starting_24h": "Турнир стартует завтра",
       "tpl_tournament_match_scheduled": "Новый матч в турнире",
+      "tpl_club_application_submitted": "Новая заявка в твой клуб",
+      "tpl_club_application_approved": "Заявка в клуб одобрена",
+      "tpl_club_application_rejected": "Заявка в клуб отклонена",
       "tpl_club_member_kicked": "Изменение членства в клубе",
       "tpl_club_ownership_offered": "Тебе предложили управление клубом",
+      "tpl_venue_comment_added": "Новый комментарий к корту",
       "tpl_generic": "Новое уведомление",
       "detail_match": "{tournament} — против {opponent}"
     },
@@ -5518,6 +5527,9 @@
       "channel_email": "E-mail",
       "channel_telegram": "Telegram",
       "channel_whatsapp": "WhatsApp",
+      "telegram_linked": "Telegram привязан — уведомления приходят в бота",
+      "telegram_link_cta": "Связать Telegram-бота",
+      "telegram_link_hint": "Открой бота и нажми Start — уведомления начнут приходить в Telegram",
       "language": "Язык",
       "support": "Помощь и поддержка",
       "logout": "Выйти из аккаунта"

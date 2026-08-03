@@ -35,6 +35,7 @@ import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MAvatar, MContent, MDarkHeader, MEyebrow } from "@/components/mobile/m-ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadClubRatingBoard } from "@/app/[locale]/clubs/actions";
+import { countPendingProposals } from "@/lib/notifications/attention";
 import { INSTAGRAM_URL } from "@/lib/social-links";
 import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 import pkg from "@/package.json";
@@ -84,9 +85,10 @@ export default async function MobileMorePage({ params }: Props) {
   let isAdmin = false;
   let clubRank: number | null = null;
   let freshNotifications = 0;
+  let pendingProposals = 0;
 
   if (user) {
-    const [profileRes, memberRes, outboxRes] = await Promise.all([
+    const [profileRes, memberRes, outboxRes, proposalsCount] = await Promise.all([
       supabase
         .from("profiles")
         .select("display_name, avatar_url, current_elo, current_elo_doubles, is_coach, is_admin")
@@ -116,6 +118,7 @@ export default async function MobileMorePage({ params }: Props) {
           "created_at",
           new Date(Date.now() - 7 * 24 * 3600_000).toISOString(),
         ) as unknown as Promise<{ count: number | null }>,
+      countPendingProposals(supabase, user.id),
     ]);
 
     me = {
@@ -127,6 +130,7 @@ export default async function MobileMorePage({ params }: Props) {
     isCoach = profileRes.data?.is_coach ?? false;
     isAdmin = profileRes.data?.is_admin ?? false;
     freshNotifications = outboxRes.count ?? 0;
+    pendingProposals = proposalsCount;
 
     const clubId = memberRes.data?.[0]?.club_id ?? null;
     if (clubId) {
@@ -148,7 +152,12 @@ export default async function MobileMorePage({ params }: Props) {
     ...(user
       ? [
           { href: "/me/find", label: t("more.find_opponent"), icon: UserSearch },
-          { href: "/me/find/proposals", label: t("more.match_proposals"), icon: Handshake },
+          {
+            href: "/me/find/proposals",
+            label: t("more.match_proposals"),
+            icon: Handshake,
+            badge: pendingProposals,
+          },
         ]
       : []),
     { href: "/m/game", label: t("more.open_matches"), icon: Swords },

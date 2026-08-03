@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { enqueue } from "@/lib/notifications/outbox";
-import type { Locale } from "@/lib/notifications/templates";
+import { notifyUser } from "@/lib/notifications/notify";
 import type {
   TournamentFormat,
   TournamentStatus,
@@ -529,42 +528,20 @@ export async function applyToTournament(
     // Best-effort notifications — never fail the action over the outbox.
     try {
       const service = createSupabaseServiceClient();
-      const { data: ownerProfile } = (await supabase
-        .from("profiles")
-        .select("locale, notification_email")
-        .eq("id", t.owner_id)
-        .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-      if (ownerProfile?.notification_email) {
-        await enqueue(service, {
-          recipient_id: t.owner_id,
-          channel: "email",
-          template: "tournament_application_submitted",
-          locale: ownerProfile.locale,
-          payload: {
-            tournament_id: tournamentId,
-            tournament_name: t.name,
-          },
-        });
-      }
+      await notifyUser(service, {
+        recipientId: t.owner_id,
+        template: "tournament_application_submitted",
+        payload: { tournament_id: tournamentId, tournament_name: t.name },
+        linkUrl: `/me/tournaments/organized/${tournamentId}`,
+      });
       // Auto mode: the applicant is in immediately — tell them so.
       if (decision.nextStatus === "approved") {
-        const { data: applicant } = (await supabase
-          .from("profiles")
-          .select("locale, notification_email")
-          .eq("id", userId)
-          .single()) as { data: { locale: Locale; notification_email: boolean } | null };
-        if (applicant?.notification_email) {
-          await enqueue(service, {
-            recipient_id: userId,
-            channel: "email",
-            template: "tournament_application_approved",
-            locale: applicant.locale,
-            payload: {
-              tournament_id: tournamentId,
-              tournament_name: t.name,
-            },
-          });
-        }
+        await notifyUser(service, {
+          recipientId: userId,
+          template: "tournament_application_approved",
+          payload: { tournament_id: tournamentId, tournament_name: t.name },
+          linkUrl: `/tournaments/${tournamentId}`,
+        });
       }
     } catch (e) {
       console.warn("[tournaments] failed to enqueue application notifications:", e);

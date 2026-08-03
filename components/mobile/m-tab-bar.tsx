@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Link, usePathname } from "@/i18n/routing";
 import { Home, LayoutGrid, Trophy, type LucideIcon } from "lucide-react";
 import { ScoreboardIcon } from "./m-icons";
@@ -87,7 +88,17 @@ function isActive(pathname: string, tab: TabDef): boolean {
   return tab.webPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-function TabLink({ tab, label, active }: { tab: TabDef; label: string; active: boolean }) {
+function TabLink({
+  tab,
+  label,
+  active,
+  badge = 0,
+}: {
+  tab: TabDef;
+  label: string;
+  active: boolean;
+  badge?: number;
+}) {
   const Icon = tab.icon;
   return (
     <Link
@@ -98,15 +109,22 @@ function TabLink({ tab, label, active }: { tab: TabDef; label: string; active: b
       prefetch
       aria-current={active ? "page" : undefined}
       className={[
-        "flex flex-1 flex-col items-center justify-center gap-[3px] pb-1 pt-0.5 transition-opacity duration-150 active:opacity-85",
+        "relative flex flex-1 flex-col items-center justify-center gap-[3px] pb-1 pt-0.5 transition-opacity duration-150 active:opacity-85",
         active ? "text-grass-600" : "text-[#9AAB9F]",
       ].join(" ")}
     >
-      {Icon ? (
-        <Icon className="h-[23px] w-[23px]" strokeWidth={1.8} />
-      ) : (
-        <ScoreboardIcon className="h-[23px] w-[23px]" />
-      )}
+      <span className="relative">
+        {Icon ? (
+          <Icon className="h-[23px] w-[23px]" strokeWidth={1.8} />
+        ) : (
+          <ScoreboardIcon className="h-[23px] w-[23px]" />
+        )}
+        {badge > 0 ? (
+          <span className="absolute -right-2 -top-1 grid min-w-[15px] place-items-center rounded-full bg-clay-500 px-[3px] py-[1.5px] font-display text-[8.5px] font-extrabold leading-none text-white">
+            {badge > 9 ? "9+" : badge}
+          </span>
+        ) : null}
+      </span>
       <span className="font-display text-[10px] font-bold leading-none">{label}</span>
       <span
         aria-hidden
@@ -119,8 +137,33 @@ function TabLink({ tab, label, active }: { tab: TabDef; label: string; active: b
   );
 }
 
+// Module-level cache so the badge doesn't flicker to 0 on every navigation
+// (the tab bar remounts per page).
+let lastAttentionCount = 0;
+
+function useAttentionBadge(authed: boolean): number {
+  const [count, setCount] = useState(lastAttentionCount);
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    fetch("/api/attention")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { count?: number } | null) => {
+        if (cancelled || !data || typeof data.count !== "number") return;
+        lastAttentionCount = data.count;
+        setCount(data.count);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [authed]);
+  return authed ? count : 0;
+}
+
 export function MTabBar({ labels, playLabels, authed }: Props) {
   const pathname = usePathname();
+  const attention = useAttentionBadge(authed);
 
   return (
     <nav
@@ -136,7 +179,13 @@ export function MTabBar({ labels, playLabels, authed }: Props) {
         ))}
         <MPlayFab label={labels.play} labels={playLabels} authed={authed} />
         {RIGHT_TABS.map((tab) => (
-          <TabLink key={tab.id} tab={tab} label={labels[tab.id]} active={isActive(pathname, tab)} />
+          <TabLink
+            key={tab.id}
+            tab={tab}
+            label={labels[tab.id]}
+            active={isActive(pathname, tab)}
+            badge={tab.id === "more" ? attention : 0}
+          />
         ))}
       </div>
     </nav>

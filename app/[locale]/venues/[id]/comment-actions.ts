@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { enqueue } from "@/lib/notifications/outbox";
+import { notifyUser } from "@/lib/notifications/notify";
 import { VenueCommentSchema } from "@/lib/venues/schema";
 
 // =============================================================================
@@ -146,16 +146,6 @@ async function notifyVenueCreator(opts: {
     };
     if (!venue?.created_by || venue.created_by === opts.authorId) return;
 
-    const { data: creator } = (await service
-      .from("profiles")
-      .select("locale, notification_email")
-      .eq("id", venue.created_by)
-      .maybeSingle()) as {
-      data: { locale: string; notification_email: boolean } | null;
-    };
-    if (!creator || creator.notification_email === false) return;
-    const locale = creator.locale === "en" ? ("en" as const) : ("ru" as const);
-
     const { data: author } = (await service
       .from("profiles")
       .select("display_name")
@@ -164,17 +154,16 @@ async function notifyVenueCreator(opts: {
 
     const excerpt = opts.body.length > 140 ? `${opts.body.slice(0, 140)}…` : opts.body;
 
-    await enqueue(service, {
-      recipient_id: venue.created_by,
-      channel: "email",
+    await notifyUser(service, {
+      recipientId: venue.created_by,
       template: "venue_comment_added",
-      locale,
       payload: {
         venue_id: venue.id,
         venue_name: venue.name,
-        author_name: author?.display_name ?? (locale === "ru" ? "Игрок" : "A player"),
+        author_name: author?.display_name ?? "",
         excerpt,
       },
+      linkUrl: `/venues/${venue.id}`,
     });
   } catch (e) {
     console.error("notifyVenueCreator failed", { venueId: opts.venueId, error: e });

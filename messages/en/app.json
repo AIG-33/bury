@@ -5111,7 +5111,10 @@
       "nearby_empty": "No open games nearby right now. Post your own — opponents will respond.",
       "closing_eyebrow": "Register in time",
       "slots_left": "{count, plural, one {# spot left} other {# spots left}}",
-      "registration_open": "registration open"
+      "registration_open": "registration open",
+      "attention_eyebrow": "Needs your reply",
+      "attention_proposal": "{name} proposes a match",
+      "attention_reply": "Reply"
     },
     "common": {
       "login": "Sign in",
@@ -5493,11 +5496,17 @@
       "tpl_booking_reminder_24h": "Lesson tomorrow — reminder",
       "tpl_match_proposal": "You've been invited to a match",
       "tpl_match_accepted": "Your match challenge was accepted",
-      "tpl_tournament_application_submitted": "Tournament application submitted",
+      "tpl_tournament_application_submitted": "New application to your tournament",
+      "tpl_tournament_application_approved": "Tournament application approved",
+      "tpl_tournament_application_rejected": "Tournament application declined",
       "tpl_tournament_starting_24h": "Tournament starts tomorrow",
       "tpl_tournament_match_scheduled": "New tournament match",
+      "tpl_club_application_submitted": "New application to your club",
+      "tpl_club_application_approved": "Club application approved",
+      "tpl_club_application_rejected": "Club application declined",
       "tpl_club_member_kicked": "Club membership change",
       "tpl_club_ownership_offered": "You've been offered club ownership",
+      "tpl_venue_comment_added": "New comment on a court",
       "tpl_generic": "New notification",
       "detail_match": "{tournament} — vs {opponent}"
     },
@@ -5511,6 +5520,9 @@
       "channel_email": "E-mail",
       "channel_telegram": "Telegram",
       "channel_whatsapp": "WhatsApp",
+      "telegram_linked": "Telegram is linked — notifications go to the bot",
+      "telegram_link_cta": "Link the Telegram bot",
+      "telegram_link_hint": "Open the bot and press Start — notifications will arrive in Telegram",
       "language": "Language",
       "support": "Help & support",
       "logout": "Sign out"

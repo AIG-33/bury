@@ -15,6 +15,10 @@ import { MTabBar } from "@/components/mobile/m-tab-bar";
 import { MContent, MEmptyState, MEyebrow, MSubHeader } from "@/components/mobile/m-ui";
 import { DeleteAccountSection } from "@/components/account/delete-account";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  loadTelegramLinkState,
+  type TelegramLinkState,
+} from "@/app/[locale]/(player)/me/profile/actions";
 import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 import { LanguageRow, ToggleRow } from "./settings-rows";
 import pkg from "@/package.json";
@@ -40,18 +44,22 @@ export default async function MobileSettingsPage({ params }: Props) {
   } = await supabase.auth.getUser();
 
   let prefs = { email: true, telegram: false, whatsapp: false };
+  let telegramState: TelegramLinkState = { linked: false, botUsername: null, startUrl: null };
   if (user) {
-    const { data } = (await supabase
-      .from("profiles")
-      .select("notification_email, notification_telegram, notification_whatsapp")
-      .eq("id", user.id)
-      .maybeSingle()) as {
-      data: {
-        notification_email: boolean;
-        notification_telegram: boolean;
-        notification_whatsapp: boolean;
-      } | null;
-    };
+    const [{ data }, tgState] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("notification_email, notification_telegram, notification_whatsapp")
+        .eq("id", user.id)
+        .maybeSingle() as unknown as Promise<{
+        data: {
+          notification_email: boolean;
+          notification_telegram: boolean;
+          notification_whatsapp: boolean;
+        } | null;
+      }>,
+      loadTelegramLinkState(),
+    ]);
     if (data) {
       prefs = {
         email: data.notification_email,
@@ -59,6 +67,7 @@ export default async function MobileSettingsPage({ params }: Props) {
         whatsapp: data.notification_whatsapp,
       };
     }
+    telegramState = tgState;
   }
 
   return (
@@ -98,6 +107,34 @@ export default async function MobileSettingsPage({ params }: Props) {
                   initial={prefs.telegram}
                   icon={<Send className="h-[17px] w-[17px]" strokeWidth={1.8} />}
                 />
+                {telegramState.linked ? (
+                  <p className="px-1 text-[11.5px] font-semibold text-grass-600">
+                    {t("settings.telegram_linked")}
+                  </p>
+                ) : telegramState.startUrl ? (
+                  <a
+                    href={telegramState.startUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-[15px] border border-[rgba(28,122,70,0.25)] bg-white p-[11px] shadow-[0_1px_2px_rgba(20,60,30,0.04)] transition-opacity active:opacity-85"
+                  >
+                    <span className="grid h-[36px] w-[36px] shrink-0 place-items-center rounded-[11px] bg-pt-icon text-grass-600">
+                      <Send className="h-[17px] w-[17px]" strokeWidth={1.8} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-display text-[14.5px] font-bold text-ink-900">
+                        {t("settings.telegram_link_cta")}
+                      </span>
+                      <span className="block truncate text-[11.5px] font-semibold text-ink-500">
+                        {t("settings.telegram_link_hint")}
+                      </span>
+                    </span>
+                    <ChevronRight
+                      className="h-[16px] w-[16px] shrink-0 text-[#A7B5A9]"
+                      strokeWidth={2}
+                    />
+                  </a>
+                ) : null}
                 <ToggleRow
                   channel="whatsapp"
                   label={t("settings.channel_whatsapp")}
