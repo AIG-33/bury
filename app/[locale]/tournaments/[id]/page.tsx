@@ -433,6 +433,19 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
               )}
             </div>
 
+            {/* Description — organizer's free-form intro. Was lost in the
+                July 2026 hero redesign (used to be the hero subtitle). */}
+            {tournament.description && (
+              <Surface variant="card" as="section">
+                <h2 className="section-title mb-3 text-[18px] md:text-[20px]">
+                  {t("detail.about_title")}
+                </h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700">
+                  {tournament.description}
+                </p>
+              </Surface>
+            )}
+
             {/* Regulations — free-form text and/or a downloadable document */}
             {(tournament.regulations_text || tournament.regulations_file_url) && (
               <Surface variant="card" as="section">
