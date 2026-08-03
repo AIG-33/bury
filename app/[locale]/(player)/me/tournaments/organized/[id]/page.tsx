@@ -27,6 +27,7 @@ import { ParticipantsSection, type ParticipantsCopy } from "./participants-secti
 import { AdminsSection, type AdminsCopy } from "./admins-section";
 import { BracketSection, type BracketCopy } from "./bracket-section";
 import { GroupsSection, type GroupsCopy } from "./groups-section";
+import { ThirdPlaceControl, type ThirdPlaceControlCopy } from "./third-place-control";
 import { StandingsSection, type StandingsCopy } from "./standings-section";
 import { PrivacyControl, type PrivacyControlCopy } from "./privacy-control";
 import { StatusControl, type StatusControlCopy } from "./status-control";
@@ -497,6 +498,32 @@ export default async function OrganizedTournamentDetailPage({ params }: Props) {
           copy={groupsCopy}
           bracketCopy={bracketCopy}
           matchRules={tournament.match_rules}
+        />
+      )}
+
+      {tournament.format === "group_playoff" && tournament.status === "in_progress" && (
+        <ThirdPlaceControl
+          tournamentId={tournament.id}
+          enabled={tournament.third_place_match}
+          matchExists={matches.some((m) => m.stage === "third_place")}
+          matchPlayed={matches.some(
+            (m) => m.stage === "third_place" && (m.outcome !== "pending" || m.winner_side != null),
+          )}
+          copy={
+            {
+              title: t("third_place_control.title"),
+              status_on: t("third_place_control.status_on"),
+              status_off: t("third_place_control.status_off"),
+              hint_on_created: t("third_place_control.hint_on_created"),
+              hint_on_no_bracket: t("third_place_control.hint_on_no_bracket"),
+              hint_off: t("third_place_control.hint_off"),
+              enable: t("third_place_control.enable"),
+              disable: t("third_place_control.disable"),
+              saving: t("third_place_control.saving"),
+              disable_confirm_created: t("third_place_control.disable_confirm_created"),
+              played_note: t("third_place_control.played_note"),
+            } satisfies ThirdPlaceControlCopy
+          }
         />
       )}
 

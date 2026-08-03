@@ -307,6 +307,20 @@ export const MoveToGroupSchema = z.object({
 export type MoveToGroupInput = z.infer<typeof MoveToGroupSchema>;
 
 /**
+ * Toggle the 3rd-place match of a hybrid tournament mid-flight (creation /
+ * edit forms are locked once the tournament runs). Enabling with an already
+ * seeded playoff creates the match immediately and fills it with the losing
+ * semi-finalists when the semis are decided; disabling deletes the (still
+ * unplayed) match. A played 3rd-place match blocks disabling — the organizer
+ * must reset its score first.
+ */
+export const ToggleThirdPlaceSchema = z.object({
+  tournament_id: z.string().uuid(),
+  enabled: z.boolean(),
+});
+export type ToggleThirdPlaceInput = z.infer<typeof ToggleThirdPlaceSchema>;
+
+/**
  * Manual playoff bracket editing: put a tournament participant (or clear a
  * slot with null) into one side of an UNPLAYED playoff / third-place /
  * single-elimination match. Lets the organizer fix the bracket by hand —

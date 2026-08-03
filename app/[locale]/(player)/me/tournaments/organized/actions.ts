@@ -19,6 +19,7 @@ import {
   WithdrawParticipantSchema,
   TournamentAdminSchema,
   EditPlayoffSlotSchema,
+  ToggleThirdPlaceSchema,
   type TournamentFormat,
   type TournamentStatus,
   type TournamentDiscipline,
@@ -2572,6 +2573,196 @@ export async function closeGroupsAndStartPlayoff(
     playoffMatches: baseRows.length,
     thirdPlaceMatch: thirdPlaceInserted,
   };
+}
+
+// =============================================================================
+// 3rd-place match toggle — flips tournaments.third_place_match while the
+// tournament runs (the edit form is locked once status = in_progress).
+// =============================================================================
+
+/**
+ * Enable / disable the 3rd-place match of a hybrid tournament mid-flight.
+ *
+ * Enabling: sets the flag; when the playoff is already seeded the match is
+ * created immediately and pre-filled with the losers of every decided
+ * semifinal (both known → the pair is notified via the outbox). With no
+ * playoff yet, `closeGroupsAndStartPlayoff` will create the match later.
+ * A playoff seeded as a lone final has no semifinals to feed the match —
+ * refused with `no_semifinals`.
+ *
+ * Disabling: deletes the (unplayed) 3rd-place match and clears the flag.
+ * A played match is refused with `third_place_already_played` — the
+ * organizer has to reset its score first. When the final is already decided,
+ * dropping the pending 3rd-place match finishes the tournament.
+ */
+export async function setThirdPlaceMatch(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const auth = await requireUser();
+  if (!auth.ok) return { ok: false, error: auth.error };
+  const { supabase, userId } = auth;
+
+  const parsed = ToggleThirdPlaceSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const v = parsed.data;
+
+  const { data: t } = (await supabase
+    .from("tournaments")
+    .select("id, owner_id, format, discipline, status, match_rules, third_place_match")
+    .eq("id", v.tournament_id)
+    .single()) as {
+    data: {
+      id: string;
+      owner_id: string;
+      format: TournamentFormat;
+      discipline: TournamentDiscipline;
+      status: TournamentStatus;
+      match_rules: MatchRules;
+      third_place_match: boolean;
+    } | null;
+  };
+  if (!t) return { ok: false, error: "not_found" };
+  {
+    const manage = await assertCanManageTournament(supabase, t.id, userId, t.owner_id);
+    if (!manage.ok) return manage;
+  }
+  if (t.format !== "group_playoff") return { ok: false, error: "format_not_group_playoff" };
+  if (t.status === "finished") return { ok: false, error: "already_finished" };
+  if (t.status === "cancelled") return { ok: false, error: "invalid_transition" };
+  if (t.third_place_match === v.enabled) return { ok: true };
+
+  // Final = the highest playoff round; null while the playoff isn't seeded.
+  const { data: finalMatch } = (await supabase
+    .from("matches")
+    .select("round")
+    .eq("tournament_id", v.tournament_id)
+    .eq("stage", "playoff")
+    .order("round", { ascending: false })
+    .limit(1)
+    .maybeSingle()) as { data: { round: number | null } | null };
+  const finalRound = finalMatch?.round ?? null;
+
+  const { data: tp } = (await supabase
+    .from("matches")
+    .select("id, p1_id, p2_id, outcome, winner_side")
+    .eq("tournament_id", v.tournament_id)
+    .eq("stage", "third_place")
+    .maybeSingle()) as {
+    data: {
+      id: string;
+      p1_id: string | null;
+      p2_id: string | null;
+      outcome: string;
+      winner_side: "p1" | "p2" | null;
+    } | null;
+  };
+
+  if (!v.enabled) {
+    if (tp) {
+      if (tp.outcome !== "pending" || tp.winner_side != null) {
+        return { ok: false, error: "third_place_already_played" };
+      }
+      const { error: delErr } = await supabase.from("matches").delete().eq("id", tp.id);
+      if (delErr) return { ok: false, error: delErr.message };
+    }
+    const { error: offErr } = await supabase
+      .from("tournaments")
+      .update({ third_place_match: false } as never)
+      .eq("id", v.tournament_id);
+    if (offErr) return { ok: false, error: offErr.message };
+
+    // Without the 3rd-place match the playoff may already be fully decided
+    // (final has a winner) — auto-finish, exactly like setMatchScore would.
+    await maybeFinishEliminationTournament(supabase, v.tournament_id, true);
+
+    revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+    return { ok: true };
+  }
+
+  // ── Enabling ──
+  // A playoff seeded as a lone final (2 qualifiers) has no semifinals whose
+  // losers could feed a 3rd-place match.
+  if (finalRound != null && finalRound < 2) {
+    return { ok: false, error: "no_semifinals" };
+  }
+
+  if (finalRound != null && !tp) {
+    const semiRound = finalRound - 1;
+    const { data: semis } = (await supabase
+      .from("matches")
+      .select("bracket_slot, p1_id, p2_id, p1_partner_id, p2_partner_id, winner_side")
+      .eq("tournament_id", v.tournament_id)
+      .eq("stage", "playoff")
+      .eq("round", semiRound)
+      .order("bracket_slot", { ascending: true })) as {
+      data: Array<{
+        bracket_slot: number;
+        p1_id: string | null;
+        p2_id: string | null;
+        p1_partner_id: string | null;
+        p2_partner_id: string | null;
+        winner_side: "p1" | "p2" | null;
+      }> | null;
+    };
+
+    const isDoubles = t.discipline === "doubles";
+    // Losers of the already-decided semifinals, in bracket order (first
+    // decided SF → p1, second → p2 — same order setMatchScore would use).
+    // A bye "semifinal" has an empty losing side — nothing to seed.
+    const losers: Array<{ id: string; partner: string | null }> = [];
+    for (const sf of semis ?? []) {
+      if (!sf.winner_side) continue;
+      const loserId = sf.winner_side === "p1" ? sf.p2_id : sf.p1_id;
+      const loserPartner = sf.winner_side === "p1" ? sf.p2_partner_id : sf.p1_partner_id;
+      if (loserId) losers.push({ id: loserId, partner: loserPartner });
+    }
+
+    const row = {
+      tournament_id: v.tournament_id,
+      round: semiRound, // visual placement next to the SFs (same as closeGroups)
+      bracket_slot: 99, // sentinel slot — clearly outside the main tree
+      p1_id: losers[0]?.id ?? null,
+      p2_id: losers[1]?.id ?? null,
+      is_doubles: isDoubles,
+      p1_partner_id: isDoubles ? (losers[0]?.partner ?? null) : null,
+      p2_partner_id: isDoubles ? (losers[1]?.partner ?? null) : null,
+      outcome: "pending",
+      winner_side: null,
+      match_rules: t.match_rules,
+      stage: "third_place" as const,
+      group_id: null as string | null,
+    };
+    const { data: inserted, error: insErr } = (await supabase
+      .from("matches")
+      .insert(row as never)
+      .select("id")
+      .single()) as { data: { id: string } | null; error: { message: string } | null };
+    if (insErr) return { ok: false, error: insErr.message };
+
+    // Both semifinal losers already known → «у тебя новый матч» right away.
+    if (inserted && row.p1_id && row.p2_id) {
+      await notifyNewTournamentMatches(createSupabaseServiceClient(), v.tournament_id, [
+        {
+          id: inserted.id,
+          p1_id: row.p1_id,
+          p2_id: row.p2_id,
+          p1_partner_id: row.p1_partner_id,
+          p2_partner_id: row.p2_partner_id,
+          is_doubles: isDoubles,
+          stage: "third_place",
+        },
+      ]);
+    }
+  }
+
+  const { error: onErr } = await supabase
+    .from("tournaments")
+    .update({ third_place_match: true } as never)
+    .eq("id", v.tournament_id);
+  if (onErr) return { ok: false, error: onErr.message };
+
+  revalidatePath(`/me/tournaments/organized/${v.tournament_id}`);
+  return { ok: true };
 }
 
 // =============================================================================

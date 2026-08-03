@@ -2706,7 +2706,9 @@
       "not_a_playoff_match": "Players can only be replaced in playoff or single-elimination bracket matches.",
       "match_already_played": "This match already has a result — correct or reset the score first.",
       "downstream_match_played": "The next match up the bracket has already been played — this player can't be replaced here.",
-      "same_player_both_sides": "The same player can't be on both sides of a match."
+      "same_player_both_sides": "The same player can't be on both sides of a match.",
+      "third_place_already_played": "The 3rd-place match has already been played — reset its score first, then turn it off.",
+      "no_semifinals": "This playoff has no semifinals (a 2-player bracket) — a 3rd-place match is not possible."
     },
     "match_rule_kinds": {
       "best_of_3": "Best of 3 sets",
@@ -2939,6 +2941,19 @@
       "groups_pending": "Finish every group match first — then you can close the groups.",
       "reclose_playoff": "Re-seed the playoff",
       "reclose_playoff_warning": "The current playoff bracket will be dropped and re-seeded from the group results (with the selected stage and top-N). Possible only while no playoff score has been entered. Continue?"
+    },
+    "third_place_control": {
+      "title": "3rd-place match",
+      "status_on": "On",
+      "status_off": "Off",
+      "hint_on_created": "The losing semi-finalists play a bronze match — it's already in the playoff bracket below.",
+      "hint_on_no_bracket": "The losing semi-finalists will play a bronze match. It will appear in the bracket when the playoff starts.",
+      "hint_off": "Turn on to give the losing semi-finalists an extra bronze match. Works mid-tournament: if the semifinals are already played, the pair is filled in automatically and the players get notified.",
+      "enable": "Turn on",
+      "disable": "Turn off",
+      "saving": "Saving…",
+      "disable_confirm_created": "Turn off the 3rd-place match? The unplayed match will be removed from the playoff bracket; if the semifinals are already played, the bronze pair will be dissolved. Continue?",
+      "played_note": "The 3rd-place match has already been played. To turn it off, reset that match's score in the playoff bracket first."
     },
     "admins": {
       "title": "Tournament admins",
