@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
-import {
-  TournamentFormDialog,
-  type TournamentDialogCopy,
-} from "../tournament-form-dialog";
+import { TournamentFormDialog, type TournamentDialogCopy } from "../tournament-form-dialog";
 import type { TournamentRow, VenueOption, ClubOption } from "../actions";
 import type { MatchRules, TournamentForm } from "@/lib/tournaments/schema";
 
@@ -73,6 +70,7 @@ export function EditTournamentButton({
         onClose={() => setOpen(false)}
         initial={{ id: tournament.id, form: tournamentToForm(tournament) }}
         mode="edit"
+        locked={tournament.status === "in_progress" || tournament.status === "finished"}
         venueOptions={venueOptions}
         clubOptions={clubOptions}
         copy={dialogCopy}

@@ -374,6 +374,9 @@ export function OrganizedTournamentsClient({
         prefill={prefill}
         branding={brandingPrefill}
         mode={mode}
+        locked={
+          mode === "edit" && (editing?.status === "in_progress" || editing?.status === "finished")
+        }
         venueOptions={venueOptions}
         clubOptions={clubOptions}
         copy={copy.dialog}

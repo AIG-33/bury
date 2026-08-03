@@ -2804,7 +2804,8 @@
         "entry_fee": "How much each player pays to enter. Leave empty or 0 to mark the tournament as free.",
         "venues": "Pick one or more venues — e.g. group stage at venue A, finals at venue B. The catalogue is curated by the club admin.",
         "venues_empty_catalogue": "No venues in the catalogue yet. Ask your admin to add at least one.",
-        "club": "Link this tournament to a club you run — its matches will feed that club's internal rating."
+        "club": "Link this tournament to a club you run — its matches will feed that club's internal rating.",
+        "locked_fields": "The tournament is already running: format, discipline, seeding and match rules are locked. Everything else — name, dates, venue, the 3rd-place match — can still be changed."
       },
       "save": "Save",
       "saving": "Saving…",

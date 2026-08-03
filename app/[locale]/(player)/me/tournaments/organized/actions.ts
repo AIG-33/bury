@@ -799,10 +799,20 @@ export async function updateTournament(id: string, input: unknown): Promise<Save
       v.format !== current.format ||
       v.discipline !== current.discipline ||
       v.draw_method !== (current.draw_method ?? "rating") ||
-      stableStringify(v.match_rules) !== stableStringify(current.match_rules) ||
-      (v.format === "group_playoff" && v.third_place_match !== current.third_place_match);
+      stableStringify(v.match_rules) !== stableStringify(current.match_rules);
     if (drawAffectingChanged) {
       return { ok: false, error: "locked_in_progress" };
+    }
+    // The 3rd-place toggle of a hybrid IS allowed mid-flight — route it
+    // through the same logic as the ThirdPlaceControl card so the bronze
+    // match is created/deleted (and players notified) instead of silently
+    // flipping the flag or rejecting the whole edit.
+    if (v.format === "group_playoff" && v.third_place_match !== current.third_place_match) {
+      const toggled = await setThirdPlaceMatch({
+        tournament_id: id,
+        enabled: v.third_place_match,
+      });
+      if (!toggled.ok) return toggled;
     }
   }
 

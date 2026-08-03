@@ -136,6 +136,7 @@ export function buildTournamentDialogCopy(t: OrganizedTranslator): TournamentDia
       venues: t("dialog.hints.venues"),
       venues_empty_catalogue: t("dialog.hints.venues_empty_catalogue"),
       club: t("dialog.hints.club"),
+      locked_fields: t("dialog.hints.locked_fields"),
     },
     format_labels: formatLabels,
     discipline_labels: buildDisciplineLabels(t),
