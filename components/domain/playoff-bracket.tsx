@@ -1,5 +1,6 @@
 import { PlayerNameLink } from "@/components/domain/player-name-link";
 import { MatchScoreTiles } from "@/components/domain/match-score";
+import { playoffStageTitle, type PlayoffStageLabels } from "@/lib/tournaments/round-names";
 
 // =============================================================================
 // Visual playoff bracket for the PUBLIC tournament pages (web + /m mobile).
@@ -26,24 +27,11 @@ export type BracketViewMatch = {
   stage: "group" | "playoff" | "third_place" | null;
 };
 
-export type PlayoffBracketLabels = {
-  stage_final: string;
-  stage_semifinal: string;
-  stage_quarterfinal: string;
-  /** "Раунд {n}" for deep brackets (R16 and earlier). */
-  stage_round: (n: number) => string;
+export type PlayoffBracketLabels = PlayoffStageLabels & {
   stage_third_place: string;
   tbd: string;
   bye: string;
 };
-
-function stageTitle(round: number, maxRound: number, labels: PlayoffBracketLabels): string {
-  const fromEnd = maxRound - round;
-  if (fromEnd === 0) return labels.stage_final;
-  if (fromEnd === 1) return labels.stage_semifinal;
-  if (fromEnd === 2) return labels.stage_quarterfinal;
-  return labels.stage_round(round);
-}
 
 /**
  * @param matches Elimination matches only: stage `playoff` / `third_place`
@@ -90,7 +78,7 @@ export function PlayoffBracketView({
                 size === "mobile" ? "text-[10px]" : "text-[11px]"
               }`}
             >
-              {stageTitle(round, maxRound, labels)}
+              {playoffStageTitle(round, maxRound, labels)}
             </p>
             {/* justify-around centers later rounds against their feeders. */}
             <div className="flex flex-1 flex-col justify-around gap-2">

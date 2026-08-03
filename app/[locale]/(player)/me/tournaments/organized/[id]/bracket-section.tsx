@@ -13,6 +13,7 @@ import {
   type ParticipantRow,
 } from "../actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
+import { playoffStageTitle } from "@/lib/tournaments/round-names";
 import { PlayerNameLink } from "@/components/domain/player-name-link";
 import { MatchScoreTiles } from "@/components/domain/match-score";
 import {
@@ -157,6 +158,22 @@ export function BracketSection({
   }
 
   const totalRounds = grouped.length;
+  // Elimination trees (single elimination and the playoff of a hybrid) title
+  // their rounds by stage — Финал / Полуфинал / 1/4 финала… Round-robin keeps
+  // the plain "Раунд {n} / {total}" numbering.
+  const isElimination = format === "single_elimination" || isHybrid;
+  const maxRound = grouped.length > 0 ? grouped[grouped.length - 1][0] : 0;
+  const roundTitle = (round: number): string =>
+    isElimination
+      ? playoffStageTitle(round, maxRound, {
+          stage_final: t("stage_final"),
+          stage_semifinal: t("stage_semifinal"),
+          stage_quarterfinal: t("stage_quarterfinal"),
+          stage_round_of_16: t("stage_round_of_16"),
+          stage_round_of_32: t("stage_round_of_32"),
+          stage_round: (n) => t("round_label", { n, total: totalRounds }),
+        })
+      : t("round_label", { n: round, total: totalRounds });
   // For hybrids the "Generate" button is replaced by group-stage + close-groups
   // UI in <GroupsSection>. BracketSection only renders the resulting bracket.
   const showGenerate = !isHybrid;
@@ -211,7 +228,7 @@ export function BracketSection({
           {grouped.map(([round, rms]) => (
             <div key={round} className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-grass-700">
-                {t("round_label", { n: round, total: totalRounds })}
+                {roundTitle(round)}
               </p>
               {rms.map((m) => (
                 <MatchCard

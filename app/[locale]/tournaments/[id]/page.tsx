@@ -25,6 +25,7 @@ import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard } from "@/components/match/match-scorecard";
 import { PlayoffBracketView } from "@/components/domain/playoff-bracket";
+import { playoffStageTitle, type PlayoffStageLabels } from "@/lib/tournaments/round-names";
 import { TournamentPodium, type PodiumPerson } from "@/components/domain/tournament-podium";
 import { computePodium } from "@/lib/tournaments/podium";
 import { Surface } from "@/components/ui/surface";
@@ -560,6 +561,8 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                     stage_final: t("detail.stage_final"),
                     stage_semifinal: t("detail.stage_semifinal"),
                     stage_quarterfinal: t("detail.stage_quarterfinal"),
+                    stage_round_of_16: t("detail.stage_round_of_16"),
+                    stage_round_of_32: t("detail.stage_round_of_32"),
                     stage_round: (n: number) => t("detail.stage_round", { n }),
                     stage_third_place: t("detail.stage_third_place"),
                     tbd: t("detail.bracket_tbd"),
@@ -631,10 +634,12 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                     countLabel: (n: number) => t("detail.matches_count", { n }),
                     tba: t("detail.tba"),
                     groupLabel: (name: string) => t("detail.group_label", { name }),
-                    stageFinal: t("detail.stage_final"),
-                    stageSemifinal: t("detail.stage_semifinal"),
-                    stageQuarterfinal: t("detail.stage_quarterfinal"),
-                    stageRound: (n: number) => t("detail.stage_round", { n }),
+                    stage_final: t("detail.stage_final"),
+                    stage_semifinal: t("detail.stage_semifinal"),
+                    stage_quarterfinal: t("detail.stage_quarterfinal"),
+                    stage_round_of_16: t("detail.stage_round_of_16"),
+                    stage_round_of_32: t("detail.stage_round_of_32"),
+                    stage_round: (n: number) => t("detail.stage_round", { n }),
                     stageThirdPlace: t("detail.stage_third_place"),
                   }}
                 />
@@ -870,19 +875,6 @@ type PublicMatches = NonNullable<
 
 type MatchSection = { key: string; marker: string; title: string; matches: PublicMatches };
 
-/** Final / semifinal / quarterfinal / generic round — counted from the last round. */
-function playoffRoundTitle(
-  round: number,
-  maxRound: number,
-  labels: { stageFinal: string; stageSemifinal: string; stageQuarterfinal: string; stageRound: (n: number) => string },
-): string {
-  const fromEnd = maxRound - round;
-  if (fromEnd === 0) return labels.stageFinal;
-  if (fromEnd === 1) return labels.stageSemifinal;
-  if (fromEnd === 2) return labels.stageQuarterfinal;
-  return labels.stageRound(round);
-}
-
 function TournamentMatchesByRound({
   matches,
   groups,
@@ -894,7 +886,7 @@ function TournamentMatchesByRound({
   groups: Array<{ id: string; name: string }>;
   format: string;
   locale: string;
-  labels: {
+  labels: PlayoffStageLabels & {
     round_short: string;
     scheduled: string;
     winner: string;
@@ -902,10 +894,6 @@ function TournamentMatchesByRound({
     countLabel: (n: number) => string;
     tba: string;
     groupLabel: (name: string) => string;
-    stageFinal: string;
-    stageSemifinal: string;
-    stageQuarterfinal: string;
-    stageRound: (n: number) => string;
     stageThirdPlace: string;
   };
 }) {
@@ -937,7 +925,7 @@ function TournamentMatchesByRound({
         roundKey === "_no_round"
           ? labels.tba
           : elimination
-            ? playoffRoundTitle(roundKey, maxRound, labels)
+            ? playoffStageTitle(roundKey, maxRound, labels)
             : `${labels.round_short}${roundKey}`;
       sections.push({
         key: `r-${String(roundKey)}`,

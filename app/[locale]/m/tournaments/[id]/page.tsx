@@ -30,6 +30,7 @@ import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournament
 import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { PlayoffBracketView } from "@/components/domain/playoff-bracket";
+import { playoffStageTitle } from "@/lib/tournaments/round-names";
 import { MatchScoreTiles } from "@/components/domain/match-score";
 import { TournamentPodium, type PodiumPerson } from "@/components/domain/tournament-podium";
 import { computePodium } from "@/lib/tournaments/podium";
@@ -78,6 +79,8 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
     stage_final: t("tournament.stage_final"),
     stage_semifinal: t("tournament.stage_semifinal"),
     stage_quarterfinal: t("tournament.stage_quarterfinal"),
+    stage_round_of_16: t("tournament.stage_round_of_16"),
+    stage_round_of_32: t("tournament.stage_round_of_32"),
     stage_round: (n: number) => t("tournament.round_label", { round: n }),
     stage_third_place: t("tournament.stage_third_place"),
     tbd: t("tournament.bracket_tbd"),
@@ -645,13 +648,15 @@ function DrawList({
   type Section = { key: string; title: string; list: typeof matches };
   const sections: Section[] = [];
 
-  const playoffTitle = (round: number, maxRound: number): string => {
-    const fromEnd = maxRound - round;
-    if (fromEnd === 0) return t("tournament.stage_final");
-    if (fromEnd === 1) return t("tournament.stage_semifinal");
-    if (fromEnd === 2) return t("tournament.stage_quarterfinal");
-    return t("tournament.round_label", { round });
-  };
+  const playoffTitle = (round: number, maxRound: number): string =>
+    playoffStageTitle(round, maxRound, {
+      stage_final: t("tournament.stage_final"),
+      stage_semifinal: t("tournament.stage_semifinal"),
+      stage_quarterfinal: t("tournament.stage_quarterfinal"),
+      stage_round_of_16: t("tournament.stage_round_of_16"),
+      stage_round_of_32: t("tournament.stage_round_of_32"),
+      stage_round: (n: number) => t("tournament.round_label", { round: n }),
+    });
 
   const pushRoundSections = (list: typeof matches, elimination: boolean) => {
     const byRound = new Map<number, typeof matches>();
