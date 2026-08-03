@@ -93,6 +93,9 @@ function TabLink({ tab, label, active }: { tab: TabDef; label: string; active: b
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       href={tab.href as any}
+      // Tabs are the hottest navigation paths — prefetch them fully (RSC data
+      // included) so switching feels instant; staleTimes keeps it fresh enough.
+      prefetch
       aria-current={active ? "page" : undefined}
       className={[
         "flex flex-1 flex-col items-center justify-center gap-[3px] pb-1 pt-0.5 transition-opacity duration-150 active:opacity-85",
