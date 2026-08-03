@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
-import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
+import { MatchScorecard } from "@/components/match/match-scorecard";
+import type { DisplaySet } from "@/components/domain/match-score";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -650,18 +651,12 @@ function MatchRowItem({
   const dateIso = m.played_at ?? m.scheduled_at;
   const dateLabel = dateIso ? dateFmt.format(new Date(dateIso)) : labels.tba;
   const isTournament = !!m.tournament_id;
-  const sets = m.sets ?? [];
-
-  // Per-side set arrays (the shared component is side-agnostic).
-  const p1Sets: ScorecardSet[] = sets.map((s) => ({
-    my: s.p1_games,
-    their: s.p2_games,
-    tb: s.tiebreak_p1 ?? null,
-  }));
-  const p2Sets: ScorecardSet[] = sets.map((s) => ({
-    my: s.p2_games,
-    their: s.p1_games,
-    tb: s.tiebreak_p2 ?? null,
+  // Normalise the friendly-match jsonb shape to the shared display shape.
+  const sets: DisplaySet[] = (m.sets ?? []).map((s) => ({
+    p1: s.p1_games,
+    p2: s.p2_games,
+    tb_p1: s.tiebreak_p1 ?? null,
+    tb_p2: s.tiebreak_p2 ?? null,
   }));
 
   const meta = (
@@ -711,6 +706,7 @@ function MatchRowItem({
       meta={meta}
       noScoreLabel={labels.no_score}
       winnerLabel={labels.winner}
+      sets={sets}
       p1={{
         id: m.p1_id,
         name: m.p1_name,
@@ -718,7 +714,6 @@ function MatchRowItem({
         isCoach: m.p1_is_coach,
         partnerName: m.p1_partner_name,
         isWinner: m.winner_side === "p1",
-        sets: p1Sets,
       }}
       p2={{
         id: m.p2_id,
@@ -727,7 +722,6 @@ function MatchRowItem({
         isCoach: m.p2_is_coach,
         partnerName: m.p2_partner_name,
         isWinner: m.winner_side === "p2",
-        sets: p2Sets,
       }}
     />
   );

@@ -1,4 +1,5 @@
 import { PlayerNameLink } from "@/components/domain/player-name-link";
+import { MatchScoreTiles } from "@/components/domain/match-score";
 
 // =============================================================================
 // Visual playoff bracket for the PUBLIC tournament pages (web + /m mobile).
@@ -119,11 +120,6 @@ export function PlayoffBracketView({
   );
 }
 
-function setScores(sets: BracketViewMatch["sets"], side: "p1" | "p2"): string | null {
-  if (!sets || sets.length === 0) return null;
-  return sets.map((s) => (side === "p1" ? s.p1 : s.p2)).join(" ");
-}
-
 function BracketMatchCard({
   match,
   labels,
@@ -137,12 +133,18 @@ function BracketMatchCard({
     (match.outcome === "walkover_p1" || match.outcome === "walkover_p2") &&
     (match.p1_id == null || match.p2_id == null) &&
     (!match.sets || match.sets.length === 0);
+  const hasScore = match.sets != null && match.sets.length > 0;
 
   return (
-    <div className="rounded-xl border border-[rgba(20,60,30,0.08)] bg-white px-2.5 py-2 shadow-[0_1px_2px_rgba(20,60,30,0.05)]">
-      <BracketSideRow match={match} side="p1" labels={labels} size={size} isBye={isBye} />
-      <div className="my-1 border-t border-dashed border-[rgba(20,60,30,0.08)]" />
-      <BracketSideRow match={match} side="p2" labels={labels} size={size} isBye={isBye} />
+    <div className="flex items-stretch gap-2 rounded-xl border border-[rgba(20,60,30,0.08)] bg-white px-2.5 py-2 shadow-[0_1px_2px_rgba(20,60,30,0.05)]">
+      <div className="min-w-0 flex-1">
+        <BracketSideRow match={match} side="p1" labels={labels} size={size} isBye={isBye} />
+        <div className="my-1 border-t border-dashed border-[rgba(20,60,30,0.08)]" />
+        <BracketSideRow match={match} side="p2" labels={labels} size={size} isBye={isBye} />
+      </div>
+      {/* One tile per set, p1 on top / p2 below — the set winner's digit is
+          bold on brand green (per-set logic, not per-match). */}
+      {hasScore && <MatchScoreTiles sets={match.sets} size="sm" className="self-center" />}
     </div>
   );
 }
@@ -164,9 +166,8 @@ function BracketSideRow({
   const name = side === "p1" ? match.p1_name : match.p2_name;
   const isWinner = match.winner_id != null && id != null && match.winner_id === id;
   const decided = match.winner_id != null;
-  const score = setScores(match.sets, side);
 
-  const nameCls = `min-w-0 flex-1 truncate ${size === "mobile" ? "text-[12.5px]" : "text-[13px]"} ${
+  const nameCls = `block min-w-0 truncate ${size === "mobile" ? "text-[12.5px]" : "text-[13px]"} ${
     isWinner
       ? "font-bold text-grass-700"
       : decided
@@ -175,16 +176,10 @@ function BracketSideRow({
           ? "font-semibold text-ink-900"
           : "font-medium text-ink-400"
   }`;
-  const scoreCls = `shrink-0 font-mono tabular-nums ${
-    size === "mobile" ? "text-[12px]" : "text-xs"
-  } ${isWinner ? "font-bold text-grass-700" : "text-ink-500"}`;
 
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className={nameCls}>
-        <PlayerNameLink id={id} name={name} fallback={isBye && !id ? labels.bye : labels.tbd} />
-      </span>
-      {score != null && <span className={scoreCls}>{score}</span>}
-    </div>
+    <span className={nameCls}>
+      <PlayerNameLink id={id} name={name} fallback={isBye && !id ? labels.bye : labels.tbd} />
+    </span>
   );
 }

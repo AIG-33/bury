@@ -14,6 +14,7 @@ import {
 } from "../actions";
 import { localizeActionError } from "@/lib/tournaments/action-errors";
 import { PlayerNameLink } from "@/components/domain/player-name-link";
+import { MatchScoreTiles } from "@/components/domain/match-score";
 import {
   type SeedingMethod,
   SEEDING_METHODS,
@@ -301,38 +302,26 @@ export function MatchCard({
       : winner === "p1"
         ? "text-ink-500"
         : "text-ink-800";
-  const score1Cls =
-    "font-mono tabular-nums " +
-    (winner === "p1"
-      ? "font-bold text-grass-900"
-      : winner === "p2"
-        ? "text-ink-500"
-        : "text-ink-700");
-  const score2Cls =
-    "font-mono tabular-nums " +
-    (winner === "p2"
-      ? "font-bold text-grass-900"
-      : winner === "p1"
-        ? "text-ink-500"
-        : "text-ink-700");
+  const hasScore = match.sets != null && match.sets.length > 0;
 
   return (
     <div className="rounded-lg border border-ink-100 bg-grass-50/30 p-2.5">
-      <div className="flex items-center justify-between gap-2 text-sm">
-        <span className={`flex-1 truncate ${p1Cls}`}>
-          <PlayerNameLink id={match.p1_id} name={match.p1_name} fallback={copy.tbd} />
-        </span>
-        <span className={`text-sm ${score1Cls}`}>{scoreSummary(match.sets, "p1")}</span>
-      </div>
-      <div className="mt-0.5 flex items-center justify-between gap-2 text-sm">
-        <span className={`flex-1 truncate ${p2Cls}`}>
-          <PlayerNameLink
-            id={match.p2_id}
-            name={match.p2_name}
-            fallback={match.outcome === "walkover_p1" ? copy.bye : copy.tbd}
-          />
-        </span>
-        <span className={`text-sm ${score2Cls}`}>{scoreSummary(match.sets, "p2")}</span>
+      <div className="flex items-stretch gap-2">
+        <div className="min-w-0 flex-1 text-sm">
+          <div className={`truncate ${p1Cls}`}>
+            <PlayerNameLink id={match.p1_id} name={match.p1_name} fallback={copy.tbd} />
+          </div>
+          <div className={`mt-0.5 truncate ${p2Cls}`}>
+            <PlayerNameLink
+              id={match.p2_id}
+              name={match.p2_name}
+              fallback={match.outcome === "walkover_p1" ? copy.bye : copy.tbd}
+            />
+          </div>
+        </div>
+        {/* Set tiles: p1 on top / p2 below, the SET winner's digit is bold
+            on brand green (per-set logic, not per-match). */}
+        {hasScore && <MatchScoreTiles sets={match.sets} size="sm" className="self-center" />}
       </div>
 
       {winner && (
@@ -422,11 +411,6 @@ export function MatchCard({
       )}
     </div>
   );
-}
-
-function scoreSummary(sets: MatchRow["sets"], side: "p1" | "p2"): string {
-  if (!sets || sets.length === 0) return "—";
-  return sets.map((s) => (side === "p1" ? s.p1 : s.p2)).join(" ");
 }
 
 /**

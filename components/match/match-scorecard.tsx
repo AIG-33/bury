@@ -1,19 +1,24 @@
 import * as React from "react";
 import { Trophy } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { MatchScoreTiles, type DisplaySet } from "@/components/domain/match-score";
 
 /**
  * Compact scorecard for one match, shared between the public matches feed
  * (`/matches`) and the public tournament detail (`/tournaments/[id]`) so
  * both pages render the *same* visual shape — same avatar size, same
- * stacked-names layout, same per-set columns, same winner styling.
+ * stacked-names layout, same set tiles, same winner styling.
  *
  *   ┌──────────────────────────────────────────────────────┐
  *   │ [meta row: any chips]                                 │
  *   │ ────────────────────────────────────────────────      │
- *   │ [BIG]  Player 1 🏆        | 6 | 4 | 10 |              │
- *   │ [BIG]  Player 2           | 3 | 6 |  6 |              │
+ *   │ [BIG]  Player 1 🏆        ┃ 6 ┃ 4 ┃ 10 ┃              │
+ *   │ [BIG]  Player 2           ┃ 3 ┃ 6 ┃  6 ┃              │
  *   └──────────────────────────────────────────────────────┘
+ *
+ * The score is one column of per-set tiles (top digit = p1, bottom = p2);
+ * inside each tile the digit of the SET winner is bold on brand green
+ * (see components/domain/match-score.tsx).
  *
  * The component is a pure presentational primitive: data shaping happens
  * upstream so each call site can decide which badges (date, tournament,
@@ -24,15 +29,6 @@ import { Link } from "@/i18n/routing";
  * as link text.
  */
 
-export type ScorecardSet = {
-  /** This player's games in the set. */
-  my: number;
-  /** Opponent's games in the set. */
-  their: number;
-  /** Tiebreak score for this player (rendered as superscript). */
-  tb?: number | null;
-};
-
 export type ScorecardPlayer = {
   id: string | null;
   name: string | null;
@@ -41,8 +37,6 @@ export type ScorecardPlayer = {
   /** For doubles, displayed under the main name as `+ Partner Name`. */
   partnerName?: string | null;
   isWinner: boolean;
-  /** This player's set scores. Same length as the opponent's `sets`. */
-  sets: ScorecardSet[];
 };
 
 export type MatchScorecardProps = {
@@ -50,6 +44,8 @@ export type MatchScorecardProps = {
   meta?: React.ReactNode;
   p1: ScorecardPlayer;
   p2: ScorecardPlayer;
+  /** Recorded sets: `p1` = the top row's games, `p2` = the bottom row's. */
+  sets: DisplaySet[];
   /** Type accent — affects the left stripe colour and hover border. */
   accent?: "tournament" | "friendly";
   /** Shown as a faint footer row when neither side has played sets yet. */
@@ -64,12 +60,12 @@ export function MatchScorecard({
   meta,
   p1,
   p2,
+  sets,
   accent = "tournament",
   noScoreLabel,
   winnerLabel,
   className,
 }: MatchScorecardProps) {
-  const sets = p1.sets;
   const showNoScore = sets.length === 0 && noScoreLabel;
 
   return (
@@ -98,8 +94,13 @@ export function MatchScorecard({
         )}
 
         <div className="rounded-lg border border-ink-100/70 bg-white">
-          <PlayerRow position="top" player={p1} winnerLabel={winnerLabel} />
-          <PlayerRow position="bottom" player={p2} winnerLabel={winnerLabel} />
+          <div className="flex items-stretch gap-2 pr-2">
+            <div className="min-w-0 flex-1">
+              <PlayerRow position="top" player={p1} winnerLabel={winnerLabel} />
+              <PlayerRow position="bottom" player={p2} winnerLabel={winnerLabel} />
+            </div>
+            {sets.length > 0 && <MatchScoreTiles sets={sets} size="md" className="self-center" />}
+          </div>
           {showNoScore && (
             <p className="border-t border-ink-100/60 px-2 py-1 text-center text-[10.5px] font-medium text-ink-400">
               {noScoreLabel}
@@ -210,28 +211,6 @@ function PlayerRow({
           {inner}
         </div>
       )}
-
-      <div className="flex shrink-0 items-center gap-0.5">
-        {player.sets.map((s, i) => {
-          const wonSet = s.my > s.their;
-          return (
-            <span
-              key={i}
-              className={
-                "inline-flex h-7 min-w-[24px] items-center justify-center rounded px-1 font-mono text-[13px] font-bold tabular-nums leading-none " +
-                (wonSet
-                  ? "bg-grass-50 text-grass-800 ring-1 ring-grass-200"
-                  : "bg-ink-50 text-ink-500 ring-1 ring-ink-100")
-              }
-            >
-              {s.my}
-              {s.tb != null && (
-                <sup className="ml-0.5 text-[8.5px] font-bold opacity-80">{s.tb}</sup>
-              )}
-            </span>
-          );
-        })}
-      </div>
     </div>
   );
 }
