@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CountryCodeSchema } from "@/lib/geo/countries";
 
 const trimmedNullable = z
   .string()
@@ -53,7 +54,7 @@ export type VenueAmenity = (typeof VENUE_AMENITIES)[number];
 export const VenueFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
   city: trimmedNullable,
-  district_id: z.string().uuid().optional().nullable(),
+  country: CountryCodeSchema,
   address: trimmedNullableLong,
   lat,
   lng,
@@ -127,7 +128,7 @@ export const UserVenueFormSchema = z
   .object({
     name: z.string().trim().min(2).max(120),
     city: nullableTrimmed(200),
-    district_id: z.string().uuid().optional().nullable(),
+    country: CountryCodeSchema,
     address: nullableTrimmed(2000),
     lat,
     lng,

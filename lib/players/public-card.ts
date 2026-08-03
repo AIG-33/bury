@@ -20,7 +20,7 @@ export const PUBLIC_DIRECTORY_COLUMNS = [
   "display_name",
   "avatar_url",
   "city",
-  "district_id",
+  "country",
   "dominant_hand",
   "backhand_style",
   "favorite_surface",
@@ -41,7 +41,8 @@ export type PublicDirectoryRow = {
   display_name: string | null;
   avatar_url: string | null;
   city: string | null;
-  district_id: string | null;
+  /** ISO 3166-1 alpha-2 country code (default BY for legacy rows). */
+  country: string | null;
   dominant_hand: "R" | "L" | null;
   backhand_style: "one_handed" | "two_handed" | null;
   favorite_surface: "hard" | "clay" | "grass" | "carpet" | null;
@@ -76,8 +77,7 @@ export type PublicPlayerCard = {
   display_name: string | null;
   avatar_url: string | null;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
+  country: string | null;
   current_elo: number;
   elo_status: "provisional" | "established";
   rated_matches_count: number;
@@ -103,8 +103,7 @@ export const PUBLIC_CARD_KEYS = [
   "display_name",
   "avatar_url",
   "city",
-  "district_id",
-  "district_name",
+  "country",
   "current_elo",
   "elo_status",
   "rated_matches_count",
@@ -152,7 +151,6 @@ export const EMPTY_PUBLIC_STATS: PublicPlayerStats = {
 export function toPublicPlayerCard(
   row: PublicDirectoryRow,
   external: PublicExternalRating | null,
-  districtName: string | null,
   now: number,
   stats: PublicPlayerStats = EMPTY_PUBLIC_STATS,
 ): PublicPlayerCard {
@@ -175,8 +173,7 @@ export function toPublicPlayerCard(
     display_name: row.display_name,
     avatar_url: row.avatar_url,
     city: row.city,
-    district_id: row.district_id,
-    district_name: districtName,
+    country: row.country,
     current_elo: row.current_elo,
     elo_status: row.elo_status,
     rated_matches_count: row.rated_matches_count,

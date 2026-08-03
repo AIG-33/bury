@@ -22,7 +22,7 @@ export type LeaderboardRow = {
   elo_status: "provisional" | "established";
   rated_matches_count: number;
   city: string | null;
-  district_name: string | null;
+  country: string | null;
   delta_7d: number;
   delta_30d: number;
   is_my_player: boolean; // true if connected to me via booking/tournament
@@ -144,7 +144,7 @@ export async function loadCoachLeaderboard(opts: {
     }
   }
 
-  // -- 4) Load profiles + districts ----------------------------------------
+  // -- 4) Load profiles -----------------------------------------------------
   // We read from `public_player_basic` (an RLS-bypassing view over `profiles`)
   // because the raw `profiles` table is locked down by `profiles_self_read`
   // (auth.uid() = id OR is_admin()), which would return zero rows for any
@@ -153,7 +153,7 @@ export async function loadCoachLeaderboard(opts: {
     .from("public_player_basic")
     .select(
       "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
-        "city, district_name, visible_in_leaderboard",
+        "city, country, visible_in_leaderboard",
     )
     .eq("visible_in_leaderboard", true)
     .neq("id", userId)
@@ -170,7 +170,7 @@ export async function loadCoachLeaderboard(opts: {
       elo_status: "provisional" | "established";
       rated_matches_count: number;
       city: string | null;
-      district_name: string | null;
+      country: string | null;
     }> | null;
   };
 
@@ -237,7 +237,7 @@ export async function loadCoachLeaderboard(opts: {
     elo_status: p.elo_status,
     rated_matches_count: p.rated_matches_count,
     city: p.city,
-    district_name: p.district_name,
+    country: p.country,
     delta_7d: deltas7.get(p.id) ?? 0,
     delta_30d: deltas30.get(p.id) ?? 0,
     is_my_player: myPlayerIds.has(p.id),

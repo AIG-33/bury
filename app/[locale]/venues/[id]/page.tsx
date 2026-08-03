@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { VenueComments } from "@/components/venues/venue-comments";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCountryName } from "@/lib/geo/countries";
 import type { CourtSurface } from "@/lib/venues/schema";
 import { loadVenueDetail } from "./actions";
 import { loadVenueComments } from "./comment-actions";
@@ -364,12 +365,12 @@ export default async function VenueDetailPage({ params }: Props) {
             }
             subtitle={
               <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                {(venue.city || venue.district_name) && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-ink-400" />
-                    {[venue.city, venue.district_name].filter(Boolean).join(" · ")}
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-ink-400" />
+                  {[venue.city, getCountryName(venue.country, locale)]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
                 {venue.address && <span className="text-ink-500">{venue.address}</span>}
                 {mapsHref && (
                   <a

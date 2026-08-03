@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Surface, Chip } from "@/components/ui/surface";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { loadVenueDetail } from "../actions";
+import { getCountryName } from "@/lib/geo/countries";
 import { CourtsManager, type CourtsManagerCopy } from "./courts-manager";
 import {
   COURT_SURFACES,
@@ -107,7 +108,8 @@ export default async function VenueDetailPage({ params }: Props) {
         subtitle={
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
-            {[venue.city, venue.district_name].filter(Boolean).join(" · ") || t("list.no_district")}
+            {[venue.city, getCountryName(venue.country, locale)].filter(Boolean).join(" · ") ||
+              t("list.no_location")}
             {venue.address ? ` · ${venue.address}` : ""}
           </span>
         }

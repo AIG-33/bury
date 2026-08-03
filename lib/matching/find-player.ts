@@ -2,10 +2,10 @@
 // Find a Player — pure scoring/filtering logic.
 //
 // We split the algorithm in two halves:
-//   1. SQL-side filter: visibility, district(s), Elo range, optional gender / hand.
+//   1. SQL-side filter: visibility, country, Elo range, optional gender / hand.
 //      → done in lib/matching/queries.ts (Supabase).
-//   2. In-memory ranker: combines Elo distance, availability overlap, district
-//      bonus and recency-of-activity into a single 0..1 "match score".
+//   2. In-memory ranker: combines Elo distance, availability overlap, same-
+//      country bonus and recency-of-activity into a single 0..1 "match score".
 //
 // Pure functions here so they're trivially unit-testable.
 // =============================================================================
@@ -34,8 +34,8 @@ export type FindPlayerCandidate = {
   display_name: string | null;
   avatar_url: string | null;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
+  /** ISO alpha-2 country code (legacy rows default to BY). */
+  country: string | null;
   current_elo: number;
   elo_status: "provisional" | "established";
   rated_matches_count: number;
@@ -53,8 +53,8 @@ export type FindPlayerCandidate = {
 };
 
 export type FindPlayerFilters = {
-  /** District UUIDs the user wants to match in. Empty = no district filter. */
-  districtIds: string[];
+  /** ISO alpha-2 country to match in. Null = all countries. */
+  country: string | null;
   /** ± Elo radius from the seeker. Default 100. */
   eloRadius: number;
   /** Required overlapping availability slots. Empty = no availability filter. */
@@ -77,7 +77,7 @@ export type FindPlayerFilters = {
 };
 
 export const DEFAULT_FILTERS: FindPlayerFilters = {
-  districtIds: [],
+  country: null,
   eloRadius: 100,
   desiredSlots: [],
   hand: "both",
@@ -101,7 +101,7 @@ export type ScoredCandidate = FindPlayerCandidate & {
 export type SeekerContext = {
   id: string;
   current_elo: number;
-  district_id: string | null;
+  country: string | null;
   availability: Availability | null;
 };
 
@@ -147,7 +147,7 @@ export function computeOverlap(
  * Components:
  *   - Elo proximity:        45 pts (linear: 0 distance → 45, eloRadius → 0)
  *   - Availability overlap: 35 pts (saturates at 4 overlapping slots)
- *   - Same district:        10 pts
+ *   - Same country:         10 pts
  *   - Recently active:      10 pts (played in last 30 days)
  *
  * The function is pure — does NOT touch the DB.
@@ -169,15 +169,13 @@ export function scoreCandidate(
   // Saturating curve: 0 → 0, 1 → 14, 2 → 23, 3 → 30, 4+ → 35
   const overlapPts = Math.min(35, Math.round(35 * (1 - Math.exp(-overlapCount / 1.7))));
 
-  const districtPts =
-    seeker.district_id && candidate.district_id && seeker.district_id === candidate.district_id
-      ? 10
-      : 0;
+  const countryPts =
+    seeker.country && candidate.country && seeker.country === candidate.country ? 10 : 0;
 
   const recencyPts =
     candidate.days_since_last_match != null && candidate.days_since_last_match <= 30 ? 10 : 0;
 
-  const total = Math.round(eloProximity + overlapPts + districtPts + recencyPts);
+  const total = Math.round(eloProximity + overlapPts + countryPts + recencyPts);
 
   return {
     ...candidate,

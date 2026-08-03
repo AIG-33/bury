@@ -57,7 +57,7 @@ const COPY: Record<Locale, OgCopy> = {
       {
         emoji: "🎾",
         title: "Sparring",
-        body: "Open matches — find a partner by level and district",
+        body: "Open matches — find a partner by level and location",
         accent: "#D7F205",
       },
       {

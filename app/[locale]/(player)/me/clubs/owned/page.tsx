@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/help/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadOwnedClubs } from "./actions";
-import { loadDistrictOptionsForClubs } from "../../../../clubs/actions";
 import { OwnedClubsClient } from "./owned-client";
 
 type Props = {
@@ -36,7 +35,7 @@ export default async function OwnedClubsPage({ params, searchParams }: Props) {
   const t = await getTranslations("clubsOwned");
   const tCommon = await getTranslations("clubsCommon");
 
-  const [res, districts] = await Promise.all([loadOwnedClubs(), loadDistrictOptionsForClubs()]);
+  const res = await loadOwnedClubs();
   if (!res.ok) redirect(`/${locale}/login`);
   const { clubs } = res;
 
@@ -72,7 +71,6 @@ export default async function OwnedClubsPage({ params, searchParams }: Props) {
             <OwnedClubsClient
               locale={locale}
               clubs={[]}
-              districts={districts}
               autoOpenCreate={sp.create === "1"}
               labels={getLabels(t, tCommon)}
             />
@@ -82,7 +80,6 @@ export default async function OwnedClubsPage({ params, searchParams }: Props) {
         <OwnedClubsClient
           locale={locale}
           clubs={clubs}
-          districts={districts}
           autoOpenCreate={sp.create === "1"}
           labels={getLabels(t, tCommon)}
         />
@@ -116,8 +113,7 @@ function getLabels(t: T, tCommon: T) {
         description: t("dialog.fields.description"),
         description_hint: t("dialog.fields.description_hint"),
         city: t("dialog.fields.city"),
-        district: t("dialog.fields.district"),
-        district_any: t("dialog.fields.district_any"),
+        country: t("dialog.fields.country"),
         join_policy: t("dialog.fields.join_policy"),
         hide_owner: t("dialog.fields.hide_owner"),
         hide_owner_hint: t("dialog.fields.hide_owner_hint"),

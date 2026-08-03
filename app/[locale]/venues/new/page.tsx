@@ -7,7 +7,6 @@ import { EmptyState } from "@/components/help/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { UserVenueForm } from "@/components/venues/user-venue-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadDistrictOptions } from "../user-actions";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -34,8 +33,6 @@ export default async function NewVenuePage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const districts = await loadDistrictOptions();
-
   return (
     <div className="page-shell space-y-6">
       <Breadcrumbs
@@ -61,7 +58,7 @@ export default async function NewVenuePage({ params }: Props) {
       />
 
       {user ? (
-        <UserVenueForm userId={user.id} districts={districts} />
+        <UserVenueForm userId={user.id} locale={locale} />
       ) : (
         <EmptyState
           title={t("guest_title")}

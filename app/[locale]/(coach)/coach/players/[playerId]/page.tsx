@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
 import { Link } from "@/i18n/routing";
+import { getCountryName } from "@/lib/geo/countries";
 import { cn } from "@/lib/utils";
 
 type PlayerExternalRating = {
@@ -38,7 +39,7 @@ type PlayerBasicRow = {
   current_elo_doubles: number | null;
   elo_status_doubles: "provisional" | "established" | null;
   city: string | null;
-  district_name: string | null;
+  country: string | null;
   created_at: string | null;
 };
 
@@ -91,7 +92,7 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
       .from("public_player_basic")
       .select(
         "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
-          "current_elo_doubles, elo_status_doubles, city, district_name, created_at",
+          "current_elo_doubles, elo_status_doubles, city, country, created_at",
       )
       .eq("id", playerId)
       .maybeSingle() as unknown as Promise<{ data: PlayerBasicRow | null }>,
@@ -220,10 +221,12 @@ export default async function CoachPlayerDetailPage({ params }: Props) {
           <Avatar src={player.avatar_url} name={player.display_name ?? "?"} size={64} />
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex flex-wrap items-center gap-2 text-sm text-ink-600">
-              {(player.city || player.district_name) && (
+              {(player.city || player.country) && (
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
-                  {[player.city, player.district_name].filter(Boolean).join(" · ")}
+                  {[player.city, player.country ? getCountryName(player.country, locale) : null]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               )}
               {acceptedInvite && (

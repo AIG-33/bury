@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/routing";
 import { MapPin } from "lucide-react";
 import type { CoachUpcomingSlot } from "@/app/[locale]/coaches/actions";
 import { bookSlot } from "@/app/[locale]/(player)/me/bookings/actions";
+import { getCountryName } from "@/lib/geo/countries";
 import { MCtaBar, MEyebrow } from "@/components/mobile/m-ui";
 
 // =============================================================================
@@ -157,7 +158,12 @@ export function CoachBooking({ slots, authed, fallbackPrice, locale, labels }: P
                 {selected.venue_name} · {selected.court_label}
               </p>
               <p className="mt-0.5 truncate text-[11.5px] font-semibold text-ink-500">
-                {[selected.city, selected.district_name].filter(Boolean).join(", ") || "—"}
+                {[
+                  selected.city,
+                  selected.country ? getCountryName(selected.country, locale) : null,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || "—"}
               </p>
             </div>
           </div>

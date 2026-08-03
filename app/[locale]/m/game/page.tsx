@@ -20,6 +20,7 @@ import {
   type OpenMatchStatus,
 } from "@/lib/open-matches/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { PRIORITY_COUNTRIES, getCountryName, isValidCountryCode } from "@/lib/geo/countries";
 import { getMobilePlayLabels, getMobileTabLabels } from "../tab-labels";
 import { PlayButton } from "./play-button";
 
@@ -32,7 +33,7 @@ import { PlayButton } from "./play-button";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string; level?: string; when?: string }>;
+  searchParams: Promise<{ tab?: string; level?: string; when?: string; country?: string }>;
 };
 
 export default async function MobileGamePage({ params, searchParams }: Props) {
@@ -51,6 +52,8 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
     ? (sp.level as (typeof OPEN_MATCH_LEVEL_BANDS)[number])
     : undefined;
   const when = sp.when === "today" || sp.when === "tomorrow" ? sp.when : null;
+  const rawCountry = sp.country?.trim().toUpperCase() ?? "";
+  const country = isValidCountryCode(rawCountry) ? rawCountry : null;
 
   // Date window for the "when" chip (Europe/Minsk ≈ UTC+3, coarse enough here).
   let from: string | undefined;
@@ -68,6 +71,7 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
 
   const { rows } = await loadOpenMatches({
     level_band: level && level !== "any" ? level : undefined,
+    country,
     from,
     to,
   });
@@ -96,7 +100,7 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
         .select(
           "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
             "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
-            "district_id, district_name, " +
+            "district_id, district_name, country, " +
             "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
             "pending_applications_count, accepted_applications_count",
         )
@@ -131,6 +135,7 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
     if (nextTab !== "find") next.set("tab", nextTab);
     if (sp.level) next.set("level", sp.level);
     if (sp.when) next.set("when", sp.when);
+    if (sp.country) next.set("country", sp.country);
     const qs = next.toString();
     return `/m/game${qs ? `?${qs}` : ""}`;
   };
@@ -162,6 +167,14 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
                   { value: "today", label: t("game.when_today") },
                   { value: "tomorrow", label: t("game.when_tomorrow") },
                 ],
+              },
+              {
+                param: "country",
+                label: t("game.filter_country"),
+                options: PRIORITY_COUNTRIES.map((code) => ({
+                  value: code,
+                  label: getCountryName(code, locale),
+                })),
               },
             ]}
           />
@@ -196,8 +209,8 @@ export default async function MobileGamePage({ params, searchParams }: Props) {
                 }
               />
               <FilterChipLabel
-                active
-                label={t("game.chip_near")}
+                active={!!country}
+                label={country ? getCountryName(country, locale) : t("game.filter_country")}
                 icon={<MapPin className="h-3 w-3" strokeWidth={2.2} />}
               />
             </div>

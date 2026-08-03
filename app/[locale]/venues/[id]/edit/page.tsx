@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { UserVenueForm } from "@/components/venues/user-venue-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CourtSurface, UserVenueForm as UserVenueFormValues, VenueAmenity } from "@/lib/venues/schema";
-import { loadDistrictOptions } from "../../user-actions";
+import { DEFAULT_COUNTRY } from "@/lib/geo/countries";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -30,7 +30,7 @@ type VenueRow = {
   id: string;
   name: string;
   city: string | null;
-  district_id: string | null;
+  country: string | null;
   address: string | null;
   lat: number | null;
   lng: number | null;
@@ -53,7 +53,7 @@ export default async function EditVenuePage({ params }: Props) {
   const { data: venue } = (await supabase
     .from("venues")
     .select(
-      "id, name, city, district_id, address, lat, lng, amenities, website, phone, photos, created_by",
+      "id, name, city, country, address, lat, lng, amenities, website, phone, photos, created_by",
     )
     .eq("id", id)
     .maybeSingle()) as { data: VenueRow | null };
@@ -91,14 +91,11 @@ export default async function EditVenuePage({ params }: Props) {
     );
   }
 
-  const [districts, courtsRes] = await Promise.all([
-    loadDistrictOptions(),
-    supabase
-      .from("courts")
-      .select("id, number, name, surface, is_indoor")
-      .eq("venue_id", id)
-      .order("number", { ascending: true }),
-  ]);
+  const courtsRes = await supabase
+    .from("courts")
+    .select("id, number, name, surface, is_indoor")
+    .eq("venue_id", id)
+    .order("number", { ascending: true });
 
   const courts = (courtsRes.data ?? []) as Array<{
     id: string;
@@ -112,7 +109,7 @@ export default async function EditVenuePage({ params }: Props) {
     id: venue.id,
     name: venue.name,
     city: venue.city,
-    district_id: venue.district_id,
+    country: venue.country ?? DEFAULT_COUNTRY,
     address: venue.address,
     lat: venue.lat,
     lng: venue.lng,
@@ -141,7 +138,7 @@ export default async function EditVenuePage({ params }: Props) {
         ]}
       />
       <PageHeader title={t("edit_title")} subtitle={venue.name} />
-      <UserVenueForm userId={user!.id} districts={districts} initial={initial} />
+      <UserVenueForm userId={user!.id} locale={locale} initial={initial} />
     </div>
   );
 }

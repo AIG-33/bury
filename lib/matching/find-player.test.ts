@@ -12,7 +12,7 @@ import { EMPTY_AVAILABILITY, EMPTY_SOCIAL_LINKS } from "@/lib/profile/schema";
 const baseSeeker: SeekerContext = {
   id: "seeker-1",
   current_elo: 1200,
-  district_id: "dist-A",
+  country: "BY",
   availability: {
     ...EMPTY_AVAILABILITY,
     mon: ["evening"],
@@ -28,8 +28,7 @@ function makeCandidate(overrides: Partial<FindPlayerCandidate>): FindPlayerCandi
     display_name: "Test Candidate",
     avatar_url: null,
     city: "Минск",
-    district_id: "dist-A",
-    district_name: "Центральный",
+    country: "BY",
     current_elo: 1200,
     elo_status: "established",
     rated_matches_count: 30,
@@ -47,7 +46,7 @@ function makeCandidate(overrides: Partial<FindPlayerCandidate>): FindPlayerCandi
 }
 
 const noFilters: FindPlayerFilters = {
-  districtIds: [],
+  country: null,
   eloRadius: 100,
   desiredSlots: [],
   hand: "both",
@@ -89,10 +88,10 @@ describe("computeOverlap", () => {
 });
 
 describe("scoreCandidate", () => {
-  it("max-scores a same-Elo, same-district, recently-active candidate with overlap", () => {
+  it("max-scores a same-Elo, same-country, recently-active candidate with overlap", () => {
     const c = makeCandidate({});
     const scored = scoreCandidate(c, baseSeeker, noFilters);
-    // 45 (Elo) + ~23 (2 overlap slots) + 10 (district) + 10 (recency) ≈ 88
+    // 45 (Elo) + ~23 (2 overlap slots) + 10 (country) + 10 (recency) ≈ 88
     expect(scored.score).toBeGreaterThanOrEqual(80);
     expect(scored.score).toBeLessThanOrEqual(95);
     expect(scored.overlap_count).toBe(2);
@@ -106,9 +105,9 @@ describe("scoreCandidate", () => {
     expect(scored.score).toBeLessThan(50);
   });
 
-  it("gives no district bonus when districts differ", () => {
+  it("gives no country bonus when countries differ", () => {
     const same = scoreCandidate(makeCandidate({}), baseSeeker, noFilters);
-    const diff = scoreCandidate(makeCandidate({ district_id: "dist-B" }), baseSeeker, noFilters);
+    const diff = scoreCandidate(makeCandidate({ country: "PL" }), baseSeeker, noFilters);
     expect(same.score - diff.score).toBeGreaterThanOrEqual(10);
   });
 
@@ -207,7 +206,7 @@ describe("rankCandidates", () => {
 
   it("sorts by score descending", () => {
     const great = makeCandidate({ id: "great" });
-    const meh = makeCandidate({ id: "meh", current_elo: 1280, district_id: "dist-Z" });
+    const meh = makeCandidate({ id: "meh", current_elo: 1280, country: "PL" });
     const ranked = rankCandidates([meh, great], baseSeeker, noFilters);
     expect(ranked[0].id).toBe("great");
     expect(ranked[1].id).toBe("meh");

@@ -29,7 +29,7 @@ export default async function ProfilePage({ params }: Props) {
   const result = await loadMyProfile();
   if (!result.ok) redirect(`/${locale}/login`);
 
-  const { profile, districts } = result;
+  const { profile } = result;
   const [externalRating, telegramState, headerStats, ratingTab] = await Promise.all([
     loadMyExternalRating(),
     loadTelegramLinkState(),
@@ -71,7 +71,7 @@ export default async function ProfilePage({ params }: Props) {
       "social_youtube",
       "social_website",
       "city",
-      "district",
+      "country",
       "dominant_hand",
       "backhand_style",
       "favorite_surface",
@@ -93,7 +93,7 @@ export default async function ProfilePage({ params }: Props) {
       "phone",
       "whatsapp",
       "telegram_username",
-      "district",
+      "country",
       "backhand_style",
       "availability",
       "visible_in_find_player",
@@ -370,7 +370,6 @@ export default async function ProfilePage({ params }: Props) {
       <ProfileForm
         locale={locale as "ru" | "en"}
         profile={profile}
-        districts={districts}
         copy={copy}
       />
 

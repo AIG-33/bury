@@ -20,8 +20,7 @@ export type VenueRow = {
   id: string;
   name: string;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
+  country: string;
   address: string | null;
   lat: number | null;
   lng: number | null;
@@ -41,8 +40,6 @@ export type CourtRow = {
   status: CourtStatus;
   is_indoor: boolean;
 };
-
-export type DistrictOption = { id: string; name: string };
 
 // =============================================================================
 // Auth helper — admin-only. Venues are an admin-curated directory; coaches
@@ -70,11 +67,11 @@ async function requireAdmin() {
 }
 
 // =============================================================================
-// Load venues directory + district options.
+// Load venues directory.
 // =============================================================================
 
 export async function loadAdminVenues(): Promise<
-  | { ok: true; venues: VenueRow[]; districts: DistrictOption[] }
+  | { ok: true; venues: VenueRow[] }
   | { ok: false; error: "not_authenticated" | "no_profile" | "not_an_admin" }
 > {
   const auth = await requireAdmin();
@@ -84,10 +81,10 @@ export async function loadAdminVenues(): Promise<
   const { data: venues } = (await supabase
     .from("venues")
     .select(
-      "id, name, city, district_id, address, lat, lng, indoor_status, amenities, created_at, updated_at",
+      "id, name, city, country, address, lat, lng, indoor_status, amenities, created_at, updated_at",
     )
     .order("created_at", { ascending: false })) as {
-    data: Array<Omit<VenueRow, "courts_count" | "district_name">> | null;
+    data: Array<Omit<VenueRow, "courts_count">> | null;
   };
 
   const ids = (venues ?? []).map((v) => v.id);
@@ -102,38 +99,13 @@ export async function loadAdminVenues(): Promise<
     }
   }
 
-  const districtIds = Array.from(
-    new Set((venues ?? []).map((v) => v.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const districtMap = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) districtMap.set(d.id, d.name);
-  }
-
   const enriched: VenueRow[] = (venues ?? []).map((v) => ({
     ...v,
     amenities: (v.amenities ?? []) as VenueAmenity[],
     courts_count: courtsCounts.get(v.id) ?? 0,
-    district_name: v.district_id ? (districtMap.get(v.district_id) ?? null) : null,
   }));
 
-  const { data: allDistricts } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  const districts: DistrictOption[] = (allDistricts ?? []).map((d) => ({
-    id: d.id,
-    name: `${d.city} · ${d.name}`,
-  }));
-
-  return { ok: true, venues: enriched, districts };
+  return { ok: true, venues: enriched };
 }
 
 // =============================================================================
@@ -145,7 +117,6 @@ export async function loadVenueDetail(venueId: string): Promise<
       ok: true;
       venue: VenueRow;
       courts: CourtRow[];
-      districts: DistrictOption[];
     }
   | {
       ok: false;
@@ -159,11 +130,11 @@ export async function loadVenueDetail(venueId: string): Promise<
   const { data: row } = (await supabase
     .from("venues")
     .select(
-      "id, name, city, district_id, address, lat, lng, indoor_status, amenities, created_at, updated_at",
+      "id, name, city, country, address, lat, lng, indoor_status, amenities, created_at, updated_at",
     )
     .eq("id", venueId)
     .single()) as {
-    data: Omit<VenueRow, "courts_count" | "district_name"> | null;
+    data: Omit<VenueRow, "courts_count"> | null;
   };
   if (!row) return { ok: false, error: "not_found" };
 
@@ -173,38 +144,14 @@ export async function loadVenueDetail(venueId: string): Promise<
     .eq("venue_id", venueId)
     .order("number", { ascending: true })) as { data: CourtRow[] | null };
 
-  let districtName: string | null = null;
-  if (row.district_id) {
-    const { data: d } = (await supabase
-      .from("districts")
-      .select("name")
-      .eq("id", row.district_id)
-      .single()) as { data: { name: string } | null };
-    districtName = d?.name ?? null;
-  }
-
-  const { data: allDistricts } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  const districts: DistrictOption[] = (allDistricts ?? []).map((d) => ({
-    id: d.id,
-    name: `${d.city} · ${d.name}`,
-  }));
-
   return {
     ok: true,
     venue: {
       ...row,
       amenities: (row.amenities ?? []) as VenueAmenity[],
       courts_count: (courts ?? []).length,
-      district_name: districtName,
     },
     courts: courts ?? [],
-    districts,
   };
 }
 
@@ -236,7 +183,7 @@ export async function createVenue(input: unknown): Promise<SaveResult> {
     .insert({
       name: v.name,
       city: v.city,
-      district_id: v.district_id ?? null,
+      country: v.country,
       address: v.address,
       lat: v.lat,
       lng: v.lng,
@@ -273,7 +220,7 @@ export async function updateVenue(input: unknown): Promise<SaveResult> {
     .update({
       name: v.name,
       city: v.city,
-      district_id: v.district_id ?? null,
+      country: v.country,
       address: v.address,
       lat: v.lat,
       lng: v.lng,

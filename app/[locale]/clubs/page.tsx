@@ -11,15 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JoinPolicy } from "@/lib/clubs/schema";
-import {
-  loadClubs,
-  loadCityOptionsForClubs,
-  loadDistrictOptionsForClubs,
-} from "./actions";
+import { getCountryOptions, isValidCountryCode } from "@/lib/geo/countries";
+import { loadClubs, loadCityOptionsForClubs } from "./actions";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ city?: string; district?: string }>;
+  searchParams: Promise<{ city?: string; country?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -44,13 +41,12 @@ export default async function ClubsPage({ params, searchParams }: Props) {
   const tCrumb = await getTranslations("breadcrumbs");
 
   const city = sp.city && sp.city.trim().length > 0 ? sp.city.trim() : null;
-  const districtId =
-    sp.district && sp.district.trim().length > 0 ? sp.district.trim() : null;
+  const rawCountry = sp.country?.trim().toUpperCase() ?? "";
+  const country = isValidCountryCode(rawCountry) ? rawCountry : null;
 
-  const [clubs, cities, districts, sessionUser] = await Promise.all([
-    loadClubs({ city, districtId }),
+  const [clubs, cities, sessionUser] = await Promise.all([
+    loadClubs({ city, country }),
     loadCityOptionsForClubs(),
-    loadDistrictOptionsForClubs(),
     (async () => {
       const supabase = await createSupabaseServerClient();
       const {
@@ -59,8 +55,9 @@ export default async function ClubsPage({ params, searchParams }: Props) {
       return user;
     })(),
   ]);
+  const countryOptions = getCountryOptions(locale);
   const isAuthenticated = !!sessionUser;
-  const hasFilter = Boolean(city || districtId);
+  const hasFilter = Boolean(city || country);
 
   const joinPolicyLabels: Record<JoinPolicy, string> = {
     approval: tCommon("join_policy.approval"),
@@ -124,17 +121,17 @@ export default async function ClubsPage({ params, searchParams }: Props) {
 
           <label className="text-xs font-medium text-ink-700">
             <span className="mb-1 block label-eyebrow">
-              {t("filters.district_label")}
+              {t("filters.country_label")}
             </span>
             <select
-              name="district"
-              defaultValue={districtId ?? ""}
+              name="country"
+              defaultValue={country ?? ""}
               className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
-              <option value="">{t("filters.any_district")}</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name} ({d.city})
+              <option value="">{t("filters.any_country")}</option>
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -177,6 +174,7 @@ export default async function ClubsPage({ params, searchParams }: Props) {
             <ClubCard
               key={club.id}
               club={club}
+              locale={locale}
               labels={{
                 members_count: (n: number) => t("members_count", { n }),
                 coaches_count: (n: number) => t("coaches_count", { n }),

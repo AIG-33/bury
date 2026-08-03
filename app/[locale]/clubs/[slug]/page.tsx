@@ -18,6 +18,7 @@ import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { hasClubBranding } from "@/lib/validators/club-branding";
 import { loadClubBySlug, loadClubRatingBoard, loadClubTournaments } from "../actions";
 import type { JoinPolicy } from "@/lib/clubs/schema";
+import { getCountryName } from "@/lib/geo/countries";
 import { JoinCta } from "./join-cta";
 
 type Props = {
@@ -206,9 +207,11 @@ export default async function ClubPage({ params }: Props) {
                     <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white/90" />
                     {joinPolicyLabels[club.join_policy]}
                   </span>
-                  {(club.city || club.district_name) && (
+                  {(club.city || club.country) && (
                     <span className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-white/90 backdrop-blur-[6px]">
-                      {[club.city, club.district_name].filter(Boolean).join(" · ")}
+                      {[club.city, getCountryName(club.country, locale)]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   )}
                 </div>
@@ -281,10 +284,14 @@ export default async function ClubPage({ params }: Props) {
                 }
                 subtitle={
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    {(club.city || club.district_name) && (
+                    {(club.city || club.country) && (
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" />
-                        <span>{[club.city, club.district_name].filter(Boolean).join(" · ")}</span>
+                        <span>
+                          {[club.city, getCountryName(club.country, locale)]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
                       </span>
                     )}
                     <span className="text-ink-400">·</span>
@@ -485,11 +492,7 @@ export default async function ClubPage({ params }: Props) {
                       <p className="font-medium text-ink-900 group-hover:text-grass-800">
                         {v.name}
                       </p>
-                      {(v.city || v.district_name) && (
-                        <p className="text-xs text-ink-500">
-                          {[v.city, v.district_name].filter(Boolean).join(" · ")}
-                        </p>
-                      )}
+                      {v.city && <p className="text-xs text-ink-500">{v.city}</p>}
                     </div>
                   </Link>
                 ))}

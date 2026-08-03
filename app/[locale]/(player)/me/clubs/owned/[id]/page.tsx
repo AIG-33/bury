@@ -11,7 +11,6 @@ import { loadClubPageSettings, loadClubRatingSettings, loadClubStandings } from 
 import { loadClubBranding } from "../branding-actions";
 import { clubBrandingWithLegacy } from "@/lib/validators/club-branding";
 import { loadClubTournamentsForAdmin } from "../tournaments-actions";
-import { loadDistrictOptionsForClubs } from "../../../../../clubs/actions";
 import { loadVenueOptions } from "../../../tournaments/organized/actions";
 import { loadClubTemplates } from "../../../tournaments/organized/template-actions";
 import {
@@ -41,7 +40,6 @@ export default async function OwnedClubDetailPage({ params }: Props) {
 
   const [
     res,
-    districts,
     pageSettings,
     branding,
     ratingSettings,
@@ -51,7 +49,6 @@ export default async function OwnedClubDetailPage({ params }: Props) {
     venueOptions,
   ] = await Promise.all([
     loadOwnedClubDetail(id),
-    loadDistrictOptionsForClubs(),
     loadClubPageSettings(id),
     loadClubBranding(id),
     loadClubRatingSettings(id),
@@ -98,13 +95,7 @@ export default async function OwnedClubDetailPage({ params }: Props) {
         }
       />
 
-      <OwnerPanel
-        locale={locale}
-        club={club}
-        pending={pending}
-        members={members}
-        districts={districts}
-      />
+      <OwnerPanel locale={locale} club={club} pending={pending} members={members} />
 
       <ClubTournamentsSection
         locale={locale}

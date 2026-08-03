@@ -16,7 +16,7 @@ function makeRow(overrides: Partial<PublicDirectoryRow> = {}): PublicDirectoryRo
     display_name: "Иван Тест",
     avatar_url: null,
     city: "Минск",
-    district_id: "22222222-2222-2222-2222-222222222222",
+    country: "BY",
     dominant_hand: "R",
     backhand_style: "two_handed",
     favorite_surface: "hard",
@@ -35,7 +35,7 @@ function makeRow(overrides: Partial<PublicDirectoryRow> = {}): PublicDirectoryRo
 
 describe("toPublicPlayerCard", () => {
   it("extracts every (weekday, daypart) pair from the availability JSONB", () => {
-    const card = toPublicPlayerCard(makeRow(), null, "Центральный", NOW);
+    const card = toPublicPlayerCard(makeRow(), null, NOW);
 
     expect(card.available_slots).toEqual([
       { weekday: "mon", daypart: "evening" },
@@ -45,13 +45,13 @@ describe("toPublicPlayerCard", () => {
   });
 
   it("computes whole-day distance to last match", () => {
-    const card = toPublicPlayerCard(makeRow(), null, null, NOW);
+    const card = toPublicPlayerCard(makeRow(), null, NOW);
     // 2026-05-04T18:00 → 2026-05-11T12:00 = 6.75 days → floor = 6
     expect(card.days_since_last_match).toBe(6);
   });
 
   it("returns null distance when the player has never played a rated match", () => {
-    const card = toPublicPlayerCard(makeRow({ last_match_at: null }), null, null, NOW);
+    const card = toPublicPlayerCard(makeRow({ last_match_at: null }), null, NOW);
     expect(card.days_since_last_match).toBeNull();
   });
 
@@ -62,24 +62,24 @@ describe("toPublicPlayerCard", () => {
       display_tier: "B2",
       external_elo: 1180,
     };
-    const card = toPublicPlayerCard(makeRow(), ext, "Центральный", NOW);
+    const card = toPublicPlayerCard(makeRow(), ext, NOW);
     expect(card.external_rating).toEqual(ext);
   });
 
   it("treats a missing availability JSONB as no slots", () => {
-    const card = toPublicPlayerCard(makeRow({ availability: null }), null, null, NOW);
+    const card = toPublicPlayerCard(makeRow({ availability: null }), null, NOW);
     expect(card.available_slots).toEqual([]);
   });
 
-  it("renders a non-null district_name only when the lookup map provides one", () => {
-    expect(toPublicPlayerCard(makeRow(), null, null, NOW).district_name).toBeNull();
-    expect(toPublicPlayerCard(makeRow(), null, "Советский", NOW).district_name).toBe("Советский");
+  it("passes the ISO country code through unchanged", () => {
+    expect(toPublicPlayerCard(makeRow(), null, NOW).country).toBe("BY");
+    expect(toPublicPlayerCard(makeRow({ country: null }), null, NOW).country).toBeNull();
   });
 });
 
 describe("public card schema invariants", () => {
   it("only emits whitelisted public keys — never PII", () => {
-    const card = toPublicPlayerCard(makeRow(), null, "Центральный", NOW);
+    const card = toPublicPlayerCard(makeRow(), null, NOW);
     const keys = Object.keys(card).sort();
 
     expect(keys).toEqual([...PUBLIC_CARD_KEYS].sort());
@@ -103,7 +103,7 @@ describe("public card schema invariants", () => {
       locale: "ru",
     } as unknown as PublicDirectoryRow;
 
-    const card = toPublicPlayerCard(tainted, null, null, NOW);
+    const card = toPublicPlayerCard(tainted, null, NOW);
     const keys = Object.keys(card);
 
     for (const forbidden of FORBIDDEN_PII_KEYS) {

@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useRef, useState, useTransition } from "react";
+import React, { useMemo, useRef, useState, useTransition } from "react";
 import { useForm, Controller, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, CheckCircle2, Camera, Trash2, AlertCircle, ChevronDown } from "lucide-react";
 import { ProfileFormSchema, type ProfileForm, WEEKDAYS, TIME_SLOTS } from "@/lib/profile/schema";
+import { DEFAULT_COUNTRY, getCountryOptions } from "@/lib/geo/countries";
 import { HelpTooltip } from "@/components/help/help-tooltip";
 import {
   updateMyProfile,
   uploadMyAvatar,
   removeMyAvatar,
   type ProfileSnapshot,
-  type DistrictOption,
 } from "./actions";
 
 type Locale = "ru" | "en";
@@ -72,11 +72,11 @@ type Copy = {
 type Props = {
   locale: Locale;
   profile: ProfileSnapshot;
-  districts: DistrictOption[];
   copy: Copy;
 };
 
-export function ProfileForm({ profile, districts, copy }: Props) {
+export function ProfileForm({ locale, profile, copy }: Props) {
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -105,7 +105,7 @@ export function ProfileForm({ profile, districts, copy }: Props) {
         website: profile.social_links?.website ?? "",
       } as ProfileForm["social_links"],
       city: profile.city ?? "",
-      district_id: profile.district_id ?? null,
+      country: profile.country ?? DEFAULT_COUNTRY,
       dominant_hand: profile.dominant_hand ?? null,
       backhand_style: profile.backhand_style ?? null,
       favorite_surface: profile.favorite_surface ?? null,
@@ -316,18 +316,15 @@ export function ProfileForm({ profile, districts, copy }: Props) {
           <Field label={copy.fields.city}>
             <Input {...form.register("city")} placeholder="Минск" />
           </Field>
-          <Field label={copy.fields.district} hint={copy.hints.district}>
+          <Field label={copy.fields.country} hint={copy.hints.country}>
             <Controller
               control={form.control}
-              name="district_id"
+              name="country"
               render={({ field }) => (
                 <Select
-                  value={field.value ?? ""}
-                  onChange={(v) => field.onChange(v === "" ? null : v)}
-                  options={[
-                    { value: "", label: copy.none },
-                    ...districts.map((d) => ({ value: d.id, label: d.name })),
-                  ]}
+                  value={field.value ?? DEFAULT_COUNTRY}
+                  onChange={(v) => field.onChange(v)}
+                  options={countryOptions.map((c) => ({ value: c.code, label: c.name }))}
                 />
               )}
             />

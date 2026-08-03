@@ -35,7 +35,6 @@ export type OpenMatchApplicationStatus = (typeof OPEN_MATCH_APP_STATUSES)[number
 export const CreateOpenMatchSchema = z
   .object({
     venue_id: z.string().uuid().nullable().optional(),
-    district_id: z.string().uuid().nullable().optional(),
     starts_at: z.string().datetime({ offset: true }),
     duration_min: z.coerce.number().int().min(30).max(300).default(90),
     format: z.enum(OPEN_MATCH_FORMATS).default("singles"),
@@ -67,9 +66,10 @@ export const CreateOpenMatchSchema = z
         message: "starts_in_past",
       });
     }
-    // Either venue_id or district_id (or both) must be set so applicants
-    // can find this match by location.
-    if (!data.venue_id && !data.district_id) {
+    // A venue is required so applicants can find this match by location.
+    // (The former district-only option was removed together with the
+    // «Район» field — old district-only rows keep rendering fine.)
+    if (!data.venue_id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["venue_id"],
@@ -104,7 +104,14 @@ export type ApplyToOpenMatchInput = z.input<typeof ApplyToOpenMatchSchema>;
 
 export const OpenMatchesFilterSchema = z.object({
   venue_id: z.string().uuid().nullable().optional(),
-  district_id: z.string().uuid().nullable().optional(),
+  /** ISO alpha-2 country of the venue (or legacy district). */
+  country: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/u)
+    .nullable()
+    .optional(),
   level_band: z.enum(OPEN_MATCH_LEVEL_BANDS).optional(),
   format: z.enum(OPEN_MATCH_FORMATS).optional(),
   /** Only return rows whose `starts_at >= from`. Defaults to "now" in the loader. */
@@ -158,6 +165,8 @@ export type OpenMatchFeedRow = {
   created_at: string;
   pending_applications_count: number;
   accepted_applications_count: number;
+  /** Venue country (falls back to the legacy district's country, then BY). */
+  country: string;
 };
 
 export type OpenMatchApplicationRow = {

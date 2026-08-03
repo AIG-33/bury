@@ -28,19 +28,12 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login?next=/${locale}/open-matches/new`);
 
-  const [venuesRes, districtsRes] = await Promise.all([
-    supabase.from("venues").select("id, name, city").order("name", { ascending: true }),
-    supabase
-      .from("districts")
-      .select("id, name, city")
-      .eq("country", "BY")
-      .order("city", { ascending: true })
-      .order("name", { ascending: true }),
-  ]);
+  const venuesRes = await supabase
+    .from("venues")
+    .select("id, name, city")
+    .order("name", { ascending: true });
   const venues =
     (venuesRes.data as Array<{ id: string; name: string; city: string | null }> | null) ?? [];
-  const districts =
-    (districtsRes.data as Array<{ id: string; name: string; city: string }> | null) ?? [];
 
   const initialVenueId = venues.some((v) => v.id === sp.venue) ? sp.venue : undefined;
 
@@ -76,12 +69,10 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
       <CreateOpenMatchForm
         locale={locale}
         venues={venues}
-        districts={districts}
         levelOptions={levelOptions}
         initialVenueId={initialVenueId}
         copy={{
           venue: tCreate("fields.venue_optional"),
-          district: tCreate("fields.district_optional"),
           starts_at: tCreate("fields.starts_at"),
           duration: tCreate("fields.duration"),
           format: tCreate("fields.format"),
@@ -100,7 +91,6 @@ export default async function NewOpenMatchPage({ params, searchParams }: Props) 
           err_not_authenticated: tCreate("errors.not_authenticated"),
           err_unknown: tCreate("errors.unknown"),
           any_venue: t("filters.any_venue"),
-          any_district: t("filters.any_venue"),
         }}
       />
     </div>

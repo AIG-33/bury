@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useMemo, useState, useTransition, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Loader2, AlertCircle, Building2, CheckCircle2, MapPin, Info } from "lucide-react";
@@ -10,7 +10,8 @@ import {
   type VenueAmenity,
   type VenueForm,
 } from "@/lib/venues/schema";
-import { createVenue, updateVenue, type DistrictOption, type VenueRow } from "./actions";
+import { createVenue, updateVenue, type VenueRow } from "./actions";
+import { DEFAULT_COUNTRY, getCountryOptions } from "@/lib/geo/countries";
 
 export type VenueDialogCopy = {
   create_title: string;
@@ -18,8 +19,7 @@ export type VenueDialogCopy = {
   fields: {
     name: string;
     city: string;
-    district: string;
-    district_placeholder: string;
+    country: string;
     address: string;
     lat: string;
     lng: string;
@@ -39,12 +39,13 @@ type Props = {
   open: boolean;
   onClose: () => void;
   initial?: VenueRow | null;
-  districts: DistrictOption[];
+  locale: string;
   copy: VenueDialogCopy;
   onSaved: () => void;
 };
 
-export function VenueFormDialog({ open, onClose, initial, districts, copy, onSaved }: Props) {
+export function VenueFormDialog({ open, onClose, initial, locale, copy, onSaved }: Props) {
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const isEdit = Boolean(initial?.id);
   const [pending, startT] = useTransition();
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -56,7 +57,7 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
     defaultValues: {
       name: initial?.name ?? "",
       city: initial?.city ?? null,
-      district_id: initial?.district_id ?? null,
+      country: initial?.country ?? DEFAULT_COUNTRY,
       address: initial?.address ?? null,
       lat: initial?.lat ?? null,
       lng: initial?.lng ?? null,
@@ -69,7 +70,7 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
     form.reset({
       name: initial?.name ?? "",
       city: initial?.city ?? null,
-      district_id: initial?.district_id ?? null,
+      country: initial?.country ?? DEFAULT_COUNTRY,
       address: initial?.address ?? null,
       lat: initial?.lat ?? null,
       lng: initial?.lng ?? null,
@@ -151,20 +152,19 @@ export function VenueFormDialog({ open, onClose, initial, districts, copy, onSav
             <Field label={copy.fields.city}>
               <Input {...form.register("city")} placeholder="Минск" />
             </Field>
-            <Field label={copy.fields.district} hint={copy.hints.address}>
+            <Field label={copy.fields.country}>
               <Controller
                 control={form.control}
-                name="district_id"
+                name="country"
                 render={({ field }) => (
                   <select
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
+                    value={field.value ?? DEFAULT_COUNTRY}
+                    onChange={(e) => field.onChange(e.target.value)}
                     className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
                   >
-                    <option value="">{copy.none}</option>
-                    {districts.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
+                    {countryOptions.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
                       </option>
                     ))}
                   </select>

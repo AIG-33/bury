@@ -21,7 +21,7 @@
     "empty_body": "Open matches are how amateurs find sparring partners by time, venue and level. When the feed is quiet, posting your own invite is the fastest way to get a match — or browse tournaments and coaches while you wait.",
     "about": {
       "title": "How open matches work",
-      "body": "PlayTennis open matches are public invitations to play tennis — singles or doubles — on courts in your city. Each post shows the host's level, preferred time, venue or district, and how many opponents they need. Matching players apply in one click; the host reviews profiles and accepts the right fit. No chat spam, no guessing someone's Elo.",
+      "body": "PlayTennis open matches are public invitations to play tennis — singles or doubles — on courts in your city. Each post shows the host's level, preferred time, venue, and how many opponents they need. Matching players apply in one click; the host reviews profiles and accepts the right fit. No chat spam, no guessing someone's Elo.",
       "step_1": "Browse invites by format and level, or filter by venue.",
       "step_2": "Apply to a post that fits — the host sees your public profile first.",
       "step_3": "Or publish your own invite and let opponents come to you."
@@ -47,6 +47,9 @@
       "level": "Level",
       "venue": "Venue",
       "any_venue": "Any venue",
+      "country_label": "Country",
+      "any_country": "All countries",
+      "apply": "Apply",
       "reset": "Reset",
       "results_count": "{count, plural, =0 {No matches found} one {# match found} other {# matches found}}"
     },
@@ -62,9 +65,7 @@
       "back": "Back to open matches",
       "fields": {
         "venue": "Venue",
-        "venue_optional": "Venue (if you've picked one)",
-        "district": "District",
-        "district_optional": "District (if no venue selected)",
+        "venue_optional": "Venue",
         "starts_at": "Date & time",
         "duration": "Duration, min",
         "format": "Format",
@@ -79,20 +80,20 @@
         "invalid_payload": "Please review the fields.",
         "starts_in_past": "That date is in the past.",
         "singles_one_slot_only": "Singles needs exactly one opponent.",
-        "location_required": "Pick a venue or at least a district.",
+        "location_required": "Pick a venue.",
         "not_authenticated": "Sign in to post.",
         "unknown": "Couldn't save — please try again."
       },
       "help": {
         "why": "An open match is a simple invitation: \"I want to play here, at this time, in this format.\" Matching players apply, and you agree on the rest.",
         "what": {
-          "1": "Pick a venue (or at least a district) and a comfortable time.",
+          "1": "Pick a venue and a comfortable time.",
           "2": "Choose format (singles/doubles) and target opponent level.",
           "3": "Publish — applications arrive in your dashboard."
         },
         "result": {
           "1": "No more chasing opponents — they come to you.",
-          "2": "You see the applicant's profile — level, district, reviews — before saying yes."
+          "2": "You see the applicant's profile — level, city, reviews — before saying yes."
         }
       }
     },
@@ -137,7 +138,7 @@
     "help": {
       "why": "The open-matches feed is the shortest path from \"I want to play\" to \"we're playing\". Instead of chasing one opponent, you publish an invitation and matching players apply.",
       "what": {
-        "1": "Browse offers by city/district/level.",
+        "1": "Browse offers by country, city and level.",
         "2": "Create your own posts — they appear in the feed instantly.",
         "3": "Apply to ones you like — the author sees your profile and picks who to play."
       },
@@ -149,7 +150,7 @@
     "bridges": {
       "title": "Didn't find what you wanted?",
       "to_finder_label": "Find a partner by filters",
-      "to_finder_hint": "Level, district, free time slots — the system ranks candidates for you.",
+      "to_finder_hint": "Level, country, free time slots — the system ranks candidates for you.",
       "to_players_label": "Browse all players",
       "to_players_hint": "Open directory of real amateur players."
     }
@@ -906,7 +907,7 @@
     "empty_all_title": "No players visible yet",
     "empty_all_description": "When players register and opt in to the leaderboard, they will appear here ranked by Elo.",
     "help": {
-      "why": "Track how your players progress and spot upcoming talent in your district.",
+      "why": "Track how your players progress and spot upcoming talent nearby.",
       "what": {
         "1": "My players — anyone who has booked a slot with you or played in your tournament.",
         "2": "All players — every player who is visible in the leaderboard, ordered by Elo.",
@@ -924,7 +925,7 @@
       "title_line_1": "Run your tournaments,",
       "title_line_2": "find a sparring partner,",
       "title_line_3": "pick a coach.",
-      "subtitle": "Amateur tennis without WhatsApp threads or spreadsheets. Open tournaments in 6 formats — join one or launch your own in five minutes. Sparring partners by district and time slot. Coaches with verified reviews.",
+      "subtitle": "Amateur tennis without WhatsApp threads or spreadsheets. Open tournaments in 6 formats — join one or launch your own in five minutes. Sparring partners by level and time slot. Coaches with verified reviews.",
       "cta_primary": "Sign up · 1 minute",
       "cta_primary_authed": "Open my dashboard",
       "cta_secondary": "Open tournaments",
@@ -965,7 +966,7 @@
         },
         "find": {
           "title": "Sparring partners nearby and on level",
-          "body": "Filter by district, free-time slot and preferences. The \"Propose match\" button creates the meeting; you finalise it on WhatsApp.",
+          "body": "Filter by country, free-time slot and preferences. The \"Propose match\" button creates the meeting; you finalise it on WhatsApp.",
           "tag": "Find a player"
         },
         "coaches": {
@@ -997,7 +998,7 @@
         "play": {
           "n": "03",
           "title": "Play",
-          "body": "Find an opponent in your district, register for an open tournament or book a coach. A match in two clicks."
+          "body": "Find an opponent in your city, register for an open tournament or book a coach. A match in two clicks."
         },
         "elo": {
           "n": "04",
@@ -1690,13 +1691,13 @@
   },
   "find": {
     "title": "Find a player",
-    "subtitle": "Sparring partners in your district, at your level, in your free time slots.",
+    "subtitle": "Sparring partners at your level, in your country and in your free time slots.",
     "proposals_link": "My proposals",
     "help": {
       "why": "The hardest part of amateur tennis is finding a partner of similar level who is free at the same time. We do that for you.",
       "what": {
-        "1": "Filter by district, level, dominant hand and your preferred time slots.",
-        "2": "Results are ranked by match score: overlapping slots, same district, level, recent activity.",
+        "1": "Filter by country, level, dominant hand and your preferred time slots.",
+        "2": "Results are ranked by match score: overlapping slots, country, level, recent activity.",
         "3": "You can either jump straight to WhatsApp or send a formal in-app match proposal."
       },
       "result": {
@@ -1713,8 +1714,8 @@
     },
     "filters": {
       "title": "Filters",
-      "district": "District",
-      "district_placeholder": "All",
+      "country": "Country",
+      "country_any": "All countries",
       "elo_radius": "Elo range",
       "elo_radius_hint": "We'll show players within ±{n} Elo of yours.",
       "availability": "Your preferred slots",
@@ -1740,7 +1741,7 @@
     "results": {
       "count": "Found: {n}",
       "empty_title": "No results",
-      "empty_description": "Try widening the Elo range, adding more districts, or removing preferred slots."
+      "empty_description": "Try widening the Elo range, picking \"All countries\", or removing preferred slots."
     },
     "card": {
       "elo": "Elo",
@@ -1955,7 +1956,7 @@
         "social_youtube": "YouTube",
         "social_website": "Website / blog",
         "city": "City",
-        "district": "District",
+        "country": "Country",
         "dominant_hand": "Dominant hand",
         "backhand_style": "Backhand",
         "favorite_surface": "Favorite surface",
@@ -1974,7 +1975,7 @@
         "phone": "Backup number (call / SMS). Visible to a coach you have an active booking with.",
         "whatsapp": "A popular messenger for quick coordination. Clicking “Message” opens a WhatsApp chat with a partner or coach.",
         "telegram_username": "Optional. Without @. Only if you prefer Telegram over WhatsApp.",
-        "district": "District is key for finding opponents near you.",
+        "country": "Country is key for finding opponents near you. Defaults to Belarus.",
         "backhand_style": "One-handed vs two-handed — helps opponents match style.",
         "availability": "Mark when you usually play. “Find a Player” will match others in the same slot.",
         "visible_in_find_player": "Turn off if you don't want match proposals.",
@@ -2050,10 +2051,15 @@
     "empty_description": "The catalogue is built by the players themselves. Add the first venue — it will show up here and on the map right away.",
     "footnote_surfaces": "Surfaces: {surfaces}.",
     "open_venue": "Open venue",
+    "filters": {
+      "country_label": "Country",
+      "any_country": "All countries",
+      "apply": "Apply"
+    },
     "help": {
       "why": "The venue catalogue is the single shared directory of clubs and courts available to coaches and players. The admin maintains it. A coach picks any venue and any court when scheduling a slot; a player sees the address and amenities before booking.",
       "what": {
-        "1": "Browse venues by district, address, indoor/outdoor and amenities.",
+        "1": "Browse venues by country, address, indoor/outdoor and amenities.",
         "2": "Open each venue's court list to see number, name, surface and status.",
         "3": "If your venue isn't listed, hit “Add a venue” and enter it yourself — it appears in the catalogue instantly."
       },
@@ -2116,7 +2122,7 @@
       "fields": {
         "name": "Name",
         "city": "City",
-        "district": "District",
+        "country": "Country",
         "address": "Address",
         "location": "Map location",
         "amenities": "Amenities",
@@ -2201,7 +2207,7 @@
     "help": {
       "why": "A venue is a club or facility where you teach. Each venue has one or more courts. You'll attach training slots and tournament matches to specific courts, so this is the foundation of your schedule.",
       "what": {
-        "1": "Create a venue: enter its name, city/district and amenities (lights, indoor, parking, etc.).",
+        "1": "Create a venue: enter its name, city, country and amenities (lights, indoor, parking, etc.).",
         "2": "Open the venue and add its courts: number, surface and current status (active or under maintenance).",
         "3": "If a court is being repaired, set it to 'Maintenance' — it will be hidden from new bookings automatically."
       },
@@ -2225,7 +2231,7 @@
       "outdoor": "Outdoor",
       "mixed": "Indoor + outdoor",
       "unknown": "No courts yet",
-      "no_district": "Location not specified"
+      "no_location": "Location not specified"
     },
     "dialog": {
       "create_title": "New venue",
@@ -2233,8 +2239,7 @@
       "fields": {
         "name": "Name",
         "city": "City",
-        "district": "District",
-        "district_placeholder": "Pick a district",
+        "country": "Country",
         "address": "Street address",
         "lat": "Latitude",
         "lng": "Longitude",
@@ -2420,7 +2425,7 @@
     "help": {
       "why": "Bookings replace messaging your coach to ask 'are you free Wednesday at 6?'. The slot you see here is guaranteed to be available right now.",
       "what": {
-        "1": "Pick a date range and (optionally) district. Click Search.",
+        "1": "Pick a date range and (optionally) a country. Click Search.",
         "2": "Tap Book on the slot you want. Your coach is notified by email; you can also message them on WhatsApp from your booking card.",
         "3": "Need to cancel? Hit Cancel on your booking — earlier the better, your coach can free the slot for someone else."
       },
@@ -2434,13 +2439,13 @@
       "intro": "Search across all coaches in the platform.",
       "from": "From",
       "to": "To",
-      "district": "District",
-      "any_district": "Any district",
+      "country": "Country",
+      "any_country": "All countries",
       "submit": "Search",
       "searching": "Searching…",
       "empty_title": "Nothing yet",
       "empty_description": "Tap Search to load open slots.",
-      "no_results": "No open slots in this window. Try a wider range or a different district."
+      "no_results": "No open slots in this window. Try a wider date range or \"All countries\"."
     },
     "upcoming_title": "Upcoming",
     "past_title": "Past",
@@ -3127,8 +3132,8 @@
       },
       "venue": "Venue",
       "any_venue": "Any venue",
-      "district": "District",
-      "any_district": "Any district",
+      "country": "Country",
+      "any_country": "All countries",
       "apply": "Apply",
       "reset": "Reset"
     },
@@ -3153,7 +3158,7 @@
     "empty_title": "No coaches yet",
     "empty_body": "When coaches join the platform they will appear here.",
     "empty_filter_title": "No coaches match this filter",
-    "empty_filter_body": "Reset the filter or pick a different venue or district — none of the coaches have open slots in this place yet.",
+    "empty_filter_body": "Reset the filter or pick a different venue or country — none of the coaches have open slots in this place yet.",
     "detail": {
       "about": "About",
       "anonymous": "Anonymous",
@@ -3350,7 +3355,7 @@
         "3": "If you're a coach, set your pin in Coach panel → Public profile."
       },
       "result": {
-        "1": "Players quickly find coaches in their district.",
+        "1": "Players quickly find coaches near them.",
         "2": "Coaches with a pin get more visibility — geography matters in tennis."
       }
     }
@@ -3522,7 +3527,7 @@
     "card_cta_button": "Open",
     "intro_title": "Why this app exists",
     "intro_bullets": [
-      "Helps you find an opponent of your level, in your district, at your preferred time.",
+      "Helps you find an opponent of your level, in your city, at your preferred time.",
       "Helps you pick a coach: filters by venue, price, reviews — with online booking.",
       "Opens a catalog of tournaments — sign up to existing ones or create your own in any format.",
       "Holds the calendar of courts and accepts online bookings.",
@@ -3540,7 +3545,7 @@
             "auto": "Pick a coach without a dozen private chats.",
             "steps": [
               "Open the “Coaches” section.",
-              "Apply filters: district, venue, specialisation.",
+              "Apply filters: country, venue, specialisation.",
               "Open a card — bio, venues, nearest free slots and reviews are right there.",
               "Switch to “Map” to see coaches as pins on the city map."
             ]
@@ -3558,8 +3563,8 @@
           {
             "id": "venues",
             "title": "Browse venues",
-            "auto": "All courts with addresses and districts in one catalogue.",
-            "steps": ["Open the “Venues” section.", "Pick a club/court by address or district."]
+            "auto": "All courts with addresses in one catalogue.",
+            "steps": ["Open the “Venues” section.", "Pick a club/court by address or country."]
           }
         ]
       },
@@ -3608,9 +3613,9 @@
           {
             "id": "profile",
             "title": "Fill in your profile",
-            "auto": "Coach and opponents instantly see your district and preferred time.",
+            "auto": "Coach and opponents instantly see your city and preferred time.",
             "steps": [
-              "“Profile” → form with sections: personal data, contacts, socials, district, play time, avatar.",
+              "“Profile” → form with sections: personal data, contacts, socials, city and country, play time, avatar.",
               "Save."
             ]
           },
@@ -3629,7 +3634,7 @@
             "auto": "Matchmaking by level and schedule — no “who is free Thursday?” chats.",
             "steps": [
               "Open “Find a player”.",
-              "Set filters: district, rating range (e.g. ±100 from yours), preferred days.",
+              "Set filters: country, rating range (e.g. ±100 from yours), preferred days.",
               "Tap “Propose match” next to a candidate.",
               "The opponent gets a notification and accepts or declines."
             ]
@@ -3651,7 +3656,7 @@
             "auto": "No double bookings — the system checks availability.",
             "steps": [
               "“Bookings” → “Find a slot”.",
-              "Filters: district, coach, date.",
+              "Filters: country, coach, date.",
               "Pick a free slot and confirm.",
               "“My bookings” shows everything — cancel from there if needed."
             ]
@@ -3792,7 +3797,7 @@
             "auto": "Venues become available to coaches and to the public catalogue.",
             "steps": [
               "“Venues” — list of all clubs (partly pre-seeded).",
-              "Create or edit a venue: address, district, map coordinates.",
+              "Create or edit a venue: address, country, map coordinates.",
               "On a venue page — manage courts (surface, indoor/outdoor etc.)."
             ]
           },
@@ -4104,7 +4109,7 @@
   },
   "playersPublic": {
     "title": "Players",
-    "subtitle": "Real amateur players. Pick the right level and district — and propose a sparring.",
+    "subtitle": "Real amateur players. Pick the right level and country — and propose a sparring.",
     "guest_banner": {
       "title": "Sign in to propose a match",
       "body": "Browsing is open to everyone. To propose a sparring you need a free account — contacts stay private until you connect.",
@@ -4124,8 +4129,8 @@
         "advanced": "Advanced (1301 – 1700)",
         "expert": "Expert (1701+)"
       },
-      "district": "District",
-      "any_district": "Any district",
+      "country": "Country",
+      "any_country": "All countries",
       "hand": "Hand",
       "hand_options": {
         "both": "Any",
@@ -4195,14 +4200,14 @@
       "truncated": "Showing the first 60 — narrow your filter to see more."
     },
     "empty_title": "No players match your filters",
-    "empty_body": "Reset the filters or pick a different district — other players might be at a different level or live elsewhere.",
+    "empty_body": "Reset the filters or pick \"All countries\" — other players might be at a different level or live elsewhere.",
     "no_filter_empty_title": "No players visible yet",
     "no_filter_empty_body": "When the first players register and opt into matchmaking, they appear here. Be the first — and the platform will start proposing opponents to you automatically.",
     "help": {
       "why": "Before registering, people want to see that the opponents are real.",
       "what": {
         "1": "Here are all the players who allowed themselves to be shown in the find-opponent directory.",
-        "2": "Filters by level, district, day and time help you narrow down.",
+        "2": "Filters by level, country, day and time help you narrow down.",
         "3": "To propose a match you need to sign in. After that the same search gets smarter: it factors in your schedule and active proposals."
       },
       "result": {
@@ -4285,9 +4290,9 @@
     "no_elo_yet": "No rating yet",
     "filters": {
       "any_city": "Any city",
-      "any_district": "Any district",
+      "any_country": "All countries",
       "city_label": "City",
-      "district_label": "District",
+      "country_label": "Country",
       "apply": "Apply",
       "reset": "Reset"
     },
@@ -4304,7 +4309,7 @@
     "help": {
       "why": "A club is a community of players and coaches who play together and run tournaments. This is the directory of every club on the platform.",
       "what": {
-        "1": "Pick a club by city or district and open its page.",
+        "1": "Pick a club by city or country and open its page.",
         "2": "Apply to join, or jump in if the club is open.",
         "3": "Create your own club and become its owner."
       },
@@ -4522,8 +4527,7 @@
         "description": "Description",
         "description_hint": "Tell people who you are: where you play, what level, special features.",
         "city": "City",
-        "district": "District",
-        "district_any": "None",
+        "country": "Country",
         "join_policy": "Join policy",
         "join_policy_hints": {
           "approval": "Player applies, you or a co-admin approves.",
@@ -5026,7 +5030,7 @@
   "seo": {
     "home": {
       "title": "Find a sparring partner, coach and tennis tournament",
-      "description": "Open amateur tennis platform: sparring by level and district, coaches with reviews, tournaments in 6 formats — organize the game in your city."
+      "description": "Open amateur tennis platform: sparring by level and city, coaches with reviews, tournaments in 6 formats — organize the game in your city."
     },
     "venues": {
       "title": "Tennis courts and venues",
@@ -5038,7 +5042,7 @@
       "pillars": {
         "sparring": {
           "title": "Sparring",
-          "body": "Open matches — find a partner by level and district"
+          "body": "Open matches — find a partner by level and location"
         },
         "tournaments": {
           "title": "Tournaments",
@@ -5314,6 +5318,7 @@
       "seg_find": "Find",
       "seg_mine": "My requests",
       "filter_level": "Level",
+      "filter_country": "Country",
       "filter_when": "When",
       "when_today": "Today",
       "when_tomorrow": "Tomorrow",

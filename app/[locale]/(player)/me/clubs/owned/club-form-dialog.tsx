@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, X } from "lucide-react";
 import { ClubFormSchema, type ClubForm, JOIN_POLICIES, type JoinPolicy } from "@/lib/clubs/schema";
 import { nameToSlug } from "@/lib/clubs/slug";
+import { DEFAULT_COUNTRY, getCountryOptions } from "@/lib/geo/countries";
 import { createClub, updateClub, type OwnedClubDetail } from "./actions";
 
 type DialogLabels = {
@@ -19,8 +20,7 @@ type DialogLabels = {
     description: string;
     description_hint: string;
     city: string;
-    district: string;
-    district_any: string;
+    country: string;
     join_policy: string;
     hide_owner: string;
     hide_owner_hint: string;
@@ -36,7 +36,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   initial: OwnedClubDetail | null;
-  districts: Array<{ id: string; name: string; city: string }>;
+  locale: string;
   labels: DialogLabels;
   joinPolicyLabels: Record<JoinPolicy, string>;
 };
@@ -45,10 +45,11 @@ export function ClubFormDialog({
   open,
   onClose,
   initial,
-  districts,
+  locale,
   labels,
   joinPolicyLabels,
 }: Props) {
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -70,7 +71,7 @@ export function ClubFormDialog({
           description: initial.description,
           logo_url: initial.logo_url,
           city: initial.city,
-          district_id: initial.district_id,
+          country: initial.country ?? DEFAULT_COUNTRY,
           join_policy: initial.join_policy,
           hide_owner: initial.hide_owner,
         }
@@ -80,7 +81,7 @@ export function ClubFormDialog({
           description: null,
           logo_url: null,
           city: null,
-          district_id: null,
+          country: DEFAULT_COUNTRY,
           join_policy: "approval",
           hide_owner: false,
         },
@@ -107,7 +108,7 @@ export function ClubFormDialog({
               description: initial.description,
               logo_url: initial.logo_url,
               city: initial.city,
-              district_id: initial.district_id,
+              country: initial.country ?? DEFAULT_COUNTRY,
               join_policy: initial.join_policy,
               hide_owner: initial.hide_owner,
             }
@@ -117,7 +118,7 @@ export function ClubFormDialog({
               description: null,
               logo_url: null,
               city: null,
-              district_id: null,
+              country: DEFAULT_COUNTRY,
               join_policy: "approval",
               hide_owner: false,
             },
@@ -207,20 +208,19 @@ export function ClubFormDialog({
                 className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
               />
             </Field>
-            <Field label={labels.fields.district}>
+            <Field label={labels.fields.country}>
               <Controller
-                name="district_id"
+                name="country"
                 control={control}
                 render={({ field }) => (
                   <select
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value || null)}
+                    value={field.value ?? DEFAULT_COUNTRY}
+                    onChange={(e) => field.onChange(e.target.value)}
                     className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
                   >
-                    <option value="">{labels.fields.district_any}</option>
-                    {districts.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.city})
+                    {countryOptions.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
                       </option>
                     ))}
                   </select>

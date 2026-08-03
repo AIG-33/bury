@@ -11,6 +11,7 @@ import {
   type PublicPlayerCard,
   type PublicPlayerStats,
 } from "@/lib/players/public-card";
+import { isValidCountryCode } from "@/lib/geo/countries";
 import { LEVEL_BUCKETS, LEVEL_RANGES } from "./filters";
 
 export type PublicPlayerProfile = PublicPlayerCard & {
@@ -58,12 +59,12 @@ export type PublicPlayerProfile = PublicPlayerCard & {
 // =============================================================================
 
 const PublicFiltersSchema = z.object({
-  districtId: z
+  country: z
     .string()
-    .uuid()
-    .or(z.literal(""))
+    .trim()
+    .toUpperCase()
     .optional()
-    .transform((v): string | null => (v && v !== "" ? v : null)),
+    .transform((v): string | null => (v && isValidCountryCode(v) ? v : null)),
   level: z.enum(LEVEL_BUCKETS).default("any"),
   /** Which ladder drives the level filter, sort order and the big number. */
   discipline: z.enum(["singles", "doubles"]).default("singles"),
@@ -91,25 +92,6 @@ export type PublicPlayersResult = {
 };
 
 // =============================================================================
-// District options (used by the public filter UI). No auth required.
-// =============================================================================
-
-export type PublicDistrictOption = { id: string; name: string; city: string };
-
-export async function loadPublicDistrictOptions(): Promise<PublicDistrictOption[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })
-    .order("name", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  return data ?? [];
-}
-
-// =============================================================================
 // Main loader
 // =============================================================================
 
@@ -128,7 +110,7 @@ export async function loadPublicPlayers(input: PublicFiltersInput): Promise<Publ
   let q = supabase
     .from("public_player_directory")
     .select(
-      "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
+      "id, display_name, avatar_url, city, country, current_elo, elo_status, " +
         "rated_matches_count, current_elo_doubles, elo_status_doubles, " +
         "rated_matches_count_doubles, dominant_hand, backhand_style, " +
         "favorite_surface, availability, last_match_at, is_coach",
@@ -138,25 +120,12 @@ export async function loadPublicPlayers(input: PublicFiltersInput): Promise<Publ
     .order(eloColumn, { ascending: false })
     .limit(PAGE_LIMIT + 1);
 
-  if (filters.districtId) q = q.eq("district_id", filters.districtId);
+  if (filters.country) q = q.eq("country", filters.country);
   if (filters.hand !== "both") q = q.eq("dominant_hand", filters.hand);
 
   const { data: rows } = (await q) as { data: PublicDirectoryRow[] | null };
 
   const all = rows ?? [];
-
-  // District names lookup — single round-trip.
-  const districtIds = Array.from(
-    new Set(all.map((p) => p.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const districtNames = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) districtNames.set(d.id, d.name);
-  }
 
   // External ratings (Liga Tennisa) — public-readable per its RLS policy.
   const ids = all.map((p) => p.id);
@@ -219,7 +188,6 @@ export async function loadPublicPlayers(input: PublicFiltersInput): Promise<Publ
     const card = toPublicPlayerCard(
       row,
       externalRatingByPlayer.get(row.id) ?? null,
-      row.district_id ? (districtNames.get(row.district_id) ?? null) : null,
       now,
       statsByPlayer.get(row.id) ?? undefined,
     );
@@ -259,7 +227,7 @@ export async function loadPublicPlayerProfile(
   const { data: row } = (await supabase
     .from("public_player_directory")
     .select(
-      "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
+      "id, display_name, avatar_url, city, country, current_elo, elo_status, " +
         "rated_matches_count, current_elo_doubles, elo_status_doubles, " +
         "rated_matches_count_doubles, dominant_hand, backhand_style, " +
         "favorite_surface, availability, last_match_at, is_coach",
@@ -269,16 +237,7 @@ export async function loadPublicPlayerProfile(
 
   if (!row) return null;
 
-  const [districtName, externalRating, stats, recentMatches] = await Promise.all([
-    (async (): Promise<string | null> => {
-      if (!row.district_id) return null;
-      const { data } = (await supabase
-        .from("districts")
-        .select("name")
-        .eq("id", row.district_id)
-        .maybeSingle()) as { data: { name: string } | null };
-      return data?.name ?? null;
-    })(),
+  const [externalRating, stats, recentMatches] = await Promise.all([
     (async (): Promise<PublicExternalRating | null> => {
       const { data } = (await supabase
         .from("external_ratings")
@@ -385,7 +344,7 @@ export async function loadPublicPlayerProfile(
     })(),
   ]);
 
-  const card = toPublicPlayerCard(row, externalRating, districtName, Date.now(), stats);
+  const card = toPublicPlayerCard(row, externalRating, Date.now(), stats);
 
   return { ...card, recent_matches: recentMatches };
 }

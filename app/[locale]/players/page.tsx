@@ -12,7 +12,8 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadPublicDistrictOptions, loadPublicPlayers } from "./actions";
+import { getCountryName, getCountryOptions, isValidCountryCode } from "@/lib/geo/countries";
+import { loadPublicPlayers } from "./actions";
 import { LEVEL_BUCKETS, type LevelBucket } from "./filters";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
 import { loadPrimaryClubsForUsers } from "@/lib/clubs/primary";
@@ -22,7 +23,7 @@ type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{
     level?: string;
-    district?: string;
+    country?: string;
     hand?: string;
     weekday?: string;
     daypart?: string;
@@ -55,7 +56,8 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const level: LevelBucket = isLevelBucket(sp.level) ? sp.level : "any";
   const discipline: "singles" | "doubles" =
     sp.discipline === "doubles" ? "doubles" : "singles";
-  const districtId = sp.district ?? "";
+  const rawCountry = sp.country?.trim().toUpperCase() ?? "";
+  const country = isValidCountryCode(rawCountry) ? rawCountry : "";
   const hand = sp.hand === "R" || sp.hand === "L" || sp.hand === "both" ? sp.hand : "both";
   const weekday = (WEEKDAYS as readonly string[]).includes(sp.weekday ?? "")
     ? (sp.weekday as (typeof WEEKDAYS)[number])
@@ -66,24 +68,24 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
   const slotApplied = Boolean(weekday) && Boolean(daypart);
 
   const supabase = await createSupabaseServerClient();
-  const [{ results, total, truncated }, districts, authRes] = await Promise.all([
+  const [{ results, total, truncated }, authRes] = await Promise.all([
     loadPublicPlayers({
       level,
       discipline,
-      districtId: districtId || undefined,
+      country: country || undefined,
       hand,
       weekday: slotApplied ? weekday : "",
       daypart: slotApplied ? daypart : "",
     }),
-    loadPublicDistrictOptions(),
     supabase.auth.getUser(),
   ]);
+  const countryOptions = getCountryOptions(locale);
   const user = authRes.data.user;
   const isGuest = user == null;
 
   const hasFilter =
     level !== "any" ||
-    Boolean(districtId) ||
+    Boolean(country) ||
     hand !== "both" ||
     slotApplied ||
     discipline !== "singles";
@@ -152,17 +154,17 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
 
           <label className="text-xs font-medium text-ink-700">
             <span className="mb-1 block label-eyebrow">
-              {t("controls.district")}
+              {t("controls.country")}
             </span>
             <select
-              name="district"
-              defaultValue={districtId}
+              name="country"
+              defaultValue={country}
               className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
             >
-              <option value="">{t("controls.any_district")}</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.city} · {d.name}
+              <option value="">{t("controls.any_country")}</option>
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -276,7 +278,10 @@ export default async function PublicPlayersPage({ params, searchParams }: Props)
                 ? t("card.other_singles", { elo: otherElo })
                 : t("card.other_doubles", { elo: otherElo });
             const isProvisional = displayStatus !== "established";
-            const locationParts = [p.city, p.district_name].filter(Boolean) as string[];
+            const locationParts = [
+              p.city,
+              p.country ? getCountryName(p.country, locale) : null,
+            ].filter(Boolean) as string[];
             return (
               <li
                 key={p.id}

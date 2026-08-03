@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CountryCodeSchema } from "@/lib/geo/countries";
 
 // ─── Catalogue values ────────────────────────────────────────────────────────
 
@@ -39,10 +40,7 @@ export const ClubFormSchema = z.object({
   description: optionalText(4000),
   logo_url: optionalText(500),
   city: optionalText(80),
-  district_id: z.preprocess(
-    (v) => (v == null || v === "" ? null : v),
-    z.string().uuid().nullable(),
-  ),
+  country: CountryCodeSchema,
   join_policy: z.enum(JOIN_POLICIES).default("approval"),
   hide_owner: z.boolean().default(false),
 });

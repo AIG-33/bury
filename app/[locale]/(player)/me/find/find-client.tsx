@@ -23,14 +23,10 @@ import {
   ArrowDown,
   Sparkles,
 } from "lucide-react";
-import {
-  searchOpponents,
-  proposeMatch,
-  updateMyAvailability,
-  type DistrictOption,
-} from "./actions";
+import { searchOpponents, proposeMatch, updateMyAvailability } from "./actions";
 import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
 import type { ScoredCandidate, Weekday, DayPart } from "@/lib/matching/find-player";
+import { getCountryName, getCountryOptions } from "@/lib/geo/countries";
 import { whatsappLink } from "@/lib/contact/whatsapp";
 import { RatingDisplay } from "@/components/rating/rating-display";
 
@@ -38,8 +34,8 @@ type Locale = "ru" | "en";
 
 export type FindCopy = {
   filters_title: string;
-  district: string;
-  district_placeholder: string;
+  country: string;
+  country_any: string;
   elo_radius: string;
   availability: string;
   availability_hint: string;
@@ -103,14 +99,12 @@ export type FindCopy = {
 
 export function FindClient({
   locale,
-  districts,
   copy,
   myAvailability,
   initialFocus = null,
   focusRequested = false,
 }: {
   locale: Locale;
-  districts: DistrictOption[];
   copy: FindCopy;
   myAvailability: Availability;
   initialFocus?: ScoredCandidate | null;
@@ -120,7 +114,8 @@ export function FindClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [districtIds, setDistrictIds] = useState<string[]>([]);
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
+  const [country, setCountry] = useState<string>("");
   const [eloRadius, setEloRadius] = useState(150);
   const [hand, setHand] = useState<"both" | "R" | "L">("both");
   const [query, setQuery] = useState("");
@@ -191,7 +186,7 @@ export function FindClient({
       const min = ltEloMin.trim() === "" ? null : Number(ltEloMin);
       const max = ltEloMax.trim() === "" ? null : Number(ltEloMax);
       const r = await searchOpponents({
-        districtIds,
+        country: country || null,
         eloRadius,
         desiredSlots: desired,
         hand,
@@ -210,7 +205,7 @@ export function FindClient({
   }
 
   function reset() {
-    setDistrictIds([]);
+    setCountry("");
     setEloRadius(150);
     setHand("both");
     setQuery("");
@@ -253,14 +248,20 @@ export function FindClient({
             </div>
           </FieldBlock>
 
-          {/* Districts */}
-          <FieldBlock label={copy.district}>
-            <DistrictPicker
-              options={districts}
-              selected={districtIds}
-              onChange={setDistrictIds}
-              placeholder={copy.district_placeholder}
-            />
+          {/* Country */}
+          <FieldBlock label={copy.country}>
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30"
+            >
+              <option value="">{copy.country_any}</option>
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </FieldBlock>
 
           {/* Elo radius */}
@@ -608,10 +609,15 @@ function CandidateCard({
             </span>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
-            {(candidate.city || candidate.district_name) && (
+            {(candidate.city || candidate.country) && (
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
-                {[candidate.city, candidate.district_name].filter(Boolean).join(" · ")}
+                {[
+                  candidate.city,
+                  candidate.country ? getCountryName(candidate.country, _locale) : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
             )}
             <ScoreBadge label={copy.card.score} value={candidate.score} />
@@ -756,100 +762,6 @@ function FieldBlock({
       <label className="mb-1.5 block text-xs font-medium text-ink-700">{label}</label>
       {children}
       {hint && <p className="mt-1 text-[11px] text-ink-500">{hint}</p>}
-    </div>
-  );
-}
-
-function DistrictPicker({
-  options,
-  selected,
-  onChange,
-  placeholder,
-}: {
-  options: DistrictOption[];
-  selected: string[];
-  onChange: (next: string[]) => void;
-  placeholder: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState("");
-  const visibleOptions = useMemo(() => {
-    const q = filter.trim().toLowerCase();
-    return q.length === 0
-      ? options.slice(0, 25)
-      : options.filter((o) => o.name.toLowerCase().includes(q)).slice(0, 25);
-  }, [options, filter]);
-
-  const selectedNames = useMemo(
-    () =>
-      options
-        .filter((o) => selected.includes(o.id))
-        .map((o) => o.name.split("·").pop()?.trim() ?? o.name),
-    [options, selected],
-  );
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-full items-center justify-between rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-left text-sm outline-none transition focus:border-grass-500"
-      >
-        <span className="truncate text-ink-700">
-          {selected.length === 0
-            ? placeholder
-            : `${selectedNames.slice(0, 2).join(", ")}${
-                selected.length > 2 ? ` +${selected.length - 2}` : ""
-              }`}
-        </span>
-        <Users className="h-4 w-4 flex-shrink-0 text-ink-400" />
-      </button>
-
-      {open && (
-        <div className="shadow-pop absolute z-20 mt-1 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9]">
-          <div className="border-b border-ink-100 p-2">
-            <input
-              autoFocus
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="h-8 w-full rounded-md border border-ink-200 px-2 text-xs outline-none focus:border-grass-500"
-              placeholder="…"
-            />
-          </div>
-          <ul className="max-h-60 overflow-y-auto p-1">
-            {visibleOptions.length === 0 && (
-              <li className="px-2 py-3 text-center text-xs text-ink-400">—</li>
-            )}
-            {visibleOptions.map((o) => {
-              const on = selected.includes(o.id);
-              return (
-                <li key={o.id}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onChange(on ? selected.filter((id) => id !== o.id) : [...selected, o.id])
-                    }
-                    className={
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition " +
-                      (on ? "bg-grass-50 text-grass-900" : "hover:bg-ink-50")
-                    }
-                  >
-                    <span
-                      className={
-                        "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border " +
-                        (on ? "border-grass-500 bg-grass-500 text-white" : "border-ink-300")
-                      }
-                    >
-                      {on && <CheckCircle2 className="h-3 w-3" />}
-                    </span>
-                    <span className="truncate">{o.name}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

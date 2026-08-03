@@ -23,8 +23,7 @@ export type AvailableSlot = {
   court_label: string;
   venue_name: string;
   venue_id: string;
-  district_id: string | null;
-  district_name: string | null;
+  country: string | null;
   city: string | null;
   coach_id: string;
   coach_name: string | null;
@@ -51,13 +50,13 @@ async function requireUser() {
 }
 
 // =============================================================================
-// Search available slots in a date window. Optional district filter.
+// Search available slots in a date window. Optional country filter.
 // =============================================================================
 
 export async function searchAvailableSlots(opts: {
   fromIso: string;
   toIso: string;
-  districtId?: string | null;
+  country?: string | null;
 }): Promise<{ ok: true; slots: AvailableSlot[] } | { ok: false; error: string }> {
   const auth = await requireUser();
   if (!auth.ok) return auth;
@@ -94,7 +93,7 @@ export async function searchAvailableSlots(opts: {
   const [{ data: courtsRaw }, { data: profilesRaw }, { data: bookingsRaw }] = await Promise.all([
     supabase
       .from("courts")
-      .select("id, number, name, venue_id, venues!inner(id, name, city, district_id)")
+      .select("id, number, name, venue_id, venues!inner(id, name, city, country)")
       .in("id", courtIds) as unknown as Promise<{
       data: Array<{
         id: string;
@@ -106,13 +105,13 @@ export async function searchAvailableSlots(opts: {
               id: string;
               name: string;
               city: string | null;
-              district_id: string | null;
+              country: string | null;
             }
           | Array<{
               id: string;
               name: string;
               city: string | null;
-              district_id: string | null;
+              country: string | null;
             }>;
       }> | null;
     }>,
@@ -135,27 +134,6 @@ export async function searchAvailableSlots(opts: {
     }>,
   ]);
 
-  const districtIds = Array.from(
-    new Set(
-      (courtsRaw ?? [])
-        .map((c) => {
-          const v = Array.isArray(c.venues) ? c.venues[0] : c.venues;
-          return v?.district_id ?? null;
-        })
-        .filter((x): x is string => Boolean(x)),
-    ),
-  );
-  const districtMap = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as {
-      data: Array<{ id: string; name: string }> | null;
-    };
-    for (const d of ds ?? []) districtMap.set(d.id, d.name);
-  }
-
   const courtIndex = new Map<
     string,
     {
@@ -163,7 +141,7 @@ export async function searchAvailableSlots(opts: {
       venue_name: string;
       venue_id: string;
       city: string | null;
-      district_id: string | null;
+      country: string | null;
     }
   >();
   for (const c of courtsRaw ?? []) {
@@ -174,7 +152,7 @@ export async function searchAvailableSlots(opts: {
       venue_name: v.name,
       venue_id: v.id,
       city: v.city,
-      district_id: v.district_id,
+      country: v.country,
     });
   }
 
@@ -190,7 +168,7 @@ export async function searchAvailableSlots(opts: {
   for (const s of rawSlots) {
     const c = courtIndex.get(s.court_id);
     if (!c) continue;
-    if (opts.districtId && c.district_id !== opts.districtId) continue;
+    if (opts.country && c.country !== opts.country) continue;
     const occupied = counts.get(s.id) ?? 0;
     if (occupied >= s.max_participants) continue;
 
@@ -208,8 +186,7 @@ export async function searchAvailableSlots(opts: {
       venue_name: c.venue_name,
       venue_id: c.venue_id,
       city: c.city,
-      district_id: c.district_id,
-      district_name: c.district_id ? (districtMap.get(c.district_id) ?? null) : null,
+      country: c.country,
       coach_id: s.owner_id,
       coach_name: owner?.display_name ?? null,
       coach_avatar: owner?.avatar_url ?? null,
@@ -460,19 +437,19 @@ export async function loadMyBookings(): Promise<
 
   const { data: courtsRaw } = (await supabase
     .from("courts")
-    .select("id, number, name, venues!inner(id, name, city, district_id)")
+    .select("id, number, name, venues!inner(id, name, city, country)")
     .in("id", courtIds)) as {
     data: Array<{
       id: string;
       number: number;
       name: string | null;
       venues:
-        | { id: string; name: string; city: string | null; district_id: string | null }
+        | { id: string; name: string; city: string | null; country: string | null }
         | Array<{
             id: string;
             name: string;
             city: string | null;
-            district_id: string | null;
+            country: string | null;
           }>;
     }> | null;
   };
@@ -488,25 +465,6 @@ export async function loadMyBookings(): Promise<
       whatsapp: string | null;
     }> | null;
   };
-
-  const districtIds = Array.from(
-    new Set(
-      (courtsRaw ?? [])
-        .map((c) => {
-          const v = Array.isArray(c.venues) ? c.venues[0] : c.venues;
-          return v?.district_id ?? null;
-        })
-        .filter((x): x is string => Boolean(x)),
-    ),
-  );
-  const districtMap = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) districtMap.set(d.id, d.name);
-  }
 
   // Capacity counts so the player sees how many seats are left.
   const { data: bkAll } = (await supabase
@@ -528,7 +486,7 @@ export async function loadMyBookings(): Promise<
       venue_name: string;
       venue_id: string;
       city: string | null;
-      district_id: string | null;
+      country: string | null;
     }
   >();
   for (const c of courtsRaw ?? []) {
@@ -539,7 +497,7 @@ export async function loadMyBookings(): Promise<
       venue_name: v.name,
       venue_id: v.id,
       city: v.city,
-      district_id: v.district_id,
+      country: v.country,
     });
   }
 
@@ -568,8 +526,7 @@ export async function loadMyBookings(): Promise<
       venue_name: c?.venue_name ?? "—",
       venue_id: c?.venue_id ?? "",
       city: c?.city ?? null,
-      district_id: c?.district_id ?? null,
-      district_name: c?.district_id ? (districtMap.get(c.district_id) ?? null) : null,
+      country: c?.country ?? null,
       coach_id: s.owner_id,
       coach_name: owner?.display_name ?? null,
       coach_avatar: owner?.avatar_url ?? null,
@@ -594,20 +551,4 @@ export async function loadMyBookings(): Promise<
   past.sort((a, b) => +new Date(b.slot.starts_at) - +new Date(a.slot.starts_at));
 
   return { ok: true, upcoming, past };
-}
-
-// =============================================================================
-// Districts list (for the search filter).
-// =============================================================================
-
-export async function loadDistrictsForBooking(): Promise<Array<{ id: string; name: string }>> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  return (data ?? []).map((d) => ({ id: d.id, name: `${d.city} · ${d.name}` }));
 }

@@ -17,6 +17,7 @@ import { buildPageMetadata } from "@/lib/seo/metadata";
 import { SITE_URL } from "@/lib/seo/site";
 import { loadPlayerClubs, loadPublicPlayerProfile } from "../actions";
 import { TIME_SLOTS, WEEKDAYS } from "@/lib/profile/schema";
+import { getCountryName } from "@/lib/geo/countries";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -38,14 +39,13 @@ function buildPlayerJsonLd(
   }
 
   const homeLocation =
-    profile.city || profile.district_name
+    profile.city || profile.country
       ? {
           "@type": "Place",
           address: {
             "@type": "PostalAddress",
             addressLocality: profile.city ?? undefined,
-            addressRegion: profile.district_name ?? undefined,
-            addressCountry: "BY",
+            addressCountry: profile.country ?? "BY",
           },
         }
       : undefined;
@@ -80,7 +80,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const t = await getTranslations({ locale, namespace: "playersPublic" });
   const name = profile.display_name ?? t("title");
-  const place = [profile.city, profile.district_name].filter(Boolean).join(", ");
+  const place = [
+    profile.city,
+    profile.country ? getCountryName(profile.country, locale) : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   const description = place
     ? t("detail.meta_description_place", { name, place })
     : t("detail.meta_description", { name });
@@ -195,10 +200,15 @@ export default async function PublicPlayerProfilePage({ params }: Props) {
                 />
                 <LevelBadge elo={profile.current_elo} size="md" />
                 <WinRatePill wins={profile.stats.wins_count} losses={profile.stats.losses_count} />
-                {(profile.city || profile.district_name) && (
+                {(profile.city || profile.country) && (
                   <span className="inline-flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {[profile.city, profile.district_name].filter(Boolean).join(" · ")}
+                    {[
+                      profile.city,
+                      profile.country ? getCountryName(profile.country, locale) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 )}
                 {profile.dominant_hand && (

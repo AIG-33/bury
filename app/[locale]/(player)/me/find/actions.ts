@@ -27,13 +27,20 @@ import { buildMatchProposalEmail } from "@/lib/email/templates/match-proposal";
 import { enqueue } from "@/lib/notifications/outbox";
 import { renderTelegram, renderTemplate } from "@/lib/notifications/templates";
 import { isTelegramConfigured, sendTelegramMessage } from "@/lib/telegram/send";
+import { isValidCountryCode } from "@/lib/geo/countries";
 
 // =============================================================================
 // Filter validation
 // =============================================================================
 
 const FiltersSchema = z.object({
-  districtIds: z.array(z.string().uuid()).max(20).default([]),
+  country: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .nullable()
+    .default(null)
+    .transform((v): string | null => (v && isValidCountryCode(v) ? v : null)),
   eloRadius: z.coerce.number().int().min(25).max(1500).default(100),
   desiredSlots: z
     .array(
@@ -52,24 +59,6 @@ const FiltersSchema = z.object({
 });
 
 export type SearchInput = z.input<typeof FiltersSchema>;
-
-// =============================================================================
-// District options (used by the filter UI)
-// =============================================================================
-
-export type DistrictOption = { id: string; name: string };
-
-export async function loadDistrictOptions(): Promise<DistrictOption[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  return (data ?? []).map((d) => ({ id: d.id, name: `${d.city} · ${d.name}` }));
-}
 
 // =============================================================================
 // My availability (own schedule, persisted on profiles.availability)
@@ -155,13 +144,13 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
 
   const { data: meRow } = (await supabase
     .from("profiles")
-    .select("id, current_elo, district_id, availability")
+    .select("id, current_elo, country, availability")
     .eq("id", user.id)
     .single()) as {
     data: {
       id: string;
       current_elo: number;
-      district_id: string | null;
+      country: string | null;
       availability: Partial<Availability> | null;
     } | null;
   };
@@ -170,15 +159,15 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
   const seeker: SeekerContext = {
     id: meRow.id,
     current_elo: meRow.current_elo,
-    district_id: meRow.district_id,
+    country: meRow.country,
     availability: { ...EMPTY_AVAILABILITY, ...(meRow.availability ?? {}) } as Availability,
   };
 
-  // SQL pre-filter: visibility + Elo range + optional district set.
+  // SQL pre-filter: visibility + Elo range + optional country.
   let q = supabase
     .from("profiles")
     .select(
-      "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
+      "id, display_name, avatar_url, city, country, current_elo, elo_status, " +
         "rated_matches_count, dominant_hand, backhand_style, favorite_surface, " +
         "whatsapp, telegram_username, social_links, availability, last_match_at",
     )
@@ -188,8 +177,8 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
     .lte("current_elo", seeker.current_elo + filters.eloRadius)
     .limit(MAX_CANDIDATES);
 
-  if (filters.districtIds.length > 0) {
-    q = q.in("district_id", filters.districtIds);
+  if (filters.country) {
+    q = q.eq("country", filters.country);
   }
 
   const { data: rawCandidates } = (await q) as {
@@ -198,7 +187,7 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
       display_name: string | null;
       avatar_url: string | null;
       city: string | null;
-      district_id: string | null;
+      country: string | null;
       current_elo: number;
       elo_status: "provisional" | "established";
       rated_matches_count: number;
@@ -212,19 +201,6 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
       last_match_at: string | null;
     }> | null;
   };
-
-  // District names lookup (one extra query, cheap thanks to small set).
-  const districtIds = Array.from(
-    new Set((rawCandidates ?? []).map((c) => c.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const districtNames = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) districtNames.set(d.id, d.name);
-  }
 
   // Pending-proposal exclusion: hide people we already have an active proposal with.
   const { data: pending } = (await supabase
@@ -294,8 +270,7 @@ export async function searchOpponents(input: SearchInput): Promise<SearchResult>
       display_name: c.display_name,
       avatar_url: c.avatar_url,
       city: c.city,
-      district_id: c.district_id,
-      district_name: c.district_id ? (districtNames.get(c.district_id) ?? null) : null,
+      country: c.country,
       current_elo: c.current_elo,
       elo_status: c.elo_status,
       rated_matches_count: c.rated_matches_count,
@@ -350,13 +325,13 @@ export async function loadFocusedCandidate(rawFocusId: string): Promise<FocusedC
 
   const { data: meRow } = (await supabase
     .from("profiles")
-    .select("id, current_elo, district_id, availability")
+    .select("id, current_elo, country, availability")
     .eq("id", user.id)
     .single()) as {
     data: {
       id: string;
       current_elo: number;
-      district_id: string | null;
+      country: string | null;
       availability: Partial<Availability> | null;
     } | null;
   };
@@ -365,14 +340,14 @@ export async function loadFocusedCandidate(rawFocusId: string): Promise<FocusedC
   const seeker: SeekerContext = {
     id: meRow.id,
     current_elo: meRow.current_elo,
-    district_id: meRow.district_id,
+    country: meRow.country,
     availability: { ...EMPTY_AVAILABILITY, ...(meRow.availability ?? {}) } as Availability,
   };
 
   const { data: row } = (await supabase
     .from("profiles")
     .select(
-      "id, display_name, avatar_url, city, district_id, current_elo, elo_status, " +
+      "id, display_name, avatar_url, city, country, current_elo, elo_status, " +
         "rated_matches_count, dominant_hand, backhand_style, favorite_surface, " +
         "whatsapp, telegram_username, social_links, availability, last_match_at, " +
         "visible_in_find_player",
@@ -384,7 +359,7 @@ export async function loadFocusedCandidate(rawFocusId: string): Promise<FocusedC
       display_name: string | null;
       avatar_url: string | null;
       city: string | null;
-      district_id: string | null;
+      country: string | null;
       current_elo: number;
       elo_status: "provisional" | "established";
       rated_matches_count: number;
@@ -400,16 +375,6 @@ export async function loadFocusedCandidate(rawFocusId: string): Promise<FocusedC
     } | null;
   };
   if (!row || !row.visible_in_find_player) return null;
-
-  let districtName: string | null = null;
-  if (row.district_id) {
-    const { data: d } = (await supabase
-      .from("districts")
-      .select("name")
-      .eq("id", row.district_id)
-      .single()) as { data: { name: string } | null };
-    districtName = d?.name ?? null;
-  }
 
   const { data: ext } = (await supabase
     .from("external_ratings")
@@ -434,8 +399,7 @@ export async function loadFocusedCandidate(rawFocusId: string): Promise<FocusedC
     display_name: row.display_name,
     avatar_url: row.avatar_url,
     city: row.city,
-    district_id: row.district_id,
-    district_name: districtName,
+    country: row.country,
     current_elo: row.current_elo,
     elo_status: row.elo_status,
     rated_matches_count: row.rated_matches_count,

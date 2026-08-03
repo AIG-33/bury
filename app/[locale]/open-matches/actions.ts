@@ -76,7 +76,7 @@ export async function loadOpenMatches(
     .select(
       "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
         "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
-        "district_id, district_name, " +
+        "district_id, district_name, country, " +
         "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
         "pending_applications_count, accepted_applications_count",
     )
@@ -86,7 +86,7 @@ export async function loadOpenMatches(
     .limit(80);
 
   if (filters.venue_id) q = q.eq("venue_id", filters.venue_id);
-  if (filters.district_id) q = q.eq("district_id", filters.district_id);
+  if (filters.country) q = q.eq("country", filters.country);
   if (filters.level_band && filters.level_band !== "any") q = q.eq("level_band", filters.level_band);
   if (filters.format) q = q.eq("format", filters.format);
   if (filters.to) q = q.lte("starts_at", filters.to);
@@ -126,7 +126,7 @@ export async function loadOpenMatch(id: string): Promise<OpenMatchDetail | null>
     .select(
       "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
         "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
-        "district_id, district_name, " +
+        "district_id, district_name, country, " +
         "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
         "pending_applications_count, accepted_applications_count",
     )
@@ -224,7 +224,6 @@ export async function createOpenMatch(input: CreateOpenMatchInput): Promise<Resu
     .insert({
       creator_id: user.id,
       venue_id: parsed.data.venue_id ?? null,
-      district_id: parsed.data.district_id ?? null,
       starts_at: parsed.data.starts_at,
       duration_min: parsed.data.duration_min,
       format: parsed.data.format,

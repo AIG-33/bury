@@ -5,7 +5,7 @@ import { Inbox, Megaphone, UsersRound } from "lucide-react";
 import { HelpPanel } from "@/components/help/help-panel";
 import { BridgePanel } from "@/components/help/bridge-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadDistrictOptions, loadFocusedCandidate, loadMyAvailability } from "./actions";
+import { loadFocusedCandidate, loadMyAvailability } from "./actions";
 import { EMPTY_AVAILABILITY, WEEKDAYS, TIME_SLOTS, type Availability } from "@/lib/profile/schema";
 import type { Weekday, DayPart, ScoredCandidate } from "@/lib/matching/find-player";
 import { FindClient, type FindCopy } from "./find-client";
@@ -32,7 +32,6 @@ export default async function FindPlayerPage({ params, searchParams }: Props) {
     redirect(`/${locale}/login?next=${encodeURIComponent(nextHref)}`);
   }
 
-  const districts = await loadDistrictOptions();
   const availabilityRes = await loadMyAvailability();
   const myAvailability: Availability = availabilityRes.ok
     ? availabilityRes.availability
@@ -43,8 +42,8 @@ export default async function FindPlayerPage({ params, searchParams }: Props) {
 
   const copy: FindCopy = {
     filters_title: t("filters.title"),
-    district: t("filters.district"),
-    district_placeholder: t("filters.district_placeholder"),
+    country: t("filters.country"),
+    country_any: t("filters.country_any"),
     elo_radius: t("filters.elo_radius"),
     availability: t("filters.availability"),
     availability_hint: t("filters.availability_hint"),
@@ -146,7 +145,6 @@ export default async function FindPlayerPage({ params, searchParams }: Props) {
 
       <FindClient
         locale={locale as "ru" | "en"}
-        districts={districts}
         copy={copy}
         myAvailability={myAvailability}
         initialFocus={initialFocus}

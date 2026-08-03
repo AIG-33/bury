@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { EmptyState } from "@/components/help/empty-state";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
-import { deleteVenue, type DistrictOption, type VenueRow } from "./actions";
+import { deleteVenue, type VenueRow } from "./actions";
 import { VenueFormDialog, type VenueDialogCopy } from "./venue-form-dialog";
 import type { VenueAmenity, VenueIndoorStatus } from "@/lib/venues/schema";
+import { getCountryName } from "@/lib/geo/countries";
 
 // All copy props are plain strings (no function callbacks) so this object can
 // cross the Server → Client boundary; pluralized strings are resolved on the
@@ -27,7 +28,7 @@ export type VenuesListCopy = {
   deleting: string;
   open: string;
   indoor_status_labels: Record<VenueIndoorStatus, string>;
-  no_district: string;
+  no_location: string;
   amenity_labels: Record<VenueAmenity, string>;
   dialog: VenueDialogCopy;
 };
@@ -35,12 +36,10 @@ export type VenuesListCopy = {
 export function VenuesClient({
   locale,
   venues,
-  districts,
   copy,
 }: {
   locale: string;
   venues: VenueRow[];
-  districts: DistrictOption[];
   copy: VenuesListCopy;
 }) {
   const [open, setOpen] = useState(false);
@@ -97,7 +96,8 @@ export function VenuesClient({
                   <h3 className="font-display text-lg font-semibold text-ink-900">{v.name}</h3>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-600">
                     <MapPin className="h-3 w-3" />
-                    {[v.city, v.district_name].filter(Boolean).join(" · ") || copy.no_district}
+                    {[v.city, getCountryName(v.country, locale)].filter(Boolean).join(" · ") ||
+                      copy.no_location}
                   </p>
                 </div>
                 <IndoorStatusBadge
@@ -173,7 +173,7 @@ export function VenuesClient({
         open={open}
         onClose={() => setOpen(false)}
         initial={editing}
-        districts={districts}
+        locale={locale}
         copy={copy.dialog}
         onSaved={() => router.refresh()}
       />

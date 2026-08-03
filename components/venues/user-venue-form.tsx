@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -16,15 +16,12 @@ import {
   type UserVenueForm,
   type VenueAmenity,
 } from "@/lib/venues/schema";
-import {
-  createUserVenue,
-  updateUserVenue,
-  type DistrictOption,
-} from "@/app/[locale]/venues/user-actions";
+import { createUserVenue, updateUserVenue } from "@/app/[locale]/venues/user-actions";
+import { DEFAULT_COUNTRY, getCountryOptions } from "@/lib/geo/countries";
 
 type Props = {
   userId: string;
-  districts: DistrictOption[];
+  locale: string;
   /** Present in the edit flow; absent when creating. */
   initial?: (UserVenueForm & { id: string }) | null;
 };
@@ -32,7 +29,8 @@ type Props = {
 const INPUT =
   "h-10 w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 text-sm outline-none transition focus:border-grass-500 focus:ring-2 focus:ring-grass-500/30";
 
-export function UserVenueForm({ userId, districts, initial }: Props) {
+export function UserVenueForm({ userId, locale, initial }: Props) {
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const t = useTranslations("venuesCatalog.form");
   const tAmenities = useTranslations("venues.amenities");
   const tSurfaces = useTranslations("venues.detail.courts.surface_options");
@@ -48,7 +46,7 @@ export function UserVenueForm({ userId, districts, initial }: Props) {
     defaultValues: initial ?? {
       name: "",
       city: null,
-      district_id: null,
+      country: DEFAULT_COUNTRY,
       address: null,
       lat: null,
       lng: null,
@@ -142,20 +140,19 @@ export function UserVenueForm({ userId, districts, initial }: Props) {
           <Field label={t("fields.city")}>
             <input {...form.register("city")} className={INPUT} placeholder="Минск" />
           </Field>
-          <Field label={t("fields.district")}>
+          <Field label={t("fields.country")}>
             <Controller
               control={form.control}
-              name="district_id"
+              name="country"
               render={({ field }) => (
                 <select
-                  value={field.value ?? ""}
-                  onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
+                  value={field.value ?? DEFAULT_COUNTRY}
+                  onChange={(e) => field.onChange(e.target.value)}
                   className={INPUT}
                 >
-                  <option value="">{t("none")}</option>
-                  {districts.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
+                  {countryOptions.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
                     </option>
                   ))}
                 </select>

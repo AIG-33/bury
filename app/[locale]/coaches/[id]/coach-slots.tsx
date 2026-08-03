@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { bookSlot } from "@/app/[locale]/(player)/me/bookings/actions";
+import { getCountryName } from "@/lib/geo/countries";
 import type { CoachUpcomingSlot } from "../actions";
 import { EmptyState } from "@/components/help/empty-state";
 
@@ -123,7 +124,7 @@ function SlotCard({
           <p className="inline-flex items-center gap-1 text-xs text-ink-600">
             <MapPin className="h-3.5 w-3.5" />
             {slot.venue_name} · {slot.court_label}
-            {slot.district_name ? ` · ${slot.district_name}` : ""}
+            {slot.country ? ` · ${getCountryName(slot.country, locale)}` : ""}
           </p>
           <p className="inline-flex items-center gap-3 text-xs text-ink-500">
             <span className="inline-flex items-center gap-1">

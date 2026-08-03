@@ -2,11 +2,13 @@ import { MapPin, Award } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import type { ClubListItem } from "@/app/[locale]/clubs/actions";
 import type { JoinPolicy } from "@/lib/clubs/schema";
+import { getCountryName } from "@/lib/geo/countries";
 import { ClubLogo } from "./club-logo";
 import { JoinPolicyBadge } from "./join-policy-badge";
 
 type Props = {
   club: ClubListItem;
+  locale: string;
   labels: {
     members_count: (n: number) => string;
     coaches_count: (n: number) => string;
@@ -25,7 +27,7 @@ type Props = {
  *
  * Designed for a 3-up grid on desktop / 2-up on tablet / 1-up on mobile.
  */
-export function ClubCard({ club, labels }: Props) {
+export function ClubCard({ club, locale, labels }: Props) {
   return (
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,14 +40,12 @@ export function ClubCard({ club, labels }: Props) {
           <h3 className="font-display text-[17px] font-extrabold tracking-[-0.4px] text-ink-900 group-hover:text-grass-700">
             {club.name}
           </h3>
-          {(club.city || club.district_name) && (
-            <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-ink-500">
-              <MapPin className="h-3 w-3" />
-              <span className="truncate">
-                {[club.city, club.district_name].filter(Boolean).join(" · ")}
-              </span>
-            </p>
-          )}
+          <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-ink-500">
+            <MapPin className="h-3 w-3" />
+            <span className="truncate">
+              {[club.city, getCountryName(club.country, locale)].filter(Boolean).join(" · ")}
+            </span>
+          </p>
         </div>
       </div>
 

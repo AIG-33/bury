@@ -44,8 +44,7 @@ export type OwnedClubDetail = {
   description: string | null;
   logo_url: string | null;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
+  country: string;
   join_policy: JoinPolicy;
   hide_owner: boolean;
   invite_token_present: boolean;
@@ -66,7 +65,6 @@ export type ApplicationRow = {
   avatar_url: string | null;
   current_elo: number;
   city: string | null;
-  district_name: string | null;
   is_coach: boolean;
   message: string | null;
   applied_at: string;
@@ -254,7 +252,7 @@ export async function loadOwnedClubDetail(
   const { data: full } = (await supabase
     .from("clubs")
     .select(
-      "id, slug, name, description, logo_url, city, district_id, join_policy, hide_owner, " +
+      "id, slug, name, description, logo_url, city, country, join_policy, hide_owner, " +
         "invite_token_hash, invite_expires_at, pending_owner_id, pending_owner_at, " +
         "owner_id, created_at",
     )
@@ -267,7 +265,7 @@ export async function loadOwnedClubDetail(
       description: string | null;
       logo_url: string | null;
       city: string | null;
-      district_id: string | null;
+      country: string;
       join_policy: JoinPolicy;
       hide_owner: boolean;
       invite_token_hash: string | null;
@@ -279,16 +277,6 @@ export async function loadOwnedClubDetail(
     } | null;
   };
   if (!full) return { ok: false, error: "not_found" };
-
-  let district_name: string | null = null;
-  if (full.district_id) {
-    const { data: d } = (await supabase
-      .from("districts")
-      .select("name")
-      .eq("id", full.district_id)
-      .maybeSingle()) as { data: { name: string } | null };
-    district_name = d?.name ?? null;
-  }
 
   // Resolve owner/pending-owner display names from the public projection.
   const idsToResolve = Array.from(
@@ -330,31 +318,15 @@ export async function loadOwnedClubDetail(
     avatar_url: string | null;
     current_elo: number | null;
     city: string | null;
-    district_id: string | null;
     is_coach: boolean;
   };
   let basicById = new Map<string, Basic>();
   if (memberIds.length > 0) {
     const { data: basics } = (await supabase
       .from("public_player_basic")
-      .select("id, display_name, avatar_url, current_elo, city, district_id, is_coach")
+      .select("id, display_name, avatar_url, current_elo, city, is_coach")
       .in("id", memberIds)) as { data: Basic[] | null };
     basicById = new Map((basics ?? []).map((b) => [b.id, b] as const));
-  }
-  const districtIds = Array.from(
-    new Set(
-      Array.from(basicById.values())
-        .map((b) => b.district_id)
-        .filter((x): x is string => Boolean(x)),
-    ),
-  );
-  const districtNameById = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) districtNameById.set(d.id, d.name);
   }
 
   const pending: ApplicationRow[] = [];
@@ -369,7 +341,6 @@ export async function loadOwnedClubDetail(
         avatar_url: b?.avatar_url ?? null,
         current_elo: b?.current_elo ?? 1000,
         city: b?.city ?? null,
-        district_name: b?.district_id ? (districtNameById.get(b.district_id) ?? null) : null,
         is_coach: b?.is_coach ?? false,
         message: m.message,
         applied_at: m.applied_at,
@@ -398,8 +369,7 @@ export async function loadOwnedClubDetail(
       description: full.description,
       logo_url: full.logo_url,
       city: full.city,
-      district_id: full.district_id,
-      district_name,
+      country: full.country,
       join_policy: full.join_policy,
       hide_owner: full.hide_owner,
       invite_token_present: !!full.invite_token_hash,
@@ -469,7 +439,7 @@ export async function createClub(input: unknown): Promise<SaveResult<{ id: strin
       description: v.description,
       logo_url: v.logo_url,
       city: v.city,
-      district_id: v.district_id,
+      country: v.country,
       join_policy: v.join_policy,
       hide_owner: v.hide_owner,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -529,7 +499,7 @@ export async function updateClub(
       description: v.description,
       logo_url: v.logo_url,
       city: v.city,
-      district_id: v.district_id,
+      country: v.country,
       join_policy: v.join_policy,
       hide_owner: v.hide_owner,
     } as never)

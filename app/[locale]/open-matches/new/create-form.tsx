@@ -12,7 +12,6 @@ import {
 
 type Copy = {
   venue: string;
-  district: string;
   starts_at: string;
   duration: string;
   format: string;
@@ -31,13 +30,11 @@ type Copy = {
   err_not_authenticated: string;
   err_unknown: string;
   any_venue: string;
-  any_district: string;
 };
 
 type Props = {
   locale: string;
   venues: Array<{ id: string; name: string; city: string | null }>;
-  districts: Array<{ id: string; name: string; city: string }>;
   levelOptions: Array<{ id: OpenMatchLevelBand; label: string }>;
   initialVenueId?: string;
   copy: Copy;
@@ -53,21 +50,13 @@ const FIELD_ERR_KEYS: Record<string, keyof Copy> = {
 // hook-form here because the surface is small (8 fields) and our server-action
 // envelope already returns Zod fieldErrors which we map straight to inline
 // messages. If this grows, lift to RHF + zodResolver like /me/profile.
-export function CreateOpenMatchForm({
-  locale,
-  venues,
-  districts,
-  levelOptions,
-  initialVenueId,
-  copy,
-}: Props) {
+export function CreateOpenMatchForm({ locale, venues, levelOptions, initialVenueId, copy }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [topError, setTopError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [venueId, setVenueId] = useState<string>(initialVenueId ?? "");
-  const [districtId, setDistrictId] = useState<string>("");
   const [startsAt, setStartsAt] = useState<string>("");
   const [durationMin, setDurationMin] = useState<number>(90);
   const [format, setFormat] = useState<OpenMatchFormat>("singles");
@@ -88,7 +77,6 @@ export function CreateOpenMatchForm({
     startTransition(async () => {
       const r = await createOpenMatch({
         venue_id: venueId || null,
-        district_id: districtId || null,
         starts_at: startsIso,
         duration_min: durationMin,
         format,
@@ -131,42 +119,19 @@ export function CreateOpenMatchForm({
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-ink-800">{copy.venue}</span>
-          <select
-            className={inputClass}
-            value={venueId}
-            onChange={(e) => setVenueId(e.target.value)}
-          >
-            <option value="">— {copy.any_venue} —</option>
-            {venues.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-                {v.city ? ` · ${v.city}` : ""}
-              </option>
-            ))}
-          </select>
-          {fieldErrors.venue_id && <p className={errorClass}>{fieldErrors.venue_id}</p>}
-        </label>
-
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-ink-800">{copy.district}</span>
-          <select
-            className={inputClass}
-            value={districtId}
-            onChange={(e) => setDistrictId(e.target.value)}
-          >
-            <option value="">—</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.city} · {d.name}
-              </option>
-            ))}
-          </select>
-          {fieldErrors.district_id && <p className={errorClass}>{fieldErrors.district_id}</p>}
-        </label>
-      </div>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-ink-800">{copy.venue}</span>
+        <select className={inputClass} value={venueId} onChange={(e) => setVenueId(e.target.value)}>
+          <option value="">— {copy.any_venue} —</option>
+          {venues.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+              {v.city ? ` · ${v.city}` : ""}
+            </option>
+          ))}
+        </select>
+        {fieldErrors.venue_id && <p className={errorClass}>{fieldErrors.venue_id}</p>}
+      </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">

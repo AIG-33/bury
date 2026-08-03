@@ -13,7 +13,6 @@ import type { JoinPolicy } from "@/lib/clubs/schema";
 type Props = {
   locale: string;
   clubs: OwnedClubRow[];
-  districts: Array<{ id: string; name: string; city: string }>;
   autoOpenCreate: boolean;
   labels: {
     create_cta: string;
@@ -35,7 +34,6 @@ type Props = {
 export function OwnedClubsClient({
   locale,
   clubs,
-  districts,
   autoOpenCreate,
   labels,
 }: Props) {
@@ -66,7 +64,7 @@ export function OwnedClubsClient({
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         initial={null}
-        districts={districts}
+        locale={locale}
         labels={labels.dialog}
         joinPolicyLabels={labels.join_policy_labels}
       />

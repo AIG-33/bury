@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCountryOptions, isValidCountryCode } from "@/lib/geo/countries";
 import { loadOpenMatches } from "./actions";
 import {
   OPEN_MATCH_LEVEL_BANDS,
@@ -31,7 +32,7 @@ import {
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ format?: string; level?: string; venue?: string }>;
+  searchParams: Promise<{ format?: string; level?: string; venue?: string; country?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -58,6 +59,9 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
   const tNav = await getTranslations("nav");
   const tCrumb = await getTranslations("breadcrumbs");
 
+  const rawCountry = sp.country?.trim().toUpperCase() ?? "";
+  const country = isValidCountryCode(rawCountry) ? rawCountry : null;
+
   const filters = {
     format: FORMATS.includes(sp.format as OpenMatchFormat)
       ? (sp.format as OpenMatchFormat)
@@ -66,7 +70,9 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
       ? (sp.level as OpenMatchLevelBand)
       : undefined,
     venue_id: sp.venue,
+    country,
   };
+  const countryOptions = getCountryOptions(locale);
 
   const [{ rows }, supabase] = await Promise.all([
     loadOpenMatches(filters),
@@ -139,7 +145,27 @@ export default async function OpenMatchesPage({ params, searchParams }: Props) {
         </ol>
       </section>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <form method="GET" className="flex flex-wrap items-end gap-2">
+          <label className="text-xs font-medium text-ink-700">
+            <span className="label-eyebrow mb-1 block">{t("filters.country_label")}</span>
+            <select
+              name="country"
+              defaultValue={country ?? ""}
+              className="w-48 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+            >
+              <option value="">{t("filters.any_country")}</option>
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button type="submit" variant="secondary" size="sm">
+            {t("filters.apply")}
+          </Button>
+        </form>
         <span className="text-sm text-ink-500">
           {t("filters.results_count", { count: rows.length })}
         </span>

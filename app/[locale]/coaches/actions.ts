@@ -80,30 +80,30 @@ export async function loadCoachMapPins(): Promise<CoachMapPin[]> {
 export type CoachFilter = {
   /** Restrict to coaches who currently have at least one open slot at this venue. */
   venueId?: string | null;
-  /** Restrict to coaches whose `profiles.district_id` matches OR who have slots in the district. */
-  districtId?: string | null;
+  /** Restrict to coaches who have open slots at venues in this country (ISO alpha-2). */
+  country?: string | null;
 };
 
 export async function loadCoaches(filter: CoachFilter = {}): Promise<CoachListItem[]> {
   const supabase = await createSupabaseServerClient();
 
-  // If venue/district filter is set, first resolve the set of coach ids that
+  // If venue/country filter is set, first resolve the set of coach ids that
   // have open upcoming slots matching the filter. Two-step query keeps the
   // Supabase join syntax simple and works without RLS gymnastics.
   let restrictToIds: string[] | null = null;
-  if (filter.venueId || filter.districtId) {
+  if (filter.venueId || filter.country) {
     let courtIdsQ = supabase.from("courts").select("id, venue_id");
     if (filter.venueId) {
       courtIdsQ = courtIdsQ.eq("venue_id", filter.venueId);
-    } else if (filter.districtId) {
-      // Need venues in this district first.
-      const { data: venuesInDistrict } = (await supabase
+    } else if (filter.country) {
+      // Need venues in this country first.
+      const { data: venuesInCountry } = (await supabase
         .from("venues")
         .select("id")
-        .eq("district_id", filter.districtId)) as {
+        .eq("country", filter.country)) as {
         data: Array<{ id: string }> | null;
       };
-      const venueIds = (venuesInDistrict ?? []).map((v) => v.id);
+      const venueIds = (venuesInCountry ?? []).map((v) => v.id);
       if (venueIds.length === 0) return [];
       courtIdsQ = courtIdsQ.in("venue_id", venueIds);
     }
@@ -141,66 +141,28 @@ export async function loadCoaches(filter: CoachFilter = {}): Promise<CoachListIt
 }
 
 // =============================================================================
-// Venue + district options for filter dropdowns.
+// Venue options for filter dropdowns.
 // =============================================================================
 
 export type VenueOption = {
   id: string;
   name: string;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
 };
 
 export async function loadVenueOptions(): Promise<VenueOption[]> {
   const supabase = await createSupabaseServerClient();
   const { data: venues } = (await supabase
     .from("venues")
-    .select("id, name, city, district_id")
+    .select("id, name, city")
     .order("name", { ascending: true })) as {
     data: Array<{
       id: string;
       name: string;
       city: string | null;
-      district_id: string | null;
     }> | null;
   };
-  const list = venues ?? [];
-  const districtIds = Array.from(
-    new Set(list.map((v) => v.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const districtMap = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as {
-      data: Array<{ id: string; name: string }> | null;
-    };
-    for (const d of ds ?? []) districtMap.set(d.id, d.name);
-  }
-  return list.map((v) => ({
-    id: v.id,
-    name: v.name,
-    city: v.city,
-    district_id: v.district_id,
-    district_name: v.district_id ? (districtMap.get(v.district_id) ?? null) : null,
-  }));
-}
-
-export type DistrictOption = { id: string; name: string; city: string };
-
-export async function loadDistrictOptionsForCoaches(): Promise<DistrictOption[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })
-    .order("name", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  return data ?? [];
+  return venues ?? [];
 }
 
 export type CoachReview = {
@@ -383,7 +345,7 @@ export type CoachUpcomingSlot = {
   venue_name: string;
   venue_id: string;
   city: string | null;
-  district_name: string | null;
+  country: string | null;
   /** True when the current viewer already holds a non-cancelled booking. */
   i_booked: boolean;
 };
@@ -425,7 +387,7 @@ export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpco
   const [{ data: courtsRaw }, { data: bookingsRaw }, mineRes] = await Promise.all([
     supabase
       .from("courts")
-      .select("id, number, name, venues!inner(id, name, city, district_id)")
+      .select("id, number, name, venues!inner(id, name, city, country)")
       .in("id", courtIds) as unknown as Promise<{
       data: Array<{
         id: string;
@@ -436,13 +398,13 @@ export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpco
               id: string;
               name: string;
               city: string | null;
-              district_id: string | null;
+              country: string | null;
             }
           | Array<{
               id: string;
               name: string;
               city: string | null;
-              district_id: string | null;
+              country: string | null;
             }>;
       }> | null;
     }>,
@@ -465,27 +427,6 @@ export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpco
         }),
   ]);
 
-  const districtIds = Array.from(
-    new Set(
-      (courtsRaw ?? [])
-        .map((c) => {
-          const v = Array.isArray(c.venues) ? c.venues[0] : c.venues;
-          return v?.district_id ?? null;
-        })
-        .filter((x): x is string => Boolean(x)),
-    ),
-  );
-  const districtMap = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as {
-      data: Array<{ id: string; name: string }> | null;
-    };
-    for (const d of ds ?? []) districtMap.set(d.id, d.name);
-  }
-
   const courtIndex = new Map<
     string,
     {
@@ -493,7 +434,7 @@ export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpco
       venue_name: string;
       venue_id: string;
       city: string | null;
-      district_id: string | null;
+      country: string | null;
     }
   >();
   for (const c of courtsRaw ?? []) {
@@ -504,7 +445,7 @@ export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpco
       venue_name: v.name,
       venue_id: v.id,
       city: v.city,
-      district_id: v.district_id,
+      country: v.country,
     });
   }
 
@@ -537,7 +478,7 @@ export async function loadCoachUpcomingSlots(coachId: string): Promise<CoachUpco
       venue_name: c.venue_name,
       venue_id: c.venue_id,
       city: c.city,
-      district_name: c.district_id ? (districtMap.get(c.district_id) ?? null) : null,
+      country: c.country,
       i_booked: mineSet.has(s.id),
     });
   }

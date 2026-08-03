@@ -19,8 +19,7 @@ export type VenueDetail = {
   id: string;
   name: string;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
+  country: string;
   address: string | null;
   lat: number | null;
   lng: number | null;
@@ -56,7 +55,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
   const { data: venue } = (await supabase
     .from("venues")
     .select(
-      "id, name, city, district_id, address, lat, lng, indoor_status, amenities, " +
+      "id, name, city, country, address, lat, lng, indoor_status, amenities, " +
         "created_by, website, phone, photos",
     )
     .eq("id", venueId)
@@ -65,7 +64,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
       id: string;
       name: string;
       city: string | null;
-      district_id: string | null;
+      country: string;
       address: string | null;
       lat: number | null;
       lng: number | null;
@@ -80,16 +79,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
 
   if (!venue) return null;
 
-  const [districtName, courts, tournaments, openMatches] = await Promise.all([
-    (async (): Promise<string | null> => {
-      if (!venue.district_id) return null;
-      const { data } = (await supabase
-        .from("districts")
-        .select("name")
-        .eq("id", venue.district_id)
-        .maybeSingle()) as { data: { name: string } | null };
-      return data?.name ?? null;
-    })(),
+  const [courts, tournaments, openMatches] = await Promise.all([
     (async () => {
       const { data } = (await supabase
         .from("courts")
@@ -150,7 +140,7 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
         .select(
           "id, creator_id, creator_name, creator_avatar, creator_elo, creator_elo_status, " +
             "venue_id, venue_name, venue_city, venue_is_indoor, venue_indoor_status, " +
-            "district_id, district_name, " +
+            "district_id, district_name, country, " +
             "starts_at, duration_min, format, level_band, slots_needed, notes, status, created_at, " +
             "pending_applications_count, accepted_applications_count",
         )
@@ -165,7 +155,6 @@ export async function loadVenueDetail(venueId: string): Promise<VenueDetail | nu
 
   return {
     ...venue,
-    district_name: districtName,
     courts,
     tournaments,
     open_matches: openMatches,

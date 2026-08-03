@@ -17,20 +17,6 @@ import { UserVenueFormSchema, type UserVenueCourt } from "@/lib/venues/schema";
 // panel only — this module never touches them.
 // =============================================================================
 
-export type DistrictOption = { id: string; name: string };
-
-export async function loadDistrictOptions(): Promise<DistrictOption[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  return (data ?? []).map((d) => ({ id: d.id, name: `${d.city} · ${d.name}` }));
-}
-
 export type SaveUserVenueResult =
   | { ok: true; id: string }
   | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
@@ -57,7 +43,7 @@ export async function createUserVenue(input: unknown): Promise<SaveUserVenueResu
     .insert({
       name: v.name,
       city: v.city,
-      district_id: v.district_id ?? null,
+      country: v.country,
       address: v.address,
       lat: v.lat,
       lng: v.lng,
@@ -107,7 +93,7 @@ export async function updateUserVenue(input: unknown): Promise<SaveUserVenueResu
     .update({
       name: v.name,
       city: v.city,
-      district_id: v.district_id ?? null,
+      country: v.country,
       address: v.address,
       lat: v.lat,
       lng: v.lng,

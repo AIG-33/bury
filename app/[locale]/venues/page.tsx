@@ -23,6 +23,7 @@ import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { IndoorStatusBadge } from "@/components/venues/indoor-status-badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCountryName, getCountryOptions, isValidCountryCode } from "@/lib/geo/countries";
 import {
   COURT_SURFACES,
   VENUE_INDOOR_STATUSES,
@@ -31,7 +32,10 @@ import {
   type VenueIndoorStatus,
 } from "@/lib/venues/schema";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ country?: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -48,7 +52,7 @@ type VenueRow = {
   id: string;
   name: string;
   city: string | null;
-  district_id: string | null;
+  country: string;
   address: string | null;
   lat: number | null;
   lng: number | null;
@@ -65,10 +69,7 @@ type CourtRow = {
   status: CourtStatus;
 };
 
-type DistrictRow = { id: string; name: string };
-
 type VenueCard = VenueRow & {
-  district_name: string | null;
   courts: CourtRow[];
 };
 
@@ -97,8 +98,8 @@ const SURFACE_DOT: Record<CourtSurface, string> = {
   carpet: "bg-carpet-500",
 };
 
-export default async function VenuesCatalogPage({ params }: Props) {
-  const { locale } = await params;
+export default async function VenuesCatalogPage({ params, searchParams }: Props) {
+  const [{ locale }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
   const t = await getTranslations("venuesCatalog");
   const tNav = await getTranslations("nav");
@@ -109,28 +110,23 @@ export default async function VenuesCatalogPage({ params }: Props) {
 
   const supabase = await createSupabaseServerClient();
 
-  const { data: venuesRaw } = (await supabase
+  const rawCountry = sp.country?.trim().toUpperCase() ?? "";
+  const country = isValidCountryCode(rawCountry) ? rawCountry : null;
+  const countryOptions = getCountryOptions(locale);
+
+  let venuesQuery = supabase
     .from("venues")
-    .select("id, name, city, district_id, address, lat, lng, indoor_status, amenities")
-    .order("name", { ascending: true })) as { data: VenueRow[] | null };
+    .select("id, name, city, country, address, lat, lng, indoor_status, amenities")
+    .order("name", { ascending: true });
+  if (country) venuesQuery = venuesQuery.eq("country", country);
+
+  const { data: venuesRaw } = (await venuesQuery) as { data: VenueRow[] | null };
 
   const indoorStatusLabels = Object.fromEntries(
     VENUE_INDOOR_STATUSES.map((s) => [s, t(s as never)]),
   ) as Record<VenueIndoorStatus, string>;
 
   const venues = venuesRaw ?? [];
-
-  const districtIds = Array.from(
-    new Set(venues.map((v) => v.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const districtMap = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: districts } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: DistrictRow[] | null };
-    for (const d of districts ?? []) districtMap.set(d.id, d.name);
-  }
 
   const venueIds = venues.map((v) => v.id);
   const courtsByVenue = new Map<string, CourtRow[]>();
@@ -149,7 +145,6 @@ export default async function VenuesCatalogPage({ params }: Props) {
 
   const cards: VenueCard[] = venues.map((v) => ({
     ...v,
-    district_name: v.district_id ? (districtMap.get(v.district_id) ?? null) : null,
     courts: courtsByVenue.get(v.id) ?? [],
   }));
 
@@ -203,6 +198,30 @@ export default async function VenuesCatalogPage({ params }: Props) {
         }
       />
 
+      <form method="GET" className="flex flex-wrap items-end gap-2">
+        <label className="text-xs font-medium text-ink-700">
+          <span className="label-eyebrow mb-1 block">{t("filters.country_label")}</span>
+          <select
+            name="country"
+            defaultValue={country ?? ""}
+            className="w-48 rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500"
+          >
+            <option value="">{t("filters.any_country")}</option>
+            {countryOptions.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="submit"
+          className="inline-flex h-9 items-center rounded-[13px] border border-ink-200 px-4 text-xs font-medium text-ink-700 transition hover:bg-ink-50"
+        >
+          {t("filters.apply")}
+        </button>
+      </form>
+
       {cards.length === 0 ? (
         <EmptyState
           title={t("empty_title")}
@@ -233,12 +252,10 @@ export default async function VenuesCatalogPage({ params }: Props) {
                       />
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-600">
-                      {(v.city || v.district_name) && (
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-ink-400" />
-                          {[v.city, v.district_name].filter(Boolean).join(" · ")}
-                        </span>
-                      )}
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-ink-400" />
+                        {[v.city, getCountryName(v.country, locale)].filter(Boolean).join(" · ")}
+                      </span>
                       {v.address && <span className="text-ink-500">{v.address}</span>}
                       {mapsHref && (
                         <a

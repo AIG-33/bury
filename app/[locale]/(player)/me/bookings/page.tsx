@@ -2,10 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { HelpPanel } from "@/components/help/help-panel";
 import { PageHeader } from "@/components/layout/page-header";
-import {
-  loadMyBookings,
-  loadDistrictsForBooking,
-} from "./actions";
+import { loadMyBookings } from "./actions";
 import { BookingsClient, type BookingsCopy } from "./bookings-client";
 import {
   SLOT_TYPES,
@@ -30,10 +27,7 @@ export default async function MyBookingsPage({ params }: Props) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login?next=/me/bookings`);
 
-  const [my, districts] = await Promise.all([
-    loadMyBookings(),
-    loadDistrictsForBooking(),
-  ]);
+  const my = await loadMyBookings();
   if (!my.ok) redirect(`/${locale}/login`);
 
   const slotTypeOptions = Object.fromEntries(
@@ -52,8 +46,8 @@ export default async function MyBookingsPage({ params }: Props) {
       intro: t("search.intro"),
       from: t("search.from"),
       to: t("search.to"),
-      district: t("search.district"),
-      any_district: t("search.any_district"),
+      country: t("search.country"),
+      any_country: t("search.any_country"),
       submit: t("search.submit"),
       searching: t("search.searching"),
       empty_title: t("search.empty_title"),
@@ -102,12 +96,7 @@ export default async function MyBookingsPage({ params }: Props) {
         }
       />
 
-      <BookingsClient
-        copy={copy}
-        districts={districts}
-        upcoming={my.upcoming}
-        past={my.past}
-      />
+      <BookingsClient copy={copy} upcoming={my.upcoming} past={my.past} />
     </div>
   );
 }

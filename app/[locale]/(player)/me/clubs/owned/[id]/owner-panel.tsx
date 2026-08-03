@@ -43,10 +43,9 @@ type Props = {
   club: OwnedClubDetail;
   pending: ApplicationRow[];
   members: MemberRow[];
-  districts: Array<{ id: string; name: string; city: string }>;
 };
 
-export function OwnerPanel({ locale, club, pending, members, districts }: Props) {
+export function OwnerPanel({ locale, club, pending, members }: Props) {
   const t = useTranslations("clubsOwned.detail");
   const tDialog = useTranslations("clubsOwned.dialog");
   const tCommon = useTranslations("clubsCommon");
@@ -67,8 +66,7 @@ export function OwnerPanel({ locale, club, pending, members, districts }: Props)
       description: tDialog("fields.description"),
       description_hint: tDialog("fields.description_hint"),
       city: tDialog("fields.city"),
-      district: tDialog("fields.district"),
-      district_any: tDialog("fields.district_any"),
+      country: tDialog("fields.country"),
       join_policy: tDialog("fields.join_policy"),
       hide_owner: tDialog("fields.hide_owner"),
       hide_owner_hint: tDialog("fields.hide_owner_hint"),
@@ -114,7 +112,7 @@ export function OwnerPanel({ locale, club, pending, members, districts }: Props)
         open={editOpen}
         onClose={() => setEditOpen(false)}
         initial={club}
-        districts={districts}
+        locale={locale}
         labels={dialogLabels}
         joinPolicyLabels={joinPolicyLabels}
       />
@@ -151,11 +149,7 @@ function SettingsHeader({
               </span>
             )}
           </div>
-          {(club.city || club.district_name) && (
-            <p className="text-xs text-ink-500">
-              {[club.city, club.district_name].filter(Boolean).join(" · ")}
-            </p>
-          )}
+          {club.city && <p className="text-xs text-ink-500">{club.city}</p>}
         </div>
         <button
           type="button"
@@ -221,7 +215,6 @@ function ApplicationRowItem({ row }: { row: ApplicationRow }) {
         <p className="text-xs text-ink-500">
           Elo <span className="font-mono tabular-nums text-ink-800">{row.current_elo}</span>
           {row.city && ` · ${row.city}`}
-          {row.district_name && ` · ${row.district_name}`}
         </p>
         {row.message && (
           <p className="mt-1 max-w-prose whitespace-pre-line text-xs text-ink-600">«{row.message}»</p>

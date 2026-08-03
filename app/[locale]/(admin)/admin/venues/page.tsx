@@ -44,7 +44,7 @@ export default async function AdminVenuesPage({ params }: Props) {
     deleting: t("list.deleting"),
     open: t("list.open"),
     indoor_status_labels: indoorStatusLabels,
-    no_district: t("list.no_district"),
+    no_location: t("list.no_location"),
     amenity_labels: amenityLabels,
     dialog: {
       create_title: t("dialog.create_title"),
@@ -52,8 +52,7 @@ export default async function AdminVenuesPage({ params }: Props) {
       fields: {
         name: t("dialog.fields.name"),
         city: t("dialog.fields.city"),
-        district: t("dialog.fields.district"),
-        district_placeholder: t("dialog.fields.district_placeholder"),
+        country: t("dialog.fields.country"),
         address: t("dialog.fields.address"),
         lat: t("dialog.fields.lat"),
         lng: t("dialog.fields.lng"),
@@ -92,12 +91,7 @@ export default async function AdminVenuesPage({ params }: Props) {
         }
       />
 
-      <VenuesClient
-        locale={locale}
-        venues={result.venues}
-        districts={result.districts}
-        copy={copy}
-      />
+      <VenuesClient locale={locale} venues={result.venues} copy={copy} />
     </div>
   );
 }

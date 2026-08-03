@@ -28,6 +28,7 @@ import {
   type MyBookingRow,
 } from "./actions";
 import { whatsappLink } from "@/lib/contact/whatsapp";
+import { getCountryName, getCountryOptions } from "@/lib/geo/countries";
 import type { SlotType } from "@/lib/slots/schema";
 
 export type BookingsCopy = {
@@ -36,8 +37,8 @@ export type BookingsCopy = {
     intro: string;
     from: string;
     to: string;
-    district: string;
-    any_district: string;
+    country: string;
+    any_country: string;
     submit: string;
     searching: string;
     empty_title: string;
@@ -73,21 +74,20 @@ export type BookingsCopy = {
 
 export function BookingsClient({
   copy,
-  districts,
   upcoming,
   past,
 }: {
   copy: BookingsCopy;
-  districts: Array<{ id: string; name: string }>;
   upcoming: MyBookingRow[];
   past: MyBookingRow[];
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const in14days = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
 
+  const countryOptions = useMemo(() => getCountryOptions(copy.locale), [copy.locale]);
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(in14days);
-  const [districtId, setDistrictId] = useState<string>("");
+  const [country, setCountry] = useState<string>("");
   const [results, setResults] = useState<AvailableSlot[] | null>(null);
   const [isSearching, startSearch] = useTransition();
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -100,7 +100,7 @@ export function BookingsClient({
       const r = await searchAvailableSlots({
         fromIso,
         toIso,
-        districtId: districtId || null,
+        country: country || null,
       });
       if (r.ok) setResults(r.slots);
       else setSearchError(r.error);
@@ -158,17 +158,17 @@ export function BookingsClient({
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-ink-700">
-              {copy.search.district}
+              {copy.search.country}
             </label>
             <select
-              value={districtId}
-              onChange={(e) => setDistrictId(e.target.value)}
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
               className={inputCls}
             >
-              <option value="">{copy.search.any_district}</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
+              <option value="">{copy.search.any_country}</option>
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -454,7 +454,7 @@ function SlotMeta({ slot, copy }: { slot: AvailableSlot; copy: BookingsCopy }) {
           <MapPin className="h-3 w-3" />
           {slot.venue_name}
           {slot.court_label ? ` · ${slot.court_label}` : ""}
-          {slot.district_name ? ` · ${slot.district_name}` : ""}
+          {slot.country ? ` · ${getCountryName(slot.country, copy.locale)}` : ""}
         </span>
         <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] uppercase tracking-wider text-ink-700">
           {copy.slot_type_options[slot.slot_type]}

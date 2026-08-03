@@ -246,7 +246,8 @@ export const TABLES: readonly TableDef[] = [
       { key: "name", label: "Name", type: "text", required: true },
       { key: "address", label: "Address", type: "text" },
       { key: "city", label: "City", type: "text" },
-      { key: "district_id", label: "District", type: "uuid" },
+      { key: "country", label: "Country", type: "text" },
+      { key: "district_id", label: "District (legacy)", type: "uuid", hideInList: true },
       { key: "lat", label: "Lat", type: "decimal", hideInList: true },
       { key: "lng", label: "Lng", type: "decimal", hideInList: true },
       {
@@ -354,7 +355,8 @@ export const TABLES: readonly TableDef[] = [
       { key: "description", label: "Description", type: "textarea", hideInList: true },
       { key: "logo_url", label: "Logo URL", type: "text", hideInList: true },
       { key: "city", label: "City", type: "text" },
-      { key: "district_id", label: "District", type: "uuid", hideInList: true },
+      { key: "country", label: "Country", type: "text" },
+      { key: "district_id", label: "District (legacy)", type: "uuid", hideInList: true },
       {
         key: "join_policy",
         label: "Join policy",

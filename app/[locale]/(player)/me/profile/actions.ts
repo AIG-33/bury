@@ -12,6 +12,7 @@ import {
   type SocialLinks,
 } from "@/lib/profile/schema";
 import { mintTelegramLinkToken } from "@/lib/telegram/link-token";
+import { DEFAULT_COUNTRY } from "@/lib/geo/countries";
 
 // =============================================================================
 // Types returned to UI (server → client safe)
@@ -30,10 +31,8 @@ export type ProfileSnapshot = ProfileForm & {
   email: string | null;
 };
 
-export type DistrictOption = { id: string; name: string };
-
 export type LoadResult =
-  | { ok: true; profile: ProfileSnapshot; districts: DistrictOption[] }
+  | { ok: true; profile: ProfileSnapshot }
   | { ok: false; error: "not_authenticated" | "profile_not_found" };
 
 export async function loadMyProfile(): Promise<LoadResult> {
@@ -49,7 +48,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
       "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, " +
         "current_elo_doubles, elo_status_doubles, rated_matches_count_doubles, " +
         "first_name, last_name, date_of_birth, gender, motto, favorite_player, " +
-        "phone, whatsapp, telegram_username, social_links, city, district_id, " +
+        "phone, whatsapp, telegram_username, social_links, city, country, " +
         "dominant_hand, backhand_style, favorite_surface, availability, " +
         "visible_in_find_player, visible_in_leaderboard, notification_email, " +
         "notification_whatsapp, notification_telegram, locale, health_notes, emergency_contact",
@@ -59,20 +58,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
 
   if (!row) return { ok: false, error: "profile_not_found" };
 
-  const { data: districts } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .eq("country", "BY")
-    .order("city", { ascending: true })
-    .order("name", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-
   const locale = (row.locale as "ru" | "en") ?? "ru";
-  const districtOptions: DistrictOption[] = (districts ?? []).map((d) => ({
-    id: d.id,
-    name: `${d.city} · ${d.name}`,
-  }));
 
   const profile: ProfileSnapshot = {
     id: row.id as string,
@@ -105,7 +91,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
     },
 
     city: (row.city as string | null) ?? null,
-    district_id: (row.district_id as string | null) ?? null,
+    country: (row.country as string | null) ?? DEFAULT_COUNTRY,
 
     dominant_hand: (row.dominant_hand as ProfileForm["dominant_hand"]) ?? null,
     backhand_style: (row.backhand_style as ProfileForm["backhand_style"]) ?? null,
@@ -127,7 +113,7 @@ export async function loadMyProfile(): Promise<LoadResult> {
     emergency_contact: (row.emergency_contact as string | null) ?? null,
   };
 
-  return { ok: true, profile, districts: districtOptions };
+  return { ok: true, profile };
 }
 
 // =============================================================================
@@ -211,7 +197,7 @@ export async function updateMyProfile(input: unknown): Promise<SaveResult> {
       telegram_username: v.telegram_username,
       social_links: v.social_links,
       city: v.city,
-      district_id: v.district_id,
+      country: v.country,
       dominant_hand: v.dominant_hand ?? null,
       backhand_style: v.backhand_style ?? null,
       favorite_surface: v.favorite_surface ?? null,

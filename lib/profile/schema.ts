@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CountryCodeSchema } from "@/lib/geo/countries";
 
 // =============================================================================
 // Profile editing schema (Zod). Mirrors `public.profiles` columns the player
@@ -100,8 +101,10 @@ export const ProfileFormSchema = z.object({
   social_links: SocialLinksSchema,
 
   // --- Location ---
+  // District (`district_id`) was dropped from the UI in favour of country;
+  // the DB column stays for historical data but is no longer written.
   city: trimmedNullable,
-  district_id: z.string().uuid().optional().nullable(),
+  country: CountryCodeSchema,
 
   // --- Sport prefs ---
   dominant_hand: z.enum(["R", "L"]).optional().nullable(),

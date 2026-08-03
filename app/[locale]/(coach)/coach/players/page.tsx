@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { Surface, SectionTitle, Chip } from "@/components/ui/surface";
 import { Link } from "@/i18n/routing";
+import { getCountryName } from "@/lib/geo/countries";
 import { InviteForm } from "./invite-form";
 import { loadCoachLeaderboard } from "../leaderboard/actions";
 import { LeaderboardTabs } from "../leaderboard/leaderboard-tabs";
@@ -61,7 +62,7 @@ type PlayerBasicRow = {
   elo_status: "provisional" | "established" | null;
   rated_matches_count: number | null;
   city: string | null;
-  district_name: string | null;
+  country: string | null;
 };
 
 type ClubPlayer = {
@@ -73,7 +74,7 @@ type ClubPlayer = {
   elo_status: "provisional" | "established" | null;
   rated_matches_count: number;
   city: string | null;
-  district_name: string | null;
+  country: string | null;
   invited: boolean;
   booked: boolean;
   bookings_total: number;
@@ -92,7 +93,7 @@ function emptyClubPlayer(id: string, last_activity_at = ""): ClubPlayer {
     elo_status: null,
     rated_matches_count: 0,
     city: null,
-    district_name: null,
+    country: null,
     invited: false,
     booked: false,
     bookings_total: 0,
@@ -170,7 +171,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
       supabase
         .from("public_player_basic")
         .select(
-          "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, city, district_name",
+          "id, display_name, avatar_url, current_elo, elo_status, rated_matches_count, city, country",
         )
         .in("id", ids) as unknown as Promise<{ data: PlayerBasicRow[] | null }>,
       supabase
@@ -206,7 +207,7 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
         cur.elo_status = p.elo_status;
         cur.rated_matches_count = p.rated_matches_count ?? 0;
         cur.city = p.city;
-        cur.district_name = p.district_name;
+        cur.country = p.country;
         cur.external_rating = extByPlayer.get(p.id) ?? null;
       }
     }
@@ -297,10 +298,12 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                           <div className="truncate font-medium text-ink-900">
                             {p.display_name || t("club.unknown_name")}
                           </div>
-                          {(p.city || p.district_name) && (
+                          {(p.city || p.country) && (
                             <div className="inline-flex items-center gap-1 text-[11px] text-ink-500">
                               <MapPin className="h-3 w-3" />
-                              {[p.city, p.district_name].filter(Boolean).join(" · ")}
+                              {[p.city, p.country ? getCountryName(p.country, locale) : null]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </div>
                           )}
                           {p.email && (
@@ -460,10 +463,12 @@ export default async function CoachPlayersPage({ params, searchParams }: Props) 
                               </Chip>
                             )}
                           </p>
-                          {(r.city || r.district_name) && (
+                          {(r.city || r.country) && (
                             <p className="inline-flex items-center gap-1 text-[11px] text-ink-500">
                               <MapPin className="h-3 w-3" />
-                              {[r.city, r.district_name].filter(Boolean).join(" · ")}
+                              {[r.city, r.country ? getCountryName(r.country, locale) : null]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </p>
                           )}
                         </div>

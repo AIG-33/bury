@@ -27,7 +27,7 @@ export type ClubListItem = {
   description: string | null;
   logo_url: string | null;
   city: string | null;
-  district_name: string | null;
+  country: string;
   join_policy: JoinPolicy;
   members_total: number;
   coaches_total: number;
@@ -41,8 +41,7 @@ export type ClubDetail = {
   description: string | null;
   logo_url: string | null;
   city: string | null;
-  district_id: string | null;
-  district_name: string | null;
+  country: string;
   join_policy: JoinPolicy;
   owner_id: string;
   hide_owner: boolean;
@@ -69,7 +68,6 @@ export type ClubVenueRef = {
   id: string;
   name: string;
   city: string | null;
-  district_name: string | null;
 };
 
 export type ClubStats = {
@@ -89,12 +87,6 @@ export type ClubViewerState = {
   is_owner: boolean;
 };
 
-export type DistrictOption = {
-  id: string;
-  name: string;
-  city: string;
-};
-
 type ActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
   | { ok: false; error: string };
@@ -105,26 +97,26 @@ type ActionResult<T = undefined> =
 
 /**
  * Public clubs catalogue. Sorted by top-5 avg Elo (DESC), ties broken by total
- * members (DESC) and creation date (DESC). City / district filters are pre-
+ * members (DESC) and creation date (DESC). City / country filters are pre-
  * applied at the DB level so the page stays fast even with thousands of clubs.
  */
 export async function loadClubs(filter: {
   city?: string | null;
-  districtId?: string | null;
+  country?: string | null;
 }): Promise<ClubListItem[]> {
   const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .from("clubs")
-    .select("id, slug, name, description, logo_url, city, district_id, join_policy, created_at")
+    .select("id, slug, name, description, logo_url, city, country, join_policy, created_at")
     .order("created_at", { ascending: false })
     .limit(500);
 
   if (filter.city) {
     query = query.ilike("city", filter.city);
   }
-  if (filter.districtId) {
-    query = query.eq("district_id", filter.districtId);
+  if (filter.country) {
+    query = query.eq("country", filter.country);
   }
 
   const { data: rows } = (await query) as {
@@ -135,25 +127,13 @@ export async function loadClubs(filter: {
       description: string | null;
       logo_url: string | null;
       city: string | null;
-      district_id: string | null;
+      country: string;
       join_policy: JoinPolicy;
       created_at: string;
     }> | null;
   };
 
   if (!rows || rows.length === 0) return [];
-
-  const districtIds = Array.from(
-    new Set(rows.map((r) => r.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const districtNameById = new Map<string, string>();
-  if (districtIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", districtIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) districtNameById.set(d.id, d.name);
-  }
 
   // Stats: one RPC per club is cheap (it's a single index scan over
   // club_members + a join). For >100 clubs we'd batch via a single SQL,
@@ -190,7 +170,7 @@ export async function loadClubs(filter: {
       description: r.description,
       logo_url: r.logo_url,
       city: r.city,
-      district_name: r.district_id ? (districtNameById.get(r.district_id) ?? null) : null,
+      country: r.country,
       join_policy: r.join_policy,
       members_total: s?.members_total ?? 0,
       coaches_total: s?.coaches_total ?? 0,
@@ -218,18 +198,6 @@ export async function loadCityOptionsForClubs(): Promise<string[]> {
   return Array.from(new Set((data ?? []).map((r) => r.city))).slice(0, 100);
 }
 
-export async function loadDistrictOptionsForClubs(): Promise<DistrictOption[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = (await supabase
-    .from("districts")
-    .select("id, name, city")
-    .order("city", { ascending: true })
-    .order("name", { ascending: true })) as {
-    data: Array<{ id: string; name: string; city: string }> | null;
-  };
-  return data ?? [];
-}
-
 export async function loadClubBySlug(slug: string): Promise<
   | {
       ok: true;
@@ -247,13 +215,12 @@ export async function loadClubBySlug(slug: string): Promise<
   const { data: club } = (await supabase
     .from("clubs")
     .select(
-      "id, slug, name, description, logo_url, city, district_id, join_policy, owner_id, hide_owner, created_at, brand_color, cover_url, page_blocks, branding",
+      "id, slug, name, description, logo_url, city, country, join_policy, owner_id, hide_owner, created_at, brand_color, cover_url, page_blocks, branding",
     )
     .eq("slug", slug)
     .maybeSingle()) as {
     data:
-      | (Omit<ClubDetail, "district_name" | "page_blocks" | "branding"> & {
-          district_id: string | null;
+      | (Omit<ClubDetail, "page_blocks" | "branding"> & {
           page_blocks: unknown;
           branding: unknown;
         })
@@ -261,16 +228,6 @@ export async function loadClubBySlug(slug: string): Promise<
   };
 
   if (!club) return { ok: false, error: "not_found" };
-
-  let district_name: string | null = null;
-  if (club.district_id) {
-    const { data: d } = (await supabase
-      .from("districts")
-      .select("name")
-      .eq("id", club.district_id)
-      .maybeSingle()) as { data: { name: string } | null };
-    district_name = d?.name ?? null;
-  }
 
   // Stats via SECURITY DEFINER RPC.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -359,32 +316,19 @@ export async function loadClubBySlug(slug: string): Promise<
   // Venues attached to the club.
   const { data: vs } = (await supabase
     .from("venues")
-    .select("id, name, city, district_id")
+    .select("id, name, city")
     .eq("club_id", club.id)
     .order("name", { ascending: true })) as {
     data: Array<{
       id: string;
       name: string;
       city: string | null;
-      district_id: string | null;
     }> | null;
   };
-  const venueDistrictIds = Array.from(
-    new Set((vs ?? []).map((v) => v.district_id).filter((x): x is string => Boolean(x))),
-  );
-  const venueDistrictNameById = new Map<string, string>();
-  if (venueDistrictIds.length > 0) {
-    const { data: ds } = (await supabase
-      .from("districts")
-      .select("id, name")
-      .in("id", venueDistrictIds)) as { data: Array<{ id: string; name: string }> | null };
-    for (const d of ds ?? []) venueDistrictNameById.set(d.id, d.name);
-  }
   const venues: ClubVenueRef[] = (vs ?? []).map((v) => ({
     id: v.id,
     name: v.name,
     city: v.city,
-    district_name: v.district_id ? (venueDistrictNameById.get(v.district_id) ?? null) : null,
   }));
 
   // Viewer state.
@@ -426,8 +370,7 @@ export async function loadClubBySlug(slug: string): Promise<
       description: club.description,
       logo_url: club.logo_url,
       city: club.city,
-      district_id: club.district_id,
-      district_name,
+      country: club.country,
       join_policy: club.join_policy,
       owner_id: club.owner_id,
       hide_owner: club.hide_owner,

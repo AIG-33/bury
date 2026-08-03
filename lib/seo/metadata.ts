@@ -133,8 +133,8 @@ export function buildRootMetadata(locale: string): Metadata {
       ? "Find a sparring partner, coach and tennis tournament"
       : "Найди соперника, тренера и турнир по теннису",
     description: isEn
-      ? "Open amateur tennis platform: find a sparring partner by level and district, book a coach, join tournaments or run your own — in minutes."
-      : "Открытая платформа любительского тенниса: находите спарринг-партнёра по уровню и району, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
+      ? "Open amateur tennis platform: find a sparring partner by level and location, book a coach, join tournaments or run your own — in minutes."
+      : "Открытая платформа любительского тенниса: находите спарринг-партнёра по уровню и городу, выбирайте тренера, записывайтесь в турниры или создавайте свой.",
     keywords: isEn
       ? ["PlayTennis", "amateur tennis community"]
       : ["ПлейТеннис", "сообщество любителей тенниса"],

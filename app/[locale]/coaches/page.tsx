@@ -11,7 +11,8 @@ import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadCoaches, loadVenueOptions, loadDistrictOptionsForCoaches } from "./actions";
+import { getCountryOptions, isValidCountryCode } from "@/lib/geo/countries";
+import { loadCoaches, loadVenueOptions } from "./actions";
 import { loadPrimaryClubsForUsers } from "@/lib/clubs/primary";
 import { PrimaryClubBadge } from "@/components/clubs/primary-club-badge";
 import {
@@ -28,7 +29,7 @@ type Props = {
     sort?: string;
     verified?: string;
     venue?: string;
-    district?: string;
+    country?: string;
   }>;
 };
 
@@ -39,13 +40,13 @@ function buildHref(
     sort: string;
     verified: "1" | "0";
     venue: string;
-    district: string;
+    country: string;
   }>,
   current: {
     sort: string;
     verified: boolean;
     venueId: string;
-    districtId: string;
+    country: string;
   },
 ) {
   const sp = new URLSearchParams();
@@ -55,8 +56,8 @@ function buildHref(
   if (verifiedNext) sp.set("verified", "1");
   const venue = next.venue !== undefined ? next.venue : current.venueId;
   if (venue) sp.set("venue", venue);
-  const district = next.district !== undefined ? next.district : current.districtId;
-  if (district) sp.set("district", district);
+  const country = next.country !== undefined ? next.country : current.country;
+  if (country) sp.set("country", country);
   const qs = sp.toString();
   return `/coaches${qs ? `?${qs}` : ""}`;
 }
@@ -85,15 +86,16 @@ export default async function CoachesPage({ params, searchParams }: Props) {
     : "weighted";
   const verifiedOnly = sp.verified === "1";
   const venueId = sp.venue ?? "";
-  const districtId = sp.district ?? "";
+  const rawCountry = sp.country?.trim().toUpperCase() ?? "";
+  const country = isValidCountryCode(rawCountry) ? rawCountry : "";
+  const countryOptions = getCountryOptions(locale);
 
-  const [rawCoaches, venues, districts, sessionUser] = await Promise.all([
+  const [rawCoaches, venues, sessionUser] = await Promise.all([
     loadCoaches({
       venueId: venueId || null,
-      districtId: venueId ? null : districtId || null,
+      country: venueId ? null : country || null,
     }),
     loadVenueOptions(),
-    loadDistrictOptionsForCoaches(),
     (async () => {
       const supabase = await createSupabaseServerClient();
       const {
@@ -124,9 +126,9 @@ export default async function CoachesPage({ params, searchParams }: Props) {
     sort: sortKey,
     verified: verifiedOnly,
     venueId,
-    districtId,
+    country,
   };
-  const hasFilter = Boolean(venueId || districtId || verifiedOnly);
+  const hasFilter = Boolean(venueId || country || verifiedOnly);
 
   return (
     <div className="page-shell space-y-6">
@@ -282,25 +284,25 @@ export default async function CoachesPage({ params, searchParams }: Props) {
               {venues.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
-                  {v.district_name ? ` · ${v.district_name}` : ""}
+                  {v.city ? ` · ${v.city}` : ""}
                 </option>
               ))}
             </select>
           </label>
           <label className="text-xs font-medium text-ink-700">
             <span className="mb-1 block label-eyebrow">
-              {t("controls.district")}
+              {t("controls.country")}
             </span>
             <select
-              name="district"
-              defaultValue={districtId}
+              name="country"
+              defaultValue={country}
               className="w-full rounded-[13px] border border-[rgba(20,60,30,0.12)] bg-[#FBFDF9] px-3 py-2 text-sm focus:border-grass-500 focus:outline-none focus:ring-1 focus:ring-grass-500 disabled:bg-ink-50 disabled:text-ink-400"
               disabled={Boolean(venueId)}
             >
-              <option value="">{t("controls.any_district")}</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.city} · {d.name}
+              <option value="">{t("controls.any_country")}</option>
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
                 </option>
               ))}
             </select>
