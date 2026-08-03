@@ -30,7 +30,10 @@ import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournament
 import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { PlayoffBracketView } from "@/components/domain/playoff-bracket";
-import { formatSetsScore, shortNameOf } from "@/lib/mobile/format";
+import { MatchScoreTiles } from "@/components/domain/match-score";
+import { TournamentPodium, type PodiumPerson } from "@/components/domain/tournament-podium";
+import { computePodium } from "@/lib/tournaments/podium";
+import { shortNameOf } from "@/lib/mobile/format";
 import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { TournamentApplyCta } from "./apply-cta";
 import { TournamentShareButton } from "./share-button";
@@ -106,6 +109,29 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   const theme = buildRoomTheme(tournament.branding);
   const heroTitle = tournament.branding.title_override ?? tournament.name;
   const accent = theme.accentColor;
+
+  // Podium of a finished tournament — computed from the same public match
+  // list the page already renders (final / 3rd-place match / RR standings).
+  const podium =
+    tournament.status === "finished"
+      ? computePodium(
+          tournament.format,
+          matches,
+          active.map((p) => p.id),
+        )
+      : null;
+  const personById = new Map(participants.map((p) => [p.id, p] as const));
+  const podiumPerson = (pid: string | null): PodiumPerson | null => {
+    if (!pid) return null;
+    const p = personById.get(pid);
+    if (p) return { id: pid, name: p.name, avatarUrl: p.avatar_url };
+    const m = matches.find((mm) => mm.p1_id === pid || mm.p2_id === pid);
+    return {
+      id: pid,
+      name: m ? (m.p1_id === pid ? m.p1_name : m.p2_name) : null,
+      avatarUrl: m ? (m.p1_id === pid ? m.p1_avatar : m.p2_avatar) : null,
+    };
+  };
 
   const ctaState = !viewer.authenticated
     ? ("guest" as const)
@@ -254,6 +280,23 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
       </header>
 
       <MContent className="flex-1 pt-4" extraBottom={72}>
+        {/* Podium of a finished tournament — the first thing under the hero. */}
+        {podium && (
+          <TournamentPodium
+            winner={podiumPerson(podium.winner_id)!}
+            runnerUp={podiumPerson(podium.runner_up_id)}
+            third={podiumPerson(podium.third_id)}
+            size="mobile"
+            className="mb-4"
+            labels={{
+              title: t("tournament.results_title"),
+              champion: t("tournament.results_champion"),
+              runner_up: t("tournament.results_runner_up"),
+              third_place: t("tournament.results_third"),
+            }}
+          />
+        )}
+
         {/* Prominent sponsors carousel right under the hero — replaces the old
             tiny logo pills that used to sit inside the hero. */}
         {tournament.branding.sponsors.length > 0 ? (
@@ -671,29 +714,35 @@ function DrawList({
           <MEyebrow className="mb-2">{title}</MEyebrow>
           <div className="space-y-[8px]">
             {list.map((m) => {
-              const score = formatSetsScore(m.sets, true);
+              const hasScore = m.sets != null && m.sets.length > 0;
               return (
                 <div
                   key={m.id}
-                  className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
+                  className="flex items-stretch gap-2 rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)]"
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
                     <DrawPlayerName
                       id={m.p1_id}
                       name={m.p1_name}
                       isWinner={m.winner_id != null && m.winner_id === m.p1_id}
                     />
+                    <div className="mt-0.5">
+                      <DrawPlayerName
+                        id={m.p2_id}
+                        name={m.p2_name}
+                        isWinner={m.winner_id != null && m.winner_id === m.p2_id}
+                      />
+                    </div>
                   </div>
-                  <div className="mt-0.5 flex items-center justify-between gap-2">
-                    <DrawPlayerName
-                      id={m.p2_id}
-                      name={m.p2_name}
-                      isWinner={m.winner_id != null && m.winner_id === m.p2_id}
-                    />
-                    <span className="shrink-0 font-mono text-[13.5px] font-bold tabular-nums text-ink-700">
-                      {score || t("matches.no_score")}
+                  {/* Set tiles: p1 on top / p2 below, the SET winner's digit
+                      is bold on brand green (per-set, not per-match). */}
+                  {hasScore ? (
+                    <MatchScoreTiles sets={m.sets} size="sm" className="self-center" />
+                  ) : (
+                    <span className="self-center font-mono text-[12px] font-bold tabular-nums text-ink-400">
+                      {t("matches.no_score")}
                     </span>
-                  </div>
+                  )}
                 </div>
               );
             })}

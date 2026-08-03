@@ -23,8 +23,10 @@ import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { RatingDisplay } from "@/components/rating/rating-display";
-import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
+import { MatchScorecard } from "@/components/match/match-scorecard";
 import { PlayoffBracketView } from "@/components/domain/playoff-bracket";
+import { TournamentPodium, type PodiumPerson } from "@/components/domain/tournament-podium";
+import { computePodium } from "@/lib/tournaments/podium";
 import { Surface } from "@/components/ui/surface";
 import { initialsOf, shortNameOf } from "@/lib/mobile/format";
 import { loadPublicTournamentDetail, type PublicTournamentRow } from "../actions";
@@ -148,6 +150,29 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
     tournament.venues.length > 0
       ? tournament.venues.map((v) => [v.name, v.city].filter(Boolean).join(" · ")).join("; ")
       : null;
+
+  // Podium of a finished tournament — computed from the same public match
+  // list the page already renders (final / 3rd-place match / RR standings).
+  const podium =
+    tournament.status === "finished"
+      ? computePodium(
+          tournament.format,
+          matches,
+          activeParticipants.map((p) => p.id),
+        )
+      : null;
+  const personById = new Map(participants.map((p) => [p.id, p] as const));
+  const podiumPerson = (pid: string | null): PodiumPerson | null => {
+    if (!pid) return null;
+    const p = personById.get(pid);
+    if (p) return { id: pid, name: p.name, avatarUrl: p.avatar_url };
+    const m = matches.find((mm) => mm.p1_id === pid || mm.p2_id === pid);
+    return {
+      id: pid,
+      name: m ? (m.p1_id === pid ? m.p1_name : m.p2_name) : null,
+      avatarUrl: m ? (m.p1_id === pid ? m.p1_avatar : m.p2_avatar) : null,
+    };
+  };
 
   const heroBackground =
     Object.keys(theme.backgroundStyle).length > 0
@@ -334,6 +359,23 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
       </div>
 
       <div className="page-shell py-8">
+        {/* Podium of a finished tournament — the first thing under the hero. */}
+        {podium && (
+          <TournamentPodium
+            winner={podiumPerson(podium.winner_id)!}
+            runnerUp={podiumPerson(podium.runner_up_id)}
+            third={podiumPerson(podium.third_id)}
+            size="web"
+            className="mb-6"
+            labels={{
+              title: t("detail.results_title"),
+              champion: t("detail.results_champion"),
+              runner_up: t("detail.results_runner_up"),
+              third_place: t("detail.results_third"),
+            }}
+          />
+        )}
+
         {/* Prominent sponsors carousel right under the hero (mockup: dedicated
             section with large clickable logo tiles, scroll-snap when 3+). */}
         {sponsors.length > 0 && (
@@ -970,23 +1012,6 @@ function TournamentMatchesByRound({
             <ul className="grid gap-2 px-3 pb-3 md:grid-cols-2">
               {section.matches.map((m) => {
                 const dateIso = m.played_at ?? m.scheduled_at;
-                const sets: ScorecardSet[][] = (m.sets ?? []).reduce(
-                  (acc: ScorecardSet[][], s) => {
-                    acc[0].push({
-                      my: s.p1,
-                      their: s.p2,
-                      tb: s.tb_p1 ?? null,
-                    });
-                    acc[1].push({
-                      my: s.p2,
-                      their: s.p1,
-                      tb: s.tb_p2 ?? null,
-                    });
-                    return acc;
-                  },
-                  [[], []],
-                );
-
                 return (
                   <MatchScorecard
                     key={m.id}
@@ -1009,13 +1034,13 @@ function TournamentMatchesByRound({
                         )}
                       </>
                     }
+                    sets={m.sets ?? []}
                     p1={{
                       id: m.p1_id,
                       name: m.p1_name,
                       avatarUrl: m.p1_avatar,
                       isCoach: m.p1_is_coach,
                       isWinner: m.winner_id != null && m.winner_id === m.p1_id,
-                      sets: sets[0],
                     }}
                     p2={{
                       id: m.p2_id,
@@ -1023,7 +1048,6 @@ function TournamentMatchesByRound({
                       avatarUrl: m.p2_avatar,
                       isCoach: m.p2_is_coach,
                       isWinner: m.winner_id != null && m.winner_id === m.p2_id,
-                      sets: sets[1],
                     }}
                   />
                 );
