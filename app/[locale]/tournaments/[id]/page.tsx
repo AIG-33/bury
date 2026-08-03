@@ -24,6 +24,7 @@ import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
 import { RatingDisplay } from "@/components/rating/rating-display";
 import { MatchScorecard, type ScorecardSet } from "@/components/match/match-scorecard";
+import { PlayoffBracketView } from "@/components/domain/playoff-bracket";
 import { Surface } from "@/components/ui/surface";
 import { initialsOf, shortNameOf } from "@/lib/mobile/format";
 import { loadPublicTournamentDetail, type PublicTournamentRow } from "../actions";
@@ -83,6 +84,15 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
 
   const { tournament, participants, matches, groups } = detail;
   const hasGroups = groups.length > 0;
+
+  // Elimination tree for the visual bracket: hybrid playoff (+ 3rd-place
+  // match) or a legacy single-elimination tournament (stage is null there).
+  const eliminationMatches = matches.filter(
+    (m) =>
+      m.stage === "playoff" ||
+      m.stage === "third_place" ||
+      (m.stage == null && tournament.format === "single_elimination" && m.round != null),
+  );
 
   const applyCopy: ApplyButtonCopy = {
     title: t("detail.apply.title"),
@@ -484,6 +494,29 @@ export default async function PublicTournamentDetailPage({ params }: Props) {
                     </div>
                   ))}
                 </div>
+              </Surface>
+            )}
+
+            {/* Playoff bracket — visual tree of the elimination stage: stage
+                columns side by side, winners highlighted, TBD placeholders. */}
+            {eliminationMatches.length > 0 && (
+              <Surface variant="card" as="section">
+                <h2 className="section-title mb-4 text-[18px] md:text-[20px]">
+                  {t("detail.bracket_title")}
+                </h2>
+                <PlayoffBracketView
+                  matches={eliminationMatches}
+                  size="web"
+                  labels={{
+                    stage_final: t("detail.stage_final"),
+                    stage_semifinal: t("detail.stage_semifinal"),
+                    stage_quarterfinal: t("detail.stage_quarterfinal"),
+                    stage_round: (n: number) => t("detail.stage_round", { n }),
+                    stage_third_place: t("detail.stage_third_place"),
+                    tbd: t("detail.bracket_tbd"),
+                    bye: t("detail.bracket_bye"),
+                  }}
+                />
               </Surface>
             )}
 

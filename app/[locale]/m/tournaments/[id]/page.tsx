@@ -29,6 +29,7 @@ import {
 import { loadTournamentViewerState } from "@/app/[locale]/(player)/me/tournaments/actions";
 import { buildRoomTheme } from "@/lib/tournaments/branding";
 import { SponsorsCarousel } from "@/components/domain/SponsorsCarousel";
+import { PlayoffBracketView } from "@/components/domain/playoff-bracket";
 import { formatSetsScore, shortNameOf } from "@/lib/mobile/format";
 import { getMobilePlayLabels, getMobileTabLabels } from "@/app/[locale]/m/tab-labels";
 import { TournamentApplyCta } from "./apply-cta";
@@ -61,6 +62,24 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
   const { tournament, participants, matches, groups } = detail;
   const hasGroups = groups.length > 0;
   const tab = sp.tab === "draw" ? "draw" : sp.tab === "info" ? "info" : "players";
+
+  // Elimination tree for the visual bracket: hybrid playoff (+ 3rd-place
+  // match) or a legacy single-elimination tournament (stage is null there).
+  const eliminationMatches = matches.filter(
+    (m) =>
+      m.stage === "playoff" ||
+      m.stage === "third_place" ||
+      (m.stage == null && tournament.format === "single_elimination" && m.round != null),
+  );
+  const bracketLabels = {
+    stage_final: t("tournament.stage_final"),
+    stage_semifinal: t("tournament.stage_semifinal"),
+    stage_quarterfinal: t("tournament.stage_quarterfinal"),
+    stage_round: (n: number) => t("tournament.round_label", { round: n }),
+    stage_third_place: t("tournament.stage_third_place"),
+    tbd: t("tournament.bracket_tbd"),
+    bye: t("tournament.bracket_bye"),
+  };
 
   const dateFmt = new Intl.DateTimeFormat(locale, {
     weekday: "short",
@@ -107,6 +126,16 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
     Object.keys(theme.backgroundStyle).length > 0
       ? theme.backgroundStyle
       : { background: "linear-gradient(150deg,#12331F 0%,#1C6B40 55%,#2A9556 100%)" };
+
+  const bracketBlock =
+    eliminationMatches.length > 0 ? (
+      <div className="rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white p-3 shadow-[0_1px_2px_rgba(20,60,30,0.04)]">
+        <p className="mb-2 text-[11.5px] font-extrabold uppercase tracking-wide text-grass-700">
+          {t("tournament.bracket_title")}
+        </p>
+        <PlayoffBracketView matches={eliminationMatches} labels={bracketLabels} size="mobile" />
+      </div>
+    ) : null;
 
   const playersList = active.map((p, i) => (
     <div
@@ -330,6 +359,7 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
                   {groups.map((g) => (
                     <GroupCard key={g.id} group={g} t={t} />
                   ))}
+                  {bracketBlock}
                   <details className="group/mplist">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-[14px] border border-[rgba(20,60,30,0.06)] bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(20,60,30,0.04)] [&::-webkit-details-marker]:hidden">
                       <span className="text-[13.5px] font-bold text-ink-900">
@@ -350,7 +380,10 @@ export default async function MobileTournamentDetailPage({ params, searchParams 
                   body={t("tournament.no_players_body")}
                 />
               ) : (
-                playersList
+                <>
+                  {bracketBlock}
+                  {playersList}
+                </>
               )}
               {freeSlots && freeSlots > 0 ? (
                 <div className="rounded-[14px] border border-dashed border-[rgba(20,60,30,0.18)] px-3 py-3 text-center text-[12.5px] font-bold text-[#8AA093]">
