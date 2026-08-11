@@ -21,6 +21,8 @@ const PROTECTED_PATHS = [
   "clubs/join/",
   // Internal developer reference page.
   "help-demo",
+  // Mobile app shell (Capacitor WebView) — duplicates public content.
+  "m/",
 ];
 
 export default function robots(): MetadataRoute.Robots {
@@ -30,6 +32,10 @@ export default function robots(): MetadataRoute.Robots {
   const disallow = [
     "/api/",
     ...PROTECTED_PATHS.flatMap((p) => [`/*/${p}`, `/${p}`]),
+    // Bare mobile-shell landing (`/ru/m`) — `$` anchors the match so public
+    // pages like `/ru/matches` stay crawlable.
+    "/*/m$",
+    "/m$",
   ];
 
   return {

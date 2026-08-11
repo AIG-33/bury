@@ -77,34 +77,56 @@ export async function loadSitemapEntries(): Promise<SitemapEntry[]> {
           .limit(1000),
       ]);
 
+    type DatedPath = { path: string; lastModified: Date };
+
+    const toDate = (value: string | null | undefined): Date =>
+      value ? new Date(value) : now;
+
     const pushPaths = (
-      paths: string[],
+      paths: DatedPath[],
       priority: number,
       changeFrequency: SitemapEntry["changeFrequency"],
-      lastModified = now,
     ) => {
-      for (const path of paths) {
+      for (const { path, lastModified } of paths) {
         for (const locale of LOCALES) {
           entries.push({ url: localeUrl(locale, path), lastModified, changeFrequency, priority });
         }
       }
     };
 
-    type IdRow = { id: string };
-    type SlugRow = { slug: string };
+    type IdRow = { id: string; updated_at?: string | null };
+    type SlugRow = { slug: string; updated_at?: string | null };
+    type PlayerRow = { id: string; last_match_at: string | null };
 
-    const tournamentPaths = ((tournamentsRes.data ?? []) as IdRow[]).map(
-      (r) => `/tournaments/${r.id}`,
-    );
-    const venuePaths = ((venuesRes.data ?? []) as IdRow[]).map((r) => `/venues/${r.id}`);
+    const tournamentPaths = ((tournamentsRes.data ?? []) as IdRow[]).map((r) => ({
+      path: `/tournaments/${r.id}`,
+      lastModified: toDate(r.updated_at),
+    }));
+    const venuePaths = ((venuesRes.data ?? []) as IdRow[]).map((r) => ({
+      path: `/venues/${r.id}`,
+      lastModified: toDate(r.updated_at),
+    }));
     const clubRows = (clubsRes.data ?? []) as SlugRow[];
-    const clubPaths = clubRows.map((r) => `/clubs/${r.slug}`);
-    const clubRatingPaths = clubRows.map((r) => `/clubs/${r.slug}/rating`);
-    const coachPaths = ((coachesRes.data ?? []) as IdRow[]).map((r) => `/coaches/${r.id}`);
-    const openMatchPaths = ((openMatchesRes.data ?? []) as IdRow[]).map(
-      (r) => `/open-matches/${r.id}`,
-    );
-    const playerPaths = ((playersRes.data ?? []) as IdRow[]).map((r) => `/players/${r.id}`);
+    const clubPaths = clubRows.map((r) => ({
+      path: `/clubs/${r.slug}`,
+      lastModified: toDate(r.updated_at),
+    }));
+    const clubRatingPaths = clubRows.map((r) => ({
+      path: `/clubs/${r.slug}/rating`,
+      lastModified: toDate(r.updated_at),
+    }));
+    const coachPaths = ((coachesRes.data ?? []) as IdRow[]).map((r) => ({
+      path: `/coaches/${r.id}`,
+      lastModified: now,
+    }));
+    const openMatchPaths = ((openMatchesRes.data ?? []) as IdRow[]).map((r) => ({
+      path: `/open-matches/${r.id}`,
+      lastModified: toDate(r.updated_at),
+    }));
+    const playerPaths = ((playersRes.data ?? []) as PlayerRow[]).map((r) => ({
+      path: `/players/${r.id}`,
+      lastModified: toDate(r.last_match_at),
+    }));
 
     pushPaths(tournamentPaths, 0.75, "weekly");
     pushPaths(venuePaths, 0.7, "monthly");
