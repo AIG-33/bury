@@ -109,3 +109,17 @@ If a term is non-obvious — wrap it in `<HelpTooltip term="K-фактор" />` 
 - Re-read [docs/AI_BUILD_PLAN.md](docs/AI_BUILD_PLAN.md) for the current iteration's acceptance criteria.
 - If the user changes scope mid-iteration, update the relevant doc BEFORE writing code.
 - Ask the user 1–2 sharp questions instead of guessing on architectural choices.
+
+## Cursor Cloud specific instructions
+
+Single web product (Next.js dev server + local Supabase). Standard commands live in `package.json` (`dev`, `lint`, `test`, `typecheck`, `build`) and the README "Quick start". The update script only runs `npm install`; everything below is startup/run context that is NOT automated.
+
+Local Supabase runs on Docker and is the one hard dependency. Non-obvious caveats:
+
+- **Docker daemon is not auto-started.** Start it before Supabase, e.g. `sudo dockerd` in a background tmux session, then `sudo chmod 666 /var/run/docker.sock` so the `ubuntu` user can reach it. Docker uses the `fuse-overlayfs` storage driver here.
+- **`npx supabase start` fails unless the OAuth env vars referenced by `supabase/config.toml` are set.** Export placeholders in the shell that runs the CLI (the CLI reads the shell env, NOT `.env.local`): `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`, `SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_APPLE_SECRET` (any non-empty value works; real OAuth is not needed for local dev).
+- After `npx supabase start`, apply schema + seed with `npx supabase db reset` (57 migrations + `seed.sql`).
+- **`.env.local` is gitignored** and must exist for the app. For local dev point it at the local stack: `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` plus the anon/service keys printed by `npx supabase start` (they are the fixed local demo keys, identical on every run).
+- Ports: app `3000`, Supabase API `54321`, Postgres `54322`, Studio `54323`, Inbucket (email catcher) `54324`.
+- **Email confirmations are disabled locally** (`config.toml [auth.email] enable_confirmations = false`), so email+password signup logs the user in immediately and routes into the onboarding quiz — no magic-link step needed. When a link IS needed (password reset), read it from Inbucket at `http://localhost:54324`. `RESEND_API_KEY` is optional; without it emails fall back to `console.warn`.
+- `npm run lint` currently reports pre-existing ESLint errors/warnings unrelated to environment setup; a clean checkout is not lint-clean.
